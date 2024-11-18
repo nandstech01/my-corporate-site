@@ -52,22 +52,100 @@ body {
 /* 追加するスタイル */
 .menu-enter {
   transform: translateX(100%);
-  opacity: 0;
 }
 
 .menu-enter-active {
   transform: translateX(0);
-  opacity: 1;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .menu-exit {
   transform: translateX(0);
-  opacity: 1;
 }
 
 .menu-exit-active {
   transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+/* ハンバーガーアイコンのアニメーション */
+.hamburger-icon {
+  width: 24px;
+  height: 18px;
+  position: relative;
+  cursor: pointer;
+}
+
+.hamburger-icon .line {
+  width: 100%;
+  height: 2px;
+  background-color: #000;
+  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.hamburger-icon .line:nth-child(1) {
+  top: 0;
+}
+
+.hamburger-icon .line:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hamburger-icon .line:nth-child(3) {
+  bottom: 0;
+}
+
+/* ハンバーガーアイコンが開いているときのスタイル */
+.hamburger-icon.open .line:nth-child(1) {
+  transform: rotate(45deg);
+  top: 50%;
+}
+
+.hamburger-icon.open .line:nth-child(2) {
   opacity: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.hamburger-icon.open .line:nth-child(3) {
+  transform: rotate(-45deg);
+  bottom: 40%;
+}
+
+/* メニューのアニメーション */
+.menu-enter .menu-content {
+  transform: translateX(100%);
+}
+
+.menu-enter-active .menu-content {
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-exit .menu-content {
+  transform: translateX(0);
+}
+
+.menu-exit-active .menu-content {
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* オーバーレイのアニメーション */
+.menu-enter {
+  opacity: 0;
+}
+
+.menu-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.menu-exit {
+  opacity: 1;
+}
+
+.menu-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }

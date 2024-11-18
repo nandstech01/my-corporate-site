@@ -38,7 +38,7 @@ function MentorIntroduction() {
   <span className="block">AIリテラシー研修</span>
 </div>
 
-              <h3 className="text-2xl font-bold mb-1">植村健一</h3>
+              <h3 className="text-2xl font-bold mb-1">K,U</h3>
 
               <p className="text-gray-600 mb-4">(デジタルマーケティング戦略)</p>
 

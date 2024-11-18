@@ -1,19 +1,35 @@
-// src/components/ui/Input.tsx
-
 import React from 'react';
-import { Input as ChakraInput, FormControl, FormLabel, InputProps as ChakraInputProps } from '@chakra-ui/react';
 
-interface InputProps extends ChakraInputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  error?: string;
 }
 
-const Input: React.FC<InputProps> = ({ label, ...props }) => {
+const Input: React.FC<InputProps> = ({ label, error, className = '', ...props }) => {
   return (
-    <FormControl>
-      {label && <FormLabel>{label}</FormLabel>}
-      <ChakraInput {...props} />
-    </FormControl>
+    <div className="w-full">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      <input
+        className={`
+          w-full px-4 py-2 border rounded-md shadow-sm
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+          disabled:bg-gray-100 disabled:cursor-not-allowed
+          ${error ? 'border-red-500' : 'border-gray-300'}
+          ${className}
+        `}
+        {...props}
+      />
+      {error && (
+        <p className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
   );
 };
 
-export default Input;
+export default Input; 
