@@ -38,9 +38,9 @@ export default function RefinedCourseDates() {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      12/7
+                      12/15
                     </motion.span>
-                    <span className="text-lg ml-1">(月)</span>
+                    <span className="text-lg ml-1">(火)</span>
                   </div>
                   <div className="h-8 w-px bg-white opacity-30" />
                   <div className="flex flex-col">

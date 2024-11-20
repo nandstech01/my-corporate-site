@@ -23,7 +23,7 @@ function MentorIntroduction() {
 
                 src="/placeholder.svg?height=200&width=200"
 
-                alt="植村健一"
+                alt="K,H"
 
                 width={200}
 
