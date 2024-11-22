@@ -13,11 +13,10 @@ interface BenefitCardProps {
 const BenefitCard: React.FC<BenefitCardProps> = ({ number, title, subtitle, icon }) => {
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-2 flex items-center justify-center"> {/* p-4 を p-2 に変更 */}
-  {icon}
-  <span className="text-white font-bold text-lg ml-2">特典{number}</span>
-</div>
-
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-2 flex items-center justify-center">
+        {icon}
+        <span className="text-white font-bold text-lg ml-2">特典{number}</span>
+      </div>
       <div className="p-4 bg-gradient-to-b from-blue-100 to-white text-center">
         <p className="text-sm sm:text-base font-bold text-gray-800 mb-2">{title}</p>
         <p className="text-xs sm:text-sm text-gray-600">{subtitle}</p>
@@ -28,7 +27,7 @@ const BenefitCard: React.FC<BenefitCardProps> = ({ number, title, subtitle, icon
 
 export default function SeminarBenefits() {
   const benefits = [
-    { title: "無料退職相談", subtitle: "経験豊富なキャリアコンサルタン���が丁寧にサポート", icon: <Users size={24} color="white" /> },
+    { title: "無料退職相談", subtitle: "経験豊富なキャリアコンサルタンが丁寧にサポート", icon: <Users size={24} color="white" /> },
     { title: "無料転職相談", subtitle: "AI業界への転職をプロがバックアップ", icon: <Compass size={24} color="white" /> },
     { title: "プロンプトテンプレ50選", subtitle: "即実践できるプロンプト集", icon: <Star size={24} color="white" /> },
     { title: "ChatGTP大全集", subtitle: "ChatGTP基礎知識構築・業務効率化", icon: <Target size={24} color="white" /> },
@@ -37,7 +36,7 @@ export default function SeminarBenefits() {
     { title: "AI業界人脈構築セミナー", subtitle: "キャリアを加速させる人脈作りのコツ", icon: <Users size={24} color="white" /> },
     { title: "AI給与交渉マスター講座", subtitle: "適正評価を勝ち取るテクニックを学ぶ", icon: <Zap size={24} color="white" /> },
     { title: "AI起業家育成プログラム", subtitle: "AI技術を活用した起業ノウハウを公開", icon: <Lightbulb size={24} color="white" /> },
-    { title: "AI倫理と社会影響��講座", subtitle: "持続可能なAI活用のための知識を習得", icon: <Rocket size={24} color="white" /> }
+    { title: "AI倫理と社会影響講座", subtitle: "持続可能なAI活用のための知識を習得", icon: <Rocket size={24} color="white" /> }
   ]
 
   return (

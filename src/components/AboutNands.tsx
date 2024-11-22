@@ -13,7 +13,7 @@ const AboutNands = () => {
             NANDS,  <br />
             NEXT SOLUTIONS
           </h3>
-          <p className="text-xl mb-6 text-black dark:text-white" style={{ fontWeight: 'bold' }}>"次のステージへ"</p>
+          <p className="text-xl mb-6 text-black" style={{ fontWeight: 'bold' }}>"次のステージへ"</p>
           <p className="mb-4">
             全ての働く人たちに、次のステージへを合言葉に
           </p>

@@ -1,0 +1,12 @@
+# *はすべてのクローラーに対するルール
+User-agent: *
+# すべてのページへのアクセスを許可
+Allow: /
+
+# サイトマップの場所を指定
+Sitemap: https://nands.tech/sitemap.xml
+
+# 必要に応じて特定のディレクトリやファイルを除外
+Disallow: /api/
+Disallow: /_next/
+Disallow: /*.json$ 
