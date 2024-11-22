@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'あなたのGoogle Search Console確認コード',
+    google: 'IO9fU_SSYnQy3hee-8zcGtWVbDMsopot5fU2kLBhw3k',
   },
   category: 'キャリア支援',
   formatDetection: {
@@ -77,6 +77,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
+      <head />
       <body>
         <Header />
         {children}
