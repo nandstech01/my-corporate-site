@@ -63,6 +63,36 @@ const CourseList = () => {
       price: "¥199,000",
       duration: "8週間",
     },
+    {
+      title: (
+        <div className="text-center space-y-2">
+          <span>副業コース</span>
+          <br />
+          <span>SEOライティング</span>
+          <br />
+          <span>スペシャリスト</span>
+        </div>
+      ),
+      description: "ChatGPTを活用した効率的なEOライティング",
+      features: [
+        "ChatGPTを使った記事作成テクニック",
+        "SEOに最適化された文章構成",
+        "クライアント獲得と単価設定戦略",
+      ],
+      price: (
+        <div className="space-y-2">
+          <div className="text-3xl font-bold">¥128,000</div>
+          <div className="text-sm text-blue-600 font-semibold">
+            または
+            <br />
+            年間プラン ¥12,800/月
+            <br />
+            <span className="text-xs text-gray-600">（12ヶ月一括 ¥153,600）</span>
+          </div>
+        </div>
+      ),
+      duration: "",
+    },
   ];
 
   return (
