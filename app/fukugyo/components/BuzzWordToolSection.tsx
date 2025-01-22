@@ -58,7 +58,7 @@ export default function BuzzWordToolSection() {
             「BuzzWord」は、<span className="font-bold text-cyan-300">高精度スクレイピング</span>と
             <span className="font-bold text-cyan-300">AI連携</span>を融合させた、エヌアンドエス独自の最先端ツールです。
             <br />
-            類似ツール「パスカル」を参考に、より直感的でスピーディーな作業を実現。
+            直感的でスピーディーな作業を実現！！
             <br />
             副業やSEO施策、ネットビジネスで<span className="font-bold text-cyan-300">最短ルート</span>を切り拓きます。
           </p>
