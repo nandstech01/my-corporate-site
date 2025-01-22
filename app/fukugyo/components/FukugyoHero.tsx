@@ -77,9 +77,66 @@ export default function FukugyoHero() {
         </animated.div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-          <button className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-            無料セミナーに申し込む
-          </button>
+          <a className="neon-button group">
+            <span className="relative z-10">
+              無料セミナーに申し込む
+              <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </span>
+          </a>
+          <style jsx>{`
+            .neon-button {
+              display: inline-block;
+              position: relative;
+              padding: 1.5rem 4rem;
+              color: #fff;
+              text-decoration: none;
+              font-size: 1.5rem;
+              font-weight: bold;
+              border-radius: 50px;
+              background: linear-gradient(
+                90deg,
+                rgba(59, 130, 246, 0.9) 0%,
+                rgba(6, 182, 212, 0.9) 50%,
+                rgba(59, 130, 246, 0.9) 100%
+              );
+              box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
+                0 0 30px rgba(6, 182, 212, 0.5),
+                0 0 60px rgba(59, 130, 246, 0.4);
+              transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+              animation: neonPulse 3s infinite alternate;
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              backdrop-filter: blur(10px);
+              cursor: pointer;
+            }
+
+            .neon-button:hover {
+              transform: scale(1.05) translateY(-5px);
+              box-shadow: 0 0 25px rgba(59, 130, 246, 0.8),
+                0 0 50px rgba(6, 182, 212, 0.7),
+                0 0 100px rgba(59, 130, 246, 0.6);
+              background: linear-gradient(
+                90deg,
+                rgba(59, 130, 246, 1) 0%,
+                rgba(6, 182, 212, 1) 50%,
+                rgba(59, 130, 246, 1) 100%
+              );
+            }
+
+            @keyframes neonPulse {
+              0% {
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
+                  0 0 30px rgba(6, 182, 212, 0.5),
+                  0 0 60px rgba(59, 130, 246, 0.4);
+              }
+              100% {
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
+                  0 0 40px rgba(6, 182, 212, 0.7),
+                  0 0 80px rgba(59, 130, 246, 0.6);
+              }
+            }
+          `}</style>
           <div className="text-blue-200">
             ※オンライン受講可能 / 顔出し不要<br />
             少人数制で丁寧にサポート

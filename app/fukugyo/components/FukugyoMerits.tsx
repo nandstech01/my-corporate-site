@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated, config } from '@react-spring/web';
 
 export default function FukugyoMerits() {
   const [isClient, setIsClient] = useState(false);
@@ -19,113 +19,53 @@ export default function FukugyoMerits() {
     },
   });
 
-  const cardAnimations = [
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 0,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 1,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 2,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 3,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 4,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-    useSpring({
-      from: { opacity: 0, transform: 'translateY(40px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-      delay: 200 * 5,
-      config: {
-        tension: 120,
-        friction: 14,
-      },
-    }),
-  ];
-
   const merits = [
     {
-      title: 'AIを活用した高単価スキル',
-      description: 'ChatGPTやその他のAIツールを駆使して、時給1万円以上の案件を獲得できるスキルを習得できます。実践的な事例とともに、具体的な案件獲得までの手順を学べます。',
-      highlight: '時給1万円以上も可能',
+      title: "AIを活用した高単価スキル",
+      description: "時給1万円以上も可能な、AI時代に求められる高単価スキルを習得できます。",
+      highlight: "時給1万円以上も可能"
     },
     {
-      title: '時間効率の最大化',
-      description: '通常3時間かかる作業を30分で完了させる方法など、AIを活用した具体的な時間短縮テクニックを習得。限られた時間で最大の成果を出すための戦略を学べます。',
-      highlight: '作業時間を1/6に短縮',
+      title: "時間効率の最大化",
+      description: "AIツールを活用することで、作業時間を大幅に削減。効率的な副業を実現します。",
+      highlight: "作業時間を1/6に短縮"
     },
     {
-      title: '実践的なノウハウ',
-      description: '実際に月収100万円を達成している受講生の事例を基に、案件の見つけ方、単価交渉、継続的な収入確保まで、成功に必要な具体的なステップを提供します。',
-      highlight: '具体的な成功事例あり',
+      title: "実践的なノウハウ",
+      description: "実際に成果を出している講師陣から、具体的な手法とコツを学べます。",
+      highlight: "即実践可能な具体的手法"
     },
     {
-      title: '最新AIツールの活用法',
-      description: 'ChatGPT-4、Midjourney、Claude等の最新AIツールを使いこなし、クライアントに価値を提供する方法を学べます。実際の業務で使える実践的なプロンプトも提供。',
-      highlight: '最新AIツールを網羅',
+      title: "最新AIツールの活用法",
+      description: "常に最新のAIツールを取り入れ、効率的な作業フローを構築できます。",
+      highlight: "最新技術を常にキャッチアップ"
     },
     {
-      title: 'キャリアアップ戦略',
-      description: 'AI時代に求められる人材になるためのロードマップを提供。副業から専業、さらにはAIコンサルタントとしてのキャリア構築まで、段階的な成長戦略を学べます。',
-      highlight: '明確なキャリアパス',
+      title: "キャリアアップ戦略",
+      description: "AI時代のキャリア戦略を学び、収入アップと本業でのスキルアップを実現。",
+      highlight: "収入とスキル両方の向上"
     },
     {
-      title: '継続的なサポート',
-      description: 'セミナー受講後も、専用のコミュニティで質問や相談が可能。先輩受講生との交流や、最新のAI活用事例の共有など、継続的な学習環境を提供します。',
-      highlight: '手厚いアフターフォロー',
-    },
+      title: "継続的なサポート",
+      description: "卒業後も、コミュニティでの情報共有や質問対応で、継続的にサポート。",
+      highlight: "手厚いアフターフォロー"
+    }
   ];
 
-  const numberAnimations = merits.map((_, index) => 
+  const cardAnimations = merits.map((_, index) => 
     useSpring({
       from: { 
-        opacity: 0,
-        transform: 'scale(0.3) rotate(-45deg) translateX(-100px)',
-        filter: 'blur(20px)'
+        opacity: 0, 
+        transform: 'scale(0.8) translateY(50px)',
+        filter: 'blur(10px)'
       },
       to: { 
-        opacity: 0.15,
-        transform: 'scale(1.2) rotate(0deg) translateX(0)',
+        opacity: 1, 
+        transform: 'scale(1) translateY(0px)',
         filter: 'blur(0px)'
       },
-      delay: 300 * index,
-      config: {
-        tension: 100,
-        friction: 20,
-      },
+      delay: 200 * index,
+      config: config.gentle,
     })
   );
 
@@ -134,22 +74,35 @@ export default function FukugyoMerits() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
-      {/* 装飾的な背景要素 */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-full h-full bg-[url('/images/grid.svg')] opacity-5"></div>
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-blue-100 rounded-full filter blur-[100px] opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-cyan-50 rounded-full filter blur-[120px] opacity-30 animate-pulse"></div>
+    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-950">
+      {/* Decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+      
+      {/* Floating particles */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-400 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${5 + Math.random() * 5}s`
+            }}
+          />
+        ))}
       </div>
 
-      <animated.div style={fadeIn} className="relative max-w-6xl mx-auto px-4">
+      <animated.div style={fadeIn} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-200 bg-clip-text text-transparent mb-6">
             セミナーで得られる6つのメリット
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            AI時代の新しいキャリアを確実に手に入れるための具体的なメリットをご紹介
-          </p>
+          <div className="w-40 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 mx-auto rounded-full mb-8" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -157,45 +110,172 @@ export default function FukugyoMerits() {
             <animated.div
               key={index}
               style={cardAnimations[index]}
-              className="group relative bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group relative"
             >
-              {/* 背景の大きな数字 */}
-              <animated.div
-                style={numberAnimations[index]}
-                className="absolute -top-10 -left-6 text-[300px] font-black text-blue-600 leading-none pointer-events-none select-none bg-gradient-to-br from-blue-600 to-cyan-400 bg-clip-text text-transparent"
-              >
-                {index + 1}
-              </animated.div>
-
-              {/* グラデーションボーダー */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 opacity-75 blur-[2px] -m-[2px]"></div>
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 p-[1px] -m-[1px]">
-                <div className="absolute inset-0 rounded-xl bg-white"></div>
-              </div>
-
-              <div className="relative">
-                {/* 小さな数字バッジ */}
-                <div className="absolute -top-2 -left-2 w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                  {index + 1}
+              {/* Card background with gradient border */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-700" />
+              
+              <div className="relative bg-gray-900/40 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl group-hover:shadow-cyan-500/20 transition-all duration-500">
+                {/* Number badge */}
+                <div className="absolute -top-4 -left-4 w-16 h-16">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative w-full h-full bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center">
+                    <span className="text-2xl font-black text-white">{(index + 1).toString().padStart(2, '0')}</span>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg px-4 py-2 mb-4 inline-block ml-6">
-                  <span className="text-blue-600 font-semibold">{merit.highlight}</span>
+
+                {/* Highlight tag */}
+                <div className="ml-10 mb-4">
+                  <span className="inline-block px-3 py-1 text-sm bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full text-cyan-300">
+                    {merit.highlight}
+                  </span>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-900">{merit.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{merit.description}</p>
+
+                {/* Content */}
+                <h3 className="text-xl font-bold text-white mb-4 ml-10">
+                  {merit.title}
+                </h3>
+                <p className="text-white/80 leading-relaxed">
+                  {merit.description}
+                </p>
+
+                {/* Hover effect overlay */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 via-cyan-400/0 to-blue-500/0 opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
               </div>
             </animated.div>
           ))}
         </div>
 
-        <div className="text-center mt-16">
-          <div className="inline-block bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 p-[1px] rounded-2xl">
-            <div className="bg-white px-8 py-6 rounded-2xl">
-              <p className="text-xl text-gray-800">
-                これらのメリットは、<span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">多くの受講生が実証済み</span>。<br />
-                あなたも今すぐAI時代の新しいキャリアをスタートできます。
+        {/* Super Fancy Button Section */}
+        <div className="mt-20 relative">
+          {/* Decorative light beams */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] animate-spin-slow">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute top-1/2 left-1/2 h-full origin-bottom"
+                  style={{
+                    transform: `rotate(${i * 30}deg)`,
+                  }}
+                >
+                  <div className="w-px h-1/2 bg-gradient-to-t from-transparent via-cyan-500/30 to-transparent" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Button container with animations */}
+          <div className="relative text-center">
+            <style jsx>{`
+              .neon-button {
+                display: inline-block;
+                position: relative;
+                padding: 1.5rem 4rem;
+                color: #fff;
+                text-decoration: none;
+                font-size: 1.5rem;
+                font-weight: bold;
+                border-radius: 50px;
+                background: linear-gradient(
+                  90deg,
+                  rgba(59, 130, 246, 0.9) 0%,
+                  rgba(6, 182, 212, 0.9) 50%,
+                  rgba(59, 130, 246, 0.9) 100%
+                );
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
+                  0 0 30px rgba(6, 182, 212, 0.5),
+                  0 0 60px rgba(59, 130, 246, 0.4);
+                transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                animation: neonPulse 3s infinite alternate;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+              }
+
+              .neon-button:hover {
+                transform: scale(1.05) translateY(-5px);
+                box-shadow: 0 0 25px rgba(59, 130, 246, 0.8),
+                  0 0 50px rgba(6, 182, 212, 0.7),
+                  0 0 100px rgba(59, 130, 246, 0.6);
+                background: linear-gradient(
+                  90deg,
+                  rgba(59, 130, 246, 1) 0%,
+                  rgba(6, 182, 212, 1) 50%,
+                  rgba(59, 130, 246, 1) 100%
+                );
+              }
+
+              .neon-button::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: 50px;
+                padding: 2px;
+                background: linear-gradient(
+                  90deg,
+                  #3b82f6,
+                  #06b6d4,
+                  #3b82f6
+                );
+                -webkit-mask: 
+                  linear-gradient(#fff 0 0) content-box, 
+                  linear-gradient(#fff 0 0);
+                mask: 
+                  linear-gradient(#fff 0 0) content-box, 
+                  linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0.7;
+                animation: borderRotate 4s linear infinite;
+              }
+
+              @keyframes neonPulse {
+                0% {
+                  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
+                    0 0 30px rgba(6, 182, 212, 0.5),
+                    0 0 60px rgba(59, 130, 246, 0.4);
+                }
+                100% {
+                  box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
+                    0 0 40px rgba(6, 182, 212, 0.7),
+                    0 0 80px rgba(59, 130, 246, 0.6);
+                }
+              }
+
+              @keyframes borderRotate {
+                from {
+                  transform: rotate(0deg);
+                }
+                to {
+                  transform: rotate(360deg);
+                }
+              }
+            `}</style>
+
+            <div className="mb-8">
+              <p className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-200 font-medium">
+                まずは無料セミナーに参加して、<br />
+                AI副業の可能性を体験してみませんか？
               </p>
             </div>
+
+            <a
+              href="https://line.me/xxxx"
+              className="neon-button group"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="relative z-10">
+                無料セミナーに申し込む
+                <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </span>
+            </a>
+
+            <p className="mt-6 text-blue-200/80 text-sm">
+              ※ 参加特典として、AI活用の基礎講座（通常価格5,000円）を無料プレゼント
+            </p>
           </div>
         </div>
       </animated.div>

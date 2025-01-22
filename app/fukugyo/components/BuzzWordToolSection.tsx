@@ -47,20 +47,20 @@ export default function BuzzWordToolSection() {
         <div className="text-center mb-12">
           <div className="inline-block mb-6 relative">
             <span className="absolute inset-0 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 blur-xl opacity-30 animate-pulse" />
-            <h2 className="relative text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-300">
+            <h2 className="relative text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white">
               株式会社エヌアンドエス独自開発
               <br />
               <span className="text-yellow-300">「BuzzWord」</span> で効率UP
             </h2>
           </div>
 
-          <p className="text-lg text-white/80 max-w-3xl mx-auto leading-relaxed">
-            「BuzzWord」は、<span className="font-bold text-cyan-300">高精度スクレイピング</span>と
-            <span className="font-bold text-cyan-300">AI連携</span>を融合させた、エヌアンドエス独自の最先端ツールです。
+          <p className="text-lg text-white/90 max-w-3xl mx-auto leading-relaxed">
+            「BuzzWord」は、<span className="font-bold text-cyan-200">高精度スクレイピング</span>と
+            <span className="font-bold text-cyan-200">AI連携</span>を融合させた、エヌアンドエス独自の最先端ツールです。
             <br />
             直感的でスピーディーな作業を実現！！
             <br />
-            副業やSEO施策、ネットビジネスで<span className="font-bold text-cyan-300">最短ルート</span>を切り拓きます。
+            副業やSEO施策、ネットビジネスで<span className="font-bold text-cyan-200">最短ルート</span>を切り拓きます。
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export default function BuzzWordToolSection() {
           {/* 1. 高精度スクレイピング */}
           <animated.div style={cardAnimations[0]} className="group relative">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-md opacity-20 group-hover:opacity-30 transition-opacity" />
-            <div className="relative bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
+            <div className="relative bg-gray-900/70 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
               <div className="absolute -top-3 -left-3 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
                 01
               </div>
@@ -76,13 +76,13 @@ export default function BuzzWordToolSection() {
                 高精度スクレイピング
               </h3>
               <p className="text-white/90 mb-2">
-                <span className="font-bold text-cyan-300">BUZZ WORDエンジン</span>がWeb上のテキストや数値情報を
+                <span className="font-bold text-cyan-200">BUZZ WORDエンジン</span>がWeb上のテキストや数値情報を
                 自動解析。欲しい情報をピンポイントでリスト化し、ミスや漏れを
                 最小限に抑えます。
               </p>
-              <p className="text-sm text-white/80">
+              <p className="text-sm text-white/90">
                 ネットビジネスや副業で重要となる市場調査・競合分析を
-                <span className="font-bold text-cyan-300">圧倒的スピード</span>で実現。
+                <span className="font-bold text-cyan-200">圧倒的スピード</span>で実現。
               </p>
             </div>
           </animated.div>
@@ -90,7 +90,7 @@ export default function BuzzWordToolSection() {
           {/* 2. AIと連動した自動要約 / トレンド分析 */}
           <animated.div style={cardAnimations[1]} className="group relative">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-md opacity-20 group-hover:opacity-30 transition-opacity" />
-            <div className="relative bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
+            <div className="relative bg-gray-900/70 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
               <div className="absolute -top-3 -left-3 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
                 02
               </div>
@@ -99,12 +99,12 @@ export default function BuzzWordToolSection() {
               </h3>
               <p className="text-white/90 mb-2">
                 収集した膨大なデータをAIが要約し、即座に
-                <span className="font-bold text-cyan-300">「使える情報」</span>へ変換。トレンドを見逃さず、コンテンツ作成や商品企画に
+                <span className="font-bold text-cyan-200">「使える情報」</span>へ変換。トレンドを見逃さず、コンテンツ作成や商品企画に
                 活かせます。
               </p>
-              <p className="text-sm text-white/80">
+              <p className="text-sm text-white/90">
                 今が"熱い"キーワードやテーマを逃さないから、
-                <span className="font-bold text-cyan-300">投稿のクリック率やCVR</span>も向上！
+                <span className="font-bold text-cyan-200">投稿のクリック率やCVR</span>も向上！
               </p>
             </div>
           </animated.div>
@@ -112,7 +112,7 @@ export default function BuzzWordToolSection() {
           {/* 3. ノーコードUIで使いやすい */}
           <animated.div style={cardAnimations[2]} className="group relative">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-md opacity-20 group-hover:opacity-30 transition-opacity" />
-            <div className="relative bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
+            <div className="relative bg-gray-900/70 backdrop-blur-sm rounded-xl p-6 border border-white/10 shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
               <div className="absolute -top-3 -left-3 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
                 03
               </div>
@@ -124,8 +124,8 @@ export default function BuzzWordToolSection() {
                 <br />
                 わからない時は、専任スタッフがサポートします。
               </p>
-              <p className="text-sm text-white/80">
-                受講生の90%以上が、<span className="font-bold text-cyan-300">30分以内</span>に基本操作をマスターしています。
+              <p className="text-sm text-white/90">
+                受講生の90%以上が、<span className="font-bold text-cyan-200">30分以内</span>に基本操作をマスターしています。
               </p>
             </div>
           </animated.div>
