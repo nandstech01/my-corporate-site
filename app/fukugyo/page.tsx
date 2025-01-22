@@ -7,6 +7,8 @@ import FukugyoProblems from './components/FukugyoProblems';
 import FukugyoMerits from './components/FukugyoMerits';
 import FukugyoFlow from './components/FukugyoFlow';
 import ContactForm from '@/components/common/ContactForm';
+import BuzzWordSuccessSection from './components/BuzzWordSuccessSection';
+import BuzzWordToolSection from './components/BuzzWordToolSection';
 
 export default function FukugyoPage() {
   const [isClient, setIsClient] = useState(false);
@@ -35,6 +37,8 @@ export default function FukugyoPage() {
         <FukugyoProblems />
         <FukugyoMerits />
         <FukugyoFlow />
+        <BuzzWordToolSection />
+        <BuzzWordSuccessSection />
         <ContactForm />
       </div>
     </animated.div>
