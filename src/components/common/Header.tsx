@@ -10,13 +10,13 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
         <div className="flex items-center">
-          <Link href="/" className="hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center">
             <Image
               src="/images/logo.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-              className="h-8 w-auto"
+              alt="N&S Logo"
+              width={120}
+              height={40}
+              style={{ width: 'auto', height: 'auto' }}
               priority
             />
           </Link>
@@ -26,6 +26,7 @@ export default function Header() {
           {[
             { href: '/', label: 'ホーム' },
             { href: '/services', label: 'サービス' },
+            { href: '/seo-support', label: 'SEO支援' },
             { href: '/about', label: '会社概要' },
             { href: '/contact', label: 'お問い合わせ' }
           ].map(({ href, label }) => (

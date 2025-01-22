@@ -1,0 +1,17 @@
+{
+  "name": "SEO支援サービス",
+  "short_name": "SEO支援",
+  "description": "助成金活用SEO支援サービス",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+} 
