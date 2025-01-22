@@ -5,11 +5,39 @@ import CardHeader from '@/components/common/CardHeader';
 import CardTitle from '@/components/common/CardTitle';
 import CardFooter from '@/components/common/CardFooter';
 import CheckCircle from '@/components/common/CheckCircle';
+import Link from 'next/link';
 
 import React from 'react';
 
 const CourseList = () => {
   const courses = [
+    {
+      title: (
+        <div className="text-center space-y-2">
+          <span>SEO支援サービス</span>
+          <br />
+          <span>助成金活用プラン</span>
+        </div>
+      ),
+      description: "費用の80%が補助される特別支援制度",
+      features: [
+        "最新のSEO戦略導入支援",
+        "専門家による伴走サポート",
+        "助成金申請のサポート",
+      ],
+      price: (
+        <div className="space-y-2">
+          <div className="text-3xl font-bold">実質負担20%</div>
+          <div className="text-sm text-blue-600 font-semibold">
+            100万円の施策が
+            <br />
+            実質20万円で実施可能
+          </div>
+        </div>
+      ),
+      duration: "令和8年度末まで",
+      link: "/seo-support",
+    },
     {
       title: (
         <div className="text-center space-y-2">
@@ -119,7 +147,17 @@ const CourseList = () => {
               <CardFooter className="flex flex-col items-center space-y-4">
                 <div className="text-3xl font-bold mt-6">{course.price}</div>
                 <div className="text-sm text-muted-foreground">{course.duration}</div>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">申し込む</Button>
+                {course.link ? (
+                  <Link href={course.link} className="w-full">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      詳細を見る
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    申し込む
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           ))}
