@@ -120,6 +120,7 @@ const CourseList = () => {
         </div>
       ),
       duration: "",
+      link: "/fukugyo",
     },
   ];
 
