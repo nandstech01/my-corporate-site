@@ -201,7 +201,7 @@ export default function ContactSection() {
           {/* ボタン */}
           <motion.button
             type="submit"
-            className="relative overflow-hidden px-12 py-5 font-bold text-white
+            className="relative overflow-hidden px-12 py-5 font-bold text-white mx-auto block
                        bg-gradient-to-r from-indigo-800 via-indigo-600 to-indigo-500
                        hover:from-indigo-900 hover:via-indigo-700 hover:to-indigo-600
                        transition-all duration-300"
