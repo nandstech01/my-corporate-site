@@ -22,7 +22,7 @@ export default function Header() {
           </Link>
         </div>
 
-        <nav className="hidden lg:flex space-x-4">
+        <nav className="hidden lg:flex space-x-4 items-center">
           {[
             { href: '/', label: 'ホーム' },
             { href: '/services', label: 'サービス' },
@@ -38,6 +38,12 @@ export default function Header() {
               {label}
             </Link>
           ))}
+          <Link
+            href="/corporate"
+            className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            法人様
+          </Link>
         </nav>
 
         <div className="lg:hidden">
