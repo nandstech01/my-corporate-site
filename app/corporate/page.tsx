@@ -17,6 +17,7 @@ export default function CorporatePage() {
   return (
     <main>
       <HeroSection />
+      <NewsSection />
       <ServicesSection />
       <FeatureSection />
       <CaseStudiesSection />

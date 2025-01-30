@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useTrail, animated } from '@react-spring/web';
+import React, { useEffect, useState } from 'react';
+import { useTrail, animated, useSpringRef } from '@react-spring/web';
 import {
   LightBulbIcon,
   CodeBracketIcon,
@@ -16,6 +16,12 @@ type ServiceData = {
 };
 
 export default function ServicesSection() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // サービスデータをコンポーネント内で定義
   const services: ServiceData[] = React.useMemo(() => [
     {
@@ -60,15 +66,22 @@ export default function ServicesSection() {
     },
   ], []); // 依存配列を空にして再レンダリングを防ぐ
 
-  const trails = useTrail(services.length, {
-    from: { opacity: 0, y: 20 },
-    to: { opacity: 1, y: 0 },
-    config: {
-      mass: 1,
-      tension: 170,
-      friction: 26
-    },
+  // アニメーション設定
+  const springRef = useSpringRef();
+  const trail = useTrail(services.length, {
+    ref: springRef,
+    from: { opacity: 0, transform: 'translateY(20px)' },
+    to: { opacity: 1, transform: 'translateY(0)' },
+    config: { tension: 120, friction: 14 },
   });
+
+  useEffect(() => {
+    if (isClient) {
+      springRef.start();
+    }
+  }, [isClient]);
+
+  if (!isClient) return null;
 
   return (
     <section className="relative bg-gradient-to-b from-white to-gray-50 pt-20 pb-20 overflow-hidden">
@@ -80,17 +93,14 @@ export default function ServicesSection() {
 
         {/* サービス一覧カード */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {trails.map((style, index) => {
+          {trail.map((style, index) => {
             const service = services[index];
             if (!service) return null;
 
             return (
               <animated.div
                 key={service.title}
-                style={{
-                  ...style,
-                  transform: style.y.to(y => `translateY(${y}px)`)
-                }}
+                style={style}
                 className="bg-white p-6 rounded-xl shadow hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="flex flex-col items-start">

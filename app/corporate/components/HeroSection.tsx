@@ -84,9 +84,10 @@ export default function HeroSection() {
         className="relative z-10 max-w-4xl mx-auto px-4 py-16 text-center"
       >
         <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+          <span className="block text-blue-300 mb-4 md:mb-6">NANDS</span>
           法人向け AI導入支援
         </h1>
-        <p className="text-lg md:text-xl text-blue-100 mb-8">
+        <p className="text-lg md:text-xl text-blue-100 mb-12 md:mb-16">
           生成AIとChatGPT、AIエージェントを活用し、
           <br className="hidden md:block" />
           ビジネスの課題を包括的に解決。
