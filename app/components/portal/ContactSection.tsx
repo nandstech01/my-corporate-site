@@ -79,18 +79,42 @@ export default function ContactSection() {
     tap: { scale: 0.97, transition: { duration: 0.2 } },
   };
 
-  // フォーム送信 (仮)
-  const handleSubmit = (e: React.FormEvent) => {
+  // フォーム送信
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ここでAPI呼び出しやバリデーションなどを行う
-    alert(`送信内容：
-    お名前: ${name}
-    Email: ${email}
-    お問い合わせ: ${message}`);
-    // リセット（任意）
-    setName("");
-    setEmail("");
-    setMessage("");
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const formData = {
+        name,
+        email,
+        message
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // CORS対策
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // フォームをリセット
+      setName("");
+      setEmail("");
+      setMessage("");
+
+      // 成功メッセージを表示
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
   };
 
   return (
