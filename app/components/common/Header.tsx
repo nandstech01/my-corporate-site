@@ -76,22 +76,30 @@ export default function Header() {
           {/* ハンバーガーメニュー */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`relative z-[110] focus:outline-none ${isTopPage ? 'text-white' : 'text-gray-800'}`}
+            className={`relative z-[99999] focus:outline-none ${isTopPage ? 'text-white' : 'text-gray-800'} ${
+              isOpen && 'text-gray-800'
+            }`}
             aria-label="メニュー"
           >
             <motion.div className="w-8 h-8 flex flex-col justify-center items-center">
               <motion.span
-                className={`block w-6 h-0.5 ${isTopPage ? 'bg-white' : 'bg-gray-800'} absolute`}
+                className={`block w-6 h-0.5 absolute ${
+                  isOpen ? 'bg-gray-800' : isTopPage ? 'bg-white' : 'bg-gray-800'
+                }`}
                 animate={isOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               />
               <motion.span
-                className={`block w-6 h-0.5 ${isTopPage ? 'bg-white' : 'bg-gray-800'} absolute`}
+                className={`block w-6 h-0.5 absolute ${
+                  isOpen ? 'bg-gray-800' : isTopPage ? 'bg-white' : 'bg-gray-800'
+                }`}
                 animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
                 transition={{ duration: 0.3 }}
               />
               <motion.span
-                className={`block w-6 h-0.5 ${isTopPage ? 'bg-white' : 'bg-gray-800'} absolute`}
+                className={`block w-6 h-0.5 absolute ${
+                  isOpen ? 'bg-gray-800' : isTopPage ? 'bg-white' : 'bg-gray-800'
+                }`}
                 animate={isOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 8 }}
                 transition={{ duration: 0.3 }}
               />
@@ -192,11 +200,16 @@ export default function Header() {
             <AnimatePresence>
               {isOpen && (
                 <motion.div
-                  className="fixed inset-0 z-[100] bg-white"
+                  className="fixed inset-0 z-[9999]"
                   initial={{ opacity: 0, x: "100%" }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: "100%" }}
                   transition={{ type: "tween", duration: 0.3 }}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 0 0 100vmax rgba(255, 255, 255, 1)',
+                    clipPath: 'inset(0 -100vmax)',
+                  }}
                 >
                   <div className="container mx-auto px-4 pt-24">
                     <nav className="space-y-6">
