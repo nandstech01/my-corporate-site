@@ -191,7 +191,12 @@ export default function FukugyoFlow() {
             </span>
           </p>
 
-          <a className="neon-button group">
+          <a
+            href="https://lin.ee/gUyPhHa"
+            className="neon-button group"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span className="relative z-10 flex items-center">
               無料セミナーに申し込む
               <svg

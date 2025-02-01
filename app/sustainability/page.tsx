@@ -303,10 +303,10 @@ export default function SustainabilityPage() {
         {/* --- ビジョンセクション --- */}
         <motion.section className="mb-16" variants={itemVariants}>
           <h2 className="text-2xl font-bold mb-6">
-            N&Sのサステナビリティビジョン
+            NANDSのサステナビリティビジョン
           </h2>
           <p className="text-lg leading-relaxed mb-4">
-            N&Sは、AI技術と人材育成を通じて、持続可能な社会の実現に貢献します。
+            NANDSは、AI技術と人材育成を通じて、持続可能な社会の実現に貢献します。
             私たちは、すべての人がテクノロジーの恩恵を受けられる公平な社会を目指し、
             以下の3つの柱を軸に活動を展開しています。
           </p>

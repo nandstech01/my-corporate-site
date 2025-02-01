@@ -128,7 +128,7 @@ export default function AboutSection() {
           className="text-3xl md:text-4xl font-bold mb-16 text-center"
           variants={textVariants}
         >
-          N&Sについて
+          NANDSについて
         </motion.h2>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">

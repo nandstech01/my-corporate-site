@@ -258,7 +258,7 @@ export default function ServicesSection() {
           variants={textVariants}
           transition={{ delay: 0.2 }}
         >
-          N&Sでは、AI時代を見据えた多角的なサービスをワンストップでご提供しています。
+          NANDSでは、AI時代を見据えた多角的なサービスをワンストップでご提供しています。
           <br />
           それぞれの領域で新たな可能性を切り拓き、あなたの未来を支えます。
         </motion.p>

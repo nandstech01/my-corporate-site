@@ -142,7 +142,7 @@ export default function SustainabilitySection() {
           variants={textVariants}
           transition={{ delay: 0.1 }}
         >
-          N&Sでは、AI技術と人材育成を通じて社会課題解決を目指しています。
+          NANDSでは、AI技術と人材育成を通じて社会課題解決を目指しています。
           多様な人々が活躍できる環境を創出し、持続可能な未来を共に築きます。
         </motion.p>
 

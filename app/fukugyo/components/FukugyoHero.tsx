@@ -77,7 +77,7 @@ export default function FukugyoHero() {
         </animated.div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-          <a className="neon-button group">
+          <a href="https://lin.ee/gUyPhHa" target="_blank" rel="noopener noreferrer" className="neon-button group">
             <span className="relative z-10">
               無料セミナーに申し込む
               <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">

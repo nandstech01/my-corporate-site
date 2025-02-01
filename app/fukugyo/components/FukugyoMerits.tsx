@@ -260,7 +260,7 @@ export default function FukugyoMerits() {
             </div>
 
             <a
-              href="https://line.me/xxxx"
+              href="https://lin.ee/gUyPhHa"
               className="neon-button group"
               target="_blank"
               rel="noopener noreferrer"
