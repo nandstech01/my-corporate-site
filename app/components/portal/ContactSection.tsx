@@ -119,6 +119,7 @@ export default function ContactSection() {
 
   return (
     <section
+      id="contact-section"
       ref={sectionRef}
       className="relative py-16 bg-indigo-50 text-gray-800 overflow-hidden"
     >

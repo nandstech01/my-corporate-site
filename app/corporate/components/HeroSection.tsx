@@ -11,6 +11,14 @@ export default function HeroSection() {
     setIsClient(true);
   }, []);
 
+  // スクロール処理の追加
+  const scrollToContact = () => {
+    const contactSection = document.querySelector('#contact-section');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   // アニメーション用のref
   const contentRef = useSpringRef();
   const bgRef = useSpringRef();
@@ -94,6 +102,7 @@ export default function HeroSection() {
         </p>
 
         <button
+          onClick={scrollToContact}
           className="relative bg-blue-600 text-white py-3 px-8 rounded-full text-lg font-semibold hover:bg-blue-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg mb-8 md:mb-12"
         >
           無料相談はこちら
