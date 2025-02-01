@@ -211,11 +211,44 @@ export default function Header() {
                     clipPath: 'inset(0 -100vmax)',
                   }}
                 >
-                  <div className="container mx-auto px-4 pt-24">
-                    <nav className="space-y-6">
+                  <div className="container mx-auto px-4">
+                    {/* ヘッダー部分 */}
+                    <div className="flex items-center justify-between h-20 border-b border-gray-200">
+                      <div className="flex items-center space-x-8">
+                        {/* ロゴ */}
+                        <Link href="/" onClick={() => setIsOpen(false)}>
+                          <Image
+                            src="/images/logo.svg"
+                            alt="N&S Logo"
+                            width={120}
+                            height={40}
+                            className="w-auto h-8"
+                          />
+                        </Link>
+                        {/* ボタン */}
+                        <div className="flex space-x-4">
+                          <Link
+                            href="/reskilling"
+                            onClick={() => setIsOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 transition-all shadow-md hover:shadow-lg"
+                          >
+                            個人様
+                          </Link>
+                          <Link
+                            href="/corporate"
+                            onClick={() => setIsOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 transition-all shadow-md hover:shadow-lg"
+                          >
+                            法人様
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                    {/* メインナビゲーション */}
+                    <nav className="space-y-6 pt-4">
                       <div className="space-y-4">
                         {[
-                          ['個人様リスキリング', '/reskilling-personal'],
+                          ['個人様リスキリング', '/reskilling'],
                           ['法人様リスキリング', '/corporate'],
                           ['AI副業', '/fukugyo'],
                           ['サステナビリティ', '/sustainability'],
