@@ -3,7 +3,7 @@
 import React from "react";
 import HeroSection from './components/HeroSection';
 import LogosSection from './components/LogosSection';
-import NewsSection from './components/NewsSection';
+// import NewsSection from './components/NewsSection';
 import ServicesSection from './components/ServicesSection';
 import CaseStudiesSection from './components/CaseStudiesSection';
 import FeatureSection from './components/FeatureSection';
@@ -15,7 +15,7 @@ export default function CorporatePage() {
   return (
     <main className="min-h-screen">
       <HeroSection />
-      <NewsSection />
+      {/* <NewsSection /> */}
       <ServicesSection />
       <FeatureSection />
       <CaseStudiesSection />
