@@ -1,6 +1,10 @@
-import { Metadata } from 'next';
-import '@/styles/globals.css';
-import Header from '@/components/common/Header';
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from "next/font/google";
+import Header from './components/common/Header';
+import Footer from '../src/components/common/Footer';
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nands.tech'),
@@ -77,10 +81,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <head />
-      <body>
+      <body className={inter.className}>
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );

@@ -65,9 +65,12 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 text-white font-sans">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">NANDS 生成AIリスキリング研修</h2>
+          <h2 className="text-2xl font-bold mb-4">NANDS AIソリューション</h2>
           <nav className="space-y-2">
             <FooterItem label="TOP" href="/" />
+            <FooterItem label="副業支援" href="/fukugyo" />
+            <FooterItem label="法人向けAI導入" href="/corporate" />
+            <FooterItem label="リスキリング" href="/reskilling" />
             <FooterItem label="プロンプトエンジニアリング">
               <FooterItem label="基礎コース" href="#contact-form" />
               <FooterItem label="応用コース" href="#contact-form" />
@@ -75,7 +78,6 @@ const Footer: React.FC = () => {
             </FooterItem>
             <FooterItem label="無料相談" href="https://lin.ee/LRj3T2V" isExternal={true} />
             <FooterItem label="コース申し込み" href="#contact-form" />
-            <FooterItem label="法人研修" href="/corporate" />
             <FooterItem label="よくある質問" href="/faq" />
           </nav>
         </div>
