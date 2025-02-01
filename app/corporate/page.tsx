@@ -1,4 +1,6 @@
-import type { Metadata } from 'next';
+"use client";
+
+import React from "react";
 import HeroSection from './components/HeroSection';
 import LogosSection from './components/LogosSection';
 import NewsSection from './components/NewsSection';
@@ -7,15 +9,11 @@ import CaseStudiesSection from './components/CaseStudiesSection';
 import FeatureSection from './components/FeatureSection';
 import FlowSection from './components/FlowSection';
 import FaqSection from './components/FaqSection';
-
-export const metadata: Metadata = {
-  title: 'NANDS - AI活用支援サービス',
-  description: 'AIエージェントとエンジニアコンサルタントによる二重サポート。企業のAI活用を包括的に支援します。',
-};
+import ContactSection from "../components/portal/ContactSection";
 
 export default function CorporatePage() {
   return (
-    <main>
+    <main className="min-h-screen">
       <HeroSection />
       <NewsSection />
       <ServicesSection />
@@ -23,6 +21,7 @@ export default function CorporatePage() {
       <CaseStudiesSection />
       <FlowSection />
       <FaqSection />
+      <ContactSection />
     </main>
   );
 }
