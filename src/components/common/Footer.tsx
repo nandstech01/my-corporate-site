@@ -141,13 +141,6 @@ const Footer: React.FC = () => {
             <FooterItem label="法人向けAI導入" href="/corporate" />
             <FooterItem label="リスキリング" href="/reskilling" />
 
-            {/* サブメニュー例: プロンプトエンジニアリング */}
-            <FooterItem label="プロンプトエンジニアリング">
-              <FooterItem label="基礎コース" href="#contact-form" />
-              <FooterItem label="応用コース" href="#contact-form" />
-              <FooterItem label="エキスパートコース" href="#contact-form" />
-            </FooterItem>
-
             <FooterItem
               label="無料相談"
               href="https://lin.ee/LRj3T2V"
