@@ -13,14 +13,7 @@ export const metadata: Metadata = {
     template: '%s | 株式会社エヌアンドエス'
   },
   description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。2008年の設立以来、時代に寄り添ったソリューションを提供しています。',
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32' },
-      { url: '/icon.svg', type: 'image/svg+xml' }
-    ],
-    shortcut: '/favicon.ico',
-    apple: { url: '/apple-touch-icon.png', sizes: '180x180' }
-  },
+  icons: '/favicon.ico',
   manifest: '/manifest.json',
   openGraph: {
     title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',

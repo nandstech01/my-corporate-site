@@ -66,61 +66,64 @@ export interface Database {
       }
       posts: {
         Row: {
-          id: number
+          id: string
           title: string
           content: string
-          excerpt: string | null
           slug: string
           status: 'draft' | 'published'
-          business_id: number
-          category_id: number
-          author_slug: string
+          views: number
+          likes: number
+          published_at: string | null
+          created_at: string
+          updated_at: string | null
           thumbnail_url: string | null
           meta_description: string | null
-          seo_keywords: string[]
-          is_indexable: boolean
-          canonical_url: string | null
-          created_at: string
-          updated_at: string
-          published_at: string | null
+          seo_keywords: string[] | null
+          business_category: 'fukugyo' | 'reskilling' | 'corporate'
+          category: string
+          category_slug: string
+          tags: string[] | null
+          author_id: string | null
         }
         Insert: {
-          id?: number
+          id?: string
           title: string
           content: string
-          excerpt?: string | null
           slug: string
           status?: 'draft' | 'published'
-          business_id: number
-          category_id: number
-          author_slug: string
+          views?: number
+          likes?: number
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string | null
           thumbnail_url?: string | null
           meta_description?: string | null
-          seo_keywords?: string[]
-          is_indexable?: boolean
-          canonical_url?: string | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
+          seo_keywords?: string[] | null
+          business_category: 'fukugyo' | 'reskilling' | 'corporate'
+          category: string
+          category_slug: string
+          tags?: string[] | null
+          author_id?: string | null
         }
         Update: {
-          id?: number
+          id?: string
           title?: string
           content?: string
-          excerpt?: string | null
           slug?: string
           status?: 'draft' | 'published'
-          business_id?: number
-          category_id?: number
-          author_slug?: string
+          views?: number
+          likes?: number
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string | null
           thumbnail_url?: string | null
           meta_description?: string | null
-          seo_keywords?: string[]
-          is_indexable?: boolean
-          canonical_url?: string | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
+          seo_keywords?: string[] | null
+          business_category?: 'fukugyo' | 'reskilling' | 'corporate'
+          category?: string
+          category_slug?: string
+          tags?: string[] | null
+          author_id?: string | null
         }
       }
       post_images: {
@@ -260,6 +263,44 @@ export interface Database {
           created_at?: string
         }
       }
+      chatgpt_features: {
+        Row: {
+          id: string
+          title: string
+          content: string
+          slug: string
+          status: 'draft' | 'published'
+          section: string
+          order: number
+          thumbnail_url: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: string
+          slug: string
+          status?: 'draft' | 'published'
+          section: string
+          order?: number
+          thumbnail_url?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string
+          slug?: string
+          status?: 'draft' | 'published'
+          section?: string
+          order?: number
+          thumbnail_url?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -271,4 +312,7 @@ export interface Database {
       [_ in never]: never
     }
   }
-} 
+}
+
+export type Post = Database['public']['Tables']['posts']['Row']
+export type ChatGPTFeature = Database['public']['Tables']['chatgpt_features']['Row'] 

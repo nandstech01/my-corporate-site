@@ -1,6 +1,6 @@
-import Card from '@/components/common/Card';
-import CardContent from '@/components/common/CardContent';
-import CardHeader from '@/components/common/CardHeader';
+import Card from './common/Card';
+import CardContent from './common/CardContent';
+import CardHeader from './common/CardHeader';
 
 import React, { useState } from 'react';
 

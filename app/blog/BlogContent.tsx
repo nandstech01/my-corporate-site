@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Image from "next/image";
-import { createClient } from '@/lib/supabase';
-import Footer from '@/components/common/Footer';
+import { supabase } from '../../lib/supabase/supabase';
+import Footer from '../../src/components/common/Footer';
 import './blog.css';
 import Link from 'next/link';
-import { PageViewTracker } from '@/components/blog/PageViewTracker';
 import { PostgrestResponse } from '@supabase/supabase-js';
 import { Phone, MessageCircle, Mail, Clock, Shield } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -55,21 +54,31 @@ interface RawPost {
   category_slug: string | null;
 }
 
-const supabase = createClient();
+interface PageViewTrackerProps {
+  page_type: string;
+}
+
+const PageViewTracker: React.FC<PageViewTrackerProps> = ({ page_type }) => {
+  useEffect(() => {
+    // ページビューのトラッキングロジック
+    console.log(`Tracking page view for: ${page_type}`);
+  }, [page_type]);
+  return null;
+};
 
 const BlogStructuredData = ({ posts }: { posts: BlogPost[] }) => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    "name": "あんしん退職コラム",
-    "description": "退職に関する不安や悩みを解消する情報メディア。退職のノウハウから、キャリアプランまで、あなたの新しい一歩をサポートします。",
-    "url": "https://taishoku-anshin-daiko.com/blog",
+    "name": "NANDS TECH Blog",
+    "description": "生成AI時代を生き抜くための総合ソリューション情報メディア。副業支援、法人向けAI導入、リスキリングなど、最新のAIテクノロジーとキャリア戦略をお届けします。",
+    "url": "https://nands.tech/blog",
     "publisher": {
       "@type": "Organization",
-      "name": "NANDS 退職あんしん代行",
+      "name": "NANDS TECH",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://taishoku-anshin-daiko.com/images/logo.svg"
+        "url": "https://nands.tech/images/logo.svg"
       }
     },
     "blogPost": posts.map(post => ({
@@ -78,16 +87,16 @@ const BlogStructuredData = ({ posts }: { posts: BlogPost[] }) => {
       "description": post.meta_description,
       "datePublished": post.published_at || post.created_at,
       "dateModified": post.updated_at || post.created_at,
-      "url": `https://taishoku-anshin-daiko.com/blog/${post.slug}`,
+      "url": `https://nands.tech/blog/${post.slug}`,
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `https://taishoku-anshin-daiko.com/blog/${post.slug}`
+        "@id": `https://nands.tech/blog/${post.slug}`
       },
-      "image": post.thumbnail_url || "https://taishoku-anshin-daiko.com/images/ogp.jpg",
+      "image": post.thumbnail_url || "https://nands.tech/images/ogp.jpg",
       "keywords": Array.isArray(post.seo_keywords) ? post.seo_keywords.join(",") : "",
       "author": {
         "@type": "Organization",
-        "name": "NANDS 退職あんしん代行"
+        "name": "NANDS TECH"
       }
     }))
   };
@@ -231,7 +240,7 @@ export default function BlogContent() {
         {/* スクロールテキスト */}
         <div className="blog-marquee">
           <div className="blog-marquee-text">
-            退職に関する不安や悩みを解消する情報メディア!!退職のノウハウから、キャリアプランまであなたの新しい一歩を、私たちがサポートします!!
+            生成AI時代を生き抜くための総合ソリューション情報メディア!!副業支援、法人向けAI導入、リスキリングなど、最新のAIテクノロジーとキャリア戦略をお届けします!!
           </div>
         </div>
 
@@ -239,15 +248,15 @@ export default function BlogContent() {
         <section className="blog-pickup blog-pickup-top">
           <div className="blog-pickup-inner">
             <div className="blog-pickup-decorations">
+              <span className="decoration-text decoration-ai">AI</span>
+              <span className="decoration-text decoration-tech">TECH</span>
               <span className="decoration-text decoration-career">CAREER</span>
-              <span className="decoration-text decoration-support">転職支援</span>
-              <span className="decoration-text decoration-career-jp">キャリア</span>
-              <span className="decoration-text decoration-success">SUCCESS</span>
-              <span className="decoration-text decoration-retire">退職</span>
+              <span className="decoration-text decoration-innovation">INNOVATION</span>
+              <span className="decoration-text decoration-future">FUTURE</span>
             </div>
             <div className="blog-pickup-header">
               <h2 className="blog-pickup-title">PICKUP</h2>
-              <p className="blog-pickup-description">注目の記事を厳選してお届け！</p>
+              <p className="blog-pickup-description">注目のAI活用事例をお届け！</p>
             </div>
             <div className="blog-pickup-slider" style={{ maxWidth: '744px', margin: '0 auto', overflow: 'hidden' }}>
               <Swiper

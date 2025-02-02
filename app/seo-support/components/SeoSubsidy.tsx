@@ -1,4 +1,4 @@
-import FileText from '@/components/common/FileText';
+import FileText from '../../../src/components/common/FileText';
 
 export default function SeoSubsidy() {
   return (

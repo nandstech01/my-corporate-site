@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "./common/Card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { motion } from "framer-motion";
 import { useInView } from 'react-intersection-observer';

@@ -1,10 +1,10 @@
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://taishoku-anshin-daiko.com';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://nands.ai';
 
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: '退職あんしん代行編集部',
-  description: '退職に関する専門知識を持つ編集チーム。退職代行の現場経験を活かし、正確で実践的な情報を提供します。',
+  name: 'NANDS編集部',
+  description: '生成AI時代の総合情報メディア。副業支援、法人向けAI導入、個人向けリスキリングなど、最新のAI活用情報を提供します。',
   url: `${baseUrl}/blog/about`,
   sameAs: [
     `${baseUrl}/blog`
@@ -28,7 +28,7 @@ const breadcrumbSchema = {
       position: 2,
       item: {
         '@id': `${baseUrl}/blog`,
-        name: 'あんしん退職コラム'
+        name: 'NANDSブログ'
       }
     },
     {
@@ -36,31 +36,31 @@ const breadcrumbSchema = {
       position: 3,
       item: {
         '@id': `${baseUrl}/blog/about`,
-        name: '退職あんしん代行編集部について'
+        name: 'NANDS編集部について'
       }
     }
   ]
 };
 
 export const metadata = {
-  title: '退職あんしん代行編集部について | 退職あんしん代行',
-  description: '退職に関する専門知識を持つ編集チームが、あなたの退職に関する不安や悩みを解消するための情報を提供します。',
-  keywords: '退職代行,退職相談,編集部,専門知識,退職ノウハウ',
+  title: 'NANDS編集部について | 生成AI時代の総合情報メディア',
+  description: '生成AI時代を生き抜くための総合情報メディア。副業支援、法人向けAI導入、個人向けリスキリングなど、最新のAI活用情報を提供します。',
+  keywords: '生成AI,ChatGPT,副業支援,リスキリング,AI導入,DX推進,キャリアアップ,AI活用,NANDS',
   alternates: {
     canonical: `${baseUrl}/blog/about`
   },
   openGraph: {
-    title: '退職あんしん代行編集部について | 退職あんしん代行',
-    description: '退職に関する専門知識を持つ編集チームが、あなたの退職に関する不安や悩みを解消するための情報を提供します。',
+    title: 'NANDS編集部について | 生成AI時代の総合情報メディア',
+    description: '生成AI時代を生き抜くための総合情報メディア。副業支援、法人向けAI導入、個人向けリスキリングなど、最新のAI活用情報を提供します。',
     url: `${baseUrl}/blog/about`,
-    siteName: '退職あんしん代行',
+    siteName: 'NANDS',
     locale: 'ja_JP',
     type: 'article',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '退職あんしん代行編集部について',
-    description: '退職に関する専門知識を持つ編集チームが、あなたの退職に関する不安や悩みを解消するための情報を提供します。',
+    title: 'NANDS編集部について',
+    description: '生成AI時代を生き抜くための総合情報メディア。副業支援、法人向けAI導入、個人向けリスキリングなど、最新のAI活用情報を提供します。',
   },
   verification: {
     'ld+json': JSON.stringify([organizationSchema, breadcrumbSchema])

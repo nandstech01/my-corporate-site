@@ -7,7 +7,7 @@ const nextConfig = {
   swcMinify: true,
 
   // Webpackの設定
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // エイリアスの設定
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     
@@ -15,7 +15,21 @@ const nextConfig = {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
+      canvas: false,
+      encoding: false,
+      bufferutil: false,
+      'utf-8-validate': false,
     };
+    
+    // canvasモジュールをwebpackの対象から除外
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'canvas'];
+    }
+    
+    config.module.rules.push({
+      test: /\.(ico|png|jpg|jpeg|gif|svg)$/,
+      type: 'asset/resource',
+    });
     
     return config;
   },
@@ -27,14 +41,13 @@ const nextConfig = {
 
   // 画像ドメインの設定
   images: {
-    domains: [],
+    domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
   },
 
   // 開発インジケーターの設定
   devIndicators: {
-    buildActivity: true,
-    autoPrerender: false,
+    buildActivity: true
   },
 
   // 環境変数の設定

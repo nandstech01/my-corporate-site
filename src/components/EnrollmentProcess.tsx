@@ -1,4 +1,4 @@
-import Button from '@/components/ui/Button'; // パスを修正
+import Button from './common/Button';
 import React from 'react';
 
 

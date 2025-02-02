@@ -1,10 +1,10 @@
-import Button from '@/components/common/Button';
-import Card from '@/components/common/Card';
-import CardContent from '@/components/common/CardContent';
-import CardHeader from '@/components/common/CardHeader';
-import CardTitle from '@/components/common/CardTitle';
-import CardFooter from '@/components/common/CardFooter';
-import CheckCircle from '@/components/common/CheckCircle';
+import Button from './common/Button';
+import Card from './common/Card';
+import CardContent from './common/CardContent';
+import CardHeader from './common/CardHeader';
+import CardTitle from './common/CardTitle';
+import CardFooter from './common/CardFooter';
+import CheckCircle from './common/CheckCircle';
 import Link from 'next/link';
 
 import React from 'react';

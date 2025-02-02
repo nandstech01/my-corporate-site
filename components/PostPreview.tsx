@@ -1,40 +1,33 @@
 'use client';
 
-import { marked } from 'marked';
+import React from 'react';
 import DOMPurify from 'isomorphic-dompurify';
+import { marked } from 'marked';
 
-type Props = {
+interface Props {
   title: string;
   content: string;
   thumbnailUrl?: string;
   metaDescription?: string;
-};
+}
+
+marked.setOptions({ async: false });
 
 export default function PostPreview({ title, content, thumbnailUrl, metaDescription }: Props) {
-  const sanitizedHtml = DOMPurify.sanitize(marked(content));
+  const sanitizedHtml = DOMPurify.sanitize(marked.parse(content) as string);
 
   return (
     <article className="prose prose-indigo max-w-none">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{title}</h1>
-      
+      <h1>{title}</h1>
       {thumbnailUrl && (
         <img
           src={thumbnailUrl}
           alt={title}
-          className="w-full h-64 object-cover rounded-lg mb-8"
+          className="w-full h-64 object-cover rounded-lg"
         />
       )}
-
-      {metaDescription && (
-        <p className="text-gray-600 text-lg mb-8">
-          {metaDescription}
-        </p>
-      )}
-
-      <div
-        className="markdown-content"
-        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-      />
+      {metaDescription && <p className="text-gray-600">{metaDescription}</p>}
+      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
     </article>
   );
 } 

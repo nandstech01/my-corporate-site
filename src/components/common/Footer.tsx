@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -94,6 +94,12 @@ const FooterItem: React.FC<FooterItemProps> = ({
  * --------------------------------------------------------------------------------
  */
 const Footer: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <footer className="relative font-sans text-white bg-gray-900 overflow-hidden">
       {/* 背景に薄い星やグラデーションを演出 */}
@@ -102,28 +108,29 @@ const Footer: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-gray-900 to-black opacity-80" />
         {/* 星っぽいドット模様（CSSで繰り返しパターン） */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 bg-repeat" />
-        {/* ランダムに配置されたモーション星（擬似要素や div などで作ってもOK） */}
-        {[...Array(12)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full opacity-70"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{
-              scale: [0, 1, 0.8, 1],
-              opacity: 1,
-              y: [0, -10, 10],
-            }}
-            transition={{
-              duration: 5 + i,
-              repeat: Infinity,
-              repeatType: 'reverse',
-            }}
-          />
-        ))}
+        {/* ランダムに配置されたモーション星（クライアントサイドでのみ生成） */}
+        {mounted && [...Array(12)].map((_, i) => {
+          const left = `${Math.random() * 100}%`;
+          const top = `${Math.random() * 100}%`;
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full opacity-70"
+              style={{ left, top }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{
+                scale: [0, 1, 0.8, 1],
+                opacity: 1,
+                y: [0, -10, 10],
+              }}
+              transition={{
+                duration: 5 + i,
+                repeat: Infinity,
+                repeatType: 'reverse',
+              }}
+            />
+          );
+        })}
       </div>
 
       <div className="container mx-auto px-4 py-10 relative z-10">

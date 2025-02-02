@@ -2,23 +2,23 @@
 
 import React from 'react';
 import { useSpring, animated } from '@react-spring/web';
-import RefinedCourseDates from '@/components/RefinedCourseDates';
-import SeminarBenefits from '@/components/SeminarBenefits';
-import AboutNands from '@/components/AboutNands';
-import CourseFeatures from '@/components/CourseFeatures';
-import CourseList from '@/components/CourseList';
-import WhyChooseDmmAiCamp from '@/components/WhyChooseDmmAiCamp';
-import Testimonials from '@/components/Testimonials';
-import MentorIntroduction from '@/components/MentorIntroduction';
-import LearningPlans from '@/components/LearningPlans';
-import SubsidyInformation from '@/components/SubsidyInformation';
-import EnrollmentProcess from '@/components/EnrollmentProcess';
-import EnhancedContactForm from '@/components/EnhancedContactForm';
-import FixedButtons from '@/components/ui/FixedButtons';
-import ConcernsSection from '@/components/common/ConcernsSection';
-import AILaborMarketImpact from '@/components/AILaborMarketImpact';
-import Card, { CardContent, CardHeader, CardTitle } from '@/components/common/Card';
-import Footer from '@/components/common/Footer';
+import RefinedCourseDates from '../../src/components/RefinedCourseDates';
+import SeminarBenefits from '../../src/components/SeminarBenefits';
+import AboutNands from '../../src/components/AboutNands';
+import CourseFeatures from '../../src/components/CourseFeatures';
+import CourseList from '../../src/components/CourseList';
+import WhyChooseDmmAiCamp from '../../src/components/WhyChooseDmmAiCamp';
+import Testimonials from '../../src/components/Testimonials';
+import MentorIntroduction from '../../src/components/MentorIntroduction';
+import LearningPlans from '../../src/components/LearningPlans';
+import SubsidyInformation from '../../src/components/SubsidyInformation';
+import EnrollmentProcess from '../../src/components/EnrollmentProcess';
+import EnhancedContactForm from '../../src/components/EnhancedContactForm';
+import FixedButtons from '../../src/components/ui/FixedButtons';
+import ConcernsSection from '../../src/components/common/ConcernsSection';
+import AILaborMarketImpact from '../../src/components/AILaborMarketImpact';
+import Card, { CardContent, CardHeader, CardTitle } from '../../src/components/common/Card';
+import Footer from '../../src/components/common/Footer';
 
 const Home: React.FC = () => {
   const fadeInProps = useSpring({ from: { opacity: 0 }, to: { opacity: 1 }, delay: 200 });

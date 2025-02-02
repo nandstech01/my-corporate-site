@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/common/Card";
-import Button from '@/components/common/Button';
+import { Card, CardContent } from "./Card";
+import Button from './Button';
 
 const ConcernsSection = () => {
   const concerns = [

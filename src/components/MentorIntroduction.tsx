@@ -1,5 +1,5 @@
-import Card from '@/components/common/Card';
-import CardContent from '@/components/common/CardContent';
+import Card from './common/Card';
+import CardContent from './common/CardContent';
 import React from 'react';
 
 

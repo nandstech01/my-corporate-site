@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Footer from '@/components/common/Footer';
+import Footer from '../../src/components/common/Footer';
 
 const LegalPage = () => {
   const fadeIn = {

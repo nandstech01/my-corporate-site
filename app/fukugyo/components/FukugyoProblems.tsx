@@ -4,6 +4,29 @@ import React, { useEffect, useState } from 'react';
 import { useSpring, animated, config } from '@react-spring/web';
 import { AlertCircle, TrendingUp, Clock, BookOpen } from 'lucide-react';
 
+const AnimatedCard = ({ index, children }: { index: number; children: React.ReactNode }) => {
+  const style = useSpring({
+    from: {
+      opacity: 0,
+      transform: 'scale(0.8) translateY(50px)',
+      filter: 'blur(10px)'
+    },
+    to: {
+      opacity: 1,
+      transform: 'scale(1) translateY(0px)',
+      filter: 'blur(0px)'
+    },
+    delay: 200 * index,
+    config: config.gentle,
+  });
+
+  return (
+    <animated.div style={style} className="group relative">
+      {children}
+    </animated.div>
+  );
+};
+
 export default function FukugyoProblems() {
   const [isClient, setIsClient] = useState(false);
 
@@ -35,7 +58,7 @@ export default function FukugyoProblems() {
     },
     {
       title: "時間の制約",
-      description: "仕事が忙しくて学習時間が取れない...",
+      description: "本業との両立が難しく、時間の確保に悩んでいる",
       solution: "効率的なAIツールの活用で時間を最大限に活用",
       icon: <Clock size={32} strokeWidth={1.5} className="text-blue-500" />
     },
@@ -47,83 +70,124 @@ export default function FukugyoProblems() {
     }
   ];
 
-  // アニメーションの設定を配列として事前に定義
-  const cardAnimations = problems.map((_, index) => 
-    useSpring({
-      from: { opacity: 0, transform: 'scale(0.9)' },
-      to: { opacity: 1, transform: 'scale(1)' },
-      delay: 200 * index,
-      config: config.gentle,
-    })
-  );
-
   if (!isClient) {
     return null;
   }
 
   return (
-    <section className="relative py-20 bg-gradient-to-b from-white to-gray-50">
-      {/* 装飾的な背景要素 */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-full h-full bg-[url('/images/grid.svg')] opacity-5"></div>
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-blue-100 rounded-full filter blur-[100px] opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-cyan-50 rounded-full filter blur-[120px] opacity-30"></div>
+    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,0,0,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,0,0,0.05)_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+      
+      {/* Floating particles */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-red-400 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${5 + Math.random() * 5}s`
+            }}
+          />
+        ))}
       </div>
 
-      <animated.div style={fadeIn} className="relative z-10 max-w-6xl mx-auto px-4">
+      <animated.div style={fadeIn} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-200 via-rose-200 to-red-200 bg-clip-text text-transparent mb-6">
             このような課題を抱えていませんか？
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            多くの方が感じている不安や課題に、私たちが解決策を提供します
-          </p>
+          <div className="w-40 h-1 bg-gradient-to-r from-red-500 via-rose-400 to-red-500 mx-auto rounded-full mb-8" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {problems.map((problem, index) => (
-            <animated.div
-              key={index}
-              style={cardAnimations[index]}
-              className="group relative bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {/* グラデーションボーダー */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 opacity-75 blur-[2px] -m-[2px]"></div>
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 p-[1px] -m-[1px]">
-                <div className="absolute inset-0 rounded-xl bg-white"></div>
-              </div>
+            <AnimatedCard key={index} index={index}>
+              {/* Card background with gradient border */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-rose-400 to-red-500 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-700" />
               
-              <div className="relative flex items-start space-x-4">
-                <div className="relative w-12 h-12 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-300 opacity-20 blur-[10px] animate-pulse"></div>
-                  <div className="relative">
-                    {problem.icon}
+              <div className="relative bg-gray-900/40 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl group-hover:shadow-red-500/20 transition-all duration-500">
+                {/* Number badge */}
+                <div className="absolute -top-4 -left-4 w-16 h-16">
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-rose-400 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative w-full h-full bg-gradient-to-br from-red-600 to-rose-500 rounded-2xl flex items-center justify-center">
+                    <span className="text-2xl font-black text-white">{(index + 1).toString().padStart(2, '0')}</span>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{problem.title}</h3>
-                  <p className="text-gray-600 mb-4">{problem.description}</p>
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4">
-                    <p className="text-gray-700">
-                      <span className="text-blue-600 font-bold">解決策：</span> {problem.solution}
-                    </p>
-                  </div>
+
+                {/* Solution tag */}
+                <div className="ml-10 mb-4">
+                  <span className="inline-block px-3 py-1 text-sm bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-red-500/20 rounded-full text-rose-300">
+                    {problem.solution}
+                  </span>
                 </div>
+
+                {/* Content */}
+                <h3 className="text-xl font-bold text-white mb-4 ml-10">
+                  {problem.title}
+                </h3>
+                <p className="text-white/80 leading-relaxed">
+                  {problem.description}
+                </p>
+
+                {/* Hover effect overlay */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500/0 via-rose-400/0 to-red-500/0 opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
               </div>
-            </animated.div>
+            </AnimatedCard>
           ))}
         </div>
 
-        <div className="text-center mt-16">
-          <div className="inline-block bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 p-[1px] rounded-2xl">
-            <div className="bg-white px-8 py-6 rounded-2xl">
-              <p className="text-xl text-gray-800">
-                これらの課題を解決するための<br />
-                <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 text-2xl">
-                  具体的な方法をセミナーでお伝えします
-                </span>
+        {/* Super Fancy Button Section */}
+        <div className="mt-20 relative">
+          {/* Decorative light beams */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] animate-spin-slow">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute top-1/2 left-1/2 h-full origin-bottom"
+                  style={{
+                    transform: `rotate(${i * 30}deg)`,
+                  }}
+                >
+                  <div className="w-px h-1/2 bg-gradient-to-t from-transparent via-rose-500/30 to-transparent" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Button container with animations */}
+          <div className="relative text-center">
+            <div className="mb-8">
+              <p className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-red-200 via-rose-200 to-red-200 font-medium">
+                これらの課題を解決する方法を、<br />
+                無料セミナーで詳しくご説明します
               </p>
             </div>
+
+            <a
+              href="https://lin.ee/gUyPhHa"
+              className="neon-button-red group"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="relative z-10">
+                無料セミナーに申し込む
+                <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </span>
+            </a>
+
+            <p className="mt-6 text-red-200/80 text-sm">
+              ※ 参加特典として、AI活用の基礎講座（通常価格5,000円）を無料プレゼント
+            </p>
           </div>
         </div>
       </animated.div>

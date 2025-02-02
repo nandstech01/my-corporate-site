@@ -1,4 +1,4 @@
-import CheckCircle from '@/components/common/CheckCircle';
+import CheckCircle from '../../../src/components/common/CheckCircle';
 
 export default function SeoProblems() {
   const problems = [

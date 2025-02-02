@@ -118,7 +118,7 @@ function aggregateAnalytics(analyticsData: Analytics[] | null) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalPosts: 0,
     publishedPosts: 0,
@@ -135,12 +135,12 @@ export default function DashboardPage() {
 
   // 認証チェック
   useEffect(() => {
-    if (!authLoading && !session) {
-      console.log('Dashboard - No session, redirecting to login...');
+    if (!authLoading && !user) {
+      console.log('Dashboard - No user, redirecting to login...');
       router.push('/admin');
       return;
     }
-  }, [session, authLoading, router]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -231,10 +231,10 @@ export default function DashboardPage() {
       }
     };
 
-    if (!authLoading && session) {
+    if (!authLoading && user) {
       fetchStats();
     }
-  }, [session, authLoading]);
+  }, [user, authLoading]);
 
   // 認証のローディング中
   if (authLoading) {
@@ -248,7 +248,7 @@ export default function DashboardPage() {
   }
 
   // 未認証の場合は何も表示しない（リダイレクト中）
-  if (!session) {
+  if (!user) {
     return null;
   }
 

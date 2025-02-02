@@ -1,4 +1,4 @@
-import Lightbulb from '@/components/common/Lightbulb';
+import Lightbulb from '../../../src/components/common/Lightbulb';
 
 export default function SeoMerits() {
   const merits = [

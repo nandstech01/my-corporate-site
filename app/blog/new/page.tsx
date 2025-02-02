@@ -4,11 +4,15 @@ import { createClient } from '@/lib/supabase/supabase';
 import { generateSlug } from '@/utils/slug';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { BUSINESS_CATEGORIES } from '../metadata';
+
+type BusinessCategory = keyof typeof BUSINESS_CATEGORIES;
 
 export default function NewPostPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<BusinessCategory>('fukugyo');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,11 +23,13 @@ export default function NewPostPage() {
       const formData = new FormData(e.currentTarget);
       const title = formData.get('title') as string;
       const content = formData.get('content') as string;
-      const description = formData.get('description') as string;
+      const metaDescription = formData.get('meta_description') as string;
+      const businessCategory = formData.get('business_category') as BusinessCategory;
       const categorySlug = formData.get('category_slug') as string;
+      const tags = (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(Boolean);
       
-      if (!title || !content) {
-        setError('タイトルと本文は必須です。');
+      if (!title || !content || !businessCategory || !categorySlug) {
+        setError('タイトル、本文、事業カテゴリー、カテゴリーは必須です。');
         return;
       }
 
@@ -37,10 +43,14 @@ export default function NewPostPage() {
           content,
           slug,
           status: 'published',
-          category_slug: categorySlug || 'general',
-          description,
+          business_category: businessCategory,
+          category_slug: categorySlug,
+          meta_description: metaDescription || null,
+          tags: tags.length > 0 ? tags : null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          views: 0,
+          likes: 0,
         })
         .select()
         .single();
@@ -51,7 +61,7 @@ export default function NewPostPage() {
         return;
       }
 
-      router.push(`/blog/${data.slug}`);
+      router.push(`/blog/${businessCategory}/${categorySlug}/${data.slug}`);
     } catch (err) {
       console.error('Error creating post:', err);
       setError('記事の作成に失敗しました。');
@@ -83,15 +93,35 @@ export default function NewPostPage() {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            説明文
+          <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700">
+            メタ説明文
           </label>
           <textarea
-            name="description"
-            id="description"
+            name="meta_description"
+            id="meta_description"
             rows={3}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            placeholder="検索結果やSNSでの表示に使用される説明文を入力してください"
           />
+        </div>
+
+        <div>
+          <label htmlFor="business_category" className="block text-sm font-medium text-gray-700">
+            事業カテゴリー
+          </label>
+          <select
+            name="business_category"
+            id="business_category"
+            value={selectedBusiness}
+            onChange={(e) => setSelectedBusiness(e.target.value as BusinessCategory)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+          >
+            {Object.entries(BUSINESS_CATEGORIES).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -103,10 +133,25 @@ export default function NewPostPage() {
             id="category_slug"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
           >
-            <option value="general">一般</option>
-            <option value="news">ニュース</option>
-            <option value="guide">ガイド</option>
+            {BUSINESS_CATEGORIES[selectedBusiness].categories.map((category) => (
+              <option key={category.slug} value={category.slug}>
+                {category.name}
+              </option>
+            ))}
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
+            タグ（カンマ区切り）
+          </label>
+          <input
+            type="text"
+            name="tags"
+            id="tags"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+            placeholder="AI, ChatGPT, リスキリング"
+          />
         </div>
 
         <div>

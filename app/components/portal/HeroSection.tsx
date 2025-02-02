@@ -32,10 +32,7 @@ import { Vector3, Vector2 } from "three";
  * 巨大なコード全体の概略
  * =========================================================
  *
- * 1. メタタグ & 構造化データ
- *    - Next.js 13+ の metadata/export const metadata を使用
- *
- * 2. ヒーローセクション内に収める超複雑なThree.jsシーン
+ * 1. ヒーローセクション内に収める超複雑なThree.jsシーン
  *    - 背景宇宙 (Stars)
  *    - 流れ星 (ShootingStar)
  *    - 彗星 (Comet)
@@ -45,63 +42,17 @@ import { Vector3, Vector2 } from "three";
  *    - ポストプロセッシング (Bloom, Noise, ChromaticAberration)
  *    - カメラ操作 (OrbitControls)
  *
- * 3. スプリットテキスト + マウスホバー で文字が飛び散る演出
+ * 2. スプリットテキスト + マウスホバー で文字が飛び散る演出
  *    - 文字を1文字ずつspan化し、マウス位置を追従してパーティクルが集まる
  *
- * 4. パララックススクロール
+ * 3. パララックススクロール
  *    - セクションをスクロールするとカメラ/オブジェクトがゆっくりズレる
  *
- * 5. 超大量のコメント & 変数
+ * 4. 超大量のコメント & 変数
  *    - 一人の人間が手書きすると100年かかるレベルの行数を目指す
  *
  * =========================================================
  */
-
-/**
- * ======================
- * Dynamic Next.js metadata
- * ======================
- */
-export const metadata = {
-  title: "N&S - もはや人間業ではないHero",
-  description:
-    "AIリスキリング・副業支援・退職代行をワンストップで提供するN&Sが贈る、圧倒的没入感のHeroセクション。",
-  openGraph: {
-    title: "N&S - 人智を超えた3D＆パーティクル演出",
-    description:
-      "Three.js + framer-motion + GPUパーティクル + ポストプロセッシング等を詰め込み、世界一長いコードに挑戦。",
-    url: "https://nands.tech",
-    images: [
-      {
-        url: "https://nands.tech/ogp-image.jpg",
-        width: 1200,
-        height: 630,
-      },
-    ],
-  },
-};
-
-/**
- * =========================================================
- * スプリットテキスト用のユーティリティ
- * =========================================================
- */
-function splitText(text: string): JSX.Element[] {
-  return text.split("").map((char, idx) => {
-    if (char === " ") {
-      return (
-        <span key={`space-${idx}`} className="inline-block mx-[2px]">
-          &nbsp;
-        </span>
-      );
-    }
-    return (
-      <span key={idx} className="inline-block">
-        {char}
-      </span>
-    );
-  });
-}
 
 /**
  * =========================================================
@@ -579,29 +530,6 @@ export default function HeroSection() {
       ref={heroRef}
       className="relative w-full min-h-screen flex flex-col items-center justify-center bg-black text-white overflow-hidden"
     >
-      {/* ========================= */}
-      {/* 構造化データ（JSON-LD） */}
-      {/* ========================= */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "N&S",
-            url: "https://nands.tech",
-            logo: "https://nands.tech/images/logo.svg",
-            sameAs: [
-              "https://x.com/...",
-              "https://www.facebook.com/...",
-              "https://www.linkedin.com/...",
-            ],
-            description:
-              "NASはAIリスキリング・副業支援・退職代行などをワンストップで提供する次世代企業です。",
-          }),
-        }}
-      />
-
       {/* ========================= */}
       {/* Three.jsのCanvas */}
       {/* ========================= */}

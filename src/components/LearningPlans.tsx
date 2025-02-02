@@ -1,7 +1,7 @@
-import Card from '@/components/common/Card';
-import CardContent from '@/components/common/CardContent';
-import CardHeader from '@/components/common/CardHeader';
-import CardTitle from '@/components/common/CardTitle';
+import Card from './common/Card';
+import CardContent from './common/CardContent';
+import CardHeader from './common/CardHeader';
+import CardTitle from './common/CardTitle';
 
 import React from 'react';
 

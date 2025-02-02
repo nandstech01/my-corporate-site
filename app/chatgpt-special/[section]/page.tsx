@@ -69,8 +69,9 @@ export default async function ChatGPTSectionPage({ params }: Props) {
   const { data: posts } = await supabase
     .from('chatgpt_posts')
     .select('*')
-    .eq('section_id', section.id)
+    .eq('chatgpt_section_id', section.id)
     .eq('status', 'published')
+    .eq('is_chatgpt_special', true)
     .order('published_at', { ascending: false })
 
   return (

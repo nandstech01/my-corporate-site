@@ -1,4 +1,4 @@
-import MessageCircle from '@/components/common/MessageCircle';
+import MessageCircle from '../../../src/components/common/MessageCircle';
 
 export default function SeoFlow() {
   const steps = [

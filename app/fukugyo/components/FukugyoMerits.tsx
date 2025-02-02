@@ -3,6 +3,29 @@
 import React, { useEffect, useState } from 'react';
 import { useSpring, animated, config } from '@react-spring/web';
 
+const AnimatedCard = ({ index, children }: { index: number; children: React.ReactNode }) => {
+  const style = useSpring({
+    from: {
+      opacity: 0,
+      transform: 'scale(0.8) translateY(50px)',
+      filter: 'blur(10px)'
+    },
+    to: {
+      opacity: 1,
+      transform: 'scale(1) translateY(0px)',
+      filter: 'blur(0px)'
+    },
+    delay: 200 * index,
+    config: config.gentle,
+  });
+
+  return (
+    <animated.div style={style} className="group relative">
+      {children}
+    </animated.div>
+  );
+};
+
 export default function FukugyoMerits() {
   const [isClient, setIsClient] = useState(false);
 
@@ -52,23 +75,6 @@ export default function FukugyoMerits() {
     }
   ];
 
-  const cardAnimations = merits.map((_, index) => 
-    useSpring({
-      from: { 
-        opacity: 0, 
-        transform: 'scale(0.8) translateY(50px)',
-        filter: 'blur(10px)'
-      },
-      to: { 
-        opacity: 1, 
-        transform: 'scale(1) translateY(0px)',
-        filter: 'blur(0px)'
-      },
-      delay: 200 * index,
-      config: config.gentle,
-    })
-  );
-
   if (!isClient) {
     return null;
   }
@@ -107,11 +113,7 @@ export default function FukugyoMerits() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {merits.map((merit, index) => (
-            <animated.div
-              key={index}
-              style={cardAnimations[index]}
-              className="group relative"
-            >
+            <AnimatedCard key={index} index={index}>
               {/* Card background with gradient border */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-700" />
               
@@ -142,7 +144,7 @@ export default function FukugyoMerits() {
                 {/* Hover effect overlay */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 via-cyan-400/0 to-blue-500/0 opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
               </div>
-            </animated.div>
+            </AnimatedCard>
           ))}
         </div>
 
@@ -167,91 +169,6 @@ export default function FukugyoMerits() {
 
           {/* Button container with animations */}
           <div className="relative text-center">
-            <style jsx>{`
-              .neon-button {
-                display: inline-block;
-                position: relative;
-                padding: 1.5rem 4rem;
-                color: #fff;
-                text-decoration: none;
-                font-size: 1.5rem;
-                font-weight: bold;
-                border-radius: 50px;
-                background: linear-gradient(
-                  90deg,
-                  rgba(59, 130, 246, 0.9) 0%,
-                  rgba(6, 182, 212, 0.9) 50%,
-                  rgba(59, 130, 246, 0.9) 100%
-                );
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-                  0 0 30px rgba(6, 182, 212, 0.5),
-                  0 0 60px rgba(59, 130, 246, 0.4);
-                transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                animation: neonPulse 3s infinite alternate;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                backdrop-filter: blur(10px);
-              }
-
-              .neon-button:hover {
-                transform: scale(1.05) translateY(-5px);
-                box-shadow: 0 0 25px rgba(59, 130, 246, 0.8),
-                  0 0 50px rgba(6, 182, 212, 0.7),
-                  0 0 100px rgba(59, 130, 246, 0.6);
-                background: linear-gradient(
-                  90deg,
-                  rgba(59, 130, 246, 1) 0%,
-                  rgba(6, 182, 212, 1) 50%,
-                  rgba(59, 130, 246, 1) 100%
-                );
-              }
-
-              .neon-button::before {
-                content: '';
-                position: absolute;
-                inset: -2px;
-                border-radius: 50px;
-                padding: 2px;
-                background: linear-gradient(
-                  90deg,
-                  #3b82f6,
-                  #06b6d4,
-                  #3b82f6
-                );
-                -webkit-mask: 
-                  linear-gradient(#fff 0 0) content-box, 
-                  linear-gradient(#fff 0 0);
-                mask: 
-                  linear-gradient(#fff 0 0) content-box, 
-                  linear-gradient(#fff 0 0);
-                -webkit-mask-composite: xor;
-                mask-composite: exclude;
-                opacity: 0.7;
-                animation: borderRotate 4s linear infinite;
-              }
-
-              @keyframes neonPulse {
-                0% {
-                  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-                    0 0 30px rgba(6, 182, 212, 0.5),
-                    0 0 60px rgba(59, 130, 246, 0.4);
-                }
-                100% {
-                  box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
-                    0 0 40px rgba(6, 182, 212, 0.7),
-                    0 0 80px rgba(59, 130, 246, 0.6);
-                }
-              }
-
-              @keyframes borderRotate {
-                from {
-                  transform: rotate(0deg);
-                }
-                to {
-                  transform: rotate(360deg);
-                }
-              }
-            `}</style>
-
             <div className="mb-8">
               <p className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-200 font-medium">
                 まずは無料セミナーに参加して、<br />
