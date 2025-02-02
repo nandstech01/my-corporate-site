@@ -7,11 +7,11 @@ import SustainabilitySection from './components/portal/SustainabilitySection'
 import ContactSection from './components/portal/ContactSection'
 
 export const metadata: Metadata = {
-  title: "N&S - もはや人間業ではないHero",
-  description: "AIリスキリング・副業支援・退職代行をワンストップで提供するN&Sが贈る、圧倒的没入感のHeroセクション。",
+  title: "株式会社エヌアンドエス | 生成AI活用・リスキリング研修のプロフェッショナル",
+  description: "株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、AI導入支援まで、企業と個人の成長をサポートする総合ソリューション企業です。",
   openGraph: {
-    title: "N&S - 人智を超えた3D＆パーティクル演出",
-    description: "Three.js + framer-motion + GPUパーティクル + ポストプロセッシング等を詰め込み、世界一長いコードに挑戦。",
+    title: "株式会社エヌアンドエス | 生成AI活用・リスキリング研修のプロフェッショナル",
+    description: "生成AIを活用したリスキリング研修やキャリアコンサルティング、AI導入支援まで、企業と個人の成長をサポートする総合ソリューション企業です。",
     url: "https://nands.tech",
     images: [
       {
