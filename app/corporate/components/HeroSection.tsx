@@ -40,25 +40,29 @@ export default function HeroSection() {
         <div className="absolute top-0 left-0 w-full h-full bg-[url('/images/grid.svg')] opacity-5"></div>
 
         <div
-          className={`absolute top-10 left-10 w-48 h-48 bg-blue-500 rounded-full filter blur-[100px] transition-all duration-1000 ease-out
-            ${isVisible ? 'opacity-25 scale-100' : 'opacity-0 scale-50'}`}
+          className={`absolute top-10 left-10 w-48 h-48 bg-blue-500 rounded-full filter blur-[100px] transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-25 scale-100' : 'opacity-0 scale-50'
+          }`}
           style={{ transitionDelay: '0ms' }}
         />
         <div
-          className={`absolute top-[40%] right-20 w-72 h-72 bg-cyan-400 rounded-full filter blur-[120px] transition-all duration-1000 ease-out
-            ${isVisible ? 'opacity-20 scale-100' : 'opacity-0 scale-50'}`}
+          className={`absolute top-[40%] right-20 w-72 h-72 bg-cyan-400 rounded-full filter blur-[120px] transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-20 scale-100' : 'opacity-0 scale-50'
+          }`}
           style={{ transitionDelay: '200ms' }}
         />
         <div
-          className={`absolute bottom-20 left-1/3 w-56 h-56 bg-blue-300 rounded-full filter blur-[100px] transition-all duration-1000 ease-out
-            ${isVisible ? 'opacity-20 scale-100' : 'opacity-0 scale-50'}`}
+          className={`absolute bottom-20 left-1/3 w-56 h-56 bg-blue-300 rounded-full filter blur-[100px] transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-20 scale-100' : 'opacity-0 scale-50'
+          }`}
           style={{ transitionDelay: '400ms' }}
         />
       </div>
 
       <div
-        className={`relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col items-center transition-all duration-700 ease-out
-          ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        className={`relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col items-center transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
         style={{ transitionDelay: '600ms' }}
       >
         <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mt-8 md:mt-12 mb-6 text-center w-full">

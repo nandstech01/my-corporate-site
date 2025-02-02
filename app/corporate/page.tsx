@@ -9,7 +9,7 @@ import CaseStudiesSection from './components/CaseStudiesSection';
 import FeatureSection from './components/FeatureSection';
 import FlowSection from './components/FlowSection';
 import FaqSection from './components/FaqSection';
-import ContactSection from "../components/portal/ContactSection";
+import ContactSection from './components/ContactSection';
 
 export default function CorporatePage() {
   return (
