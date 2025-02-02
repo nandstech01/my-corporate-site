@@ -55,9 +55,9 @@ export default function Header() {
           {/* PC用ナビゲーション - メインページのみ */}
           {isTopPage && (
             <nav className="hidden md:flex space-x-8">
-              <Link href="/reskilling-personal" className="text-white hover:text-gray-300 transition-colors">
+              <a href="https://nands.tech/reskilling" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">
                 個人様リスキリング
-              </Link>
+              </a>
               <Link href="/corporate" className="text-white hover:text-gray-300 transition-colors">
                 法人様リスキリング
               </Link>
