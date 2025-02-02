@@ -1,0 +1,74 @@
+/* カテゴリページのスタイル */
+.blog-categories {
+  @apply space-y-8;
+}
+
+.blog-category-card {
+  @apply bg-white rounded-lg shadow-md overflow-hidden transition-shadow hover:shadow-lg;
+}
+
+.blog-category-header {
+  @apply p-6 border-b border-gray-100;
+}
+
+.blog-category-title {
+  @apply text-xl font-bold text-gray-900 hover:text-orange-600 transition-colors;
+}
+
+.blog-category-count {
+  @apply text-sm text-gray-600;
+}
+
+.blog-category-posts {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4 p-6;
+}
+
+.blog-category-post {
+  @apply block relative;
+}
+
+.blog-category-post {
+  @apply hover:shadow-lg transition-shadow duration-300;
+}
+
+.blog-category-post-image {
+  @apply relative mb-2 rounded overflow-hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.blog-category-post-image img {
+  @apply object-cover transition-transform hover:scale-105;
+  width: 100%;
+  height: 100%;
+}
+
+.blog-category-post-title {
+  @apply text-xl font-bold text-gray-900 mb-2 hover:text-orange-600 transition-colors;
+}
+
+.blog-category-post-description {
+  @apply text-gray-600 text-sm;
+}
+
+.blog-category-post-count {
+  @apply text-sm text-gray-500 mt-2;
+}
+
+.blog-category-post-date {
+  @apply text-xs text-gray-500;
+}
+
+/* カテゴリページのレスポンシブ調整 */
+@media (max-width: 768px) {
+  .blog-category-posts {
+    @apply grid-cols-1;
+  }
+  
+  .blog-category-header {
+    @apply p-4;
+  }
+  
+  .blog-category-posts {
+    @apply p-4;
+  }
+} 
