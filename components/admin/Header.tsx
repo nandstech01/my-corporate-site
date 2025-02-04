@@ -10,8 +10,8 @@ export default function AdminHeader() {
 
   const navigation = [
     { name: 'ダッシュボード', href: '/admin/dashboard' },
-    { name: '記事一覧', href: '/admin/posts' },
-    { name: '新規作成', href: '/admin/posts/new' },
+    { name: '記事一覧', href: '/blog' },
+    { name: '新規作成', href: '/blog/new' },
   ];
 
   return (

@@ -259,7 +259,7 @@ export default function EditPostPage({
             編集に戻る
           </button>
         </div>
-        <PostPreview content={content} />
+        <PostPreview content={content} title={title} />
       </div>
     );
   }
@@ -400,7 +400,7 @@ export default function EditPostPage({
                 </button>
               </div>
               {isPreviewMode ? (
-                <PostPreview content={content} />
+                <PostPreview content={content} title={title} />
               ) : (
                 <>
                   <textarea

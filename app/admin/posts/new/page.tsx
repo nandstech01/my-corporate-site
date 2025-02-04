@@ -395,7 +395,7 @@ export default function NewPostPage() {
                 </button>
               </div>
               {isPreviewMode ? (
-                <PostPreview content={content} />
+                <PostPreview content={content} title={title} />
               ) : (
                 <>
                   <textarea

@@ -9,13 +9,15 @@ interface ContentImageManagerProps {
   onImageUpload?: (url: string) => void;
   type?: 'thumbnail' | 'content';
   onContentChange?: (content: string) => void;
+  onImageSelect?: (imageId: string) => void;
 }
 
 export default function ContentImageManager({ 
   postId, 
   onImageUpload, 
   type = 'content',
-  onContentChange
+  onContentChange,
+  onImageSelect
 }: ContentImageManagerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
