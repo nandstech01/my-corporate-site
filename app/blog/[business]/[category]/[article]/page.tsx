@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { Database } from '@/lib/supabase/database.types'
 import React from 'react'
 import Image from 'next/image'
+import { convertMarkdownImages } from '@/lib/utils/markdown'
 
 type Props = {
   params: {
@@ -143,6 +144,9 @@ export default async function BlogArticlePage({ params }: Props) {
     notFound()
   }
 
+  // コンテンツ内の画像を変換
+  const processedContent = convertMarkdownImages(post.content)
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -158,18 +162,16 @@ export default async function BlogArticlePage({ params }: Props) {
         <h1 className="text-3xl font-bold mb-8">{post.title}</h1>
         
         {post.featured_image && (
-          <Image
+          <img
             src={post.featured_image}
             alt={post.title}
-            width={800}
-            height={400}
             className="w-full h-64 object-cover rounded-lg mb-8"
           />
         )}
 
         <div 
           className="markdown-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: processedContent }}
         />
       </article>
     </div>
