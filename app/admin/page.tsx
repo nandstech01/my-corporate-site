@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/supabase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,10 +14,11 @@ export default function AdminLoginPage() {
   const { user } = useAuth();
 
   // ユーザーが既にログインしている場合はダッシュボードにリダイレクト
-  if (user) {
-    router.push('/admin/dashboard');
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      router.push('/admin/dashboard');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
