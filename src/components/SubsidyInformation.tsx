@@ -1,8 +1,6 @@
-import Card from './common/Card';
-import CardContent from './common/CardContent';
-
 import React from 'react';
-
+import Card from './common/Card';
+import { CardContent } from './common/Card';
 
 function SubsidyInformation() {
 

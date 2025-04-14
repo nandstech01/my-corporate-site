@@ -37,5 +37,13 @@ export const CardTitle: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ chil
   );
 };
 
+export const CardFooter: React.FC<CardProps> = ({ children, className, ...props }) => {
+  return (
+    <div className={`px-4 py-2 ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
+
 // 新たに追加：デフォルトエクスポート
 export default Card;

@@ -1,9 +1,9 @@
 import Button from './common/Button';
 import Card from './common/Card';
-import CardContent from './common/CardContent';
-import CardHeader from './common/CardHeader';
-import CardTitle from './common/CardTitle';
-import CardFooter from './common/CardFooter';
+import { CardContent } from './common/Card';
+import { CardHeader } from './common/Card';
+import { CardTitle } from './common/Card';
+import { CardFooter } from './common/Card';
 import CheckCircle from './common/CheckCircle';
 import Link from 'next/link';
 

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import RefinedCourseDates from '../../src/components/RefinedCourseDates';
@@ -15,35 +17,9 @@ import EnhancedContactForm from '../../src/components/EnhancedContactForm';
 import FixedButtons from '../../src/components/ui/FixedButtons';
 import ConcernsSection from '../../src/components/common/ConcernsSection';
 import AILaborMarketImpact from '../../src/components/AILaborMarketImpact';
-import Card, { CardContent, CardHeader, CardTitle } from '../../src/components/common/Card';
 import Footer from '../../src/components/common/Footer';
-import type { Metadata } from 'next';
 import Script from 'next/script';
 import Breadcrumbs from '../components/common/Breadcrumbs';
-
-// メタデータの定義
-export const metadata: Metadata = {
-  title: 'AI時代のリスキリング研修・AI活用スキル習得 | 株式会社エヌアンドエス',
-  description: '2025年に向けた個人向けAIリスキリング研修。ChatGPTなどの生成AIを活用したスキルアップ、キャリアアップを支援します。初心者でも安心して学べる実践的なカリキュラムで、AI時代に必須のスキルを習得できます。',
-  keywords: 'リスキリング,AI研修,生成AI,ChatGPT,スキルアップ,キャリアアップ,AI教育,プロンプトエンジニアリング,2025年対策,個人向けAI研修',
-  openGraph: {
-    title: 'AI時代のリスキリング研修・AI活用スキル習得 | 株式会社エヌアンドエス',
-    description: '2025年に向けた個人向けAIリスキリング研修。ChatGPTなどの生成AIを活用したスキルアップ、キャリアアップを支援します。初心者でも安心して学べる実践的なカリキュラムで、AI時代に必須のスキルを習得できます。',
-    url: 'https://nands.tech/reskilling',
-    siteName: '株式会社エヌアンドエス',
-    images: ['/images/reskilling-ogp.jpg'],
-    type: 'website',
-    locale: 'ja_JP',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@nands_tech',
-    creator: '@nands_tech',
-  },
-  alternates: {
-    canonical: 'https://nands.tech/reskilling'
-  },
-}
 
 // クライアントコンポーネント
 const ReskillPage = () => {
