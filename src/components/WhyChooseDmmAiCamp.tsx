@@ -1,10 +1,10 @@
+import React from 'react';
 import Card from './common/Card';
-import CardContent from './common/CardContent';
-import CardHeader from './common/CardHeader';
-import CardTitle from './common/CardTitle';
+import { CardContent } from './common/Card';
+import { CardHeader } from './common/Card';
+import { CardTitle } from './common/Card';
 import FileText from './common/FileText';
 import Lightbulb from './common/Lightbulb';
-import React from 'react';
 
 const WhyChooseDmmAiCamp = () => {
   return (

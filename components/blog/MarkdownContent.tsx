@@ -1,45 +1,274 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import type { Components } from 'react-markdown';
-import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import type { Plugin } from 'unified';
 
 interface MarkdownContentProps {
   content: string;
 }
 
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
 export default function MarkdownContent({ content }: MarkdownContentProps) {
-  const components: Components = {
-    code({ className, children, ...props }) {
-      const match = /language-(\w+)/.exec(className || '');
-      return match ? (
-        <SyntaxHighlighter
-          {...(props as SyntaxHighlighterProps)}
-          style={vscDarkPlus as any}
-          language={match[1]}
-          PreTag="div"
-        >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
-      ) : (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      );
-    },
+  const [toc, setToc] = useState<TocItem[]>([]);
+  const [isTocOpen, setIsTocOpen] = useState(false);
+  const [activeHeading, setActiveHeading] = useState('');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // 正規表現で*で囲まれたテキストを検出し、強調表示用のHTMLに変換
+  const processEmphasizedText = (text: string) => {
+    return text.replace(
+      /\*([^*]+)\*/g, 
+      '<span class="font-bold bg-yellow-100 px-1 rounded">$1</span>'
+    );
+  };
+
+  // 見出しから目次を生成
+  useEffect(() => {
+    if (!content) return;
+
+    const headingRegex = /^(#{2,4})\s+(.+)$/gm;
+    const tocItems: TocItem[] = [];
+    let match;
+    let counter = 0;
+
+    while ((match = headingRegex.exec(content)) !== null) {
+      const level = match[1].length; // #の数
+      const text = match[2];
+      const id = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
+
+      if (level <= 4) { // h2, h3, h4のみを目次に含める
+        // 一意のIDを確保するためにカウンターを追加
+        tocItems.push({ 
+          id: id || `heading-${counter}`, 
+          text, 
+          level 
+        });
+        counter++;
+      }
+    }
+
+    setToc(tocItems);
+  }, [content]);
+
+  // スクロール監視で現在の見出しをハイライト
+  useEffect(() => {
+    if (!contentRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHeading(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-100px 0px -80% 0px' }
+    );
+
+    const headings = contentRef.current.querySelectorAll('h2, h3, h4');
+    headings.forEach((heading) => observer.observe(heading));
+
+    return () => {
+      headings.forEach((heading) => observer.unobserve(heading));
+    };
+  }, [content]);
+
+  // 見出しをクリックした時にスクロール
+  const scrollToHeading = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      window.scrollTo({
+        top: element.offsetTop - 100,
+        behavior: 'smooth'
+      });
+      setActiveHeading(id);
+      setIsTocOpen(false);
+    }
   };
 
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm as any]}
-      components={components}
-      className="prose max-w-none prose-img:rounded-lg prose-a:text-blue-600"
-    >
-      {content}
-    </ReactMarkdown>
+    <div className="relative max-w-4xl mx-auto">
+      {/* 目次 */}
+      {toc.length > 0 && (
+        <div className="mb-10">
+          <div className="bg-blue-600 text-white py-3 px-4 flex items-center justify-between rounded-t-lg">
+            <h3 className="text-lg font-medium flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              目次
+            </h3>
+            <button 
+              onClick={() => setIsTocOpen(!isTocOpen)} 
+              className="md:hidden text-white focus:outline-none"
+            >
+              {isTocOpen ? '−' : '＋'}
+            </button>
+          </div>
+
+          <div 
+            className={`border border-gray-200 border-t-0 rounded-b-lg bg-white overflow-hidden transition-all duration-300 ${isTocOpen ? 'max-h-96' : 'max-h-0 md:max-h-96'}`}
+          >
+            <ul className="py-4 px-2">
+              {toc.filter(item => item.level === 2).map((item, index) => (
+                <li 
+                  key={`toc-${item.id}-${index}`}
+                  className="mb-3 last:mb-1"
+                >
+                  <a
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToHeading(item.id);
+                    }}
+                    className={`flex items-center hover:text-blue-600 text-sm transition-colors py-1.5 ${
+                      activeHeading === item.id 
+                        ? 'text-blue-600 font-medium' 
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 font-semibold">
+                      {index + 1}
+                    </span>
+                    <span className="line-clamp-1">{item.text}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {toc.filter(item => item.level === 2).length > 8 && (
+              <div className="text-center pb-3">
+                <button
+                  onClick={() => setIsTocOpen(!isTocOpen)}
+                  className="text-sm text-blue-600 hover:text-blue-800 px-4 py-1 rounded-full border border-blue-200 hover:border-blue-400 transition-colors"
+                >
+                  {isTocOpen ? '折りたたむ' : 'もっと見る'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      <div ref={contentRef} className="prose max-w-none prose-lg prose-img:rounded-lg">
+        <ReactMarkdown
+          components={{
+            code({className, children}) {
+              const match = /language-(\w+)/.exec(className || '');
+              return match ? (
+                <SyntaxHighlighter
+                  style={oneDark as any}
+                  language={match[1]}
+                  PreTag="div"
+                  className="my-6 rounded-lg"
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              ) : (
+                <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-sm">
+                  {children}
+                </code>
+              );
+            },
+            h2({children}) {
+              const id = String(children)
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-');
+              
+              return (
+                <h2 
+                  id={id}
+                  className="mt-12 mb-6 pb-3 text-2xl font-bold border-b-4 border-indigo-500 bg-gradient-to-r from-indigo-100 to-transparent px-4 py-2 rounded-tl-lg rounded-tr-lg"
+                >
+                  {children}
+                </h2>
+              );
+            },
+            h3({children}) {
+              const id = String(children)
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-');
+              
+              return (
+                <h3 
+                  id={id}
+                  className="mt-8 mb-4 text-xl font-bold text-indigo-700 border-l-4 border-indigo-400 pl-3"
+                >
+                  {children}
+                </h3>
+              );
+            },
+            h4({children}) {
+              const id = String(children)
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-');
+              
+              return (
+                <h4 
+                  id={id}
+                  className="mt-6 mb-3 text-lg font-bold text-gray-700 border-b border-gray-300 pb-1"
+                >
+                  {children}
+                </h4>
+              );
+            },
+            p({children}) {
+              let content = String(children);
+              if (content.includes('*')) {
+                return (
+                  <p className="my-4 leading-relaxed text-gray-700">
+                    <span dangerouslySetInnerHTML={{ __html: processEmphasizedText(content) }} />
+                  </p>
+                );
+              }
+              return (
+                <p className="my-4 leading-relaxed text-gray-700">
+                  {children}
+                </p>
+              );
+            },
+            ul({children}) {
+              return (
+                <ul className="my-4 ml-6 list-disc space-y-2">
+                  {children}
+                </ul>
+              );
+            },
+            ol({children}) {
+              return (
+                <ol className="my-4 ml-6 list-decimal space-y-2">
+                  {children}
+                </ol>
+              );
+            },
+            li({children}) {
+              return (
+                <li className="pl-2 text-gray-700">
+                  {children}
+                </li>
+              );
+            }
+          }}
+          // @ts-ignore - Type issues with remarkGfm
+          remarkPlugins={[remarkGfm]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    </div>
   );
 } 

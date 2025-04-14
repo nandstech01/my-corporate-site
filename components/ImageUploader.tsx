@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/lib/database.types';
 
 type Props = {
   onImageUploaded: (url: string) => void;
@@ -11,6 +12,7 @@ type Props = {
 export default function ImageUploader({ onImageUploaded, currentImageUrl }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClientComponentClient<Database>();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,13 +24,14 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `images/${fileName}`;
+      const filePath = `blog/images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('blog')
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error('Upload error details:', uploadError);
         throw uploadError;
       }
 
@@ -38,6 +41,7 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
 
       onImageUploaded(publicUrl);
     } catch (err: any) {
+      console.error('Error uploading:', err);
       setError(err.message || 'アップロードに失敗しました');
     } finally {
       setIsUploading(false);

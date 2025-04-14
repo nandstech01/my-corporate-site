@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTrail, animated } from '@react-spring/web';
 import {
   ChatBubbleLeftRightIcon,
@@ -15,17 +15,36 @@ type CaseStudy = {
   icon: React.ReactNode; 
 };
 
+type Particle = {
+  left: string;
+  top: string;
+  delay: string;
+  duration: string;
+  opacity: string;
+};
+
 export default function CaseStudiesSection() {
   const [isClient, setIsClient] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
     setIsClient(true);
+    
+    // クライアントサイドでのみパーティクルを生成
+    const newParticles = Array.from({ length: 10 }, () => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${5 + Math.random() * 5}s`,
+      opacity: '0.3'
+    }));
+    setParticles(newParticles);
   }, []);
 
-  // --- 導入事例のデータ（アイコン追加で視覚的に差別化） ---
-  const caseStudies: CaseStudy[] = [
+  // 導入事例のデータをuseMemorizationで最適化
+  const caseStudies = useMemo<CaseStudy[]>(() => [
     {
-      title: '【地元IT企業】ChatGPT導入でドキュメント作成を効率化',
+      title: '【地元IT企業】ChatGPT導入でドキュメント・コンテンツ作成を効率化',
       description:
         'NANDSのコンサルタントが主導し、地域特化のIT企業へChatGPTを導入。顧客提案資料の作成時間を約40%削減し、プロジェクト受注率向上に貢献。',
       industry: '業種：ITサービス（地方企業）',
@@ -45,36 +64,70 @@ export default function CaseStudiesSection() {
       industry: '業種：製造（自動機器）',
       icon: <WrenchScrewdriverIcon className="w-8 h-8 text-blue-500 mb-4" />,
     },
-  ];
+  ], []);
 
-  // --- カードフェードイン（react-spring useTrail） ---
-  const trail = useTrail(caseStudies.length, {
+  // クライアントサイドでのみトレイルアニメーションを実行
+  const trail = useTrail(isClient ? caseStudies.length : 0, {
     from: { opacity: 0, transform: 'translateY(15px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
+    to: { opacity: isClient ? 1 : 0, transform: isClient ? 'translateY(0)' : 'translateY(15px)' },
     delay: 200,
     config: { tension: 180, friction: 18 },
+    // アニメーションの即時適用
+    immediate: !isClient,
   });
 
   if (!isClient) {
-    return null;
+    // サーバーサイドの初期レンダリングでは非表示
+    return (
+      <section className="relative py-20 bg-white overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-center mb-6">導入事例</h2>
+            <div className="w-40 h-1 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 mx-auto rounded-full mb-8" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {caseStudies.map((cs, index) => (
+              <div key={index} className="bg-white rounded-xl shadow p-6 relative" style={{ opacity: 0 }}></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section className="relative py-16 bg-gray-100 overflow-hidden">
-      {/* 上部Wave背景（薄いグレー） */}
-      <div className="absolute top-0 left-0 w-full leading-[0]">
-        <svg
-          className="block w-full h-[80px]"
-          fill="#F3F4F6" 
-          preserveAspectRatio="none"
-          viewBox="0 0 1200 120"
-        >
-          <path d="M1200 0L1200 46.29C1152.4 68.29 1101.5 78.2 1052 82.35C997.78 86.92 943.35 81.01 890 72.92C838.45 65.06 786.88 54.62 736 60.21C687.23 65.61 640.6 85.73 593 99.28C552 110.81 507.86 119.56 465 116.64C428.59 114.28 394.17 104.52 360 94.46C319.78 82.93 280.7 69.62 240 64.99C192.05 59.67 144.4 66.51 97 75.87C66.47 81.75 36.23 89.32 6 96.43L0 97.71V0Z" />
-        </svg>
+    <section className="relative py-20 bg-white overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+
+      {/* Floating particles */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        {particles.map((particle, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-300 rounded-full animate-float"
+            style={{
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.delay,
+              animationDuration: particle.duration,
+              opacity: particle.opacity
+            }}
+          />
+        ))}
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <h2 className="text-3xl font-bold text-center mb-10">導入事例</h2>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 bg-clip-text text-transparent mb-6">
+            導入事例
+          </h2>
+          <div className="w-40 h-1 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 mx-auto rounded-full mb-8" />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {trail.map((style, index) => {
@@ -83,40 +136,41 @@ export default function CaseStudiesSection() {
               <animated.div
                 key={index}
                 style={style}
-                className="bg-white rounded-xl shadow hover:shadow-xl transition-shadow duration-300 p-6 relative"
+                className="group relative"
               >
-                {/* アイコン */}
-                <div>{cs.icon}</div>
+                {/* Card background with gradient border */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-700" />
+                
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-blue-100 shadow-xl group-hover:shadow-blue-500/10 transition-all duration-500">
+                  {/* Number badge */}
+                  <div className="absolute -top-4 -left-4 w-16 h-16">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative w-full h-full bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center">
+                      <span className="text-2xl font-black text-white">{(index + 1).toString().padStart(2, '0')}</span>
+                    </div>
+                  </div>
 
-                {/* タイトル */}
-                <h3 className="font-bold mb-3 text-gray-800">{cs.title}</h3>
+                  {/* アイコン */}
+                  <div className="ml-10 mb-3">{cs.icon}</div>
 
-                {/* 説明 */}
-                <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                  {cs.description}
-                </p>
+                  {/* タイトル */}
+                  <h3 className="font-bold text-xl mb-4 text-gray-800 ml-10">{cs.title}</h3>
 
-                {/* 業種ラベル */}
-                <span className="text-xs text-gray-400">{cs.industry}</span>
+                  {/* 説明 */}
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                    {cs.description}
+                  </p>
 
-                {/* 装飾ライン（左端） */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue-50 rounded-l-xl"></div>
+                  {/* 業種ラベル */}
+                  <span className="text-xs text-gray-400">{cs.industry}</span>
+                  
+                  {/* Hover effect overlay */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 via-blue-400/0 to-blue-500/0 opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
+                </div>
               </animated.div>
             );
           })}
         </div>
-      </div>
-
-      {/* 下部Wave背景（さらに薄いグレー） */}
-      <div className="absolute bottom-0 left-0 w-full leading-[0] rotate-180">
-        <svg
-          className="block w-full h-[80px]"
-          fill="#F3F4F6"
-          preserveAspectRatio="none"
-          viewBox="0 0 1200 120"
-        >
-          <path d="M1200 0V46.29C1140.9 59.93 1080.3 63.18 1022 68.54C968.12 73.38 915.83 80.81 862 73.29C806.59 65.44 750.74 44.72 696 31.23C652.67 20 613.52 13.38 568 16.63C516.88 20.48 468.22 35.17 419 44.56C371.76 53.28 323.09 55.33 274 49.8C236.25 45.27 198.81 36.58 160 31.48C113.88 25.59 67.83 28.37 21 37.51C10.23 39.56 0 42.53 0 42.53V0Z" />
-        </svg>
       </div>
     </section>
   );

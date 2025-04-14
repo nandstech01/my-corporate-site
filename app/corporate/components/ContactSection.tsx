@@ -89,15 +89,15 @@ export default function ContactSection() {
 
   return (
     <section
-      id="contact-section"
+      id="consultation-section"
       ref={sectionRef}
       className="relative py-20 bg-gray-900 text-white"
     >
       {/* 背景のグラデーション */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 opacity-50" />
 
       {/* グリッドパターン */}
-      <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-10" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:14px_24px]" />
 
       <motion.div
         className="relative z-10 max-w-4xl mx-auto px-4"

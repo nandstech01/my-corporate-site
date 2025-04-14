@@ -30,7 +30,8 @@ export default function ImageUploader({ folder, onUploadComplete, onError }: Ima
         .upload(filePath, file);
 
       if (error) {
-        throw error;
+        console.error('Storage error details:', error);
+        throw new Error(`Upload failed: ${error.message}`);
       }
 
       // Get the public URL

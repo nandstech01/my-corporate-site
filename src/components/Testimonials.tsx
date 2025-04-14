@@ -1,8 +1,9 @@
-import Card from './common/Card';
-import CardContent from './common/CardContent';
-import CardHeader from './common/CardHeader';
+"use client";
 
 import React, { useState } from 'react';
+import Card from './common/Card';
+import { CardContent } from './common/Card';
+import { CardHeader } from './common/Card';
 
 const testimonialsData = [
   {

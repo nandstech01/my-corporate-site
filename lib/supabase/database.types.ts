@@ -12,118 +12,76 @@ export interface Database {
       businesses: {
         Row: {
           id: number
-          slug: string
           name: string
-          description: string | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: number
-          slug: string
           name: string
-          description?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: number
-          slug?: string
           name?: string
-          description?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       categories: {
         Row: {
           id: number
-          business_id: number
-          slug: string
           name: string
-          description: string | null
-          created_at: string
-          updated_at: string
+          slug: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: number
-          business_id: number
-          slug: string
           name: string
-          description?: string | null
-          created_at?: string
-          updated_at?: string
+          slug: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: number
-          business_id?: number
-          slug?: string
           name?: string
-          description?: string | null
-          created_at?: string
-          updated_at?: string
+          slug?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       posts: {
         Row: {
-          id: string
+          id: number
           title: string
-          content: string
           slug: string
-          status: 'draft' | 'published'
-          views: number
-          likes: number
-          published_at: string | null
-          created_at: string
-          updated_at: string | null
+          excerpt: string | null
           thumbnail_url: string | null
-          meta_description: string | null
-          seo_keywords: string[] | null
-          business_category: 'fukugyo' | 'reskilling' | 'corporate'
-          category: string
-          category_slug: string
-          tags: string[] | null
-          author_id: string | null
+          category_id: number | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?: string
+          id?: number
           title: string
-          content: string
           slug: string
-          status?: 'draft' | 'published'
-          views?: number
-          likes?: number
-          published_at?: string | null
-          created_at?: string
-          updated_at?: string | null
+          excerpt?: string | null
           thumbnail_url?: string | null
-          meta_description?: string | null
-          seo_keywords?: string[] | null
-          business_category: 'fukugyo' | 'reskilling' | 'corporate'
-          category: string
-          category_slug: string
-          tags?: string[] | null
-          author_id?: string | null
+          category_id?: number | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
-          id?: string
+          id?: number
           title?: string
-          content?: string
           slug?: string
-          status?: 'draft' | 'published'
-          views?: number
-          likes?: number
-          published_at?: string | null
-          created_at?: string
-          updated_at?: string | null
+          excerpt?: string | null
           thumbnail_url?: string | null
-          meta_description?: string | null
-          seo_keywords?: string[] | null
-          business_category?: 'fukugyo' | 'reskilling' | 'corporate'
-          category?: string
-          category_slug?: string
-          tags?: string[] | null
-          author_id?: string | null
+          category_id?: number | null
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       post_images: {

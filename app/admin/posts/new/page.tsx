@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/lib/database.types';
 import ImageUploader from '@/components/ImageUploader';
 import PostPreview from '@/components/PostPreview';
 import { generateSlug, ensureUniqueSlug } from '@/utils/slug';
@@ -31,6 +32,7 @@ type ChatGPTSection = {
 export default function NewPostPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const supabase = createClientComponentClient<Database>();
   const [title, setTitle] = React.useState('');
   const [content, setContent] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);

@@ -1,7 +1,63 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useSpring, animated } from '@react-spring/web';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import gsap from 'gsap';
+import Lightning from './Lightning';
+
+const GlitchText = ({ text }: { text: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || !textRef.current) return;
+
+    const container = containerRef.current;
+    const textElement = textRef.current;
+    const originalText = text;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let interval: NodeJS.Timeout | null = null;
+
+    const startGlitchEffect = () => {
+      let iteration = 0;
+      const maxIterations = 3;
+      
+      clearInterval(interval as NodeJS.Timeout);
+      
+      interval = setInterval(() => {
+        textElement.innerText = originalText
+          .split("")
+          .map((letter, index) => {
+            if (letter === " ") return letter;
+            if (index < iteration) return originalText[index];
+            return letters[Math.floor(Math.random() * 26)];
+          })
+          .join("");
+        
+        if (iteration >= originalText.length) {
+          clearInterval(interval as NodeJS.Timeout);
+          setTimeout(startGlitchEffect, 3000);
+        }
+        
+        iteration += 1/3;
+      }, 30);
+    };
+
+    startGlitchEffect();
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className="glitch-container">
+      <div ref={textRef} className="glitch-text">
+        {text}
+      </div>
+    </div>
+  );
+};
 
 export default function FukugyoHero() {
   const [isClient, setIsClient] = useState(false);
@@ -10,139 +66,77 @@ export default function FukugyoHero() {
     setIsClient(true);
   }, []);
 
-  const fadeIn = useSpring({
-    from: { opacity: 0, transform: 'translateY(20px)' },
-    to: { opacity: 1, transform: 'translateY(0)' },
-    config: {
-      tension: 120,
-      friction: 14,
-    },
-  });
-
-  const glowAnimation = useSpring({
-    from: { boxShadow: '0 0 20px rgba(59, 130, 246, 0)' },
-    to: { boxShadow: '0 0 30px rgba(59, 130, 246, 0.3)' },
-    loop: { reverse: true },
-    config: { duration: 2000 },
-  });
-
   if (!isClient) {
     return null;
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-blue-800">
-      {/* 装飾的な背景要素 */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Lightning背景 */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/images/grid.svg')] opacity-10"></div>
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-blue-500 rounded-full filter blur-[100px] opacity-30"></div>
-          <div className="absolute top-40 right-20 w-60 h-60 bg-cyan-400 rounded-full filter blur-[120px] opacity-20"></div>
-          <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-blue-300 rounded-full filter blur-[100px] opacity-20"></div>
-        </div>
+        <Lightning
+          hue={220}
+          xOffset={0}
+          speed={0.8}
+          intensity={1.2}
+          size={1}
+        />
       </div>
 
-      <animated.div style={fadeIn} className="relative z-10 max-w-6xl mx-auto px-4 py-20 text-center">
-        <div className="mb-8">
-          <span className="inline-block px-4 py-2 bg-white rounded-full text-blue-600 text-sm font-semibold mb-4">
-            AI × 副業で人生を変える
+      {/* オーバーレイグラデーション */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.8,
+          ease: "easeOut"
+        }}
+        className="relative z-30 text-center max-w-4xl mx-auto px-4"
+      >
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+          <GlitchText text="AI副業で" />
+          <br className="md:hidden" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200">
+            <GlitchText text="新しい可能性" />
           </span>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            <span className="block mb-2">AI副業セミナー</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              月収100万円も夢じゃない
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-8">
-            初心者でもゼロから始められる<br />
-            <span className="font-bold text-cyan-300">AI時代の新しい働き方</span>
-          </p>
-        </div>
-
-        <animated.div style={glowAnimation} className="mb-12">
-          <div className="inline-block bg-gradient-to-r from-blue-600 to-cyan-500 p-[2px] rounded-lg">
-            <div className="bg-gray-900 bg-opacity-90 px-8 py-6 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-2">95%</div>
-                  <div className="text-blue-300">セミナー満足度</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-2">好評開催中</div>
-                  <div className="text-blue-300">少人数制で丁寧な指導</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </animated.div>
-
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-          <a href="https://lin.ee/gUyPhHa" target="_blank" rel="noopener noreferrer" className="neon-button group">
-            <span className="relative z-10">
-              無料セミナーに申し込む
-              <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </span>
-          </a>
-          <style jsx>{`
-            .neon-button {
-              display: inline-block;
-              position: relative;
-              padding: 1.5rem 4rem;
-              color: #fff;
-              text-decoration: none;
-              font-size: 1.5rem;
-              font-weight: bold;
-              border-radius: 50px;
-              background: linear-gradient(
-                90deg,
-                rgba(59, 130, 246, 0.9) 0%,
-                rgba(6, 182, 212, 0.9) 50%,
-                rgba(59, 130, 246, 0.9) 100%
-              );
-              box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-                0 0 30px rgba(6, 182, 212, 0.5),
-                0 0 60px rgba(59, 130, 246, 0.4);
-              transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-              animation: neonPulse 3s infinite alternate;
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              backdrop-filter: blur(10px);
-              cursor: pointer;
-            }
-
-            .neon-button:hover {
-              transform: scale(1.05) translateY(-5px);
-              box-shadow: 0 0 25px rgba(59, 130, 246, 0.8),
-                0 0 50px rgba(6, 182, 212, 0.7),
-                0 0 100px rgba(59, 130, 246, 0.6);
-              background: linear-gradient(
-                90deg,
-                rgba(59, 130, 246, 1) 0%,
-                rgba(6, 182, 212, 1) 50%,
-                rgba(59, 130, 246, 1) 100%
-              );
-            }
-
-            @keyframes neonPulse {
-              0% {
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-                  0 0 30px rgba(6, 182, 212, 0.5),
-                  0 0 60px rgba(59, 130, 246, 0.4);
-              }
-              100% {
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
-                  0 0 40px rgba(6, 182, 212, 0.7),
-                  0 0 80px rgba(59, 130, 246, 0.6);
-              }
-            }
-          `}</style>
-          <div className="text-blue-200">
-            ※オンライン受講可能 / 顔出し不要<br />
-            少人数制で丁寧にサポート
-          </div>
-        </div>
-      </animated.div>
+          <GlitchText text="を見つけよう" />
+        </h1>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-lg md:text-xl text-blue-100 mb-8 max-w-2xl mx-auto"
+        >
+          AIを活用したスキルを身につけ、副業で収入を増やしませんか？<br />
+          プロのエンジニアが、あなたのAI副業の第一歩をサポートします。
+        </motion.p>
+        <a
+          href="https://lin.ee/gUyPhHa"
+          className="neon-button group"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="relative z-10 flex items-center">
+            無料セミナーに申し込む
+            <svg
+              className="w-5 h-5 ml-2 transform transition-transform group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+          </span>
+        </a>
+      </motion.div>
     </section>
   );
 } 

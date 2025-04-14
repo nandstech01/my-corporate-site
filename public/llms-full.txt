@@ -1,0 +1,60 @@
+# LLMs-full.txt for Corporate Site
+# Version 1.0
+# Last updated: 2023-05-31
+
+# このファイルは、当社ウェブサイトのコンテンツに対する大規模言語モデル（LLM）の利用ポリシーを定めるものです。
+
+# 全LLMに対するルール
+User-agent: *
+Allow: /
+Allow: /blog/
+Allow: /news/
+Disallow: /admin/
+Disallow: /internal/
+Disallow: /api/
+Disallow: /members/
+Disallow: /private/
+
+# 特定のLLMに対するルール
+User-agent: GPT-4
+Allow: /
+Allow: /blog/
+Disallow: /pricing/
+
+User-agent: Claude
+Allow: /
+Allow: /blog/
+Allow: /news/
+
+# トレーニングに関するルール
+Training: disallow
+Training-exception: public-research
+Training-exception-contact: ai-permissions@example.com
+
+# コンテンツ利用に関するルール
+Usage: allow-with-attribution
+Attribution-format: "Source: [CORPORATION NAME] (URL)"
+Usage-commercial: require-permission
+Usage-permission-contact: legal@example.com
+
+# コンテンツ出典に関するルール
+Citation: required
+Citation-url: true
+Citation-date: true
+
+# 情報の鮮度に関するルール
+Freshness: 90days
+Last-verified: auto
+
+# データ処理に関するルール
+Tokenization: preserve-structure
+Summarization: allowed
+Translation: allowed
+
+# 著作権および法的情報
+Copyright: [CORPORATION NAME]
+Legal-contact: legal@example.com
+Terms-url: https://example.com/terms
+
+# このポリシーに関するお問い合わせ
+Contact: ai-policy@example.com 

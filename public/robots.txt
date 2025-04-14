@@ -9,4 +9,7 @@ Sitemap: https://nands.tech/sitemap.xml
 # 必要に応じて特定のディレクトリやファイルを除外
 Disallow: /api/
 Disallow: /_next/
-Disallow: /*.json$ 
+Disallow: /*.json$
+
+# LLMs（大規模言語モデル）のポリシーを指定
+LLMs-policy: /llms.txt 

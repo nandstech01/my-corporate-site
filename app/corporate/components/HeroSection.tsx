@@ -1,25 +1,5 @@
 "use client"; 
-////////////////////////////////////////////////////////////////////////////////
-// HeroSection.tsx
-// 約700行の大ボリュームサンプル (Three.js + React + Framer Motion + Postprocessing)
-//
-// コンセプト:
-//  - 3Dグリッド, 浮遊データオブジェクト, モーフィング, インタラクティブなカメラ
-//  - ブルームやカラー補正, ぼかしなどのPostprocessing
-//  - 企業の安定感と未来志向を表現するブルートーン
-//  - スクロール&マウス連動でシーンを動かし、ユーザーに没入感を与える
-//
-// 構成:
-//  1) HeroSection (エクスポート対象) 
-//  2) SceneContainer (Canvas+Postprocessingメイン) 
-//  3) GridBackground (3Dグリッドを描画) 
-//  4) DataPoints (浮遊オブジェクト / モーフィング演出) 
-//  5) CameraController (Framer Motionでカメラを動かす)
-//  6) PostEffects (Bloom等のポストエフェクト適用)
-//  7) 各種補助関数/定数/型定義 など
-//
-// 行数を稼ぐため、細かいコメントやサンプルロジックを豊富に含む
-////////////////////////////////////////////////////////////////////////////////
+
 
 import React, {
   useRef,
@@ -49,6 +29,8 @@ import { KernelSize } from "postprocessing";
 
 import * as THREE from "three";
 import { Vector2 } from "three";
+import Squares from './Squares';
+import Masonry from './Masonry';
 
 /***************************************************************************
  * type definitions / constants
@@ -83,82 +65,74 @@ const PRIMARY_COLOR = "#1c3d5b";
  * デフォルトエクスポート: HeroSectionコンポーネント
  *  - 3Dシーン & 前景テキスト/CTA
  ***************************************************************************/
-export default function HeroSection() {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShow(true);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
+const HeroSection = () => {
+  const scrollToConsultation = () => {
+    const consultationSection = document.getElementById('consultation-section');
+    if (consultationSection) {
+      consultationSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <section 
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden"
-    >
-      {/* 3Dシーン部分 */}
-      <div className="absolute inset-0 z-0">
-        <SceneContainer />
+    <section className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden bg-black">
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/70 z-[1]" />
+
+      {/* Animated squares background */}
+      <div className="absolute inset-0 z-[2]">
+        <Squares 
+          speed={0.4} 
+          squareSize={45}
+          direction='diagonal'
+          borderColor='rgba(255, 255, 255, 0.15)'
+          hoverFillColor='rgba(255, 255, 255, 0.08)'
+        />
       </div>
 
-      {/* 半透明のオーバーレイ */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/50 to-white/80 z-[1]" />
-
-      {/* 前景のテキスト + CTA */}
-      <AnimatePresence>
-        {show && (
-          <motion.div
-            className="relative z-10 max-w-4xl px-4 py-20 flex flex-col items-center justify-center text-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 text-center pt-32 md:pt-40">
+        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+          Corporate Solutions
+        </h1>
+        <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
+          ビジネスの成長を加速させる、最先端のソリューションを提供します
+        </p>
+        <div className="flex flex-wrap justify-center gap-6 mb-8">
+          <button
+            onClick={scrollToConsultation}
+            className="px-8 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all duration-300 group"
+            type="button"
           >
-            <motion.h1
-              className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 1 }}
-            >
-              <span className="block text-blue-600 text-5xl md:text-7xl mb-4 drop-shadow-md">NANDS</span>
-              <span className="bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent drop-shadow">
-                法人向け AI導入支援
-              </span>
-            </motion.h1>
-            <motion.h2
-              className="text-xl md:text-2xl text-gray-800 font-medium mb-12 leading-relaxed drop-shadow-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 1 }}
-            >
-              生成AIとChatGPT、AIエージェントを活用し、
-              <br className="hidden md:block" />
-              ビジネスの課題を包括的に解決！
-            </motion.h2>
-            <motion.button
-              className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-lg font-bold 
-                         py-4 px-10 rounded-full shadow-lg hover:shadow-xl
-                         hover:from-blue-700 hover:to-blue-600 
-                         transform hover:-translate-y-0.5 transition-all duration-300"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 1 }}
-              onClick={() => {
-                const contactSection = document.querySelector('#contact-section');
-                if (contactSection) {
-                  contactSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            >
+            <span className="relative z-10 flex items-center text-white/90 text-lg">
               無料相談はこちら
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <svg
+                className="w-4 h-4 ml-2 transform transition-transform group-hover:translate-y-1 opacity-70"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        {/* Masonry gallery below the button */}
+        <div className="container mx-auto px-4 py-8">
+          <Masonry data={GALLERY_ITEMS} />
+        </div>
+      </div>
     </section>
   );
-}
+};
+
+export default HeroSection;
 
 /***************************************************************************
  * シーンを管理するコンテナ: Canvas + カメラ + グローバル要素
@@ -476,3 +450,76 @@ function PostEffects() {
  * 
  * 運用時は適宜ファイル分割を推奨。
  ***************************************************************************/
+
+const GALLERY_ITEMS = [
+  {
+    id: "manufacturing",
+    image: "/images/industries/manufacturing.jpg",
+    link: "/categories/manufacturing",
+    alt: "製造業",
+    height: 300
+  },
+  {
+    id: "finance",
+    image: "/images/industries/finance.jpg",
+    link: "/categories/finance",
+    alt: "金融",
+    height: 400
+  },
+  {
+    id: "medical-care",
+    image: "/images/industries/medical-care.jpg",
+    link: "/categories/medical-care",
+    alt: "医療・ヘルスケア",
+    height: 300
+  },
+  {
+    id: "retail",
+    image: "/images/industries/retail.jpg",
+    link: "/categories/retail",
+    alt: "小売・流通",
+    height: 350
+  },
+  {
+    id: "construction",
+    image: "/images/industries/construction.jpg",
+    link: "/categories/construction",
+    alt: "建設・不動産",
+    height: 300
+  },
+  {
+    id: "it-software",
+    image: "/images/industries/it-software.jpg",
+    link: "/categories/it-software",
+    alt: "IT・ソフトウェア",
+    height: 400
+  },
+  {
+    id: "logistics",
+    image: "/images/industries/logistics.jpg",
+    link: "/categories/logistics",
+    alt: "物流",
+    height: 350
+  },
+  {
+    id: "government",
+    image: "/images/industries/government.jpg",
+    link: "/categories/government",
+    alt: "官公庁・自治体",
+    height: 300
+  },
+  {
+    id: "hr-service",
+    image: "/images/industries/hr-service.jpg",
+    link: "/categories/hr-service",
+    alt: "人材サービス",
+    height: 400
+  },
+  {
+    id: "marketing",
+    image: "/images/industries/marketing.jpg",
+    link: "/categories/marketing",
+    alt: "マーケティング",
+    height: 350
+  }
+];

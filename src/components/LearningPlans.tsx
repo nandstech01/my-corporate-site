@@ -1,10 +1,6 @@
-import Card from './common/Card';
-import CardContent from './common/CardContent';
-import CardHeader from './common/CardHeader';
-import CardTitle from './common/CardTitle';
-
 import React from 'react';
-
+import Card from './common/Card';
+import { CardContent, CardHeader, CardTitle } from './common/Card';
 
 function LearningPlans() {
 

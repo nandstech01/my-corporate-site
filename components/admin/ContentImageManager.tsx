@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Upload, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/lib/database.types';
 
 interface ContentImageManagerProps {
   postId: string;
@@ -21,6 +22,7 @@ export default function ContentImageManager({
 }: ContentImageManagerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClientComponentClient<Database>();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -32,13 +34,14 @@ export default function ContentImageManager({
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${postId}/${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = type === 'thumbnail' ? `thumbnails/${fileName}` : `post-images/${fileName}`;
+      const filePath = type === 'thumbnail' ? `blog/thumbnails/${fileName}` : `blog/post-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('blog')
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error('Upload error details:', uploadError);
         throw uploadError;
       }
 

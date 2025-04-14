@@ -9,7 +9,7 @@ const nextConfig = {
   // Webpackの設定
   webpack: (config, { isServer }) => {
     // エイリアスの設定
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    config.resolve.alias['@'] = path.resolve(__dirname);
     
     // フォールバックの設定
     config.resolve.fallback = {
@@ -26,11 +26,6 @@ const nextConfig = {
       config.externals = [...(config.externals || []), 'canvas'];
     }
     
-    config.module.rules.push({
-      test: /\.(ico|png|jpg|jpeg|gif|svg)$/,
-      type: 'asset/resource',
-    });
-    
     return config;
   },
 
@@ -41,8 +36,14 @@ const nextConfig = {
 
   // 画像ドメインの設定
   images: {
-    domains: ['localhost'],
-    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'xhmhzhethpwjxuwksmuv.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      }
+    ],
+    unoptimized: false,
   },
 
   // 開発インジケーターの設定

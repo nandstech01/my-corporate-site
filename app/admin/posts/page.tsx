@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/lib/database.types';
 
 type Post = {
   id: string;
@@ -20,6 +21,7 @@ export default function PostsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const supabase = createClientComponentClient<Database>();
 
   const fetchPosts = async () => {
     try {
@@ -65,21 +67,28 @@ export default function PostsPage() {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (slug: string) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('この記事を削除してもよろしいですか？')) {
       return;
     }
 
     setIsDeleting(true);
     try {
+      console.log('Deleting post with id:', id);
+      console.log('Authentication status:', await supabase.auth.getSession());
+      
       // 記事を削除
       const { error: deleteError } = await supabase
         .from('chatgpt_posts')
         .delete()
-        .eq('slug', slug);
+        .eq('id', id);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Error details:', deleteError);
+        throw deleteError;
+      }
 
+      console.log('Delete operation completed successfully');
       // 成功したら記事一覧を再取得
       await fetchPosts();
     } catch (error) {
@@ -163,7 +172,7 @@ export default function PostsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDelete(post.slug)}
+                      onClick={() => handleDelete(post.id)}
                       disabled={isDeleting}
                       className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                     >

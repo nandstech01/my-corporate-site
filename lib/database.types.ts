@@ -15,21 +15,21 @@ export interface Database {
           name: string
           slug: string
           created_at: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: number
           name: string
           slug: string
           created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: number
           name?: string
           slug?: string
           created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
       }
       categories: {
@@ -39,7 +39,7 @@ export interface Database {
           slug: string
           business_id: number
           created_at: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: number
@@ -47,7 +47,7 @@ export interface Database {
           slug: string
           business_id: number
           created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: number
@@ -55,7 +55,7 @@ export interface Database {
           slug?: string
           business_id?: number
           created_at?: string
-          updated_at?: string
+          updated_at?: string | null
         }
       }
       chatgpt_posts: {
@@ -135,6 +135,44 @@ export interface Database {
           sort_order?: number
           created_at?: string
           updated_at?: string
+        }
+      }
+      posts: {
+        Row: {
+          id: number
+          title: string
+          slug: string
+          content: string
+          business_id: number
+          category_id: number
+          status: 'draft' | 'published'
+          published_at: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          title: string
+          slug: string
+          content: string
+          business_id: number
+          category_id: number
+          status?: 'draft' | 'published'
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          title?: string
+          slug?: string
+          content?: string
+          business_id?: number
+          category_id?: number
+          status?: 'draft' | 'published'
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string | null
         }
       }
     }

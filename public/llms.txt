@@ -1,0 +1,26 @@
+# LLMs.txt for Corporate Site
+# Version 1.0
+# Last updated: 2023-05-31
+
+# 全LLMに対するルール
+User-agent: *
+Allow: /
+Allow: /blog/
+Allow: /news/
+Disallow: /admin/
+Disallow: /internal/
+Disallow: /api/
+
+# トレーニングに関するルール
+Training: disallow
+
+# コンテンツ利用に関するルール
+Usage: allow-with-attribution
+Attribution-format: "Source: [CORPORATION NAME] (URL)"
+
+# コンテンツ出典に関するルール
+Citation: required
+Citation-url: true
+
+# 最新情報は下記URLを参照
+Detailed-rules: /llms-full.txt 
