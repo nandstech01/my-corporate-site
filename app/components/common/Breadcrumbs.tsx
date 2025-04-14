@@ -21,7 +21,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   customItems = [],
   homeIcon = true
 }) => {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const breadcrumbItems: BreadcrumbItem[] = [];
   
   // ホームを常に追加

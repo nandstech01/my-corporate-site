@@ -5,9 +5,10 @@ export const revalidate = 3600; // 1時間ごとに再検証
 
 export async function GET(
   request: Request,
-  { params }: { params: { type: string } }
+  { params }: { params: { type?: string } }
 ) {
-  const type = params.type;
+  // パラメータの検証と安全な取得
+  const type = params?.type || 'main';
   let sitemap;
   
   // タイプに応じてサイトマップを生成
@@ -23,6 +24,11 @@ export async function GET(
       break;
     default:
       return new NextResponse('Not Found', { status: 404 });
+  }
+  
+  // サイトマップが正しく生成されたか確認
+  if (!sitemap || !Array.isArray(sitemap)) {
+    return new NextResponse('Error generating sitemap', { status: 500 });
   }
   
   // XML形式のサイトマップに変換
