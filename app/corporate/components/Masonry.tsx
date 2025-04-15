@@ -62,7 +62,7 @@ const Masonry = ({
   }, []);
 
   // 以下のロジックをすべてuseMemoフックで囲んで、条件分岐によるフックの実行順序変更を防ぐ
-  const { gridItems, containerHeight, contentWidth } = useMemo(() => {
+  const { gridItems, containerHeight, contentWidth, isMobile } = useMemo(() => {
     // モバイル判定
     const isMobile = dimensions.width <= 768;
     
@@ -123,18 +123,18 @@ const Masonry = ({
       ? Math.max(...columnHeights) 
       : 0;
     
-    return { gridItems, containerHeight, contentWidth };
+    return { gridItems, containerHeight, contentWidth, isMobile };
   }, [items, columnWidth, maxColumns, gap, maxContentWidth, dimensions, isMounted]);
 
-  // アニメーションの設定（SSR対応）- こちらは常に実行される
+  // アニメーションの設定（無限再帰エラー回避）
   const transitions = useTransition(gridItems, {
     key: (item: any) => item.id,
-    from: { opacity: 0, scale: 0.8 },
-    enter: { opacity: 1, scale: 1 },
-    leave: { opacity: 0, scale: 0.8 },
-    config: { mass: 1, tension: 200, friction: 20 },
+    from: { opacity: 0 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0 },
+    config: { mass: 1, tension: 170, friction: 26 },
     trail: 25,
-    initial: null, // SSRとCSRの不一致対応
+    initial: null,
   });
 
   // マウント前はプレースホルダーを表示
@@ -149,7 +149,7 @@ const Masonry = ({
   }
 
   return (
-    <div className="masonry-container">
+    <div className={`masonry-container ${isMobile ? 'mobile' : ''}`}>
       <div 
         ref={containerRef}
         className="masonry" 
@@ -165,15 +165,14 @@ const Masonry = ({
             href={item.slug.startsWith('/') ? item.slug : `/categories/${item.slug}`}
             className="absolute block rounded-lg overflow-hidden shadow-lg hover:shadow-xl"
             style={{
+              ...style,
               width: `${item.width}px`,
               height: `${item.height}px`,
               position: 'absolute',
               top: 0,
               left: 0,
-              transform: style.scale.to(s => 
-                `scale(${s}) translate3d(${item.x}px,${item.y}px,0)`
-              ),
-              opacity: style.opacity,
+              transform: `translate3d(${item.x}px,${item.y}px,0)`,
+              willChange: 'transform, opacity',
             }}
           >
             <img

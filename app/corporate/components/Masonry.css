@@ -11,6 +11,13 @@
   width: 100%;
 }
 
+/* Add specific mobile styling */
+.masonry-container.mobile .masonry {
+  margin: 0 auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
 /* SSRプレースホルダー */
 .masonry-placeholder {
   width: 100%;
@@ -54,7 +61,7 @@
 
 /* animated items */
 .masonry .absolute {
-  position: absolute;
+  position: absolute !important;
   will-change: transform, opacity;
   transition: box-shadow 0.3s ease;
 }
@@ -93,8 +100,6 @@
   .masonry {
     width: 90% !important;
     max-width: 100% !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
   }
   
   .masonry a {
@@ -103,7 +108,7 @@
 }
 
 @media (max-width: 480px) {
-  .masonry {
+  .masonry-container.mobile .masonry {
     width: 95% !important;
   }
 }
