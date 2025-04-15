@@ -7,7 +7,7 @@ const nextConfig = {
   swcMinify: true,
 
   // Webpackの設定
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // エイリアスの設定
     config.resolve.alias['@'] = path.resolve(__dirname);
     
@@ -62,30 +62,43 @@ const nextConfig = {
   },
 
   // セキュリティヘッダーの設定
-  headers: async () => {
-    // 開発環境と本番環境で異なるヘッダーを設定
-    const isDevEnvironment = process.env.NODE_ENV === 'development';
+  async headers() {
+    // 開発環境かどうかを判定
+    const isDev = process.env.NODE_ENV === 'development';
     
+    // 共通ヘッダー
+    const commonHeaders = [
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'SAMEORIGIN',
+      },
+    ];
+    
+    // 開発環境の場合は制限を緩和したCSPを設定
+    if (isDev) {
+      return [
+        {
+          source: '/:path*',
+          headers: [
+            ...commonHeaders,
+            {
+              key: 'Content-Security-Policy',
+              value: "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';",
+            },
+          ],
+        },
+      ];
+    }
+    
+    // 本番環境の場合は通常のヘッダーのみ
     return [
       {
         source: '/:path*',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          // 開発環境でのみCSP制限を緩和
-          ...(isDevEnvironment ? [
-            {
-              key: 'Content-Security-Policy',
-              value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:;",
-            }
-          ] : [])
-        ],
+        headers: commonHeaders,
       },
     ];
   },
