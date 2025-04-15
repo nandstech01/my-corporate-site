@@ -84,6 +84,6 @@
 @media (max-width: 480px) {
   .masonry-container.mobile .masonry {
     width: 85% !important;
-    left: 46% !important; /* 43%から46%に変更して右に移動 */
+    left: 48% !important; /* 46%から48%に変更してさらに右に移動 */
   }
 } 
