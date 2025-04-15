@@ -56,7 +56,7 @@ const Masonry = ({ data }: MasonryProps) => {
   }, []);
 
   const gridItems = useMemo(() => {
-    if (containerWidth === 0) return [];
+    if (containerWidth === 0 || data.length === 0 || columns === 0) return [];
     
     const columnHeights = Array(columns).fill(0);
     const itemsWithPosition = data.map((item) => {
@@ -88,10 +88,12 @@ const Masonry = ({ data }: MasonryProps) => {
     trail: 50,
   });
 
-  const containerHeight = Math.max(...(gridItems.map(item => item.y + item.height) || [0])) + 20;
+  // 安全なコンテナの高さ計算
+  const heightValues = gridItems.map(item => item.y + item.height) || [];
+  const containerHeight = heightValues.length > 0 ? Math.max(...heightValues) + 20 : 0;
 
   return (
-    <div className="relative w-full" style={{ height: containerHeight }}>
+    <div className="relative w-full" style={{ height: containerHeight || 'auto' }}>
       {transitions((style, item) => (
         <animated.a
           href={item.link}

@@ -91,7 +91,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
             const isLast = index === breadcrumbItems.length - 1;
             
             return (
-              <li key={item.path} className="flex items-center">
+              <li key={`breadcrumb-${index}-${item.path}`} className="flex items-center">
                 {index > 0 && (
                   <span className="mx-2 text-gray-400">/</span>
                 )}

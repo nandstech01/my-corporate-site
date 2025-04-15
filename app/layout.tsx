@@ -119,6 +119,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // 開発環境かどうかを判定
+  const isDev = process.env.NODE_ENV === 'development';
+  
   // 組織の構造化データ
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -175,9 +178,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
-        {/* Preload Critical Resources */}
-        <link rel="preload" href="/images/logo.png" as="image" type="image/png" />
-        <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Preload Critical Resources - 本番環境でのみ適用 */}
+        {!isDev && (
+          <>
+            <link rel="preload" href="/images/logo.png" as="image" type="image/png" />
+            <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+          </>
+        )}
         
         {/* Hreflang タグ - 多言語サポート */}
         <link rel="alternate" hrefLang="ja" href="https://nands.tech" />
