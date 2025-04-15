@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, memo, useRef } from 'react';
+import { useEffect, useState, memo, useRef, useMemo } from 'react';
 import { useTransition, animated } from '@react-spring/web';
 import './Masonry.css';
 
@@ -61,6 +61,82 @@ const Masonry = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 以下のロジックをすべてuseMemoフックで囲んで、条件分岐によるフックの実行順序変更を防ぐ
+  const { gridItems, containerHeight, contentWidth } = useMemo(() => {
+    // モバイル判定
+    const isMobile = dimensions.width <= 768;
+    
+    // カラム数を計算
+    const cols = isMobile 
+      ? (dimensions.width <= 480 ? 1 : 2)
+      : Math.max(
+          1, 
+          Math.min(
+            maxColumns,
+            Math.floor((Math.min(dimensions.width, maxContentWidth) - gap) / (columnWidth + gap))
+          )
+        );
+    
+    // カラム幅を調整
+    const getActualColumnWidth = () => {
+      if (isMobile) {
+        const mobileWidth = dimensions.width <= 480 
+          ? dimensions.width * 0.85
+          : (dimensions.width * 0.9) / 2;
+        
+        return Math.min(columnWidth, mobileWidth - gap);
+      }
+      
+      return columnWidth;
+    };
+    
+    const actualColumnWidth = getActualColumnWidth();
+
+    // コンテンツ幅を計算
+    const contentWidth = (actualColumnWidth * cols) + (gap * (cols - 1));
+
+    // カラムの高さ配列
+    const columnHeights = Array(cols).fill(0);
+
+    // 各アイテムの位置を計算
+    const gridItems = isMounted ? items.map((item) => {
+      // 最も低いカラムを見つける
+      const columnIndex = columnHeights.indexOf(Math.min(...columnHeights));
+      
+      // 位置を計算
+      const x = columnIndex * (actualColumnWidth + gap);
+      const y = columnHeights[columnIndex];
+      
+      // 選択したカラムの高さを更新
+      columnHeights[columnIndex] += item.height + gap;
+      
+      return {
+        ...item,
+        x,
+        y,
+        width: actualColumnWidth,
+      };
+    }) : [];
+
+    // コンテナの高さを計算
+    const containerHeight = columnHeights.length > 0 
+      ? Math.max(...columnHeights) 
+      : 0;
+    
+    return { gridItems, containerHeight, contentWidth };
+  }, [items, columnWidth, maxColumns, gap, maxContentWidth, dimensions, isMounted]);
+
+  // アニメーションの設定（SSR対応）- こちらは常に実行される
+  const transitions = useTransition(gridItems, {
+    key: (item: any) => item.id,
+    from: { opacity: 0, scale: 0.8 },
+    enter: { opacity: 1, scale: 1 },
+    leave: { opacity: 0, scale: 0.8 },
+    config: { mass: 1, tension: 200, friction: 20 },
+    trail: 25,
+    initial: null, // SSRとCSRの不一致対応
+  });
+
   // マウント前はプレースホルダーを表示
   if (!isMounted) {
     return (
@@ -71,77 +147,6 @@ const Masonry = ({
       </div>
     );
   }
-
-  // モバイル判定
-  const isMobile = dimensions.width <= 768;
-  
-  // カラム数を計算
-  const cols = isMobile 
-    ? (dimensions.width <= 480 ? 1 : 2)
-    : Math.max(
-        1, 
-        Math.min(
-          maxColumns,
-          Math.floor((Math.min(dimensions.width, maxContentWidth) - gap) / (columnWidth + gap))
-        )
-      );
-  
-  // カラム幅を調整
-  const getActualColumnWidth = () => {
-    if (isMobile) {
-      const mobileWidth = dimensions.width <= 480 
-        ? dimensions.width * 0.85
-        : (dimensions.width * 0.9) / 2;
-      
-      return Math.min(columnWidth, mobileWidth - gap);
-    }
-    
-    return columnWidth;
-  };
-  
-  const actualColumnWidth = getActualColumnWidth();
-
-  // コンテンツ幅を計算
-  const contentWidth = (actualColumnWidth * cols) + (gap * (cols - 1));
-
-  // カラムの高さ配列
-  const columnHeights = Array(cols).fill(0);
-
-  // 各アイテムの位置を計算
-  const gridItems = items.map((item) => {
-    // 最も低いカラムを見つける
-    const columnIndex = columnHeights.indexOf(Math.min(...columnHeights));
-    
-    // 位置を計算
-    const x = columnIndex * (actualColumnWidth + gap);
-    const y = columnHeights[columnIndex];
-    
-    // 選択したカラムの高さを更新
-    columnHeights[columnIndex] += item.height + gap;
-    
-    return {
-      ...item,
-      x,
-      y,
-      width: actualColumnWidth,
-    };
-  });
-
-  // コンテナの高さを計算
-  const containerHeight = columnHeights.length > 0 
-    ? Math.max(...columnHeights) 
-    : 0;
-
-  // アニメーションの設定（SSR対応）
-  const transitions = useTransition(gridItems, {
-    key: (item: any) => item.id,
-    from: { opacity: 0, scale: 0.8 },
-    enter: { opacity: 1, scale: 1 },
-    leave: { opacity: 0, scale: 0.8 },
-    config: { mass: 1, tension: 200, friction: 20 },
-    trail: 25,
-    initial: null, // SSRとCSRの不一致対応
-  });
 
   return (
     <div className="masonry-container">
