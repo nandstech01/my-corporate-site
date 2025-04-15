@@ -1,21 +1,28 @@
+/* ベースコンテナスタイル */
+.masonry-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+}
+
+/* メイングリッド */
 .masonry {
   position: relative;
   margin: 0 auto;
-  transform: translateX(0); /* 初期位置 */
 }
 
-/* Center container */
-.masonry-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+/* モバイル表示専用 */
+.masonry-container.mobile {
+  padding: 0 !important;
 }
 
-/* Add specific mobile styling */
 .masonry-container.mobile .masonry {
-  margin: 0 auto !important;
+  position: relative !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
+  margin: 0 !important;
 }
 
 /* SSRプレースホルダー */
@@ -33,40 +40,13 @@
   100% { opacity: 0.5; }
 }
 
-.masonry>div {
-  position: absolute;
-  will-change: transform, width, height, opacity;
-  padding: 10px;
-}
-
-.masonry>div>a>div {
-  position: relative;
-  background-size: cover;
-  background-position: center center;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  text-transform: uppercase;
-  font-size: 10px;
-  line-height: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 10px 50px -10px rgba(0, 0, 0, 0.2);
-  transition: 0.3s ease;
-}
-
-.masonry>div>a>div:hover {
-  transform: scale(1.05);
-  transition: 0.3s ease;
-}
-
-/* animated items */
+/* アイテムスタイル */
 .masonry .absolute {
   position: absolute !important;
   will-change: transform, opacity;
   transition: box-shadow 0.3s ease;
 }
 
-/* Item styling */
 .masonry a {
   transform-origin: center center;
   transition: all 0.3s ease;
@@ -84,37 +64,23 @@
   transform: scale(1.03);
 }
 
-/* Responsive adjustments */
-@media (max-width: 1280px) {
+/* PCレスポンシブ調整 */
+@media (min-width: 1024px) {
   .masonry {
     max-width: 90%;
   }
 }
 
+/* タブレット調整 */
 @media (max-width: 768px) {
-  .masonry-container {
-    width: 100%;
-    padding: 0;
-  }
-  
-  .masonry {
+  .masonry-container.mobile .masonry {
     width: 90% !important;
-    max-width: 100% !important;
-  }
-  
-  .masonry a {
-    max-width: 100% !important;
   }
 }
 
+/* スマホ調整 */
 @media (max-width: 480px) {
   .masonry-container.mobile .masonry {
-    width: 95% !important;
+    width: 85% !important;
   }
-}
-
-/* Ensure proper centering for grid */
-.masonry .absolute {
-  will-change: transform, opacity;
-  transition: box-shadow 0.3s ease;
 } 

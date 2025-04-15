@@ -80,11 +80,13 @@ const Masonry = ({
     // カラム幅を調整
     const getActualColumnWidth = () => {
       if (isMobile) {
-        const mobileWidth = dimensions.width <= 480 
-          ? dimensions.width * 0.85
-          : (dimensions.width * 0.9) / 2;
-        
-        return Math.min(columnWidth, mobileWidth - gap);
+        if (dimensions.width <= 480) {
+          // 1カラム：スマホは画面幅の70%
+          return dimensions.width * 0.7;
+        } else {
+          // 2カラム：タブレットはやや小さめ
+          return (dimensions.width * 0.75 - gap) / 2;
+        }
       }
       
       return columnWidth;
@@ -93,7 +95,9 @@ const Masonry = ({
     const actualColumnWidth = getActualColumnWidth();
 
     // コンテンツ幅を計算
-    const contentWidth = (actualColumnWidth * cols) + (gap * (cols - 1));
+    const contentWidth = isMobile 
+      ? dimensions.width * 0.95 // モバイルでは画面幅の95%
+      : (actualColumnWidth * cols) + (gap * (cols - 1));
 
     // カラムの高さ配列
     const columnHeights = Array(cols).fill(0);
@@ -148,6 +152,14 @@ const Masonry = ({
     );
   }
 
+  // デバッグ用コンソール出力
+  console.log('Masonry rendering with:', { 
+    isMobile, 
+    gridItems: gridItems.length,
+    contentWidth,
+    containerHeight
+  });
+
   return (
     <div className={`masonry-container ${isMobile ? 'mobile' : ''}`}>
       <div 
@@ -156,7 +168,7 @@ const Masonry = ({
         style={{
           height: `${containerHeight}px`,
           width: `${contentWidth}px`,
-          maxWidth: '100%',
+          position: 'relative',
         }}
       >
         {transitions((style, item) => (
@@ -193,4 +205,4 @@ const Masonry = ({
   );
 };
 
-export default memo(Masonry); 
+export default memo(Masonry);
