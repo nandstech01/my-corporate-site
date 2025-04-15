@@ -11,6 +11,7 @@
 .masonry {
   position: relative;
   margin: 0 auto;
+  transform: translateX(-5%); /* 全体を少し左に移動 */
 }
 
 /* モバイル表示専用 */
@@ -20,7 +21,7 @@
 
 .masonry-container.mobile .masonry {
   position: relative !important;
-  left: 50% !important;
+  left: 45% !important; /* 50%から45%に変更して左に移動 */
   transform: translateX(-50%) !important;
   margin: 0 !important;
 }
@@ -75,6 +76,7 @@
 @media (max-width: 768px) {
   .masonry-container.mobile .masonry {
     width: 90% !important;
+    left: 47% !important; /* 43%から47%に変更して右に移動 */
   }
 }
 
@@ -82,5 +84,6 @@
 @media (max-width: 480px) {
   .masonry-container.mobile .masonry {
     width: 85% !important;
+    left: 46% !important; /* 43%から46%に変更して右に移動 */
   }
 } 
