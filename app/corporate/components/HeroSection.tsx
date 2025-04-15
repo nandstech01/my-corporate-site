@@ -124,7 +124,7 @@ const HeroSection = () => {
         </div>
 
         {/* Masonry gallery below the button */}
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full max-w-6xl mx-auto pt-12">
           <Masonry data={GALLERY_ITEMS} />
         </div>
       </div>

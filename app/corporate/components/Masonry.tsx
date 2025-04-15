@@ -27,11 +27,12 @@ const Masonry = ({ data }: MasonryProps) => {
   useEffect(() => {
     const updateDimensions = () => {
       const width = window.innerWidth;
-      // コンテナの実際の幅を計算（ページの余白を考慮）
-      const pageMargin = Math.max(32, width * 0.05); // 最小32px、または画面幅の5%
-      const maxContentWidth = 1280; // 最大コンテンツ幅
       
-      // 利用可能な幅を計算（ページ全体からの余白を引いた値）
+      // 適切なマージンと最大幅を設定
+      const pageMargin = Math.max(40, width * 0.08); // マージンを増やす
+      const maxContentWidth = 1200; // 最大コンテンツ幅を調整
+      
+      // 利用可能な幅を計算
       const availWidth = Math.min(width - (pageMargin * 2), maxContentWidth);
       setAvailableWidth(availWidth);
       
@@ -40,9 +41,8 @@ const Masonry = ({ data }: MasonryProps) => {
       else if (width < 768) setColumns(2);
       else if (width < 1024) setColumns(3);
       else if (width < 1280) setColumns(4);
-      else setColumns(5);
+      else setColumns(4); // 最大4カラムに制限
       
-      // コンテナ幅を更新
       setContainerWidth(availWidth);
     };
 
@@ -70,8 +70,10 @@ const Masonry = ({ data }: MasonryProps) => {
   const gridItems = useMemo(() => {
     if (containerWidth === 0 || data.length === 0 || columns === 0) return [];
     
+    // カラム幅を計算
     const columnWidth = containerWidth / columns;
     const columnHeights = Array(columns).fill(0);
+    
     const itemsWithPosition = data.map((item) => {
       const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
       const x = columnWidth * shortestColumn;
@@ -105,13 +107,14 @@ const Masonry = ({ data }: MasonryProps) => {
   });
 
   return (
-    <div className="flex justify-center w-full px-4 sm:px-6 md:px-8">
+    <div className="flex justify-center">
       <div 
         ref={containerRef}
-        className="relative w-full max-w-7xl" 
+        className="relative mx-auto" 
         style={{ 
           height: containerHeight || 'auto',
-          maxWidth: `${availableWidth}px`
+          width: `${availableWidth}px`,
+          maxWidth: '100%'
         }}
       >
         {transitions((style, item) => (
