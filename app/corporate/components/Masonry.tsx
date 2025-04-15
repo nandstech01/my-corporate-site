@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useRef } from 'react';
 import { useTransition, animated } from '@react-spring/web';
 import './Masonry.css';
 
@@ -37,14 +37,18 @@ const Masonry = ({
   gap = DEFAULTS.GAP,
   maxContentWidth = DEFAULTS.MAX_CONTENT_WIDTH,
 }: MasonryProps) => {
-  // State for storing calculated properties
+  // SSRとCSRの不一致を解消するためのフラグ
+  const [isMounted, setIsMounted] = useState(false);
   const [dimensions, setDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
   });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update dimensions on window resize
+  // マウント完了後にのみレンダリング
   useEffect(() => {
+    setIsMounted(true);
+    
     const handleResize = () => {
       setDimensions({
         width: window.innerWidth,
@@ -52,40 +56,67 @@ const Masonry = ({
       });
     };
 
-    // 初期化時と画面サイズ変更時に実行
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Calculate number of columns based on screen width
-  const cols = Math.max(
-    1, 
-    Math.min(
-      maxColumns,
-      Math.floor((Math.min(dimensions.width, maxContentWidth) - gap) / (columnWidth + gap))
-    )
-  );
+  // マウント前はプレースホルダーを表示
+  if (!isMounted) {
+    return (
+      <div className="masonry-container">
+        <div className="masonry" style={{ minHeight: '400px' }}>
+          <div className="masonry-placeholder"></div>
+        </div>
+      </div>
+    );
+  }
 
-  // Calculate actual column width based on container constraints
-  const actualColumnWidth = columnWidth;
+  // モバイル判定
+  const isMobile = dimensions.width <= 768;
+  
+  // カラム数を計算
+  const cols = isMobile 
+    ? (dimensions.width <= 480 ? 1 : 2)
+    : Math.max(
+        1, 
+        Math.min(
+          maxColumns,
+          Math.floor((Math.min(dimensions.width, maxContentWidth) - gap) / (columnWidth + gap))
+        )
+      );
+  
+  // カラム幅を調整
+  const getActualColumnWidth = () => {
+    if (isMobile) {
+      const mobileWidth = dimensions.width <= 480 
+        ? dimensions.width * 0.85
+        : (dimensions.width * 0.9) / 2;
+      
+      return Math.min(columnWidth, mobileWidth - gap);
+    }
+    
+    return columnWidth;
+  };
+  
+  const actualColumnWidth = getActualColumnWidth();
 
-  // Calculate container width with proper spacing
+  // コンテンツ幅を計算
   const contentWidth = (actualColumnWidth * cols) + (gap * (cols - 1));
 
-  // Setup the column heights array once
+  // カラムの高さ配列
   const columnHeights = Array(cols).fill(0);
 
-  // Process items into grid layout - using a more reliable algorithm
-  const gridItems = items.map((item, index) => {
-    // Find the column with minimum height
+  // 各アイテムの位置を計算
+  const gridItems = items.map((item) => {
+    // 最も低いカラムを見つける
     const columnIndex = columnHeights.indexOf(Math.min(...columnHeights));
     
-    // Calculate position
+    // 位置を計算
     const x = columnIndex * (actualColumnWidth + gap);
     const y = columnHeights[columnIndex];
     
-    // Update the height of the selected column
+    // 選択したカラムの高さを更新
     columnHeights[columnIndex] += item.height + gap;
     
     return {
@@ -96,24 +127,26 @@ const Masonry = ({
     };
   });
 
-  // Calculate container height
+  // コンテナの高さを計算
   const containerHeight = columnHeights.length > 0 
     ? Math.max(...columnHeights) 
     : 0;
 
-  // Setup transitions for grid items
+  // アニメーションの設定（SSR対応）
   const transitions = useTransition(gridItems, {
     key: (item: any) => item.id,
-    from: { opacity: 0, transform: 'scale(0.8)' },
-    enter: { opacity: 1, transform: 'scale(1)' },
-    leave: { opacity: 0, transform: 'scale(0.8)' },
+    from: { opacity: 0, scale: 0.8 },
+    enter: { opacity: 1, scale: 1 },
+    leave: { opacity: 0, scale: 0.8 },
     config: { mass: 1, tension: 200, friction: 20 },
     trail: 25,
+    initial: null, // SSRとCSRの不一致対応
   });
 
   return (
     <div className="masonry-container">
       <div 
+        ref={containerRef}
         className="masonry" 
         style={{
           height: `${containerHeight}px`,
@@ -127,10 +160,15 @@ const Masonry = ({
             href={item.slug.startsWith('/') ? item.slug : `/categories/${item.slug}`}
             className="absolute block rounded-lg overflow-hidden shadow-lg hover:shadow-xl"
             style={{
-              ...style,
               width: `${item.width}px`,
               height: `${item.height}px`,
-              transform: style.transform.to(t => `${t} translate3d(${item.x}px,${item.y}px,0)`),
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transform: style.scale.to(s => 
+                `scale(${s}) translate3d(${item.x}px,${item.y}px,0)`
+              ),
+              opacity: style.opacity,
             }}
           >
             <img

@@ -1,6 +1,7 @@
 .masonry {
   position: relative;
   margin: 0 auto;
+  transform: translateX(0); /* 初期位置 */
 }
 
 /* Center container */
@@ -8,6 +9,21 @@
   display: flex;
   justify-content: center;
   width: 100%;
+}
+
+/* SSRプレースホルダー */
+.masonry-placeholder {
+  width: 100%;
+  height: 400px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.05) 100%);
+  border-radius: 12px;
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.5; }
 }
 
 .masonry>div {
@@ -36,7 +52,14 @@
   transition: 0.3s ease;
 }
 
-/* Hover effects */
+/* animated items */
+.masonry .absolute {
+  position: absolute;
+  will-change: transform, opacity;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Item styling */
 .masonry a {
   transform-origin: center center;
   transition: all 0.3s ease;
@@ -62,30 +85,27 @@
 }
 
 @media (max-width: 768px) {
+  .masonry-container {
+    width: 100%;
+    padding: 0;
+  }
+  
   .masonry {
-    width: 100% !important;
-    max-width: 95%;
-    padding: 0 1rem;
+    width: 90% !important;
+    max-width: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .masonry a {
+    max-width: 100% !important;
   }
 }
 
 @media (max-width: 480px) {
   .masonry {
-    padding: 0 0.5rem;
+    width: 95% !important;
   }
-}
-
-/* Item hover effect */
-.masonry a:hover {
-  z-index: 10;
-}
-
-.masonry img {
-  transition: transform 0.3s ease-in-out;
-}
-
-.masonry a:hover img {
-  transform: scale(1.03);
 }
 
 /* Ensure proper centering for grid */

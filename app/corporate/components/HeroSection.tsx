@@ -124,7 +124,7 @@ const HeroSection = () => {
         </div>
 
         {/* Masonry gallery below the button */}
-        <div className="flex justify-center w-full pt-12">
+        <div className="flex justify-center w-full pt-12 px-0 sm:px-2">
           <Masonry 
             items={GALLERY_ITEMS.map(item => ({
               id: item.id,
@@ -134,10 +134,10 @@ const HeroSection = () => {
               text: item.alt,
               width: 280 // デフォルト幅
             }))} 
-            columnWidth={240}
-            gap={20}
+            columnWidth={230}
+            gap={16}
             maxColumns={4}
-            maxContentWidth={1100}
+            maxContentWidth={1050}
           />
         </div>
       </div>
