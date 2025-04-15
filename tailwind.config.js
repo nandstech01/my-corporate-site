@@ -46,4 +46,5 @@ module.exports = {
     require('@tailwindcss/typography'), // プロースタイリング
     require('@tailwindcss/aspect-ratio'), // アスペクト比の制御
   ],
+  // Temporary comment to trigger rebuild
 }

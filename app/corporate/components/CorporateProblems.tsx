@@ -113,7 +113,7 @@ export default function CorporateProblems() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-200 via-blue-100 to-blue-200 bg-clip-text text-transparent mb-6">
-            企業が直面するDX課題
+            企業のDX課題
           </h2>
           <div className="w-40 h-1 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 mx-auto rounded-full mb-8" />
         </motion.div>
@@ -192,7 +192,7 @@ export default function CorporateProblems() {
           <div className="relative text-center">
             <div className="mb-8">
               <p className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-blue-100 to-blue-200 font-medium">
-                これらの課題を解決する方法を、<br />
+                これら課題の解決方法を<br />
                 無料相談会でご提案させていただきます
               </p>
             </div>
@@ -223,7 +223,7 @@ export default function CorporateProblems() {
             </a>
 
             <p className="mt-6 text-blue-200/80 text-sm">
-              ※ 初回相談限定で、AI導入診断（通常価格10万円）を無料実施
+              ※ 初回相談限定で『ChatGTP完全マスター』無料提供
             </p>
           </div>
         </motion.div>

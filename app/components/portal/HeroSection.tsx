@@ -467,7 +467,7 @@ export default function HeroSection() {
                 duration: 0.6,
                 ease: "easeOut",
               }}
-              className="inline-block hover:text-indigo-300"
+              className="inline-block hover:text-[#00CFFF]"
             >
               {char}
             </motion.span>
@@ -488,7 +488,7 @@ export default function HeroSection() {
                     duration: 0.6,
                     ease: "easeOut",
                   }}
-                  className="inline-block hover:text-indigo-300"
+                  className="inline-block hover:text-[#00CFFF]"
                 >
                   {char}
                 </motion.span>
@@ -621,7 +621,7 @@ export default function HeroSection() {
           <span className="hidden md:inline">
             個人・法人向けリスキリングからAI副業、退職サポートまで。
             <br />
-            <span className="font-semibold text-indigo-200">NANDS</span>
+            <span className="font-semibold" style={{ color: '#00CFFF' }}>NANDS</span>
             があなたのキャリアをトータルでサポートします。
           </span>
 
@@ -631,7 +631,7 @@ export default function HeroSection() {
             <br />
             AI副業、退職サポートまで。
             <br />
-            <span className="font-semibold text-indigo-200">NANDS</span>
+            <span className="font-semibold" style={{ color: '#00CFFF' }}>NANDS</span>
             があなたのキャリアを
             <br />
             トータルでサポートします。
@@ -656,8 +656,7 @@ export default function HeroSection() {
           <a
             href="#services"
             className="relative overflow-hidden px-12 py-5 font-bold text-white
-            bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500
-            hover:from-blue-900 hover:via-blue-700 hover:to-blue-600
+            bg-[#00CFFF] hover:bg-[#00BDEE]
             transition-all duration-300"
             style={{
               transformStyle: "preserve-3d",
@@ -677,7 +676,7 @@ export default function HeroSection() {
             ></div>
 
             {/* ボタンテキスト */}
-            <span className="relative z-10 tracking-wider">サービスを見る</span>
+            <span className="relative z-10 tracking-wider text-black">サービスを見る</span>
 
             {/* 光沢エフェクト */}
             <div

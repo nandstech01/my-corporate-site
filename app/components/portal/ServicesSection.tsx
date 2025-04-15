@@ -8,6 +8,8 @@ import {
   FaLaptopCode,
   FaBalanceScale,
 } from "react-icons/fa";
+import TrueFocus from './TrueFocus';
+import "./TrueFocus.css";
 
 /**
  * =========================================================
@@ -42,6 +44,7 @@ const servicesData = [
     description:
       "生成AIやプロンプトエンジニアリングで、新時代のスキルを習得します。",
     link: "/reskilling",
+    id: "personal-reskilling"
   },
   {
     title: "法人向けリスキリング",
@@ -49,6 +52,7 @@ const servicesData = [
     description:
       "企業向けDX研修や生成AI研修で、組織全体を最新技術でアップデート。",
     link: "/corporate",
+    id: "corporate-reskilling"
   },
   {
     title: "AI副業",
@@ -56,6 +60,7 @@ const servicesData = [
     description:
       "ChatGPTを活用したSEOライティングや副業ノウハウをサポート。",
     link: "/fukugyo",
+    id: "ai-side-business"
   },
   {
     title: "退職代行",
@@ -63,6 +68,7 @@ const servicesData = [
     description:
       "業界最安2,980円の安心退職。未来のキャリアへ踏み出すお手伝い。",
     link: "https://taishoku-anshin-daiko.com",
+    id: "resignation-support"
   },
 ];
 
@@ -128,35 +134,46 @@ function ServiceCard({
   title,
   description,
   link,
+  id
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   link: string;
+  id: string;
 }) {
+  // カード個別のアニメーション設定
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50, filter: "blur(8px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }, // EaseOutQuint
+    },
+  };
+
   return (
     <motion.a
       href={link}
       className={`
-        group relative block p-6 rounded-xl transition-all
-        bg-white border border-gray-200 shadow-sm
+        group relative block p-6 rounded-xl transition-all duration-300 ease-out
+        bg-gray-900 border border-gray-700 shadow-lg
+        hover:bg-gray-800 hover:border-[#00CFFF]/50 hover:shadow-cyan-glow
         overflow-hidden
       `}
-      whileHover={{
-        scale: 1.03,
-      }}
-      whileTap={{ scale: 0.97 }}
+      variants={cardVariants} // アニメーションを適用
       style={{ transformOrigin: "center" }}
+      whileHover={{ y: -5 }} // ホバー時に少し浮き上がる
     >
-      {/* グラデーション枠線演出 (hover時) */}
+      {/* グラデーション枠線演出 (hover時) - 不要であれば削除 */}
       <div
         className="absolute inset-0 pointer-events-none opacity-0
-                   group-hover:opacity-100 transition-opacity"
+                   group-hover:opacity-100 transition-opacity duration-300"
         style={{
           borderRadius: "inherit",
           background:
-            "linear-gradient(135deg, rgba(99,102,241,0.5), rgba(236,72,153,0.5))",
-          // 枠線に見せるために内側にpaddingを入れて白色をくり抜き
+            "radial-gradient(circle at center, rgba(0, 207, 255, 0.1), transparent 70%)", // #00CFFF の輝き
           padding: "2px",
           WebkitMask:
             "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
@@ -165,15 +182,24 @@ function ServiceCard({
       ></div>
 
       {/* アイコン + テキスト */}
-      <div className="relative z-10 flex flex-col h-full text-gray-800">
-        <div className="mb-4 text-indigo-500">{icon}</div>
-        <h3 className="text-xl font-semibold mb-2 group-hover:text-indigo-600">
-          {title}
+      <div className="relative z-10 flex flex-col h-full text-white">
+        <div className="mb-4 text-[#00CFFF]"> {/* 色変更 */}
+          {icon}
+        </div>
+        <h3 className="text-xl font-semibold mb-2">
+          <TrueFocus
+            sentence={title}
+            manualMode={true} // ホバーでフォーカス
+            blurAmount={2}
+            borderColor="#00CFFF"
+            glowColor="rgba(0, 207, 255, 0.7)"
+            animationDuration={0.3}
+          />
         </h3>
-        <p className="text-sm text-gray-600 mb-4 flex-grow">
+        <p className="text-sm text-gray-400 mb-4 flex-grow">
           {description}
         </p>
-        <span className="inline-block mt-auto text-indigo-500 font-medium group-hover:underline">
+        <span className="inline-block mt-auto text-[#00CFFF] font-medium group-hover:underline">
           詳しく見る →
         </span>
       </div>
@@ -188,37 +214,17 @@ function ServiceCard({
  */
 export default function ServicesSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const inView = useInView(sectionRef, { once: true, amount: 0.2 });
-  const mainControls = useAnimation();
+  const isInView = useInView(sectionRef, { once: true, amount: 0.1 }); // 発火タイミング調整
+  const controls = useAnimation();
 
   useEffect(() => {
-    if (inView) {
-      mainControls.start("visible");
+    if (isInView) {
+      controls.start("visible");
     }
-  }, [inView, mainControls]);
+  }, [isInView, controls]);
 
   // タイトルやサブテキストのアニメーション
   const textVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 1, ease: "easeOut" },
-    },
-  };
-
-  // カード一覧全体
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  // カード単体
-  const cardVariants = {
     hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
@@ -227,11 +233,23 @@ export default function ServicesSection() {
     },
   };
 
+  // カードコンテナのアニメーション（stagger効果）
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15, // 少し早く
+        delayChildren: 0.2, // タイトル表示後
+      },
+    },
+  };
+
   return (
     <section
       ref={sectionRef}
       id="services"
-      className="relative w-full py-16 bg-white text-gray-800 overflow-hidden"
+      className="relative w-full py-20 md:py-28 bg-black text-white overflow-hidden" // 背景・文字色変更
     >
       {/* パララックス背景 */}
       <ParallaxBG />
@@ -240,43 +258,39 @@ export default function ServicesSection() {
       <StructuredDataScript />
 
       <motion.div
-        className="relative z-10 max-w-6xl mx-auto px-4"
-        variants={containerVariants}
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" // max-width 調整
         initial="hidden"
-        animate={mainControls}
+        animate={controls}
+        variants={textVariants} // セクション全体にフェードイン適用も可能
       >
         {/* タイトル */}
-        <motion.h2
-          className="text-3xl md:text-4xl font-bold text-center mb-8"
-          variants={textVariants}
-        >
-          提供サービス
-        </motion.h2>
-        {/* 説明 */}
-        <motion.p
-          className="text-center text-gray-600 mb-12 max-w-3xl mx-auto"
-          variants={textVariants}
-          transition={{ delay: 0.2 }}
-        >
-          NANDSでは、AI時代を見据えた多角的なサービスをワンストップでご提供しています。
-          <br />
-          それぞれの領域で新たな可能性を切り拓き、あなたの未来を支えます。
-        </motion.p>
+        <div className="text-center mb-12 md:mb-16">
+           <TrueFocus
+            sentence="サービス紹介"
+            manualMode={false} // 自動アニメーション
+            blurAmount={3}
+            borderColor="#00CFFF"
+            glowColor="rgba(0, 207, 255, 0.7)"
+            animationDuration={0.8}
+            pauseBetweenAnimations={0.5}
+           />
+           <motion.p
+            className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto"
+            variants={textVariants} // サブテキストにも適用
+           >
+             個人から法人まで、AI時代を勝ち抜くためのスキルとサポートを提供します。
+           </motion.p>
+        </div>
 
-        {/* カード一覧 */}
+        {/* サービスカードグリッド */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-          variants={containerVariants}
+          className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4"
+          variants={containerVariants} // stagger 効果を適用
+          initial="hidden"
+          animate={controls}
         >
           {servicesData.map((service, index) => (
-            <motion.div key={index} variants={cardVariants}>
-              <ServiceCard
-                icon={service.icon}
-                title={service.title}
-                description={service.description}
-                link={service.link}
-              />
-            </motion.div>
+            <ServiceCard key={service.id} {...service} /> // id を key に
           ))}
         </motion.div>
       </motion.div>

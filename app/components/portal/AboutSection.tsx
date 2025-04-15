@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { motion, useInView, useAnimation } from "framer-motion";
+import TrueFocus from "./TrueFocus";
 
 /**
  * =========================================================
@@ -112,10 +113,10 @@ export default function AboutSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 bg-white text-gray-800 overflow-hidden"
+      className="relative py-24 bg-black text-gray-100 overflow-hidden"
     >
-      {/* 上部の装飾 - より洗練された境界線 */}
-      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gray-50 to-white"></div>
+      {/* 上部の装飾 - Adjusted for dark background */}
+      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gray-900 to-black"></div>
 
       <motion.div
         className="max-w-5xl mx-auto px-4 relative z-10"
@@ -134,19 +135,28 @@ export default function AboutSection() {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* テキストカラム */}
           <div className="flex flex-col justify-end space-y-8">
-            <motion.p
-              className="text-lg leading-relaxed text-gray-700"
-              variants={textVariants}
-            >
-              私たちはAI時代のキャリアを切り拓くワークテック企業です。個人向け・法人向けのリスキリング研修や、AI副業サポート、退職代行までをワンストップで提供し、人々がより自由かつ強いキャリアを築ける世界を目指しています。
-            </motion.p>
-            <motion.p
-              className="text-lg leading-relaxed text-gray-700 mb-12"
-              variants={textVariants}
-              transition={{ delay: 0.1 }}
-            >
-              2008年の創業以来、「次のステージへ」を合言葉に、最新技術と実践的なキャリア支援ノウハウを融合。多様な人材が思い切り挑戦できる環境づくりに力を注いでいます。
-            </motion.p>
+            <motion.div variants={textVariants}>
+              <TrueFocus
+                sentence="私たちはAI時代のキャリアを切り拓くワークテック企業です。個人向け・法人向けのリスキリング研修や、AI副業サポート、退職代行までをワンストップで提供し、人々がより自由かつ強いキャリアを築ける世界を目指しています。"
+                manualMode={false}
+                blurAmount={2}
+                animationDuration={0.5}
+                pauseBetweenAnimations={0.3}
+                borderColor="rgba(0, 207, 255, 0.5)"
+                glowColor="rgba(0, 140, 255, 0.5)"
+              />
+            </motion.div>
+            <motion.div variants={textVariants} transition={{ delay: 0.1 }}>
+              <TrueFocus
+                sentence="2008年の創業以来、「次のステージへ」を合言葉に、最新技術と実践的なキャリア支援ノウハウを融合。多様な人材が思い切り挑戦できる環境づくりに力を注いでいます。"
+                manualMode={false}
+                blurAmount={2}
+                animationDuration={0.5}
+                pauseBetweenAnimations={0.3}
+                borderColor="rgba(0, 207, 255, 0.5)"
+                glowColor="rgba(0, 140, 255, 0.5)"
+              />
+            </motion.div>
             <motion.div
               className="pt-8"
               variants={itemVariants}
@@ -168,8 +178,8 @@ export default function AboutSection() {
                 <a
                   href="/about"
                   className="relative overflow-hidden px-12 py-5 font-bold text-white inline-block
-                  bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500
-                  hover:from-blue-900 hover:via-blue-700 hover:to-blue-600
+                  bg-gradient-to-r from-[#00CFFF] via-[#008CFF] to-[#0047FF]
+                  hover:from-[#00BFFF] hover:via-[#0077FF] hover:to-[#0033CC]
                   transition-all duration-300"
                   style={{
                     transformStyle: "preserve-3d",
@@ -223,7 +233,7 @@ export default function AboutSection() {
             transition={{ delay: 0.2 }}
           >
             <motion.img
-              src="/images/logo.svg"
+              src="/images/logo-white.svg"
               alt="N&Sロゴ"
               className="w-48 h-auto hover:scale-105 transition-transform"
             />

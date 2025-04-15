@@ -26,7 +26,7 @@ export default function Header() {
 
   return (
     <header className={`${isTopPage ? 'absolute' : 'fixed'} top-0 left-0 right-0 z-[90] transition-all duration-300 ${
-      isTopPage ? 'bg-black/30 backdrop-blur-sm' : 'bg-white shadow-md'
+      isTopPage ? 'bg-black' : 'bg-white shadow-md'
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">

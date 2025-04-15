@@ -97,7 +97,7 @@ export default function CorporateFlow() {
             導入の流れ
           </h2>
           <p className="text-xl text-blue-200/80 max-w-3xl mx-auto">
-            お客様に寄り添った段階的なアプローチで、<br />
+            直面する課題への段階的アプローチで<br />
             確実な業務改善を実現します
           </p>
           <div className="w-40 h-1 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 mx-auto rounded-full mt-8" />
@@ -147,7 +147,7 @@ export default function CorporateFlow() {
             </span>
           </button>
           <p className="mt-6 text-blue-200/80 text-sm">
-            ※ 初回相談限定で、AI導入診断（通常価格10万円）を無料実施
+          ※ 初回相談限定で『ChatGTP完全マスター』無料提供
           </p>
         </div>
       </div>

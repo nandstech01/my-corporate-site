@@ -42,7 +42,7 @@ export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
 
   return (
     <motion.div
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
       variants={container}
       initial="hidden"
       animate="show"
@@ -51,26 +51,35 @@ export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
         <motion.article
           key={post.id}
           variants={item}
-          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300"
+          className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-transparent hover:border-[#00CFFF] transition-all duration-300 flex flex-col"
           whileHover={{ y: -5 }}
         >
-          <Link href={`/posts/${post.slug}`} className="block">
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+          <Link href={`/posts/${post.slug}`} className="block flex flex-col flex-grow">
+            <div className="relative w-full flex-shrink-0 rounded-t-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
               <PostImage
                 src={post.thumbnail_url || post.featured_image}
                 alt={post.title}
               />
             </div>
-            <div className="p-6">
+            <div className="p-6 flex flex-col flex-grow">
               {post.category && (
-                <div className="text-sm text-indigo-600 mb-2">{post.category.name}</div>
+                <div className="text-sm text-blue-400 mb-2 font-medium">
+                  {post.category.name}
+                </div>
               )}
-              <h3 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-indigo-600 transition-colors duration-200">
+              <h3 className="text-xl font-semibold mb-2 text-gray-100 line-clamp-2 hover:text-blue-300 transition-colors duration-200">
                 {post.title}
               </h3>
-              <p className="text-gray-600 text-sm line-clamp-3">{post.excerpt}</p>
-              <div className="mt-4">
-                <span className="text-indigo-600 text-sm font-medium hover:text-indigo-800 transition-colors duration-200">
+              <p className="text-gray-300 text-sm line-clamp-3 mb-4 flex-grow">
+                {post.excerpt}
+              </p>
+              <div className="mt-auto">
+                <span
+                  className="inline-block px-6 py-3 font-bold text-white rounded-md text-sm
+                  bg-gradient-to-r from-[#00CFFF] via-[#008CFF] to-[#0047FF]
+                  hover:from-[#00BFFF] hover:via-[#0077FF] hover:to-[#0033CC]
+                  transition-all duration-300"
+                >
                   続きを読む →
                 </span>
               </div>

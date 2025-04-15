@@ -195,9 +195,9 @@ export default async function CorporatePage() {
         <FaqSection />
         <ContactSection />
         {/* 最新の記事セクション */}
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-black text-white">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">最新の記事</h2>
+            <h2 className="text-3xl font-bold text-center mb-12 text-white">最新の記事</h2>
             <PostsGrid initialPosts={posts} />
           </div>
         </section>
