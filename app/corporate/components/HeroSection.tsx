@@ -124,8 +124,21 @@ const HeroSection = () => {
         </div>
 
         {/* Masonry gallery below the button */}
-        <div className="w-full max-w-6xl mx-auto pt-12">
-          <Masonry data={GALLERY_ITEMS} />
+        <div className="flex justify-center w-full pt-12">
+          <Masonry 
+            items={GALLERY_ITEMS.map(item => ({
+              id: item.id,
+              image: item.image,
+              slug: item.link.replace('/categories/', ''),
+              height: item.height,
+              text: item.alt,
+              width: 280 // デフォルト幅
+            }))} 
+            columnWidth={240}
+            gap={20}
+            maxColumns={4}
+            maxContentWidth={1100}
+          />
         </div>
       </div>
     </section>

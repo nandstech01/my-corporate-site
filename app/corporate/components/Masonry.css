@@ -1,8 +1,13 @@
 .masonry {
   position: relative;
-  width: 100%;
-  height: 100%;
   margin: 0 auto;
+}
+
+/* Center container */
+.masonry-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .masonry>div {
@@ -31,17 +36,60 @@
   transition: 0.3s ease;
 }
 
-/* レスポンシブ調整 */
-@media (max-width: 1200px) {
+/* Hover effects */
+.masonry a {
+  transform-origin: center center;
+  transition: all 0.3s ease;
+}
+
+.masonry a:hover {
+  z-index: 10;
+}
+
+.masonry img {
+  transition: transform 0.3s ease-in-out;
+}
+
+.masonry a:hover img {
+  transform: scale(1.03);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
   .masonry {
-    padding: 0;
-    max-width: 90vw;
+    max-width: 90%;
   }
 }
 
 @media (max-width: 768px) {
   .masonry {
-    padding: 0;
-    max-width: 95vw;
+    width: 100% !important;
+    max-width: 95%;
+    padding: 0 1rem;
   }
+}
+
+@media (max-width: 480px) {
+  .masonry {
+    padding: 0 0.5rem;
+  }
+}
+
+/* Item hover effect */
+.masonry a:hover {
+  z-index: 10;
+}
+
+.masonry img {
+  transition: transform 0.3s ease-in-out;
+}
+
+.masonry a:hover img {
+  transform: scale(1.03);
+}
+
+/* Ensure proper centering for grid */
+.masonry .absolute {
+  will-change: transform, opacity;
+  transition: box-shadow 0.3s ease;
 } 

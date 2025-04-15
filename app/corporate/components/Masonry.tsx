@@ -1,146 +1,149 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useState, memo } from 'react';
 import { useTransition, animated } from '@react-spring/web';
-
 import './Masonry.css';
 
-interface MasonryItem {
+// Types
+interface Item {
   id: string;
-  image: string;
-  link: string;
-  alt: string;
+  width: number;
   height: number;
+  image: string;
+  slug: string;
+  text?: string;
 }
 
 interface MasonryProps {
-  data: MasonryItem[];
+  items: Item[];
+  columnWidth?: number;
+  maxColumns?: number;
+  gap?: number;
+  maxContentWidth?: number;
 }
 
-const Masonry = ({ data }: MasonryProps) => {
-  const [columns, setColumns] = useState(3);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [availableWidth, setAvailableWidth] = useState(0);
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+// Constants
+const DEFAULTS = {
+  COLUMN_WIDTH: 280,  // Default column width
+  MAX_COLUMNS: 4,     // Default maximum columns
+  GAP: 20,            // Default gap between items
+  MAX_CONTENT_WIDTH: 1200, // Maximum content width
+};
 
+const Masonry = ({
+  items,
+  columnWidth = DEFAULTS.COLUMN_WIDTH,
+  maxColumns = DEFAULTS.MAX_COLUMNS,
+  gap = DEFAULTS.GAP,
+  maxContentWidth = DEFAULTS.MAX_CONTENT_WIDTH,
+}: MasonryProps) => {
+  // State for storing calculated properties
+  const [dimensions, setDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  });
+
+  // Update dimensions on window resize
   useEffect(() => {
-    const updateDimensions = () => {
-      const width = window.innerWidth;
-      
-      // 適切なマージンと最大幅を設定
-      const pageMargin = Math.max(40, width * 0.08); // マージンを増やす
-      const maxContentWidth = 1200; // 最大コンテンツ幅を調整
-      
-      // 利用可能な幅を計算
-      const availWidth = Math.min(width - (pageMargin * 2), maxContentWidth);
-      setAvailableWidth(availWidth);
-      
-      // 適切なカラム数を設定
-      if (width < 640) setColumns(1);
-      else if (width < 768) setColumns(2);
-      else if (width < 1024) setColumns(3);
-      else if (width < 1280) setColumns(4);
-      else setColumns(4); // 最大4カラムに制限
-      
-      setContainerWidth(availWidth);
-    };
-
-    updateDimensions();
-
     const handleResize = () => {
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-      
-      resizeTimeoutRef.current = setTimeout(() => {
-        updateDimensions();
-      }, 200);
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
 
+    // 初期化時と画面サイズ変更時に実行
+    handleResize();
     window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const gridItems = useMemo(() => {
-    if (containerWidth === 0 || data.length === 0 || columns === 0) return [];
+  // Calculate number of columns based on screen width
+  const cols = Math.max(
+    1, 
+    Math.min(
+      maxColumns,
+      Math.floor((Math.min(dimensions.width, maxContentWidth) - gap) / (columnWidth + gap))
+    )
+  );
+
+  // Calculate actual column width based on container constraints
+  const actualColumnWidth = columnWidth;
+
+  // Calculate container width with proper spacing
+  const contentWidth = (actualColumnWidth * cols) + (gap * (cols - 1));
+
+  // Setup the column heights array once
+  const columnHeights = Array(cols).fill(0);
+
+  // Process items into grid layout - using a more reliable algorithm
+  const gridItems = items.map((item, index) => {
+    // Find the column with minimum height
+    const columnIndex = columnHeights.indexOf(Math.min(...columnHeights));
     
-    // カラム幅を計算
-    const columnWidth = containerWidth / columns;
-    const columnHeights = Array(columns).fill(0);
+    // Calculate position
+    const x = columnIndex * (actualColumnWidth + gap);
+    const y = columnHeights[columnIndex];
     
-    const itemsWithPosition = data.map((item) => {
-      const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
-      const x = columnWidth * shortestColumn;
-      const y = columnHeights[shortestColumn];
-      
-      columnHeights[shortestColumn] += item.height + 20; // 20px for gap
-      
-      return {
-        ...item,
-        x,
-        y,
-        width: columnWidth - 20, // 20px for gap
-      };
-    });
+    // Update the height of the selected column
+    columnHeights[columnIndex] += item.height + gap;
+    
+    return {
+      ...item,
+      x,
+      y,
+      width: actualColumnWidth,
+    };
+  });
 
-    return itemsWithPosition;
-  }, [data, columns, containerWidth]);
+  // Calculate container height
+  const containerHeight = columnHeights.length > 0 
+    ? Math.max(...columnHeights) 
+    : 0;
 
-  // 安全なコンテナの高さ計算
-  const heightValues = gridItems.map(item => item.y + item.height) || [];
-  const containerHeight = heightValues.length > 0 ? Math.max(...heightValues) + 20 : 0;
-
-  // シンプル化したuseTransition設定
+  // Setup transitions for grid items
   const transitions = useTransition(gridItems, {
-    keys: (item) => item.id,
-    from: { opacity: 0, scale: 0.8 },
-    enter: { opacity: 1, scale: 1 },
-    leave: { opacity: 0, scale: 0.8 },
-    config: { tension: 170, friction: 26 },
-    trail: 25
+    key: (item: any) => item.id,
+    from: { opacity: 0, transform: 'scale(0.8)' },
+    enter: { opacity: 1, transform: 'scale(1)' },
+    leave: { opacity: 0, transform: 'scale(0.8)' },
+    config: { mass: 1, tension: 200, friction: 20 },
+    trail: 25,
   });
 
   return (
-    <div className="flex justify-center">
+    <div className="masonry-container">
       <div 
-        ref={containerRef}
-        className="relative mx-auto" 
-        style={{ 
-          height: containerHeight || 'auto',
-          width: `${availableWidth}px`,
-          maxWidth: '100%'
+        className="masonry" 
+        style={{
+          height: `${containerHeight}px`,
+          width: `${contentWidth}px`,
+          maxWidth: '100%',
         }}
       >
         {transitions((style, item) => (
           <animated.a
-            href={item.link}
             key={item.id}
-            className="absolute block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+            href={item.slug.startsWith('/') ? item.slug : `/categories/${item.slug}`}
+            className="absolute block rounded-lg overflow-hidden shadow-lg hover:shadow-xl"
             style={{
-              opacity: style.opacity,
-              transform: style.scale.to(s => `scale(${s})`),
-              width: item.width,
-              height: item.height,
-              left: item.x,
-              top: item.y,
+              ...style,
+              width: `${item.width}px`,
+              height: `${item.height}px`,
+              transform: style.transform.to(t => `${t} translate3d(${item.x}px,${item.y}px,0)`),
             }}
           >
-            <div className="relative w-full h-full group">
-              <img
-                src={item.image}
-                alt={item.alt}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <span className="text-white text-lg font-bold">{item.alt}</span>
+            <img
+              src={item.image}
+              alt={item.text || item.slug}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {item.text && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <span className="text-white text-lg font-bold">{item.text}</span>
               </div>
-            </div>
+            )}
           </animated.a>
         ))}
       </div>
@@ -148,4 +151,4 @@ const Masonry = ({ data }: MasonryProps) => {
   );
 };
 
-export default Masonry; 
+export default memo(Masonry); 
