@@ -63,18 +63,28 @@ const nextConfig = {
 
   // セキュリティヘッダーの設定
   headers: async () => {
+    // 開発環境と本番環境で異なるヘッダーを設定
+    const isDevEnvironment = process.env.NODE_ENV === 'development';
+    
     return [
       {
         source: '/:path*',
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
+          // 開発環境でのみCSP制限を緩和
+          ...(isDevEnvironment ? [
+            {
+              key: 'Content-Security-Policy',
+              value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:;",
+            }
+          ] : [])
         ],
       },
     ];
