@@ -85,7 +85,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <nav aria-label="パンくずリスト" className="py-3 text-sm">
+      <nav aria-label="パンくずリスト" className="py-3 text-sm mb-4">
         <ol className="flex flex-wrap items-center">
           {breadcrumbItems.map((item, index) => {
             const isLast = index === breadcrumbItems.length - 1;
@@ -97,13 +97,13 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                 )}
                 
                 {isLast ? (
-                  <span className="text-gray-600" aria-current="page">
+                  <span className="text-gray-800 font-medium" aria-current="page">
                     {item.name}
                   </span>
                 ) : (
                   <Link 
                     href={item.path}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                    className="text-gray-600 hover:text-blue-700 hover:underline"
                   >
                     {index === 0 && homeIcon ? (
                       <span className="flex items-center">

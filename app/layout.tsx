@@ -1,11 +1,24 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from "next/font/google";
 import Header from './components/common/Header';
 import Footer from '../src/components/common/Footer';
 import Script from 'next/script';
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Define viewport settings separately
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#4a6cf7' },
+    { media: '(prefers-color-scheme: dark)', color: '#1e293b' }
+  ],
+  colorScheme: 'light dark',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nands.tech'),
@@ -90,17 +103,6 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'application-name': 'N&S',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#4a6cf7' },
-    { media: '(prefers-color-scheme: dark)', color: '#1e293b' }
-  ],
-  colorScheme: 'light dark',
   appLinks: {
     ios: {
       url: 'https://nands.tech/',

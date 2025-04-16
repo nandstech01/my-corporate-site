@@ -6,6 +6,7 @@ import Link from 'next/link'
 import MarkdownContent from '@/components/blog/MarkdownContent'
 import Script from 'next/script'
 import Breadcrumbs from '@/app/components/common/Breadcrumbs'
+import { RefreshCw } from 'lucide-react'
 
 // BreadcrumbItemの型定義
 interface BreadcrumbItem {
@@ -133,19 +134,15 @@ export default async function PostPage({ params }: Props) {
     "inLanguage": "ja"
   };
 
-  // カテゴリ名の取得
-  const categoryName = post.category?.[0]?.name || '';
-  const categorySlug = post.category?.[0]?.slug || '';
-
   // パンくずリストのアイテムを作成
   const breadcrumbItems: BreadcrumbItem[] = [
-    { name: 'ホーム', path: '/' },
+    // { name: 'ホーム', path: '/' }, // Remove the initial Home item here
     { name: '記事一覧', path: '/posts' }
   ];
   
   // カテゴリ名があれば追加
-  if (categoryName) {
-    breadcrumbItems.push({ name: categoryName, path: `/categories/${categorySlug}` });
+  if (post.category && post.category.length > 0) {
+    breadcrumbItems.push({ name: post.category[0].name, path: `/categories/${post.category[0].slug}` });
   }
   
   // 現在の記事を追加
@@ -158,40 +155,40 @@ export default async function PostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <Breadcrumbs customItems={breadcrumbItems} />
+      <div className="mt-16">
+        <Breadcrumbs customItems={breadcrumbItems} />
+      </div>
       
       <article className="max-w-4xl mx-auto">
-        <div className="mb-8">
+        {/* Move Category Tag section before the Back link */}
+        {/* Check if category exists and has a name before accessing */}
+        {post.category && post.category[0]?.name && (
+          <div className="mb-4"> {/* Adjusted margin-bottom slightly */}
+            <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
+              {post.category[0].name}
+            </span>
+          </div>
+        )}
+
+        {/* Back link section */}
+        {/* 
+        <div className="mb-4"> 
           <Link
             href="/posts"
-            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             記事一覧に戻る
           </Link>
-        </div>
+        </div> 
+        */}
         
         <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">{post.title}</h1>
         
-        <div className="flex flex-wrap gap-4 mb-8">
-          {post.category && (
-            <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
-              {post.category.name}
-            </div>
-          )}
-          
-          <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {new Date(post.created_at).toLocaleDateString('ja-JP')}
-          </div>
-        </div>
-        
         {(post.thumbnail_url || post.featured_image) && (
-          <div className="mb-8">
+          <div className="relative mb-8">
             <Image
               src={post.thumbnail_url || post.featured_image || ''}
               alt={post.title}
@@ -201,6 +198,12 @@ export default async function PostPage({ params }: Props) {
               unoptimized={true}
               priority={true}
             />
+            <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
+              <RefreshCw size={12} />
+              <span>
+                {new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}
+              </span>
+            </div>
           </div>
         )}
 
@@ -224,18 +227,6 @@ export default async function PostPage({ params }: Props) {
             ))}
           </div>
         )}
-        
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <Link
-            href="/posts"
-            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            記事一覧に戻る
-          </Link>
-        </div>
       </article>
     </div>
   )

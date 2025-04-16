@@ -90,10 +90,10 @@ export default async function CorporatePage() {
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
           <div className="container mx-auto px-4">
-            <Breadcrumbs customItems={[
+            {/* <Breadcrumbs customItems={[
               { name: 'ホーム', path: '/' },
               { name: '法人向けAIリスキリング', path: '/corporate' }
-            ]} />
+            ]} /> */}
           </div>
           <HeroSection />
           <CorporateProblems />
@@ -149,10 +149,10 @@ export default async function CorporatePage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <div className="container mx-auto px-4">
-          <Breadcrumbs customItems={[
+          {/* <Breadcrumbs customItems={[
             { name: 'ホーム', path: '/' },
             { name: '法人向けAIリスキリング', path: '/corporate' }
-          ]} />
+          ]} /> */}
         </div>
         <HeroSection />
         <CorporateProblems />
@@ -233,10 +233,10 @@ export default async function CorporatePage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <div className="container mx-auto px-4">
-          <Breadcrumbs customItems={[
+          {/* <Breadcrumbs customItems={[
             { name: 'ホーム', path: '/' },
             { name: '法人向けAIリスキリング', path: '/corporate' }
-          ]} />
+          ]} /> */}
         </div>
         <HeroSection />
         <CorporateProblems />

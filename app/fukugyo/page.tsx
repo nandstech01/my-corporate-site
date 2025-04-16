@@ -156,10 +156,10 @@ export default async function FukugyoPage() {
       />
       <div className="min-h-screen">
         <div className="container mx-auto px-4">
-          <Breadcrumbs customItems={[
+          {/* <Breadcrumbs customItems={[
             { name: 'ホーム', path: '/' },
             { name: 'AI副業支援', path: '/fukugyo' }
-          ]} />
+          ]} /> */}
         </div>
         <FukugyoHero />
         <FukugyoProblems />

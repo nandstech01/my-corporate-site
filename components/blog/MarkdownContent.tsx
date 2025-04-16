@@ -103,7 +103,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
       {/* 目次 */}
       {toc.length > 0 && (
         <div className="mb-10">
-          <div className="bg-blue-600 text-white py-3 px-4 flex items-center justify-between rounded-t-lg">
+          <div className="bg-cyan-400 text-gray-900 py-3 px-4 flex items-center justify-between rounded-t-lg">
             <h3 className="text-lg font-medium flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -112,14 +112,14 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             </h3>
             <button 
               onClick={() => setIsTocOpen(!isTocOpen)} 
-              className="md:hidden text-white focus:outline-none"
+              className="text-gray-900 focus:outline-none"
             >
               {isTocOpen ? '−' : '＋'}
             </button>
           </div>
 
           <div 
-            className={`border border-gray-200 border-t-0 rounded-b-lg bg-white overflow-hidden transition-all duration-300 ${isTocOpen ? 'max-h-96' : 'max-h-0 md:max-h-96'}`}
+            className={`border border-gray-200 border-t-0 rounded-b-lg bg-white overflow-hidden transition-all duration-300 ${isTocOpen ? 'max-h-96' : 'max-h-0'}`}
           >
             <ul className="py-4 px-2">
               {toc.filter(item => item.level === 2).map((item, index) => (
@@ -133,13 +133,13 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                       e.preventDefault();
                       scrollToHeading(item.id);
                     }}
-                    className={`flex items-center hover:text-blue-600 text-sm transition-colors py-1.5 ${
+                    className={`flex items-center hover:text-cyan-500 text-sm transition-colors py-1.5 ${
                       activeHeading === item.id 
-                        ? 'text-blue-600 font-medium' 
+                        ? 'text-cyan-500 font-medium'
                         : 'text-gray-700'
                     }`}
                   >
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 font-semibold">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-md bg-cyan-400 text-white flex items-center justify-center mr-3 font-semibold">
                       {index + 1}
                     </span>
                     <span className="line-clamp-1">{item.text}</span>
@@ -190,7 +190,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h2 
                   id={id}
-                  className="mt-12 mb-6 pb-3 text-2xl font-bold border-b-4 border-indigo-500 bg-gradient-to-r from-indigo-100 to-transparent px-4 py-2 rounded-tl-lg rounded-tr-lg"
+                  className="not-prose mt-10 mb-5 py-2 pl-4 text-2xl font-bold text-gray-800 border-l-4 border-cyan-400"
                 >
                   {children}
                 </h2>
