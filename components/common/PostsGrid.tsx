@@ -18,6 +18,19 @@ type Post = {
   };
 };
 
+// Helper function to clean and truncate excerpt
+const processExcerpt = (text: string, maxLength: number = 60): string => {
+  if (!text) return '';
+  // Remove markdown headers and list items
+  const cleanedText = text.replace(/^(#+\s*|\*+\s*|-+\s*)/gm, '').trim();
+  // Remove other potential markdown like bold/italic markers if needed (simple approach)
+  // cleanedText = cleanedText.replace(/(\*\*|__|\*|_)/g, ''); 
+  if (cleanedText.length <= maxLength) {
+    return cleanedText;
+  }
+  return cleanedText.substring(0, maxLength) + '...';
+};
+
 export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -71,7 +84,7 @@ export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
                 {post.title}
               </h3>
               <p className="text-gray-300 text-sm line-clamp-3 mb-4 flex-grow">
-                {post.excerpt}
+                {processExcerpt(post.excerpt)}
               </p>
               <div className="mt-auto">
                 <span

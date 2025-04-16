@@ -35,7 +35,7 @@ export default function BuzzWordToolSection() {
   ];
 
   return (
-    <section className="relative py-12 px-4 overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 rounded-xl shadow-2xl my-8">
+    <section className="relative py-12 px-4 overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 shadow-2xl my-8">
       {/* 装飾的な背景要素 */}
       <div className="absolute top-[-40%] left-[-20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[80px] animate-pulse" />
       <div className="absolute bottom-[-40%] right-[-20%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] animate-pulse" />

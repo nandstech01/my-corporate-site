@@ -134,7 +134,9 @@ export default function SustainabilitySection() {
           className="text-3xl font-bold mb-6 mt-16 text-center"
           variants={textVariants}
         >
-          サステナビリティへの取り組み
+          サステナビリティへの
+          <br className="md:hidden" />
+          取り組み
         </motion.h2>
         {/* 本文 */}
         <motion.p

@@ -86,8 +86,8 @@ export default function TrueFocus({
           style={{
             filter: highlightedIndex !== -1 && highlightedIndex !== index ? `blur(${blurAmount}px)` : 'none',
             textShadow: highlightedIndex === index ? `0 0 10px ${glowColor}, 0 0 5px ${borderColor}` : 'none',
-            color: highlightedIndex !== index ? 'rgba(255, 255, 255, 0.5)' : 'white', // Dim non-highlighted words
-            opacity: highlightedIndex !== index && highlightedIndex !== -1 ? 0.5 : 1, // Make non-highlighted words less opaque
+            color: 'white',
+            opacity: highlightedIndex !== index && highlightedIndex !== -1 ? 0.5 : 1,
           }}
         >
           {word}

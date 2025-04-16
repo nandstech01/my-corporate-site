@@ -63,7 +63,7 @@ const servicesData = [
     id: "ai-side-business"
   },
   {
-    title: "退職代行",
+    title: "退職エージェント",
     icon: <FaBalanceScale size={32} />,
     description:
       "業界最安2,980円の安心退職。未来のキャリアへ踏み出すお手伝い。",
@@ -196,7 +196,7 @@ function ServiceCard({
             animationDuration={0.3}
           />
         </h3>
-        <p className="text-sm text-gray-400 mb-4 flex-grow">
+        <p className="text-sm text-gray-200 mb-4 flex-grow">
           {description}
         </p>
         <span className="inline-block mt-auto text-[#00CFFF] font-medium group-hover:underline">
@@ -263,8 +263,8 @@ export default function ServicesSection() {
         animate={controls}
         variants={textVariants} // セクション全体にフェードイン適用も可能
       >
-        {/* タイトル */}
-        <div className="text-center mb-12 md:mb-16">
+        {/* タイトル - Adjust font size to match other sections */}
+        <div className="text-center mb-12 md:mb-16 text-3xl md:text-5xl font-bold">
            <TrueFocus
             sentence="サービス紹介"
             manualMode={false} // 自動アニメーション
@@ -275,10 +275,10 @@ export default function ServicesSection() {
             pauseBetweenAnimations={0.5}
            />
            <motion.p
-            className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto"
+            className="mt-4 text-lg md:text-xl text-gray-200 max-w-2xl mx-auto font-normal"
             variants={textVariants} // サブテキストにも適用
            >
-             個人から法人まで、AI時代を勝ち抜くためのスキルとサポートを提供します。
+             個人から法人までAI時代を勝ち抜くためのスキルとサポートを提供します
            </motion.p>
         </div>
 
