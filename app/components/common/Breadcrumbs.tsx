@@ -98,7 +98,14 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                 
                 {isLast ? (
                   <span className="text-gray-800 font-medium" aria-current="page">
-                    {item.name}
+                    {/* Truncated version for mobile */}
+                    <span className="sm:hidden">
+                      {item.name.length > 10 ? item.name.substring(0, 10) + '...' : item.name}
+                    </span>
+                    {/* Full version for larger screens */}
+                    <span className="hidden sm:inline">
+                      {item.name}
+                    </span>
                   </span>
                 ) : (
                   <Link 

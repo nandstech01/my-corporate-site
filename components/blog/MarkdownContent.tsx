@@ -23,14 +23,6 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
   const [activeHeading, setActiveHeading] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 正規表現で*で囲まれたテキストを検出し、強調表示用のHTMLに変換
-  const processEmphasizedText = (text: string) => {
-    return text.replace(
-      /\*([^*]+)\*/g, 
-      '<span class="font-bold bg-yellow-100 px-1 rounded">$1</span>'
-    );
-  };
-
   // 見出しから目次を生成
   useEffect(() => {
     if (!content) return;
@@ -103,7 +95,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
       {/* 目次 */}
       {toc.length > 0 && (
         <div className="mb-10">
-          <div className="bg-cyan-400 text-gray-900 py-3 px-4 flex items-center justify-between rounded-t-lg">
+          <div className="bg-cyan-400 text-gray-900 py-3 px-4 flex items-center justify-between">
             <h3 className="text-lg font-medium flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -190,7 +182,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h2 
                   id={id}
-                  className="not-prose mt-10 mb-5 py-2 pl-4 text-2xl font-bold text-gray-800 border-l-4 border-cyan-400"
+                  className="not-prose bg-gray-50 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 border-l-4 border-cyan-400"
                 >
                   {children}
                 </h2>
@@ -205,7 +197,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h3 
                   id={id}
-                  className="mt-8 mb-4 text-xl font-bold text-indigo-700 border-l-4 border-indigo-400 pl-3"
+                  className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700"
                 >
                   {children}
                 </h3>
@@ -226,42 +218,48 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                 </h4>
               );
             },
-            p({children}) {
-              let content = String(children);
-              if (content.includes('*')) {
-                return (
-                  <p className="my-4 leading-relaxed text-gray-700">
-                    <span dangerouslySetInnerHTML={{ __html: processEmphasizedText(content) }} />
-                  </p>
-                );
-              }
-              return (
-                <p className="my-4 leading-relaxed text-gray-700">
-                  {children}
-                </p>
-              );
+            p({ children }) {
+              return <p className="my-4 leading-relaxed text-gray-700 text-base">{children}</p>;
             },
-            ul({children}) {
-              return (
-                <ul className="my-4 ml-6 list-disc space-y-2">
-                  {children}
-                </ul>
-              );
+            ul({ children }) {
+              return <ul className="my-4 text-base list-disc space-y-2 pl-6">{children}</ul>;
             },
-            ol({children}) {
-              return (
-                <ol className="my-4 ml-6 list-decimal space-y-2">
-                  {children}
-                </ol>
-              );
+            ol({ children }) {
+              return <ol className="my-4 text-base list-decimal space-y-2 pl-6">{children}</ol>;
             },
-            li({children}) {
-              return (
-                <li className="pl-2 text-gray-700">
+            li({ children }) {
+              return <li className="text-gray-700 text-base">{children}</li>;
+            },
+            table: ({ children }) => (
+              <div className="sticky-table-container my-6 overflow-x-auto shadow-md rounded-none">
+                <table className="sticky-first-column-table not-prose w-full border-collapse text-sm">
                   {children}
-                </li>
-              );
-            }
+                </table>
+              </div>
+            ),
+            thead: ({ children }) => (
+              <thead className="bg-cyan-400 text-gray-900">
+                {children}
+              </thead>
+            ),
+            th: ({ children }) => (
+              <th className="py-3 px-4 font-semibold text-center text-gray-900 bg-cyan-400">
+                {children}
+              </th>
+            ),
+            tbody: ({ children }) => (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {children}
+              </tbody>
+            ),
+            td: ({ children }) => (
+              <td className="py-3 px-4 text-gray-700 border-b border-gray-200 bg-white">
+                {children}
+              </td>
+            ),
+            strong({ children }) {
+              return <span className="font-bold highlight-marker">{children}</span>;
+            },
           }}
           // @ts-ignore - Type issues with remarkGfm
           remarkPlugins={[remarkGfm]}

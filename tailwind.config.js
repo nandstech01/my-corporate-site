@@ -4,6 +4,12 @@ module.exports = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
     "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+  ],
+  safelist: [
+    'border-cyan-400', 
+    'bg-cyan-400', 
+    'text-cyan-500', 
   ],
   theme: {
     extend: {

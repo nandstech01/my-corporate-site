@@ -190,4 +190,110 @@
                 -0.025em -0.025em 0 rgba(0,255,0,0.75),
                 -0.025em -0.05em 0 rgba(0,0,255,0.75);
   }
+}
+
+/* Add custom styles for H3 gradient underline */
+.h3-gradient-underline {
+  position: relative; /* For pseudo-element positioning */
+  padding-bottom: 0.5rem; /* Space for the underline */
+}
+
+.h3-gradient-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%; /* Full width underline */
+  height: 2px; /* Underline thickness (adjust as needed) */
+  /* Gradient from brand color (cyan-400) to gray-300 */
+  background: linear-gradient(to right, #22d3ee, #d1d5db);
+}
+
+/* Example for a sharper split if needed (uncomment to use) */
+/*
+.h3-gradient-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #22d3ee 50%, #d1d5db 50%); 
+}
+*/
+
+/* Custom style for fluorescent yellow marker */
+.highlight-marker {
+  /* Use yellow-200 with 60% opacity for a lighter, more fluorescent feel */
+  background: linear-gradient(transparent 60%, rgba(254, 240, 138, 0.6) 60%); 
+  background-size: 100% 0.9em; /* Adjust size if needed */
+  background-repeat: no-repeat;
+  background-position: 0 0.2em; /* Adjust vertical position */
+  padding: 0 0.1em; /* Optional: slight horizontal padding */
+}
+
+/* Styles for sticky first column table */
+.sticky-first-column-table thead th:first-child,
+.sticky-first-column-table tbody td:first-child {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  /* The background colors should already be set by Tailwind classes in the component */
+  /* Optional: Add a border to visually separate the sticky column */
+  /* border-right: 1px solid #e5e7eb; */
+}
+
+/* Ensure the container clips the content correctly */
+.sticky-table-container {
+  /* overflow-x: auto; is already applied via Tailwind */
+}
+
+/* Remove styles for custom li padding */
+/*
+.custom-numbered-item,
+.custom-bullet-item {
+  padding-left: 1.75rem; 
+  position: relative;
+}
+*/
+
+/* Keep the simple marker color for ul */
+.prose ul > li::marker {
+  color: #22d3ee; /* cyan-400 */
+}
+
+/* Remove custom counter styles */
+/*
+.custom-ol-counter {
+  counter-reset: list-counter;
+}
+.custom-ol-counter > li::before {
+  content: counter(list-counter);
+  counter-increment: list-counter;
+  position: absolute;
+  left: 0;
+  top: 0.1em; 
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem; 
+  height: 1.5rem; 
+  background-color: #22d3ee; 
+  color: #ffffff; 
+  font-size: 0.875rem; 
+  line-height: 1; 
+  font-weight: 600; 
+  border-radius: 0; 
+}
+*/
+
+/* Style the default ordered list marker */
+.prose ol > li::marker {
+  color: #22d3ee; /* cyan-400 */
+  font-weight: 600; /* Semi-bold */
+}
+
+body {
+  /* Existing body styles */
 } 
