@@ -15,10 +15,9 @@ export const metadata: Metadata = {
   },
   description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。2008年の設立以来、時代に寄り添ったソリューションを提供しています。',
   icons: [
-    { rel: 'icon', url: '/favicon.ico' },
+    { rel: 'icon', url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
     { rel: 'apple-touch-icon', url: '/apple-touch-icon.png' },
-    { rel: 'icon', url: '/favicon-32x32.png', sizes: '32x32' },
-    { rel: 'icon', url: '/favicon-16x16.png', sizes: '16x16' }
+    { rel: 'icon', url: '/favicon.ico', sizes: 'any' },
   ],
   manifest: '/manifest.json',
   openGraph: {
@@ -28,10 +27,10 @@ export const metadata: Metadata = {
     siteName: '株式会社エヌアンドエス',
     images: [
       {
-        url: '/images/ogp.jpg',
+        url: '/images/default-og-image.jpg',
         width: 1200,
         height: 630,
-        alt: '株式会社エヌアンドエス - キャリア支援サービス'
+        alt: '株式会社エヌアンドエス - 総合人材支援・生成AIリスキリング研修'
       }
     ],
     locale: 'ja_JP',
@@ -41,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
     description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。',
-    images: ['/images/ogp.jpg'],
+    images: ['/images/default-og-image.jpg'],
     site: '@nands_tech',
     creator: '@nands_tech',
   },
