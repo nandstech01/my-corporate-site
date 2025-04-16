@@ -100,9 +100,9 @@ export default function FukugyoProblems() {
           transition={{ duration: 0.8 }}
           className="text-center mb-20"
         >
-          <h2 className="text-5xl md:text-6xl font-bold mb-8">
+          <h2 className="text-3xl md:text-6xl font-bold mb-8">
             <span className="bg-gradient-to-r from-gray-100 via-blue-100 to-gray-100 bg-clip-text text-transparent">
-              こんな悩みはありませんか？
+              こんな悩みありませんか
             </span>
           </h2>
           <motion.p
@@ -112,7 +112,7 @@ export default function FukugyoProblems() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-2xl text-gray-300 max-w-3xl mx-auto font-light"
           >
-            多くの方が抱える副業の課題を、<br />
+            あなたが抱える副業の課題を<br />
             <span className="font-medium text-blue-200">AIスキル</span>で解決できます
           </motion.p>
         </motion.div>

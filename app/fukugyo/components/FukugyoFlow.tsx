@@ -87,9 +87,11 @@ export default function FukugyoFlow() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">
+        <h2 className="text-3xl md:text-5xl font-bold text-center mb-16">
           <span className="bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-            この無料セミナーで得られるもの
+            この無料セミナーで
+            <br className="md:hidden" />
+            得られるもの
           </span>
         </h2>
 
@@ -184,7 +186,7 @@ export default function FukugyoFlow() {
 
         <div className="text-center mt-16">
           <p className="text-xl text-gray-800 mb-8 leading-relaxed max-w-3xl mx-auto">
-            これらを身につけることで、AI副業を"実際に動かす"ための武器が揃います。
+            これらを身につけると、AI副業を"実際に動かす"ための武器が揃います
             <br />
             <span className="font-medium text-blue-600">
               あなたも今すぐ、膨大なチャンスを手にする第一歩を踏み出しませんか？
@@ -222,58 +224,6 @@ export default function FukugyoFlow() {
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-20px); }
-        }
-
-        .neon-button {
-          display: inline-flex;
-          align-items: center;
-          position: relative;
-          padding: 1.5rem 4rem;
-          color: #fff;
-          text-decoration: none;
-          font-size: 1.5rem;
-          font-weight: bold;
-          border-radius: 50px;
-          background: linear-gradient(
-            90deg,
-            rgba(59, 130, 246, 0.95) 0%,
-            rgba(6, 182, 212, 0.95) 50%,
-            rgba(59, 130, 246, 0.95) 100%
-          );
-          box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-            0 0 30px rgba(6, 182, 212, 0.5),
-            0 0 60px rgba(59, 130, 246, 0.4);
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-          animation: neonPulse 3s infinite alternate;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
-          cursor: pointer;
-        }
-
-        .neon-button:hover {
-          transform: scale(1.05) translateY(-5px);
-          box-shadow: 0 0 25px rgba(59, 130, 246, 0.8),
-            0 0 50px rgba(6, 182, 212, 0.7),
-            0 0 100px rgba(59, 130, 246, 0.6);
-          background: linear-gradient(
-            90deg,
-            rgba(59, 130, 246, 1) 0%,
-            rgba(6, 182, 212, 1) 50%,
-            rgba(59, 130, 246, 1) 100%
-          );
-        }
-
-        @keyframes neonPulse {
-          0% {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6),
-              0 0 30px rgba(6, 182, 212, 0.5),
-              0 0 60px rgba(59, 130, 246, 0.4);
-          }
-          100% {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
-              0 0 40px rgba(6, 182, 212, 0.7),
-              0 0 80px rgba(59, 130, 246, 0.6);
-          }
         }
       `}</style>
     </section>

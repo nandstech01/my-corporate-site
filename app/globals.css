@@ -28,10 +28,10 @@
   display: inline-flex;
   align-items: center;
   position: relative;
-  padding: 1.5rem 4rem;
+  padding: 1rem 2.5rem;
   color: #fff;
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
   border-radius: 50px;
   background: linear-gradient(
@@ -48,6 +48,14 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   cursor: pointer;
+}
+
+/* Apply original styles for sm screens and up */
+@media (min-width: 640px) {
+  .neon-button {
+    padding: 1.5rem 4rem;
+    font-size: 1.5rem;
+  }
 }
 
 .neon-button:hover {

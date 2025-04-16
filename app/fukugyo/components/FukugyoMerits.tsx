@@ -123,9 +123,11 @@ export default function FukugyoMerits() {
 
       <animated.div style={fadeIn} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-bold mb-8">
+          <h2 className="text-3xl md:text-6xl font-bold mb-8">
             <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 bg-clip-text text-transparent">
-              セミナーで得られる6つのメリット
+              セミナーで得られる
+              <br className="md:hidden" />
+              6つのメリット
             </span>
           </h2>
           <p className="text-2xl text-gray-600 font-light max-w-3xl mx-auto">
@@ -172,7 +174,7 @@ export default function FukugyoMerits() {
         </div>
 
         <p className="mt-8 text-gray-600 text-lg">
-          ※ 参加特典として、AI活用の基礎講座（通常価格5,000円）を無料プレゼント
+          ※ 参加特典として、ChatGPT完全マスター（通常価格5,000円）を無料配布
         </p>
       </animated.div>
     </section>

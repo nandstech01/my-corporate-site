@@ -11,6 +11,7 @@ import PostsGrid from '@/components/common/PostsGrid';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import Breadcrumbs from '../components/common/Breadcrumbs';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'AI副業支援・ChatGPTを活用した副収入獲得サポート | 株式会社エヌアンドエス',
@@ -185,18 +186,24 @@ export default async function FukugyoPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {categories.map((category) => {
-                // カテゴリーごとのデフォルト画像を設定
-                const getCategoryImage = (slug: string) => {
-                  const images = {
-                    'ai-programming': 'https://img.freepik.com/free-vector/artificial-intelligence-concept-landing-page_23-2148227690.jpg',
-                    'digital-marketing': 'https://img.freepik.com/free-vector/digital-marketing-team-analyzing-data_74855-4438.jpg',
-                    'writing': 'https://img.freepik.com/free-vector/content-writing-concept-landing-page_23-2148227723.jpg',
-                    'consulting': 'https://img.freepik.com/free-vector/business-consulting-concept-landing-page_23-2148227736.jpg',
-                    'design': 'https://img.freepik.com/free-vector/graphic-design-landing-page-concept_23-2148227717.jpg',
-                    'default': 'https://img.freepik.com/free-vector/new-opportunities-concept-landing-page_23-2148227641.jpg'
-                  };
-                  return images[slug as keyof typeof images] || images.default;
+                // カテゴリー名とファイル名のマッピング
+                const imageMap: { [key: string]: string } = {
+                  'AIショート動画/UGCマーケ支援': 'fukugyo-ai-video-marketing',
+                  'AI翻訳・字幕作成': 'fukugyo-ai-translation',
+                  'AI音声合成/ナレーション': 'fukugyo-ai-voice',
+                  'No-code × AIアプリ構築': 'fukugyo-nocode-ai-app',
+                  'SEOライティング': 'fukugyo-seo-writing',
+                  'データ分析': 'fukugyo-data-analysis',
+                  'ビジネス事務': 'fukugyo-business-admin',
+                  'プログラミング': 'fukugyo-programming',
+                  '生成AIコンサルタント': 'fukugyo-genai-consultant',
+                  '画像・動画生成': 'fukugyo-media-generation',
+                  'default': 'default-post' // Fallback image if needed
                 };
+
+                // マッピングに基づいて画像パスを取得 (拡張子は仮に.jpgとする)
+                const imageName = imageMap[category.name as keyof typeof imageMap] || imageMap.default;
+                const imagePath = `/images/fukugyo-categories/${imageName}.jpg`;
 
                 return (
                   <div 
@@ -205,14 +212,17 @@ export default async function FukugyoPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
-                    {/* Image Container */}
+                    {/* Image Container - Use Next/Image */}
                     <div className="relative h-48 overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 z-10" />
-                      <img
-                        src={getCategoryImage(category.slug)}
+                      <Image
+                        src={imagePath}
                         alt={category.name}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                        layout="fill" // Use layout="fill" to cover the container
+                        objectFit="cover" // Ensure the image covers the area
+                        className="transform group-hover:scale-110 transition-transform duration-700"
                       />
+                      {/* Optional overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 z-10 opacity-50 group-hover:opacity-30 transition-opacity" />
                     </div>
                     
                     <div className="relative z-10 p-6">
