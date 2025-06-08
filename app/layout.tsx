@@ -130,21 +130,21 @@ export default function RootLayout({
     "alternateName": "N&S",
     "url": "https://nands.tech",
     "logo": "https://nands.tech/images/logo.png",
-    "description": "生成AI活用のリスキリング研修から、キャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合キャリア支援企業です。",
+    "description": "滋賀県を拠点とする総合人材支援・生成AIリスキリング研修企業。生成AI活用のリスキリング研修から、キャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合キャリア支援企業です。",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "渋谷区道玄坂1-10-8 渋谷道玄坂東急ビル2F-C",
-      "addressLocality": "渋谷区",
-      "addressRegion": "東京都",
-      "postalCode": "150-0043",
+      "streetAddress": "滋賀県内主要拠点",
+      "addressLocality": "滋賀県",
+      "addressRegion": "関西地方",
       "addressCountry": "JP"
     },
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+81-03-0000-0000",
+      "telephone": "+81-77-0000-0000",
       "contactType": "customer service",
       "email": "contact@nands.tech",
-      "availableLanguage": ["日本語"]
+      "availableLanguage": ["日本語"],
+      "areaServed": ["JP", "関西地方", "滋賀県"]
     },
     "sameAs": [
       "https://twitter.com/nands_tech",

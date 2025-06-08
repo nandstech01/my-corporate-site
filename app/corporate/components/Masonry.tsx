@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, memo, useRef, useMemo } from 'react';
-import { useTransition, animated } from '@react-spring/web';
+import Image from 'next/image';
 import './Masonry.css';
 
 // Types
@@ -103,7 +103,7 @@ const Masonry = ({
     const columnHeights = Array(cols).fill(0);
 
     // 各アイテムの位置を計算
-    const gridItems = isMounted ? items.map((item) => {
+    const gridItems = isMounted ? items.map((item, index) => {
       // 最も低いカラムを見つける
       const columnIndex = columnHeights.indexOf(Math.min(...columnHeights));
       
@@ -119,6 +119,7 @@ const Masonry = ({
         x,
         y,
         width: actualColumnWidth,
+        animationDelay: index * 100, // アニメーション遅延を少し長くして重なりを防ぐ
       };
     }) : [];
 
@@ -129,17 +130,6 @@ const Masonry = ({
     
     return { gridItems, containerHeight, contentWidth, isMobile };
   }, [items, columnWidth, maxColumns, gap, maxContentWidth, dimensions, isMounted]);
-
-  // アニメーションの設定（無限再帰エラー回避）
-  const transitions = useTransition(gridItems, {
-    key: (item: any) => item.id,
-    from: { opacity: 0 },
-    enter: { opacity: 1 },
-    leave: { opacity: 0 },
-    config: { mass: 1, tension: 170, friction: 26 },
-    trail: 25,
-    initial: null,
-  });
 
   // マウント前はプレースホルダーを表示
   if (!isMounted) {
@@ -152,14 +142,6 @@ const Masonry = ({
     );
   }
 
-  // デバッグ用コンソール出力
-  console.log('Masonry rendering with:', { 
-    isMobile, 
-    gridItems: gridItems.length,
-    contentWidth,
-    containerHeight
-  });
-
   return (
     <div className={`masonry-container ${isMobile ? 'mobile' : ''}`}>
       <div 
@@ -171,34 +153,35 @@ const Masonry = ({
           position: 'relative',
         }}
       >
-        {transitions((style, item) => (
-          <animated.a
+        {gridItems.map((item, index) => (
+          <a
             key={item.id}
             href={item.slug.startsWith('/') ? item.slug : `/categories/${item.slug}`}
-            className="absolute block rounded-lg overflow-hidden shadow-lg hover:shadow-xl"
+            className="absolute block rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 animate-fade-in"
             style={{
-              ...style,
               width: `${item.width}px`,
               height: `${item.height}px`,
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              transform: `translate3d(${item.x}px,${item.y}px,0)`,
-              willChange: 'transform, opacity',
+              left: `${item.x}px`,
+              top: `${item.y}px`,
+              animationDelay: `${item.animationDelay}ms`,
+              animationFillMode: 'forwards',
+              zIndex: index + 1, // 各カードに異なるz-indexを設定
             }}
           >
-            <img
+            <Image
               src={item.image}
               alt={item.text || item.slug}
-              className="w-full h-full object-cover"
-              loading="lazy"
+              fill
+              className="object-cover"
+              sizes="(max-width: 480px) 70vw, (max-width: 768px) 37vw, 280px"
+              priority={false}
             />
             {item.text && (
               <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <span className="text-white text-lg font-bold">{item.text}</span>
               </div>
             )}
-          </animated.a>
+          </a>
         ))}
       </div>
     </div>

@@ -22,7 +22,7 @@ export function getStructuredData() {
     "@id": `${baseUrl}/#organization`,
     "name": "株式会社エヌアンドエス",
     "url": baseUrl,
-    "description": "生成AIを活用したリスキリング研修、キャリアコンサルティング、退職支援を提供する総合人材支援企業",
+    "description": "滋賀県大津市皇子が丘を拠点とする総合人材支援企業。生成AIを活用したリスキリング研修、キャリアコンサルティング、退職支援を関西地方を中心に全国で提供。",
     "foundingDate": "2008",
     "legalName": "株式会社エヌアンドエス",
     "address": {
@@ -37,7 +37,8 @@ export function getStructuredData() {
       "@type": "ContactPoint",
       "telephone": "0120-558-551",
       "contactType": "customer service",
-      "availableLanguage": ["Japanese"]
+      "availableLanguage": ["Japanese"],
+      "areaServed": ["JP", "関西地方", "滋賀県", "大津市"]
     },
     "founder": {
       "@type": "Person",
@@ -71,10 +72,24 @@ export function getStructuredData() {
       "24時間365日AIサポート",
       "オンライン完結型サービス"
     ],
-    "serviceArea": {
-      "@type": "Country",
-      "name": "日本"
-    },
+    "serviceArea": [
+      {
+        "@type": "Country",
+        "name": "日本"
+      },
+      {
+        "@type": "Place",
+        "name": "関西地方"
+      },
+      {
+        "@type": "Place",
+        "name": "滋賀県"
+      },
+      {
+        "@type": "Place",
+        "name": "大津市"
+      }
+    ],
     // 関連サービスサイト
     "sameAs": [
       "https://taishoku-anshin-daiko.com/"

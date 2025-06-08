@@ -140,12 +140,12 @@ export default async function HomePage() {
   const posts = await getLatestPosts();
   const structuredData = getStructuredData();
   
-  // ホームページ用に追加の構造化データを設定（レリバンスエンジニアリング強化）
+  // ホームページ用に追加の構造化データを設定（滋賀県詳細・レリバンスエンジニアリング強化）
   const pageStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修",
-    "description": "生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートします。",
+    "description": "滋賀県大津市を拠点とする総合人材支援企業。生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートします。",
     "url": "https://nands.tech",
     "isPartOf": structuredData,
     "mainEntity": {
@@ -154,9 +154,24 @@ export default async function HomePage() {
       "alternateName": "NANDS",
       "url": "https://nands.tech",
       "logo": "https://nands.tech/images/logo.png",
-      "description": "総合人材支援・生成AIリスキリング研修を提供する企業",
+      "description": "滋賀県大津市皇子が丘に本社を構える総合人材支援・生成AIリスキリング研修企業",
       "foundingDate": "2008",
       "industry": "人材支援・教育研修",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "JP",
+        "addressRegion": "滋賀県",
+        "addressLocality": "大津市",
+        "streetAddress": "皇子が丘2丁目10番25-3004号",
+        "postalCode": "520-0025"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "0120-558-551",
+        "contactType": "customer service",
+        "availableLanguage": ["Japanese"],
+        "areaServed": ["JP", "関西地方", "滋賀県"]
+      },
       "knowsAbout": [
         "生成AI研修",
         "リスキリング",
@@ -166,12 +181,29 @@ export default async function HomePage() {
         "プロンプトエンジニアリング",
         "ChatGPT活用",
         "SEO対策",
-        "レリバンスエンジニアリング"
+        "レリバンスエンジニアリング",
+        "滋賀県AI研修",
+        "関西地方DX推進",
+        "大津市企業支援"
       ],
-      "serviceArea": {
-        "@type": "Country",
-        "name": "日本"
-      }
+      "serviceArea": [
+        {
+          "@type": "Country",
+          "name": "日本"
+        },
+        {
+          "@type": "Place",
+          "name": "関西地方"
+        },
+        {
+          "@type": "Place",
+          "name": "滋賀県"
+        },
+        {
+          "@type": "Place",
+          "name": "大津市"
+        }
+      ]
     },
     "potentialAction": [
       {
