@@ -40,7 +40,7 @@ export default function RefinedCourseDates() {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      2/15
+                      5/7
                     </motion.span>
                     <span className="text-lg ml-1">(火)</span>
                   </div>
@@ -51,7 +51,7 @@ export default function RefinedCourseDates() {
                       className="flex items-center text-white text-sm"
                     >
                       <Clock className="w-4 h-4 mr-2" />
-                      お申し込み期限 2/8 (土)
+                      お申し込み期限 4/30 (土)
                     </motion.div>
                     <div className="text-xs text-gray-300 mt-1 flex items-center">
                       <AlertCircle className="w-3 h-3 mr-1" />

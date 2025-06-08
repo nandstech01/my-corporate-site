@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     yahoo: 'verification_code',
     other: {
       'msvalidate.01': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Bingウェブマスターツールの検証コード
-      'norton-safeweb-site-verification': 'norton_verification_code' // ノートンセーフウェブ
+      'norton-safeweb-site-verification': 'norton_verification_code', // ノートンセーフウェブ
     },
   },
   category: 'キャリア支援',
@@ -99,7 +99,6 @@ export const metadata: Metadata = {
   publisher: '株式会社エヌアンドエス',
   other: {
     'format-detection': 'telephone=no',
-    'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'application-name': 'N&S',
   },
@@ -112,7 +111,7 @@ export const metadata: Metadata = {
       package: 'com.nands.app',
       app_name: 'N&S App'
     }
-  }
+  },
 };
 
 export default function RootLayout({

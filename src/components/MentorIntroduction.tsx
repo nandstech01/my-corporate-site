@@ -21,15 +21,11 @@ function MentorIntroduction() {
 
               <img
 
-                src="/placeholder.svg?height=200&width=200"
+                // src="/placeholder.svg?height=200&width=200"
 
-                alt="K,H"
+                // alt={`${mentor.name}のプロフィール写真`}
 
-                width={200}
-
-                height={200}
-
-                className="w-40 h-40 rounded-full mb-4"
+                className="w-48 h-48 rounded-full object-cover shadow-lg mb-4"
 
               />
 

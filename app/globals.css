@@ -296,4 +296,113 @@
 
 body {
   /* Existing body styles */
+}
+
+/* SEO最適化とレリバンスエンジニアリング用のローディングアニメーション */
+.loading-stars {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+.loading-stars::before,
+.loading-stars::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 2s infinite;
+}
+
+.loading-stars::before {
+  top: 20%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.loading-stars::after {
+  top: 60%;
+  right: 30%;
+  animation-delay: 1s;
+}
+
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+  }
+}
+
+/* HeroSectionのフォールバック背景 */
+.hero-fallback {
+  background: linear-gradient(45deg, #000000, #1a1a2e, #16213e);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* レリバンスエンジニアリング用のセマンティック強化 */
+.posts-grid-container {
+  /* 構造化データの視覚的な境界を明確化 */
+  position: relative;
+}
+
+.posts-grid-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: transparent;
+  /* SEOクローラーが構造を理解しやすくするための視覚的境界 */
+}
+
+/* アクセシビリティ強化 */
+@media (prefers-reduced-motion: reduce) {
+  .loading-stars::before,
+  .loading-stars::after {
+    animation: none;
+  }
+  
+  .hero-fallback {
+    animation: none;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .posts-grid-ssr article {
+    border: 2px solid currentColor;
+  }
+}
+
+/* フォーカス管理の強化（キーボードナビゲーション） */
+.posts-grid-ssr article:focus-within {
+  outline: 2px solid #00CFFF;
+  outline-offset: 2px;
+}
+
+/* プリント用スタイル（SEO評価向上） */
+@media print {
+  .loading-stars,
+  .hero-fallback {
+    display: none;
+  }
+  
+  .posts-grid-ssr article {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
 } 

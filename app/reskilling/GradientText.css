@@ -1,0 +1,71 @@
+.animated-gradient-text {
+  position: relative;
+  margin: 0 auto;
+  display: inline-block; /* Changed from flex to inline-block */
+  /* max-width: fit-content; */ /* Removed to allow block behavior if needed */
+  /* flex-direction: row; */ /* Removed */
+  /* align-items: center; */ /* Removed */
+  /* justify-content: center; */ /* Removed */
+  border-radius: 1.25rem;
+  font-weight: 500;
+  /* backdrop-filter: blur(10px); */ /* Consider performance impact, removed for now */
+  transition: box-shadow 0.5s ease-out;
+  overflow: hidden;
+  /* cursor: pointer; */ /* Optional */
+}
+
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 300% 100%;
+  animation: gradient linear infinite;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Removed the overlay ::before pseudo-element as it creates a solid background */
+/*
+.gradient-overlay::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: inherit;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #060606;
+  z-index: -1;
+}
+*/
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.text-content {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  background-size: 300% 100%; /* Ensure size is set */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient linear infinite;
+} 

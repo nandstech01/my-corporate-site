@@ -6,6 +6,18 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
 
+  // 実験的機能でパフォーマンス向上（レリバンスエンジニアリング対応）
+  experimental: {
+    optimizePackageImports: [
+      'framer-motion',
+      '@react-three/fiber',
+      '@react-three/drei',
+      '@react-spring/web',
+      'three',
+      'postprocessing'
+    ],
+  },
+
   // Webpackの設定
   webpack: (config, { isServer, dev }) => {
     // エイリアスの設定
@@ -24,6 +36,40 @@ const nextConfig = {
     // canvasモジュールをwebpackの対象から除外
     if (isServer) {
       config.externals = [...(config.externals || []), 'canvas'];
+    }
+
+    // 重いライブラリを分離（SEO最適化）
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          // Three.js関連の重いライブラリを分離
+          heavy3d: {
+            test: /[\\/]node_modules[\\/](@react-three|three|postprocessing)[\\/]/,
+            name: 'heavy-3d',
+            chunks: 'async',
+            priority: 10,
+            enforce: true,
+          },
+          // アニメーションライブラリを分離
+          animations: {
+            test: /[\\/]node_modules[\\/](framer-motion|@react-spring)[\\/]/,
+            name: 'animations', 
+            chunks: 'async',
+            priority: 9,
+            enforce: true,
+          },
+          // WebGLライブラリを分離
+          webgl: {
+            test: /[\\/]node_modules[\\/](ogl|matter-js)[\\/]/,
+            name: 'webgl',
+            chunks: 'async',
+            priority: 8,
+            enforce: true,
+          }
+        }
+      }
     }
     
     return config;
@@ -56,50 +102,56 @@ const nextConfig = {
     API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:3000',
   },
 
-  // パフォーマンス最適化
+  // パフォーマンス最適化（SEO向上）
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // セキュリティヘッダーの設定
+  // ヘッダー設定（SEO強化）
   async headers() {
-    // 開発環境かどうかを判定
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    // 共通ヘッダー
-    const commonHeaders = [
-      {
-        key: 'X-Content-Type-Options',
-        value: 'nosniff',
-      },
-      {
-        key: 'X-Frame-Options',
-        value: 'SAMEORIGIN',
-      },
-    ];
-    
-    // 開発環境の場合は制限を緩和したCSPを設定
-    if (isDev) {
-      return [
-        {
-          source: '/:path*',
-          headers: [
-            ...commonHeaders,
-            {
-              key: 'Content-Security-Policy',
-              value: "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';",
-            },
-          ],
-        },
-      ];
-    }
-    
-    // 本番環境の場合は通常のヘッダーのみ
     return [
       {
-        source: '/:path*',
-        headers: commonHeaders,
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
       },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+    ];
+  },
+
+  // リダイレクト設定（SEO最適化）
+  async redirects() {
+    return [
+      // 旧URLから新URLへのリダイレクト例
+      // {
+      //   source: '/old-path',
+      //   destination: '/new-path',
+      //   permanent: true,
+      // },
     ];
   },
 };

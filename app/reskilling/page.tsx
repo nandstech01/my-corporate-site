@@ -20,6 +20,10 @@ import AILaborMarketImpact from '../../src/components/AILaborMarketImpact';
 import Footer from '../../src/components/common/Footer';
 import Script from 'next/script';
 import Breadcrumbs from '../components/common/Breadcrumbs';
+import Orb from './Orb';
+import './Orb.css';
+import GradientText from './GradientText';
+import './GradientText.css';
 
 // クライアントコンポーネント
 const ReskillPage = () => {
@@ -66,36 +70,60 @@ const ReskillPage = () => {
           { name: 'リスキリング研修', path: '/reskilling' }
         ]} />
       </div>
-      {/* ビデオセクション */}
-      <div className="relative min-h-screen flex flex-col">
-        <div className="absolute inset-0 z-0">
-          <video 
-            src="/images/background.mp4"
-            autoPlay 
-            muted 
-            playsInline 
-            className="w-full h-full object-cover"
-            onEnded={(e) => e.currentTarget.pause()}
-          />
-        </div>
-        <div className="relative z-10 flex flex-col min-h-screen text-black">
-          <animated.div style={fadeInProps} className="flex flex-col items-center justify-center mt-32">
-            <h1 className="text-xl sm:text-3xl font-bold mb-2">2025年</h1>
-            <h2 className="text-xl sm:text-2xl font-bold">準備は万全ですか？</h2>
+      <div style={{ width: '100%', height: '600px', position: 'relative', marginBottom: '2rem' }}>
+        <Orb
+          hoverIntensity={0.5}
+          rotateOnHover={true}
+          hue={0}
+          forceHoverState={false}
+        />
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-white pointer-events-none">
+          <animated.div style={fadeInProps} className="flex flex-col items-center justify-center">
+            {/* Mobile H1 */}
+            <h1 className="text-3xl font-bold mb-4 text-center px-4 sm:hidden">
+              <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={4}
+                  showBorder={false}
+              >
+                  AI時代のスキルを習得<br />リスキリングプログラム
+              </GradientText>
+            </h1>
+            {/* Desktop H1 */}
+            <h1 className="hidden sm:block text-5xl font-bold mb-4 text-center px-4">
+               <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={4}
+                  showBorder={false}
+              >
+                  AI時代のスキルを習得！個人向けリスキリングプログラム
+              </GradientText>
+            </h1>
+            {/* Mobile H2 */}
+            <h2 className="text-xl font-bold text-center px-4 sm:hidden">
+               <GradientText
+                  colors={["#ffae40", "#ff4079", "#ae40ff", "#ffae40"]}
+                  animationSpeed={6}
+                  showBorder={false}
+                >
+                   ChatGPT活用で未来を切り拓く<br />キャリアアップ支援
+               </GradientText>
+            </h2>
+            {/* Desktop H2 */}
+            <h2 className="hidden sm:block text-3xl font-bold text-center px-4">
+               <GradientText
+                  colors={["#ffae40", "#ff4079", "#ae40ff", "#ffae40"]}
+                  animationSpeed={6}
+                  showBorder={false}
+                >
+                   ChatGPT活用で未来を切り拓くキャリアアップ支援
+               </GradientText>
+            </h2>
           </animated.div>
-          <main className="flex-grow flex flex-col items-center justify-start p-2 space-y-4 text-center mt-4">
-            <animated.h1 style={slideInProps} className="text-3xl md:text-4xl font-bold leading-tight">
-              <br />
-              <span className="text-4xl md:text-5xl"> </span>
-            </animated.h1>
-            <animated.p style={slideInProps} className="text-xl max-w-2xl">
-              {/* テキストを追加 */}
-            </animated.p>
-          </main>
         </div>
       </div>
 
-      <RefinedCourseDates />
+      {/* <RefinedCourseDates /> */}
       <SeminarBenefits />
       <AboutNands />
       <ConcernsSection />
