@@ -71,22 +71,14 @@ const ReskillPage = () => {
         "businessFunction": "https://schema.org/Sell"
       },
              "hasCourseInstance": [
-         {
+                  {
            "@type": "CourseInstance",
            "name": "2025年春期AIリスキリング研修",
-           "courseMode": ["online", "blended"],
+           "description": "ChatGPTと生成AIを活用した実践的なリスキリング研修プログラム",
+           "courseMode": "OnlineOnly",
            "startDate": "2025-01-15",
            "endDate": "2025-04-15",
-           "courseSchedule": {
-             "@type": "Schedule",
-             "scheduleTimezone": "Asia/Tokyo",
-             "repeatFrequency": "P1W",
-             "repeatCount": 12,
-             "startDate": "2025-01-15",
-             "endDate": "2025-04-15",
-             "duration": "PT2H",
-             "byDay": ["MO", "WE", "FR"]
-           },
+           "duration": "P3M",
            "instructor": [
              {
                "@type": "Person",
@@ -105,11 +97,13 @@ const ReskillPage = () => {
            },
            "offers": {
              "@type": "Offer",
-             "price": "応相談",
+             "name": "個人向けAIリスキリング研修プログラム",
+             "price": "応相談", 
              "priceCurrency": "JPY",
              "availability": "https://schema.org/InStock",
              "validFrom": "2024-12-01",
-             "validThrough": "2025-01-14"
+             "validThrough": "2025-01-14",
+             "category": "教育・研修サービス"
            }
          }
        ],
