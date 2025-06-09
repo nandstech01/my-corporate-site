@@ -1,5 +1,6 @@
 import React from "react";
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { createClient } from '@/utils/supabase/server';
 import ROICalculator from '@/components/corporate/ROICalculator';
 import type { Metadata, Viewport } from 'next';
@@ -167,7 +168,7 @@ async function getCorporateData() {
     // 最小限のデータのみ取得（パフォーマンス向上）
     const postsResult = await supabase
       .from('chatgpt_posts')
-      .select('id, title, slug, excerpt')
+      .select('id, title, slug, excerpt, thumbnail_url, featured_image')
       .eq('status', 'published')
       .eq('business_id', 3)
       .order('created_at', { ascending: false })
@@ -508,7 +509,9 @@ export default async function CorporatePage() {
     id: post.id,
     title: post.title,
     slug: post.slug,
-    excerpt: post.excerpt
+    excerpt: post.excerpt,
+    thumbnail_url: post.thumbnail_url,
+    featured_image: post.featured_image
   }));
 
   // カテゴリ機能は軽量化のため削除
@@ -624,23 +627,74 @@ export default async function CorporatePage() {
       <FaqSection />
       <ContactSection />
       
-      {/* 最新の記事セクション（軽量化） */}
-      <section className="py-16 px-4 bg-black text-white">
+      {/* 最新の記事セクション */}
+      <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">最新の記事</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.slice(0, 3).map((post: any) => (
-              <div key={post.id} className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors">
-                <h3 className="text-xl font-semibold mb-3 text-white">{post.title}</h3>
-                <p className="text-gray-300 mb-4">{post.excerpt}</p>
-                <a
-                  href={`/posts/${post.slug}`}
-                  className="text-blue-400 hover:text-blue-300 font-medium"
-                >
-                  続きを読む →
-                </a>
-              </div>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">最新の記事</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              AI導入・リスキリング・キャリア支援に関する最新情報と実践的なノウハウをお届けします
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {posts.slice(0, 3).map((post: any, index: number) => (
+              <a
+                key={post.id}
+                href={`/posts/${post.slug}`}
+                className="group transform hover:-translate-y-1 transition-all duration-300"
+              >
+                <article className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                    {(post.thumbnail_url || post.featured_image) ? (
+                      <Image
+                        src={post.thumbnail_url || post.featured_image}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        priority={index === 0}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                        <div className="text-white text-4xl font-bold">
+                          {index + 1}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2 flex-grow">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="text-gray-600 line-clamp-3 mb-4 flex-grow">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-blue-600 font-medium group-hover:text-blue-800 transition-colors duration-200">
+                        詳しく見る →
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        <span className="inline-flex items-center justify-center bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                          NEW
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </a>
             ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <a
+              href="/posts"
+              className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              すべての記事を見る
+            </a>
           </div>
         </div>
       </section>

@@ -19,7 +19,7 @@ export default function TechnicalExpertisePage() {
         "弁護士監修による法的妥当性",
         "リアルタイム法令更新対応"
       ],
-      url: "https://taishoku-anshin-daiko.com/",
+      url: "https://taishoku-anshin-daiko.com/chat",
       status: "運営中"
     },
     {
@@ -28,12 +28,14 @@ export default function TechnicalExpertisePage() {
       description: "AI技術を活用した包括的キャリア転換支援プラットフォーム",
       technology: ["AI相談", "業務自動化", "セキュリティ", "決済システム"],
       features: [
-        "業界最安値2,980円での高品質サービス",
+        "市場価格15,000-25,000円に対し、社内自動化により80%削減の『2980円』を実現",
+        "AIエージェント機能（Mastra実装）による自動ヒアリング",
+        "広告費0運用（SEO対策・AIO対策・LLMO対策）AIによって実装",
         "成功率99.9%の確実な退職実現",
         "退職〜学習〜転職〜副業まで包括支援",
         "完全秘密厳守システム"
       ],
-      url: "https://taishoku-anshin-daiko.com/",
+      url: "https://taishoku-anshin-daiko.com/chat",
       status: "運営中"
     },
     {
@@ -52,6 +54,29 @@ export default function TechnicalExpertisePage() {
     },
     {
       id: 4,
+      title: "AI退職適性診断システム",
+      description: "OpenAI API × 心理学理論による高精度キャリア適性診断プラットフォーム。早期離職35%・実質賃金停滞問題の解決を目指す革新的システム",
+      technology: ["OpenAI ChatGPT-4 API", "Next.js", "ビッグファイブ理論", "RIASEC理論", "自然言語処理", "データ分析", "UI/UX設計"],
+      features: [
+        "ビッグファイブ性格特性＋RIASEC職業興味28問診断（心理学的根拠に基づく設計）",
+        "OpenAI ChatGPT-4活用による高精度分析・レポート自動生成",
+        "性格特性・興味分野の数値化・グラフ化（即時可視化）",
+        "退職理由整理とキャリア再設計支援（個人最適化アドバイス）",
+        "匿名データ蓄積による企業離職改善分析（将来的データ活用）",
+        "即時診断結果配信（平均回答時間：7分、結果表示：30秒以内）",
+        "副業・転職適性の客観的評価（収入アップ戦略提案）",
+        "個人情報保護完全対応（GDPR準拠・匿名化処理）",
+        "累計利用者数百名突破（継続的な精度向上・データ蓄積中）",
+        "自社内製開発による低コスト運用（無料提供実現・AIによる業務効率化）",
+        "米国副業市場調査データ統合（36%副業実施率等を参考統計活用）",
+        "設問生成・結果分析の一部自動化（OpenAI自然言語処理活用）",
+        "外注コスト最小化によるサービス持続性確保"
+      ],
+      url: "https://taishoku-anshin-daiko.com/",
+      status: "運営中"
+    },
+    {
+      id: 5,
       title: "レリバンスエンジニアリング実装",
       description: "Google AI Overviews対応のSEO・AI検索最適化",
       technology: ["構造化データ", "セマンティックHTML", "AI対応SEO"],
@@ -73,9 +98,9 @@ export default function TechnicalExpertisePage() {
       icon: "⚖️"
     },
     {
-      title: "労働組合連携",
-      description: "専門機関との協力体制構築",
-      icon: "🤝"
+      title: "社会保険労務士監修",
+      description: "労働法の専門家による適法性の確保",
+      icon: "📋"
     },
     {
       title: "24時間365日対応",
@@ -91,8 +116,8 @@ export default function TechnicalExpertisePage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* ヒーローセクション */}
-      <section className="relative py-20 px-4">
+      {/* ヒーローセクション - ヘッダーとの距離を調整 */}
+      <section className="relative pt-32 pb-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             技術実績・専門性

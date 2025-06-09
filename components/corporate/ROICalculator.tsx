@@ -13,7 +13,35 @@ export default function ROICalculator() {
   const efficiencyValue = (yearlyLaborCost * efficiencyGain) / 100 // 効率化による年間削減額
   const netBenefit = efficiencyValue - trainingCost // 年間純利益
   const roi = ((netBenefit / trainingCost) * 100).toFixed(1) // ROI
-  const paybackMonths = trainingCost > 0 ? ((trainingCost / efficiencyValue) * 12).toFixed(1) : '0' // 投資回収期間（月）
+  const paybackMonths = trainingCost > 0 ? ((trainingCost / efficiencyValue) * 12) : 0 // 投資回収期間（月）
+
+  // 数値表示用のフォーマット関数
+  const formatCurrency = (value: number) => {
+    if (value >= 10000) {
+      return `${(value / 10000).toFixed(1)}億円`
+    } else if (value >= 1000) {
+      return `${Math.round(value).toLocaleString()}万円`
+    } else {
+      return `${Math.round(value).toLocaleString()}万円`
+    }
+  }
+
+  const formatPaybackPeriod = (months: number) => {
+    if (months < 1) {
+      const days = Math.round(months * 30)
+      return `${days}日`
+    } else if (months < 12) {
+      return `${Math.round(months * 10) / 10}ヶ月`
+    } else {
+      const years = Math.floor(months / 12)
+      const remainingMonths = Math.round(months % 12)
+      if (remainingMonths === 0) {
+        return `${years}年`
+      } else {
+        return `${years}年${remainingMonths}ヶ月`
+      }
+    }
+  }
 
   return (
     <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
@@ -94,42 +122,42 @@ export default function ROICalculator() {
             <div className="flex justify-between items-center border-b border-gray-700 pb-2">
               <span className="text-gray-300">年間人件費</span>
               <span className="text-white font-bold">
-                {yearlyLaborCost.toLocaleString()}万円
+                {formatCurrency(yearlyLaborCost)}
               </span>
             </div>
             
             <div className="flex justify-between items-center border-b border-gray-700 pb-2">
               <span className="text-gray-300">年間削減効果</span>
               <span className="text-green-400 font-bold">
-                {efficiencyValue.toLocaleString()}万円
+                {formatCurrency(efficiencyValue)}
               </span>
             </div>
             
             <div className="flex justify-between items-center border-b border-gray-700 pb-2">
               <span className="text-gray-300">研修投資額</span>
               <span className="text-red-400 font-bold">
-                {trainingCost.toLocaleString()}万円
+                {formatCurrency(trainingCost)}
               </span>
             </div>
             
             <div className="flex justify-between items-center border-b border-gray-700 pb-2">
               <span className="text-gray-300">年間純利益</span>
               <span className={`font-bold ${netBenefit > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {netBenefit > 0 ? '+' : ''}{netBenefit.toLocaleString()}万円
+                {netBenefit > 0 ? '+' : ''}{formatCurrency(Math.abs(netBenefit))}
               </span>
             </div>
             
             <div className="pt-4 space-y-3">
               <div className="text-center">
                 <div className="text-3xl font-bold text-cyan-400">
-                  {roi}%
+                  {parseFloat(roi) % 1 === 0 ? Math.round(parseFloat(roi)) : roi}%
                 </div>
                 <div className="text-sm text-gray-400">投資収益率（ROI）</div>
               </div>
               
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {paybackMonths}ヶ月
+                  {formatPaybackPeriod(paybackMonths)}
                 </div>
                 <div className="text-sm text-gray-400">投資回収期間</div>
               </div>
