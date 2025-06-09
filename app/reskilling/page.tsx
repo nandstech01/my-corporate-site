@@ -73,12 +73,13 @@ const ReskillPage = () => {
              "hasCourseInstance": [
                   {
            "@type": "CourseInstance",
-           "name": "2025年春期AIリスキリング研修",
+                      "name": "2025年春期AIリスキリング研修",
            "description": "ChatGPTと生成AIを活用した実践的なリスキリング研修プログラム",
-
+           "courseMode": "online",
            "startDate": "2025-01-15",
            "endDate": "2025-04-15",
            "duration": "P3M",
+           "courseWorkload": "PT6H",
            "instructor": [
              {
                "@type": "Person",
