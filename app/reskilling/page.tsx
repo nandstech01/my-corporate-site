@@ -70,32 +70,49 @@ const ReskillPage = () => {
         "eligibleRegion": "JP",
         "businessFunction": "https://schema.org/Sell"
       },
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "courseMode": ["online", "blended"],
-          "courseSchedule": {
-            "@type": "Schedule",
-            "scheduleTimezone": "Asia/Tokyo"
-          },
-          "instructor": [
-            {
-              "@type": "Person",
-              "name": "エヌアンドエス認定メンター",
-              "jobTitle": "AIリスキリング専門講師",
-              "worksFor": {
-                "@type": "Organization",
-                "name": "株式会社エヌアンドエス"
-              }
-            }
-          ],
-          "location": {
-            "@type": "VirtualLocation",
-            "name": "オンライン研修プラットフォーム",
-            "url": "https://nands.tech/reskilling"
-          }
-        }
-      ],
+             "hasCourseInstance": [
+         {
+           "@type": "CourseInstance",
+           "name": "2025年春期AIリスキリング研修",
+           "courseMode": ["online", "blended"],
+           "startDate": "2025-01-15",
+           "endDate": "2025-04-15",
+           "courseSchedule": {
+             "@type": "Schedule",
+             "scheduleTimezone": "Asia/Tokyo",
+             "repeatFrequency": "P1W",
+             "repeatCount": 12,
+             "startDate": "2025-01-15",
+             "endDate": "2025-04-15",
+             "duration": "PT2H",
+             "byDay": ["MO", "WE", "FR"]
+           },
+           "instructor": [
+             {
+               "@type": "Person",
+               "name": "エヌアンドエス認定メンター",
+               "jobTitle": "AIリスキリング専門講師",
+               "worksFor": {
+                 "@type": "Organization",
+                 "name": "株式会社エヌアンドエス"
+               }
+             }
+           ],
+           "location": {
+             "@type": "VirtualLocation",
+             "name": "オンライン研修プラットフォーム",
+             "url": "https://nands.tech/reskilling"
+           },
+           "offers": {
+             "@type": "Offer",
+             "price": "応相談",
+             "priceCurrency": "JPY",
+             "availability": "https://schema.org/InStock",
+             "validFrom": "2024-12-01",
+             "validThrough": "2025-01-14"
+           }
+         }
+       ],
       "audience": {
         "@type": "EducationalAudience",
         "educationalRole": "Professional",
