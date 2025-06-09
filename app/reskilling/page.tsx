@@ -31,31 +31,87 @@ const ReskillPage = () => {
   const slideInProps = useSpring({ from: { opacity: 0, transform: 'translateY(-20px)' }, to: { opacity: 1, transform: 'translateY(0)' }, delay: 400 });
 
   // 構造化データ
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": "AI時代のリスキリング研修プログラム",
-    "description": "2025年に向けた個人向けAIリスキリング研修。ChatGPTなどの生成AIを活用したスキルアップ、キャリアアップを支援します。",
-    "provider": {
-      "@type": "Organization",
-      "name": "株式会社エヌアンドエス",
-      "sameAs": "https://nands.tech"
-    },
-    "offers": {
-      "@type": "Offer",
-      "category": "個人向けAIリスキリング",
-      "availability": "https://schema.org/InStock",
-      "priceCurrency": "JPY"
-    },
-    "hasCourseInstance": {
-      "@type": "CourseInstance",
-      "courseMode": "online",
-      "instructor": {
-        "@type": "Person",
-        "name": "エヌアンドエスメンター"
-      }
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": "AI時代のリスキリング研修プログラム",
+      "description": "2025年に向けた個人向けAIリスキリング研修。ChatGPTなどの生成AIを活用したスキルアップ、キャリアアップを支援します。実践的なカリキュラムでAI時代に必須のスキルを習得できます。",
+      "courseCode": "NANDS-AI-RESKILL-2025",
+      "educationalLevel": "Beginner to Intermediate",
+      "teaches": [
+        "ChatGPT活用スキル",
+        "プロンプトエンジニアリング",
+        "生成AI実践活用",
+        "AIツール統合",
+        "デジタル変革対応",
+        "キャリアアップ戦略"
+      ],
+      "provider": {
+        "@type": "Organization",
+        "name": "株式会社エヌアンドエス",
+        "sameAs": "https://nands.tech",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "皇子が丘2丁目10番25-3004号",
+          "addressLocality": "大津市",
+          "addressRegion": "滋賀県",
+          "postalCode": "520-0025",
+          "addressCountry": "JP"
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "name": "個人向けAIリスキリング研修",
+        "category": "教育・研修サービス",
+        "availability": "https://schema.org/InStock",
+        "priceCurrency": "JPY",
+        "priceValidUntil": "2025-12-31",
+        "eligibleRegion": "JP",
+        "businessFunction": "https://schema.org/Sell"
+      },
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": ["online", "blended"],
+          "courseSchedule": {
+            "@type": "Schedule",
+            "scheduleTimezone": "Asia/Tokyo"
+          },
+          "instructor": [
+            {
+              "@type": "Person",
+              "name": "エヌアンドエス認定メンター",
+              "jobTitle": "AIリスキリング専門講師",
+              "worksFor": {
+                "@type": "Organization",
+                "name": "株式会社エヌアンドエス"
+              }
+            }
+          ],
+          "location": {
+            "@type": "VirtualLocation",
+            "name": "オンライン研修プラットフォーム",
+            "url": "https://nands.tech/reskilling"
+          }
+        }
+      ],
+      "audience": {
+        "@type": "EducationalAudience",
+        "educationalRole": "Professional",
+        "audienceType": "Working Professionals"
+      },
+      "about": [
+        "人工知能",
+        "機械学習",
+        "生成AI",
+        "ChatGPT",
+        "プロンプトエンジニアリング",
+        "デジタル変革",
+        "キャリア開発"
+      ]
     }
-  };
+  ];
 
   return (
     <div className="flex flex-col">
