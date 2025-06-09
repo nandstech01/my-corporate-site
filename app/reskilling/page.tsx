@@ -75,7 +75,7 @@ const ReskillPage = () => {
            "@type": "CourseInstance",
            "name": "2025年春期AIリスキリング研修",
            "description": "ChatGPTと生成AIを活用した実践的なリスキリング研修プログラム",
-           "courseMode": "OnlineOnly",
+
            "startDate": "2025-01-15",
            "endDate": "2025-04-15",
            "duration": "P3M",
@@ -92,7 +92,8 @@ const ReskillPage = () => {
            ],
            "location": {
              "@type": "VirtualLocation",
-             "name": "オンライン研修プラットフォーム",
+             "name": "オンライン研修",
+             "description": "インターネット接続があればどこからでも受講可能",
              "url": "https://nands.tech/reskilling"
            },
            "offers": {
