@@ -20,7 +20,7 @@ type ServiceData = {
 // SEO重要部分（SSR対応）
 const ServicesContent = ({ services }: { services: ServiceData[] }) => {
   return (
-    <div className="container mx-auto px-4 relative z-10">
+    <div className="container mx-auto px-6 sm:px-8 lg:px-8 relative z-10">
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 bg-clip-text text-transparent mb-6">
           サービス内容

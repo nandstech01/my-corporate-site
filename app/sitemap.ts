@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://nands.tech';
   const supabase = createClient();
   
-  // 静的ページのエントリー
+  // 静的ページのエントリー（重要度順）
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -51,34 +51,185 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/sustainability`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/categories`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
   ];
 
-  // ブログ記事を取得
-  const { data: posts } = await supabase
-    .from('chatgpt_posts')
-    .select('slug, updated_at, created_at')
-    .eq('status', 'published');
+  // 業界別カテゴリページ（今回作成した専門コンテンツページ）
+  const categoryPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/categories/finance`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/manufacturing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/healthcare`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/retail`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/education`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/government`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/marketing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/logistics`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/construction`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/it-software`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories/hr-service`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+  ];
 
-  const blogPages: MetadataRoute.Sitemap = (posts || []).map((post) => ({
-    url: `${baseUrl}/posts/${post.slug}`,
-    lastModified: new Date(post.updated_at || post.created_at),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
+  // 追加の重要ページ
+  const additionalPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/legal`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/seo-support`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/special`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/chatgpt-special`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+  ];
 
-  // カテゴリを取得
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug, updated_at, created_at');
+  // 動的コンテンツ（記事ページ）の取得
+  try {
+    // 公開済み記事の取得
+    const { data: posts, error: postsError } = await supabase
+      .from('chatgpt_posts')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .order('updated_at', { ascending: false });
 
-  const categoryPages: MetadataRoute.Sitemap = (categories || []).map((category) => ({
-    url: `${baseUrl}/categories/${category.slug}`,
-    lastModified: new Date(category.updated_at || category.created_at),
-    changeFrequency: 'weekly',
-    priority: 0.6,
-  }));
+    if (postsError) {
+      console.error('Error fetching posts for sitemap:', postsError);
+    }
 
-  return [...staticPages, ...blogPages, ...categoryPages];
+    // 記事ページのサイトマップエントリー
+    const postPages: MetadataRoute.Sitemap = (posts || []).map((post) => ({
+      url: `${baseUrl}/posts/${post.slug}`,
+      lastModified: new Date(post.updated_at),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }));
+
+    // カテゴリの取得
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
+      .select('slug, updated_at')
+      .eq('status', 'active');
+
+    if (categoriesError) {
+      console.error('Error fetching categories for sitemap:', categoriesError);
+    }
+
+    // 追加のカテゴリページ（データベースから）
+    const dynamicCategoryPages: MetadataRoute.Sitemap = (categories || [])
+      .filter(cat => !categoryPages.some(page => page.url.endsWith(`/categories/${cat.slug}`)))
+      .map((category) => ({
+        url: `${baseUrl}/categories/${category.slug}`,
+        lastModified: new Date(category.updated_at),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+
+    // 全てのページを結合
+    return [
+      ...staticPages, 
+      ...categoryPages, 
+      ...additionalPages,
+      ...postPages,
+      ...dynamicCategoryPages
+    ];
+
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    // エラーが発生した場合は静的ページのみ返す
+    return [...staticPages, ...categoryPages, ...additionalPages];
+  }
 } 

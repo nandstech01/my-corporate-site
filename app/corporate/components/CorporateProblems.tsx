@@ -12,7 +12,7 @@ const ProblemsContent = ({ problems }: { problems: Array<{
   icon: React.ReactNode;
 }> }) => {
   return (
-    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-8">
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-200 via-blue-100 to-blue-200 bg-clip-text text-transparent mb-6">
           企業のDX課題

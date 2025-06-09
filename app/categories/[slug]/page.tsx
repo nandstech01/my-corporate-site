@@ -236,12 +236,29 @@ export default async function CategoryPage({
             <div className="text-6xl mb-6">{config.icon}</div>
             
             {/* カテゴリー名 */}
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
-              {category.name}
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg leading-tight">
+              <span className="block sm:inline">
+                {category.name.includes('向け') ? category.name.split('向け')[0] + '向け' : 
+                 category.name.includes('業界') ? category.name.split('業界')[0] + '業界' :
+                 category.name.includes('・') ? category.name.split('・')[0] :
+                 category.name.split(' ')[0]}
+              </span>
+              {category.name.includes('向け') && (
+                <span className="block sm:inline sm:ml-2">{category.name.split('向け')[1]}</span>
+              )}
+              {!category.name.includes('向け') && category.name.includes('業界') && (
+                <span className="block sm:inline sm:ml-2">{category.name.split('業界')[1]}</span>
+              )}
+              {!category.name.includes('向け') && !category.name.includes('業界') && category.name.includes('・') && (
+                <span className="block sm:inline sm:ml-2">・{category.name.split('・').slice(1).join('・')}</span>
+              )}
+              {!category.name.includes('向け') && !category.name.includes('業界') && !category.name.includes('・') && category.name.split(' ').length > 1 && (
+                <span className="block sm:inline sm:ml-2">{category.name.split(' ').slice(1).join(' ')}</span>
+              )}
             </h1>
             
             {/* コンセプト */}
-            <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto opacity-95 drop-shadow-md">
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 max-w-4xl mx-auto opacity-95 drop-shadow-md leading-relaxed">
               {category.description || config.concept}
             </p>
 
@@ -3654,6 +3671,17 @@ export default async function CategoryPage({
       {/* 記事一覧 */}
       <section className="py-16">
         <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+              <span className="block sm:inline">
+                {category.name}に関する
+              </span>
+              <span className="block sm:inline sm:ml-2">
+                記事カテゴリ
+              </span>
+            </h2>
+            <div className={`w-24 h-1 bg-${config.color}-500 mx-auto rounded-full`}></div>
+          </div>
           {posts.length > 0 ? (
             <PostsGrid initialPosts={posts} />
           ) : (
