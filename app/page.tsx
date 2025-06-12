@@ -15,20 +15,7 @@ import FAQSection from './components/portal/FAQSection'
 // 重いコンポーネントを動的インポート（SSR無効化）
 const HeroSection = dynamic(() => import('@/app/components/portal/HeroSection'), {
   ssr: false,
-  loading: () => (
-    <section className="relative w-full min-h-screen flex flex-col items-center justify-center bg-black text-white overflow-hidden hero-fallback">
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black" />
-      <div className="relative z-10 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-white bg-clip-text text-transparent">
-          AIとともに未来を切り拓く
-        </h1>
-        <p className="text-xl text-gray-300 mb-8">
-          株式会社エヌアンドエス
-        </p>
-        <div className="loading-stars" />
-      </div>
-    </section>
-  )
+  loading: () => <div className="w-full h-screen bg-black" />
 })
 
 const ServicesSection = dynamic(() => import('@/app/components/portal/ServicesSection'), {
