@@ -67,7 +67,7 @@ const FAQSection: React.FC = () => {
             <div key={index} className="mb-4">
               <button
                 onClick={() => toggleFAQ(index)}
-                className="flex justify-between items-center w-full text-left p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                className="flex justify-between items-center w-full text-left p-4 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
                 aria-expanded={openIndex === index}
                 aria-controls={`faq-answer-${index}`}
               >
@@ -91,7 +91,7 @@ const FAQSection: React.FC = () => {
                   openIndex === index ? 'max-h-96 mt-2' : 'max-h-0'
                 }`}
               >
-                <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <div className="p-4 bg-white border border-gray-200">
                   <p className="text-gray-700">{faq.answer}</p>
                 </div>
               </div>

@@ -90,7 +90,7 @@ export default function PostsGridSSR({ initialPosts }: { initialPosts: Post[] })
           {initialPosts.map((post, index) => (
             <article
               key={post.id}
-              className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-transparent hover:border-[#00CFFF] transition-all duration-300 flex flex-col"
+              className="bg-gray-800 border border-gray-200 shadow-lg overflow-hidden hover:border-[#00CFFF] transition-all duration-300 flex flex-col"
               itemScope
               itemType="https://schema.org/BlogPosting"
               itemProp="itemListElement"
@@ -111,7 +111,7 @@ export default function PostsGridSSR({ initialPosts }: { initialPosts: Post[] })
               >
                                   {/* 画像セクション（画像が存在する場合のみ） */}
                 {(post.thumbnail_url || post.featured_image) && (
-                  <header className="relative w-full flex-shrink-0 rounded-t-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                  <header className="relative w-full flex-shrink-0 overflow-hidden" style={{ paddingBottom: '56.25%' }}>
                     <PostImage
                       src={post.thumbnail_url || post.featured_image}
                       alt={`${post.title}のサムネイル画像`}
@@ -171,7 +171,7 @@ export default function PostsGridSSR({ initialPosts }: { initialPosts: Post[] })
                   {/* CTA ボタン */}
                   <div className="mt-auto">
                     <span
-                      className="inline-block px-6 py-3 font-bold text-white rounded-md text-sm bg-gradient-to-r from-[#00CFFF] via-[#008CFF] to-[#0047FF] hover:from-[#00BFFF] hover:via-[#0077FF] hover:to-[#0033CC] transition-all duration-300"
+                      className="inline-block px-6 py-3 font-bold text-white border border-gray-200 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
                       role="button"
                       aria-label={`${post.title}の続きを読む`}
                     >

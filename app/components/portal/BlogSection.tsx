@@ -106,7 +106,7 @@ export default function BlogSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {dummyPosts.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow hover:shadow-lg overflow-hidden">
+            <div key={post.id} className="bg-white border border-gray-200 shadow hover:shadow-lg overflow-hidden">
               <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover" />
               <div className="p-4">
                 <h3 className="text-xl font-semibold mb-2">{post.title}</h3>

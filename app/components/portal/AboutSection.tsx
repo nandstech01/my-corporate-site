@@ -178,12 +178,10 @@ export default function AboutSection() {
                 <a
                   href="/about"
                   className="relative overflow-hidden px-12 py-5 font-bold text-white inline-block
-                  bg-gradient-to-r from-[#00CFFF] via-[#008CFF] to-[#0047FF]
-                  hover:from-[#00BFFF] hover:via-[#0077FF] hover:to-[#0033CC]
+                  bg-gradient-to-r from-blue-600 to-blue-700
+                  hover:from-blue-700 hover:to-blue-800
+                  border border-gray-200
                   transition-all duration-300"
-                  style={{
-                    transformStyle: "preserve-3d",
-                  }}
                 >
                   {/* 外側の白い枠 - より細く洗練された印象に */}
                   <div className="absolute inset-0 border border-white opacity-30"></div>

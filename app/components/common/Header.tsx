@@ -61,6 +61,18 @@ export default function Header() {
               <Link href="/corporate" className="text-white hover:text-gray-300 transition-colors">
                 法人様リスキリング
               </Link>
+              <Link href="/system-development" className="text-white hover:text-gray-300 transition-colors">
+                システム開発
+              </Link>
+              <Link href="/aio-seo" className="text-white hover:text-gray-300 transition-colors">
+                AIO対策
+              </Link>
+              <Link href="/chatbot-development" className="text-white hover:text-gray-300 transition-colors">
+                チャットボット開発
+              </Link>
+              <Link href="/vector-rag" className="text-white hover:text-gray-300 transition-colors">
+                ベクトルRAG検索
+              </Link>
               <Link href="/fukugyo" className="text-white hover:text-gray-300 transition-colors">
                 AI副業
               </Link>
@@ -250,6 +262,10 @@ export default function Header() {
                         {[
                           ['個人様リスキリング', '/reskilling'],
                           ['法人様リスキリング', '/corporate'],
+                          ['システム開発', '/system-development'],
+                          ['AIO対策', '/aio-seo'],
+                          ['チャットボット開発', '/chatbot-development'],
+                          ['ベクトルRAG検索', '/vector-rag'],
                           ['AI副業', '/fukugyo'],
                           ['サステナビリティ', '/sustainability'],
                           ['会社概要', '/about']

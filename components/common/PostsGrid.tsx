@@ -64,11 +64,11 @@ export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
         <motion.article
           key={post.id}
           variants={item}
-          className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-transparent hover:border-[#00CFFF] transition-all duration-300 flex flex-col"
+                      className="bg-gray-800 border border-gray-200 shadow-lg overflow-hidden hover:border-[#00CFFF] transition-all duration-300 flex flex-col"
           whileHover={{ y: -5 }}
         >
           <Link href={`/posts/${post.slug}`} className="block flex flex-col flex-grow">
-            <div className="relative w-full flex-shrink-0 rounded-t-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                          <div className="relative w-full flex-shrink-0 overflow-hidden" style={{ paddingBottom: '56.25%' }}>
               <PostImage
                 src={post.thumbnail_url || post.featured_image}
                 alt={post.title}
@@ -88,7 +88,7 @@ export default function PostsGrid({ initialPosts }: { initialPosts: Post[] }) {
               </p>
               <div className="mt-auto">
                 <span
-                  className="inline-block px-6 py-3 font-bold text-white rounded-md text-sm
+                  className="inline-block px-6 py-3 font-bold text-white border border-gray-200 text-sm
                   bg-gradient-to-r from-[#00CFFF] via-[#008CFF] to-[#0047FF]
                   hover:from-[#00BFFF] hover:via-[#0077FF] hover:to-[#0033CC]
                   transition-all duration-300"

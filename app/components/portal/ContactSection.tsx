@@ -160,7 +160,7 @@ export default function ContactSection() {
         {/* フォーム */}
         <motion.form
           onSubmit={handleSubmit}
-          className="mx-auto w-full md:w-3/4 bg-white p-6 rounded-lg shadow-md"
+                      className="mx-auto w-full md:w-3/4 bg-white p-6 border border-gray-200 shadow-md"
           variants={itemVariants}
         >
           {/* お名前 */}

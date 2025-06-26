@@ -21,7 +21,7 @@ const RelatedPosts: React.FC<RelatedPostsProps> = ({ currentPost }) => {
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
-            className="block group bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+            className="block group bg-white border border-gray-200 shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
           >
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-600 transition-colors">

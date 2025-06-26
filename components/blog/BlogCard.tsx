@@ -30,7 +30,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
   return (
     <Link
       href={`/blog/${businessSlug}/${categorySlug}/${slug}`}
-      className="group block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+              className="group block bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
     >
       <div className="aspect-w-16 aspect-h-9 relative">
         <Image

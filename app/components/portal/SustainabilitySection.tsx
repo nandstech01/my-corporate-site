@@ -289,7 +289,7 @@ function SustainabilityCard({
 }) {
   return (
     <div
-      className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow
+                    className="bg-white p-6 border border-gray-200 shadow hover:shadow-lg transition-shadow
                  border border-transparent hover:border-green-200"
     >
       <div className="flex flex-col items-start">

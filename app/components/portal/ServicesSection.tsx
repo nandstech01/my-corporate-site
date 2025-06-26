@@ -7,6 +7,10 @@ import {
   FaBuilding,
   FaLaptopCode,
   FaBalanceScale,
+  FaCogs,
+  FaSearch,
+  FaComments,
+  FaDatabase,
 } from "react-icons/fa";
 import TrueFocus from './TrueFocus';
 import "./TrueFocus.css";
@@ -55,6 +59,38 @@ const servicesData = [
     id: "corporate-reskilling"
   },
   {
+    title: "システム開発",
+    icon: <FaCogs size={32} />,
+    description:
+      "レリバンスエンジニアリング・AIO対策を含む最新AI技術によるシステム開発。",
+    link: "/system-development",
+    id: "system-development"
+  },
+  {
+    title: "AIO対策",
+    icon: <FaSearch size={32} />,
+    description:
+      "Mike King理論に基づくレリバンスエンジニアリングでAI検索結果を最適化。",
+    link: "/aio-seo",
+    id: "aio-seo"
+  },
+  {
+    title: "チャットボット開発",
+    icon: <FaComments size={32} />,
+    description:
+      "GPT-4活用の高性能チャットボット開発。24時間自動応答で業務効率化を実現。",
+    link: "/chatbot-development",
+    id: "chatbot-development"
+  },
+  {
+    title: "ベクトルRAG検索",
+    icon: <FaDatabase size={32} />,
+    description:
+      "企業内文書の意味的検索システム。OpenAI Embeddings活用で検索精度95%向上。",
+    link: "/vector-rag",
+    id: "vector-rag"
+  },
+  {
     title: "AI副業",
     icon: <FaLaptopCode size={32} />,
     description:
@@ -63,12 +99,12 @@ const servicesData = [
     id: "ai-side-business"
   },
   {
-    title: "退職エージェント",
+    title: "人事支援サービス",
     icon: <FaBalanceScale size={32} />,
     description:
-      "業界最安2,980円の安心退職。未来のキャリアへ踏み出すお手伝い。",
-    link: "https://taishoku-anshin-daiko.com",
-    id: "resignation-support"
+      "AIを活用した人事・労務支援サービス。法令準拠システムで安心サポート。",
+    link: "#",
+    id: "hr-support"
   },
 ];
 
@@ -157,9 +193,8 @@ function ServiceCard({
     <motion.a
       href={link}
       className={`
-        group relative block p-6 rounded-xl transition-all duration-300 ease-out
-        bg-gray-900 border border-gray-700 shadow-lg
-        hover:bg-gray-800 hover:border-[#00CFFF]/50 hover:shadow-cyan-glow
+        group relative block p-6 border border-gray-200 transition-all duration-300 ease-out
+        bg-gray-900 hover:bg-gray-800 hover:border-[#00CFFF]/50 hover:shadow-cyan-glow
         overflow-hidden
       `}
       variants={cardVariants} // アニメーションを適用
