@@ -13,6 +13,8 @@ import {
   FaDatabase,
   FaRobot,
   FaPlug,
+  FaShareAlt,
+  FaVideo,
 } from "react-icons/fa";
 import TrueFocus from './TrueFocus';
 import "./TrueFocus.css";
@@ -123,6 +125,22 @@ const servicesData = [
       "Model Context Protocol対応のカスタムサーバー開発。AIシステム連携とデータ統合を効率化。",
     link: "/mcp-servers",
     id: "mcp-servers"
+  },
+  {
+    title: "SNS自動化",
+    icon: <FaShareAlt size={32} />,
+    description:
+      "AI活用のSNS投稿自動化とコンテンツ生成。ブランド認知度向上と効率的な運用を実現。",
+    link: "/sns-automation",
+    id: "sns-automation"
+  },
+  {
+    title: "動画生成",
+    icon: <FaVideo size={32} />,
+    description:
+      "AI技術を活用した動画コンテンツ生成。マーケティング効果を最大化する映像制作サービス。",
+    link: "/video-generation",
+    id: "video-generation"
   },
 ];
 

@@ -1,0 +1,21 @@
+/* 動画生成ページ用のヘッダースタイル */
+body.video-generation-page header {
+  background-color: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+body.video-generation-page header .container nav a,
+body.video-generation-page header .container nav button {
+  color: #1f2937 !important;
+}
+
+body.video-generation-page header .container nav a:hover,
+body.video-generation-page header .container nav button:hover {
+  color: #3b82f6 !important;
+}
+
+body.video-generation-page header .container nav button:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* 元のスタイルを上書き */ 

@@ -33,9 +33,8 @@ const FooterItem: React.FC<FooterItemProps> = ({
         className="flex items-center justify-between cursor-pointer group"
         onClick={() => children && setIsOpen(!isOpen)}
       >
-        <span className="flex items-center text-white">
+        <span className="flex items-center text-white hover:text-blue-300 transition-colors">
           <motion.span
-            // アイコンをほんの少し回転させるなど
             whileHover={{ rotate: 15, scale: 1.1 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10 }}
             className="mr-2"
@@ -77,7 +76,7 @@ const FooterItem: React.FC<FooterItemProps> = ({
       : {};
 
     return (
-      <Link href={href} className="block" {...linkProps}>
+      <Link href={href} className="block hover:bg-white/5 rounded-lg transition-colors" {...linkProps}>
         {content}
       </Link>
     );
@@ -90,7 +89,6 @@ const FooterItem: React.FC<FooterItemProps> = ({
 /**
  * --------------------------------------------------------------------------------
  * 2. Footer本体
- *    - HeroSection風の宇宙的演出を軽めに取り入れたデザイン例
  * --------------------------------------------------------------------------------
  */
 const Footer: React.FC = () => {
@@ -101,30 +99,30 @@ const Footer: React.FC = () => {
   }, []);
 
   return (
-    <footer className="relative font-sans text-white bg-gray-900 overflow-hidden">
-      {/* 背景に薄い星やグラデーションを演出 */}
+    <footer className="relative font-sans text-white bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">
+      {/* 背景エフェクト */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* 背景: グラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-gray-900 to-black opacity-80" />
-        {/* 星っぽいドット模様（CSSで繰り返しパターン） */}
-        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 bg-repeat" />
-        {/* ランダムに配置されたモーション星（クライアントサイドでのみ生成） */}
-        {mounted && [...Array(12)].map((_, i) => {
+        {/* グラデーション背景 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        {/* グリッドパターン */}
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-10 bg-repeat" />
+        {/* 動的パーティクル */}
+        {mounted && [...Array(15)].map((_, i) => {
           const left = `${Math.random() * 100}%`;
           const top = `${Math.random() * 100}%`;
           return (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full opacity-70"
+              className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-60"
               style={{ left, top }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{
                 scale: [0, 1, 0.8, 1],
-                opacity: 1,
-                y: [0, -10, 10],
+                opacity: [0.2, 0.8, 0.4, 0.6],
+                y: [0, -20, 10, -5],
               }}
               transition={{
-                duration: 5 + i,
+                duration: 8 + i * 0.5,
                 repeat: Infinity,
                 repeatType: 'reverse',
               }}
@@ -133,79 +131,195 @@ const Footer: React.FC = () => {
         })}
       </div>
 
-      <div className="container mx-auto px-4 py-10 relative z-10">
-        {/* 上部タイトル & ナビゲーション */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500">
-              NANDS AIソリューション
-            </span>
-          </h2>
-          <nav className="space-y-2">
-            {/* ====== メインリンク一覧 ====== */}
-            <FooterItem label="TOP" href="/" />
-            <FooterItem label="副業支援" href="/fukugyo" />
-            <FooterItem label="法人向けAI導入" href="/corporate" />
-            <FooterItem label="リスキリング" href="/reskilling" />
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        {/* メインフッターコンテンツ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          
+          {/* 会社情報 */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-6"
+            >
+              <h3 className="text-2xl font-bold mb-4">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+                  NANDS
+                </span>
+                <span className="text-white ml-1">TECH</span>
+              </h3>
+              <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                滋賀県大津市を拠点とする総合人材支援企業。
+                AI・テクノロジーを活用した次世代のソリューションを提供しています。
+              </p>
+              <div className="space-y-2 text-sm text-gray-400">
+                <p>📍 滋賀県大津市皇子が丘２丁目10−25−3004号</p>
+                <p>📞 0120-558-551</p>
+                <p>📧 contact@nands.tech</p>
+              </div>
+            </motion.div>
+          </div>
 
-            <FooterItem
-              label="無料相談"
-              href="https://lin.ee/LRj3T2V"
-              isExternal={true}
-            />
-            <FooterItem label="コース申し込み" href="#contact-form" />
-            <FooterItem label="よくある質問" href="/faq" />
-          </nav>
+          {/* AI・テクノロジーサービス */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <h4 className="text-lg font-bold mb-4 text-blue-300">🤖 AI・テクノロジー</h4>
+              <nav className="space-y-1 text-sm">
+                <FooterItem label="システム開発" href="/system-development" />
+                <FooterItem label="チャットボット開発" href="/chatbot-development" />
+                <FooterItem label="ベクトルRAG検索" href="/vector-rag" />
+                <FooterItem label="AIエージェント" href="/ai-agents" />
+                <FooterItem label="MCPサーバー" href="/mcp-servers" />
+              </nav>
+            </motion.div>
+          </div>
+
+          {/* マーケティング・支援サービス */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <h4 className="text-lg font-bold mb-4 text-green-300">📈 マーケティング・支援</h4>
+              <nav className="space-y-1 text-sm">
+                <FooterItem label="AIO対策" href="/aio-seo" />
+                <FooterItem label="人材ソリューション" href="/hr-solutions" />
+                <FooterItem label="AI副業支援" href="/fukugyo" />
+                <FooterItem label="SEO支援" href="/seo-support" />
+              </nav>
+            </motion.div>
+          </div>
+
+          {/* リスキリング・企業情報 */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <h4 className="text-lg font-bold mb-4 text-purple-300">📚 リスキリング・企業情報</h4>
+              <nav className="space-y-1 text-sm">
+                <FooterItem label="個人様リスキリング" href="/reskilling" />
+                <FooterItem label="法人様リスキリング" href="/corporate" />
+                <FooterItem label="会社概要" href="/about" />
+                <FooterItem label="サステナビリティ" href="/sustainability" />
+                <FooterItem label="よくある質問" href="/faq" />
+              </nav>
+            </motion.div>
+          </div>
         </div>
 
-        {/* 下部 会社情報 / 利用規約 等 */}
-        <div className="border-t border-gray-800 pt-8">
-          <div className="flex items-center mb-4">
-            <motion.span
-              className="text-white font-bold text-lg mr-2"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-            >
-              NANDS
-            </motion.span>
-            <motion.span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 font-bold text-lg"
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-            >
-              TECH
-            </motion.span>
+        {/* CTA セクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-blue-500/20"
+        >
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4 text-white">
+              無料相談・お問い合わせ
+            </h3>
+            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+              AI導入、リスキリング、システム開発など、お気軽にご相談ください。
+              専門スタッフが最適なソリューションをご提案いたします。
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="https://lin.ee/LRj3T2V"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-bold transition-colors"
+              >
+                <span>💬</span>
+                <span>LINEで無料相談</span>
+              </a>
+              <a
+                href="tel:0120558551"
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition-colors"
+              >
+                <span>📞</span>
+                <span>0120-558-551</span>
+              </a>
+              <a
+                href="mailto:contact@nands.tech"
+                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-bold transition-colors"
+              >
+                <span>📧</span>
+                <span>メールで相談</span>
+              </a>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <Link
-              href="/about"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              運営会社
-            </Link>
-            <Link
-              href="/terms"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              利用規約
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              プライバシーポリシー
-            </Link>
-            <Link
-              href="/legal"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              特定商取引に関する表示
-            </Link>
+        </motion.div>
+
+        {/* 下部リーガル情報 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="border-t border-gray-700 pt-8"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center">
+              <motion.span
+                className="text-white font-bold text-xl mr-2"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+              >
+                NANDS
+              </motion.span>
+              <motion.span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 font-bold text-xl"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+              >
+                TECH
+              </motion.span>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              <Link
+                href="/about"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                運営会社
+              </Link>
+              <Link
+                href="/terms"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                利用規約
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                プライバシーポリシー
+              </Link>
+              <Link
+                href="/legal"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                特定商取引法
+              </Link>
+            </div>
           </div>
-          <div className="mt-8 text-xs text-gray-500">
-            ©2014 - {new Date().getFullYear()} NANDS Inc.
+          
+          <div className="mt-6 text-center">
+            <div className="text-xs text-gray-500">
+              ©2014 - {new Date().getFullYear()} NANDS Inc. All rights reserved.
+            </div>
+            <div className="text-xs text-gray-600 mt-2">
+              株式会社エヌアンドエス｜滋賀県大津市｜AI・テクノロジーソリューション
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );

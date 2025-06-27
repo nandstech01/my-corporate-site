@@ -1,0 +1,21 @@
+/* SNS自動化ページ用のヘッダースタイル */
+body.sns-automation-page header {
+  background-color: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+body.sns-automation-page header .container nav a,
+body.sns-automation-page header .container nav button {
+  color: #1f2937 !important;
+}
+
+body.sns-automation-page header .container nav a:hover,
+body.sns-automation-page header .container nav button:hover {
+  color: #3b82f6 !important;
+}
+
+body.sns-automation-page header .container nav button:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ロゴの色も調整 */ 
