@@ -1625,14 +1625,15 @@ const AboutPage = () => {
       >
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">Access</h2>
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="max-w-2xl mx-auto">
             {/* 本社 */}
             <div className="bg-white shadow-lg rounded-lg overflow-hidden">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4">本社</h3>
                 <p className="text-gray-900">
                   〒520-0025<br />
-                  滋賀県大津市皇子ヶ丘２丁目１０番２５−３００４号
+                  滋賀県大津市皇子が丘２丁目10−25−3004号<br />
+                  株式会社エヌアンドエス
                 </p>
               </div>
               <div className="aspect-w-16 aspect-h-9">
@@ -1648,42 +1649,7 @@ const AboutPage = () => {
               </div>
             </div>
 
-            {/* 東京支社 */}
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-4">東京支社</h3>
-                <p className="text-gray-900">
-                  〒150-0043<br />
-                  東京都渋谷区道玄坂１丁目１０番８号<br />
-                  渋谷道玄坂東急ビル2F-C
-                </p>
-                <div className="mt-4">
-                  <p className="text-gray-900">
-                    <span className="font-semibold">メール：</span>
-                    <a href="mailto:contact@nands.tech" className="text-blue-600 hover:text-blue-500">
-                      contact@nands.tech
-                    </a>
-                  </p>
-                  <p className="text-gray-900">
-                    <span className="font-semibold">電話：</span>
-                    <a href="tel:0120558551" className="text-blue-600 hover:text-blue-500">
-                      0120-558-551
-                    </a>
-                  </p>
-                </div>
-              </div>
-              <div className="aspect-w-16 aspect-h-9">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!..."
-                  width="100%"
-                  height="300"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-              </div>
-            </div>
+
           </div>
         </div>
       </motion.section>

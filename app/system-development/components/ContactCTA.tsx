@@ -5,9 +5,9 @@ const ContactCTA = () => {
     <section id="consultation-section" className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600">
       <div className="container mx-auto px-4">
         <div className="text-center text-white">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            システム開発のご相談
-          </h2>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6">
+        システム開発のご相談
+      </h2>
           <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
             業界最速・最安値でのAIシステム開発について<br className="hidden md:block" />
             無料でご相談いただけます

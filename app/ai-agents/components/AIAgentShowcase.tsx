@@ -1,67 +1,67 @@
-export default function VectorRagShowcase() {
+export default function AIAgentShowcase() {
   const caseStudies = [
     {
+      industry: "金融業界",
+      title: "顧客対応AIエージェントシステム",
+      challenge: "大量の顧客問い合わせに対する対応時間の短縮と、24時間365日のサポート体制構築が課題だった。",
+      solution: "自然言語処理技術を活用した対話型AIエージェントを導入。ベクトル検索により過去の対応履歴から最適な回答を生成。",
+      results: [
+        "応答時間95%短縮",
+        "顧客満足度大幅向上",
+        "24時間365日対応実現",
+        "オペレーター負荷軽減"
+      ],
+      metrics: {
+        accuracy: "98%",
+        timeReduction: "95%",
+        satisfaction: "96%"
+      }
+    },
+    {
       industry: "製造業",
-      title: "技術文書検索システム",
-      challenge: "膨大な技術仕様書、設計図面、保守マニュアルから必要な情報を素早く見つけることが困難で、技術者の作業効率が低下していた。",
-      solution: "20万件以上の技術文書をベクトル化し、自然言語による検索システムを構築。関連図面や類似事例も同時に表示する機能を実装。",
+      title: "品質管理AIエージェント",
+      challenge: "製品の品質検査における人的ミスの削減と、検査効率の向上が求められていた。",
+      solution: "機械学習アルゴリズムを活用した異常検知システムを構築。リアルタイムでの品質判定と予測分析を実装。",
       results: [
-        "検索精度90%向上",
-        "技術者の調査時間80%短縮", 
-        "新人研修期間50%削減",
-        "ナレッジ共有促進"
+        "検査精度99%達成",
+        "不良品検出率向上",
+        "検査時間大幅短縮",
+        "コスト削減効果"
       ],
       metrics: {
-        accuracy: "90%",
-        timeReduction: "80%",
-        satisfaction: "95%"
+        accuracy: "99%",
+        timeReduction: "85%",
+        satisfaction: "94%"
       }
     },
     {
-      industry: "法律事務所",
-      title: "判例・法令検索システム",
-      challenge: "類似判例の検索に膨大な時間を要し、法的リサーチの効率化が急務。キーワード検索では見落としが多く、精度に課題があった。",
-      solution: "過去の判例、法令、契約書テンプレートをベクトル検索化。法的概念の関連性を考慮した高精度検索システムを開発。",
+      industry: "医療・介護",
+      title: "診療支援AIエージェント",
+      challenge: "医師の診断支援と、膨大な医療情報の効率的な検索・活用が課題となっていた。",
+      solution: "医療知識データベースとRAGシステムを統合したAIエージェントを開発。症状から適切な診断候補を提示。",
       results: [
-        "類似判例発見率95%向上",
-        "リサーチ時間70%削減",
-        "案件対応速度向上",
-        "クライアント満足度向上"
+        "診断精度向上",
+        "診療時間短縮",
+        "医療ミス削減",
+        "患者満足度向上"
       ],
       metrics: {
-        accuracy: "95%",
-        timeReduction: "70%", 
-        satisfaction: "97%"
-      }
-    },
-    {
-      industry: "医療機関",
-      title: "診療ガイド検索システム",
-      challenge: "最新の診療ガイドライン、薬事情報、症例報告から適切な情報を迅速に検索する必要があったが、情報量が膨大で効率的な検索が困難。",
-      solution: "医学文献、診療ガイドライン、症例データベースを統合したRAGシステム。医学用語の同義語・関連語も考慮した検索機能を実装。",
-      results: [
-        "診断支援精度向上",
-        "情報検索時間60%短縮",
-        "医療従事者満足度98%",
-        "医療安全性向上"
-      ],
-      metrics: {
-        accuracy: "92%",
-        timeReduction: "60%",
+        accuracy: "97%",
+        timeReduction: "70%",
         satisfaction: "98%"
       }
     }
-  ]
+  ];
 
   const overallMetrics = [
     {
-      label: "平均検索精度向上",
-      value: "92%",
+      label: "平均自動化精度",
+      value: "98%",
       unit: ""
     },
     {
-      label: "平均時間短縮",
-      value: "70%",
+      label: "平均処理時間短縮",
+      value: "83%",
       unit: ""
     },
     {
@@ -69,7 +69,7 @@ export default function VectorRagShowcase() {
       value: "96%",
       unit: ""
     }
-  ]
+  ];
 
   return (
     <section className="py-20 bg-gray-50">
@@ -80,7 +80,7 @@ export default function VectorRagShowcase() {
             導入事例・実績
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            様々な業界でベクトルRAGシステムを導入し、劇的な業務効率化を実現しています
+            様々な業界でAIエージェントシステムを導入し、業務効率化と品質向上を実現しています
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function VectorRagShowcase() {
                     <div className="space-y-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-blue-600 mb-1">{study.metrics.accuracy}</div>
-                        <div className="text-sm text-gray-600">検索精度向上</div>
+                        <div className="text-sm text-gray-600">精度</div>
                       </div>
                       <div className="text-center">
                         <div className="text-3xl font-bold text-purple-600 mb-1">{study.metrics.timeReduction}</div>
@@ -169,7 +169,7 @@ export default function VectorRagShowcase() {
               あなたの業界でも同様の成果を実現できます
             </h3>
             <p className="text-lg mb-6 opacity-90 max-w-2xl mx-auto">
-              業界特有の課題に合わせたカスタマイズで、最適なRAGシステムをご提案いたします
+              業界特有の課題に合わせたカスタマイズで、最適なAIエージェントシステムをご提案いたします
             </p>
             <a 
               href="#contact" 
@@ -181,5 +181,5 @@ export default function VectorRagShowcase() {
         </div>
       </div>
     </section>
-  )
+  );
 } 

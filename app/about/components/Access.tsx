@@ -13,19 +13,13 @@ const Access: React.FC<AccessProps> = ({ animations }) => {
   const locations = [
     {
       title: "本社",
-      address: [
-        "〒520-0025",
-        "滋賀県大津市皇子ヶ丘２丁目１０番２５−３００４号"
-      ]
+              address: [
+          "〒520-0025",
+          "滋賀県大津市皇子が丘２丁目10−25−3004号",
+          "株式会社エヌアンドエス"
+        ]
     },
-    {
-      title: "東京支社",
-      address: [
-        "〒150-0043",
-        "東京都渋谷区道玄坂１丁目１０番８号",
-        "渋谷道玄坂東急ビル2F-C"
-      ]
-    }
+    
   ];
 
   const contact = [

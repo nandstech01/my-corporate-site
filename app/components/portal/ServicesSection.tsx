@@ -11,6 +11,8 @@ import {
   FaSearch,
   FaComments,
   FaDatabase,
+  FaRobot,
+  FaPlug,
 } from "react-icons/fa";
 import TrueFocus from './TrueFocus';
 import "./TrueFocus.css";
@@ -99,12 +101,28 @@ const servicesData = [
     id: "ai-side-business"
   },
   {
-    title: "人事支援サービス",
+    title: "人材ソリューション",
     icon: <FaBalanceScale size={32} />,
     description:
       "AIを活用した人事・労務支援サービス。法令準拠システムで安心サポート。",
-    link: "#",
+    link: "/hr-solutions",
     id: "hr-support"
+  },
+  {
+    title: "AIエージェント",
+    icon: <FaRobot size={32} />,
+    description:
+      "Mastra Framework活用の自律型AIエージェント開発。業務自動化とインテリジェント処理を実現。",
+    link: "/ai-agents",
+    id: "ai-agents"
+  },
+  {
+    title: "MCPサーバー",
+    icon: <FaPlug size={32} />,
+    description:
+      "Model Context Protocol対応のカスタムサーバー開発。AIシステム連携とデータ統合を効率化。",
+    link: "/mcp-servers",
+    id: "mcp-servers"
   },
 ];
 

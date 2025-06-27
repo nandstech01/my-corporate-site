@@ -78,7 +78,7 @@ export default function ChatbotShowcase() {
     <section id="showcase-section" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             チャットボット開発
             <span className="block text-blue-600">実績・事例紹介</span>
           </h2>
@@ -189,11 +189,7 @@ export default function ChatbotShowcase() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-              <div className="text-4xl font-bold text-cyan-400 mb-2">50+</div>
-              <div className="text-gray-300">導入実績</div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
               <div className="text-4xl font-bold text-green-400 mb-2">80%</div>
               <div className="text-gray-300">平均工数削減</div>

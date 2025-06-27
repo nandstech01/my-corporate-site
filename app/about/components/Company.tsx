@@ -18,14 +18,10 @@ const Company: React.FC<CompanyProps> = ({ animations }) => {
     { label: "設立", value: "2008年4月" },
     { 
       label: "本社", 
-      value: "〒520-0025\n滋賀県大津市皇子ヶ丘２目１０番２５−３００４号",
+      value: "〒520-0025\n滋賀県大津市皇子が丘２丁目10−25−3004号\n株式会社エヌアンドエス",
       multiline: true
     },
-    { 
-      label: "東京支社", 
-      value: "〒150-0043\n東京都渋谷区道玄坂１丁目１０番８号渋谷道玄坂東急ビル2F-C",
-      multiline: true
-    },
+
     { 
       label: "事業内容", 
       value: [
@@ -47,7 +43,7 @@ const Company: React.FC<CompanyProps> = ({ animations }) => {
     { 
       label: "お問い合わせ", 
       value: [
-        "メール：contact@nands.tech",
+        "メール：info@nands.tech",
         "電話：0120-558-551"
       ],
       list: true

@@ -4,8 +4,6 @@ const AIOPricingSection = () => {
   const plans = [
     {
       name: "ベーシックプラン",
-      price: "30万円〜",
-      period: "月額",
       description: "小規模サイト向けの基本的なAIO対策",
       features: [
         "サイト診断・分析",
@@ -18,8 +16,6 @@ const AIOPricingSection = () => {
     },
     {
       name: "スタンダードプラン", 
-      price: "60万円〜",
-      period: "月額",
       description: "中規模サイト向けの包括的なレリバンスエンジニアリング",
       features: [
         "詳細サイト診断・競合分析",
@@ -34,8 +30,6 @@ const AIOPricingSection = () => {
     },
     {
       name: "エンタープライズプラン",
-      price: "120万円〜",
-      period: "月額", 
       description: "大規模サイト・複数サイト向けの完全カスタマイズ対応",
       features: [
         "全サイト包括診断・戦略策定",
@@ -60,13 +54,11 @@ const AIOPricingSection = () => {
     },
     {
       name: "AIO対策コンサルティング",
-      price: "15万円〜",
       description: "レリバンスエンジニアリング戦略の立案・アドバイス",
       duration: "2時間"
     },
     {
       name: "緊急AIO対策",
-      price: "50万円〜",
       description: "競合他社に遅れをとった場合の緊急対応",
       duration: "2週間"
     }
@@ -77,7 +69,7 @@ const AIOPricingSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             AIO対策・レリバンスエンジニアリング
             <span className="block text-blue-600">料金プラン</span>
           </h2>
@@ -113,10 +105,7 @@ const AIOPricingSection = () => {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {plan.name}
                   </h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-blue-600">{plan.price}</span>
-                    <span className="text-gray-600 ml-2">/{plan.period}</span>
-                  </div>
+
                   <p className="text-gray-600">{plan.description}</p>
                 </div>
 
@@ -162,9 +151,11 @@ const AIOPricingSection = () => {
                   <h4 className="text-lg font-bold text-gray-900 mb-2">
                     {service.name}
                   </h4>
-                  <div className="text-2xl font-bold text-blue-600 mb-2">
-                    {service.price}
-                  </div>
+                  {service.name === "無料AIO診断" && (
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {service.price}
+                    </div>
+                  )}
                   <p className="text-gray-600 mb-4">{service.description}</p>
                   <div className="text-sm text-gray-500">
                     納期: {service.duration}

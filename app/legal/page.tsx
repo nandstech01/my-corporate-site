@@ -36,11 +36,10 @@ const LegalPage = () => {
                 <dt className="font-bold text-gray-700">所在地</dt>
                 <dd className="md:col-span-3">
                   <p className="font-semibold mb-2">[本社]</p>
-                  〒520-0025<br />
-                  滋賀県大津市皇子ヶ丘２丁目１０番２５−３００４号
-                  <p className="font-semibold mt-4 mb-2">[東京支社]</p>
-                  〒150-0043<br />
-                  東京都渋谷区道玄坂１丁目１０番８号 渋谷道玄坂東急ビル2F-C
+                                      〒520-0025<br />
+          滋賀県大津市皇子が丘２丁目10−25−3004号<br />
+          株式会社エヌアンドエス
+                  
                 </dd>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

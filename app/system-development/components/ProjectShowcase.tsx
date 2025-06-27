@@ -185,7 +185,7 @@ const ProjectShowcase = () => {
     <section id="project-showcase" className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
             開発実績
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -248,7 +248,7 @@ const ProjectShowcase = () => {
                           </svg>
                         )}
                       </div>
-                      <h3 className="text-2xl font-bold">{project.title}</h3>
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{project.title}</h3>
                       <p className="text-blue-100 mt-2">{project.subtitle}</p>
                     </div>
                   </div>
@@ -265,7 +265,7 @@ const ProjectShowcase = () => {
               {/* プロジェクト詳細 */}
               <div className="w-full lg:w-1/2">
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
                     {project.title}
                   </h3>
                   <p className="text-xl text-blue-600 font-semibold mb-4">

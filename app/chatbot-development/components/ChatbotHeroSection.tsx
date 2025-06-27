@@ -1,11 +1,11 @@
 export default function ChatbotHeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white overflow-hidden">
+    <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white overflow-hidden">
       <div className="absolute inset-0 bg-black/20"></div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         {/* Badge */}
-        <div className="mb-8 mt-32">
+        <div className="mb-8">
           <span className="inline-block px-4 py-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-sm font-medium mb-4">
             GPT-4活用チャットボット開発
           </span>
@@ -13,9 +13,9 @@ export default function ChatbotHeroSection() {
 
         {/* Main Heading */}
         <div className="max-w-4xl mb-12">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
             <span className="block">AIチャットボット開発で</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500">
               カスタマーサポートを革新
             </span>
           </h1>
@@ -30,7 +30,7 @@ export default function ChatbotHeroSection() {
         <div className="flex flex-col sm:flex-row gap-4 mb-16">
           <a
             href="#consultation-section"
-            className="group px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 border border-gray-200 text-white font-semibold text-lg transition-all duration-300 hover:from-cyan-400 hover:to-blue-500 hover:shadow-lg hover:shadow-cyan-500/25 hover:-translate-y-1"
+            className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 border border-gray-200 text-white font-semibold text-lg transition-all duration-300 hover:from-blue-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-1"
           >
             無料相談を始める
             <svg className="inline-block ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

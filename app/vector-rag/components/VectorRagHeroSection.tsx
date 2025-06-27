@@ -1,13 +1,13 @@
 export default function VectorRagHeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-20 md:py-32 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
       {/* 背景パターン */}
       <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-10"></div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           {/* メインタイトル */}
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
             企業内ナレッジを
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
               AIで革新する
@@ -22,7 +22,7 @@ export default function VectorRagHeroSection() {
           </p>
           
           {/* 特徴ボックス */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white/10 backdrop-blur-sm border border-gray-200 p-6 text-center">
               <div className="text-3xl font-bold text-blue-400 mb-2">95%</div>
               <div className="text-sm text-gray-300">検索精度向上</div>
@@ -30,10 +30,6 @@ export default function VectorRagHeroSection() {
             <div className="bg-white/10 backdrop-blur-sm border border-gray-200 p-6 text-center">
               <div className="text-3xl font-bold text-purple-400 mb-2">90%</div>
               <div className="text-sm text-gray-300">回答時間短縮</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-gray-200 p-6 text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">50+</div>
-              <div className="text-sm text-gray-300">導入実績</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-gray-200 p-6 text-center">
               <div className="text-3xl font-bold text-yellow-400 mb-2">24/7</div>
