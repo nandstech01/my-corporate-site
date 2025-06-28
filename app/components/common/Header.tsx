@@ -288,106 +288,56 @@ export default function Header() {
               </nav>
             )}
 
-            {/* プレミアムハンバーガーメニューボタン */}
+            {/* シンプルハンバーガーメニューボタン */}
             <motion.button
               onClick={() => setIsOpen(!isOpen)}
               onHoverStart={() => setIsHovered(true)}
               onHoverEnd={() => setIsHovered(false)}
-              className="relative z-[99999] focus:outline-none group"
+              className="relative w-12 h-12 z-[99999] focus:outline-none group flex items-center justify-center"
               aria-label="メニュー"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {/* 背景円 */}
-              <motion.div
-                className={`absolute inset-0 rounded-full ${
-                  isOpen 
-                    ? 'bg-white shadow-2xl' 
-                    : isTopPage && !isLPPage
-                      ? 'bg-white/10 backdrop-blur-sm border border-white/20' 
-                      : 'bg-gray-100/50 backdrop-blur-sm border border-gray-200/50'
-                }`}
-                initial={false}
-                animate={{
-                  scale: isHovered || isOpen ? 1 : 0.9,
-                  opacity: isHovered || isOpen ? 1 : 0.7,
-                }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  left: '-8px',
-                  top: '-8px',
-                }}
-              />
-
-              {/* グロー効果 */}
-              <motion.div
-                className={`absolute inset-0 rounded-full ${
-                  isOpen
-                    ? 'bg-blue-400/30'
-                    : isTopPage && !isLPPage
-                      ? 'bg-white/20'
-                      : 'bg-blue-400/20'
-                }`}
-                initial={false}
-                animate={{
-                  scale: isHovered ? 1.2 : 0,
-                  opacity: isHovered ? 0.6 : 0,
-                }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  left: '-12px',
-                  top: '-12px',
-                  filter: 'blur(8px)',
-                }}
-              />
-
               {/* ハンバーガーライン */}
-              <div className="relative w-8 h-8 flex flex-col justify-center items-center">
+              <div className="relative">
                 {/* 上のライン */}
                 <motion.span
-                  className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
+                  className={`absolute left-1/2 -translate-x-1/2 block h-0.5 w-6 rounded-full ${
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
+                  style={{ transformOrigin: 'center' }}
                   initial={false}
                   animate={
                     isOpen
                       ? { 
                           rotate: 45, 
                           y: 0,
-                          scaleX: 1.1,
                         }
                       : { 
                           rotate: 0, 
                           y: -6,
-                          scaleX: isHovered ? 1.1 : 1,
                         }
                   }
                   transition={{ 
                     duration: 0.3, 
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20
+                    ease: "easeInOut"
                   }}
                 />
 
                 {/* 中央のライン */}
                 <motion.span
-                  className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
+                  className={`absolute left-1/2 -translate-x-1/2 block h-0.5 w-6 rounded-full ${
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
+                  style={{ transformOrigin: 'center' }}
                   initial={false}
                   animate={
                     isOpen
@@ -397,73 +347,42 @@ export default function Header() {
                         }
                       : { 
                           opacity: 1,
-                          scaleX: isHovered ? 0.8 : 1,
+                          scaleX: 1,
                         }
                   }
                   transition={{ 
-                    duration: isOpen ? 0.1 : 0.3, 
-                    ease: "easeInOut" 
+                    duration: 0.3, 
+                    ease: "easeInOut"
                   }}
                 />
 
                 {/* 下のライン */}
                 <motion.span
-                  className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
+                  className={`absolute left-1/2 -translate-x-1/2 block h-0.5 w-6 rounded-full ${
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
+                  style={{ transformOrigin: 'center' }}
                   initial={false}
                   animate={
                     isOpen
                       ? { 
                           rotate: -45, 
                           y: 0,
-                          scaleX: 1.1,
                         }
                       : { 
                           rotate: 0, 
                           y: 6,
-                          scaleX: isHovered ? 1.1 : 1,
                         }
                   }
                   transition={{ 
                     duration: 0.3, 
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20
+                    ease: "easeInOut"
                   }}
                 />
-
-                {/* アクティブ時の追加エフェクト */}
-                {isOpen && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-blue-500/10"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.2, delay: 0.1 }}
-                  />
-                )}
-
-                {/* リップルエフェクト */}
-                {isHovered && !isOpen && (
-                  <motion.div
-                    className={`absolute inset-0 rounded-full ${
-                      isTopPage && !isLPPage ? 'bg-white/20' : 'bg-blue-500/20'
-                    }`}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1.4, opacity: 0 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      ease: "easeOut",
-                      repeat: Infinity,
-                      repeatDelay: 0.5
-                    }}
-                  />
-                )}
               </div>
             </motion.button>
           </div>
@@ -481,13 +400,46 @@ export default function Header() {
         >
           <div className="fixed right-0 top-16 h-[calc(100vh-64px)] w-full max-w-sm bg-black/90">
             <div className="p-6 h-full overflow-y-auto">
-              <div className="text-white text-2xl font-bold">
-                -NANDS-
-                <br />
-                生成AIリスキング研修
+              {/* ヘッダー部分 - タイトルと❌ボタン */}
+              <div className="flex items-start justify-between mb-8">
+                <div className="text-white text-2xl font-bold">
+                  -NANDS-
+                  <br />
+                  生成AIリスキング研修
+                </div>
+                {/* ❌閉じるボタン */}
+                <motion.button
+                  onClick={() => setIsOpen(false)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 border border-white/20 backdrop-blur-sm ml-4 flex-shrink-0"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="メニューを閉じる"
+                >
+                  <motion.div
+                    className="relative w-5 h-5"
+                    whileHover={{ rotate: 90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* ❌の線 */}
+                    <motion.span
+                      className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-white rounded-full"
+                      style={{
+                        transformOrigin: 'center',
+                        transform: 'translate(-50%, -50%) rotate(45deg)',
+                      }}
+                    />
+                    <motion.span
+                      className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-white rounded-full"
+                      style={{
+                        transformOrigin: 'center',
+                        transform: 'translate(-50%, -50%) rotate(-45deg)',
+                      }}
+                    />
+                  </motion.div>
+                </motion.button>
               </div>
 
-              <nav className="mt-8 space-y-8">
+              <nav className="space-y-8">
                 <div className="space-y-4">
                   {[
                     'コースの特徴',
@@ -582,7 +534,8 @@ export default function Header() {
                   borderImage: 'linear-gradient(90deg, rgba(103, 232, 249, 0.3), rgba(59, 130, 246, 0.5), rgba(103, 232, 249, 0.3)) 1'
                 }}>
                   {/* ロゴ部分 */}
-                  <div className="flex items-center justify-center h-16 pt-4">
+                  <div className="flex items-center justify-between h-16 pt-4">
+                    <div className="flex-1"></div>
                     <Link href="/" onClick={() => setIsOpen(false)}>
                       <Image
                         src="/images/logo.svg"
@@ -592,6 +545,38 @@ export default function Header() {
                         className="w-auto h-8"
                       />
                     </Link>
+                    <div className="flex-1 flex justify-end">
+                      {/* ❌閉じるボタン */}
+                      <motion.button
+                        onClick={() => setIsOpen(false)}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100/50 hover:bg-gray-200/80 transition-all duration-300 border border-gray-200/50 backdrop-blur-sm"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="メニューを閉じる"
+                      >
+                        <motion.div
+                          className="relative w-5 h-5"
+                          whileHover={{ rotate: 90 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {/* ❌の線 */}
+                          <motion.span
+                            className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-gray-600 rounded-full"
+                            style={{
+                              transformOrigin: 'center',
+                              transform: 'translate(-50%, -50%) rotate(45deg)',
+                            }}
+                          />
+                          <motion.span
+                            className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-gray-600 rounded-full"
+                            style={{
+                              transformOrigin: 'center',
+                              transform: 'translate(-50%, -50%) rotate(-45deg)',
+                            }}
+                          />
+                        </motion.div>
+                      </motion.button>
+                    </div>
                   </div>
                   
                   {/* ボタン部分 */}
