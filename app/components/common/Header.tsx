@@ -30,6 +30,7 @@ export default function Header() {
   const pathname = usePathname();
   const isTopPage = pathname === '/';
   const isReskillingPage = pathname === '/reskilling';
+  const isLPPage = pathname === '/lp';
 
   useEffect(() => {
     const fixedButtons = document.querySelector('.fixed-buttons') as HTMLElement;
@@ -44,12 +45,16 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800/50">
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${
+        isTopPage && !isLPPage
+          ? 'bg-black border-b border-gray-800/50'
+          : 'bg-white border-b border-gray-200/50' 
+      }`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between h-12">
             {/* ロゴ */}
             <Link href="/" className="flex items-center">
-              {isTopPage ? (
+              {isTopPage && !isLPPage ? (
                 <Image
                   src="/images/logo-white.svg"
                   alt="N&S Logo"
@@ -72,10 +77,14 @@ export default function Header() {
             {/* PC用ナビゲーション - メインページのみ */}
             {isTopPage && (
               <nav className="hidden md:flex items-center space-x-8">
-                <a href="https://nands.tech/reskilling" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">
+                <a href="https://nands.tech/reskilling" target="_blank" rel="noopener noreferrer" className={`${
+                  isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
+                } transition-colors`}>
                   個人向けリスキリング
                 </a>
-                <Link href="/corporate" className="text-white hover:text-gray-300 transition-colors">
+                <Link href="/corporate" className={`${
+                  isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
+                } transition-colors`}>
                   法人向けリスキリング
                 </Link>
                 
@@ -84,7 +93,11 @@ export default function Header() {
                   <motion.button
                     onMouseEnter={() => setSystemDropdownOpen(true)}
                     onMouseLeave={() => setSystemDropdownOpen(false)}
-                    className="flex items-center text-white hover:text-cyan-300 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-white/10 backdrop-blur-sm"
+                    className={`flex items-center transition-all duration-300 px-3 py-2 rounded-lg backdrop-blur-sm ${
+                      isTopPage && !isLPPage
+                        ? 'text-white hover:text-cyan-300 hover:bg-white/10'
+                        : 'text-gray-800 hover:text-blue-600 hover:bg-gray-100/50' 
+                    }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -188,7 +201,11 @@ export default function Header() {
                   <motion.button
                     onMouseEnter={() => setCompanyDropdownOpen(true)}
                     onMouseLeave={() => setCompanyDropdownOpen(false)}
-                    className="flex items-center text-white hover:text-cyan-300 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-white/10 backdrop-blur-sm"
+                    className={`flex items-center transition-all duration-300 px-3 py-2 rounded-lg backdrop-blur-sm ${
+                      isTopPage && !isLPPage
+                        ? 'text-white hover:text-cyan-300 hover:bg-white/10'
+                        : 'text-gray-800 hover:text-blue-600 hover:bg-gray-100/50' 
+                    }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -286,7 +303,7 @@ export default function Header() {
                 className={`absolute inset-0 rounded-full ${
                   isOpen 
                     ? 'bg-white shadow-2xl' 
-                    : isTopPage 
+                    : isTopPage && !isLPPage
                       ? 'bg-white/10 backdrop-blur-sm border border-white/20' 
                       : 'bg-gray-100/50 backdrop-blur-sm border border-gray-200/50'
                 }`}
@@ -309,7 +326,7 @@ export default function Header() {
                 className={`absolute inset-0 rounded-full ${
                   isOpen
                     ? 'bg-blue-400/30'
-                    : isTopPage
+                    : isTopPage && !isLPPage
                       ? 'bg-white/20'
                       : 'bg-blue-400/20'
                 }`}
@@ -335,7 +352,7 @@ export default function Header() {
                   className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
                     isOpen 
                       ? 'bg-gray-700' 
-                      : isTopPage 
+                      : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
@@ -367,7 +384,7 @@ export default function Header() {
                   className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
                     isOpen 
                       ? 'bg-gray-700' 
-                      : isTopPage 
+                      : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
@@ -394,7 +411,7 @@ export default function Header() {
                   className={`block h-0.5 w-6 origin-center transition-colors duration-200 ${
                     isOpen 
                       ? 'bg-gray-700' 
-                      : isTopPage 
+                      : isTopPage && !isLPPage
                         ? 'bg-white' 
                         : 'bg-gray-700'
                   }`}
@@ -435,7 +452,7 @@ export default function Header() {
                 {isHovered && !isOpen && (
                   <motion.div
                     className={`absolute inset-0 rounded-full ${
-                      isTopPage ? 'bg-white/20' : 'bg-blue-500/20'
+                      isTopPage && !isLPPage ? 'bg-white/20' : 'bg-blue-500/20'
                     }`}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1.4, opacity: 0 }}
