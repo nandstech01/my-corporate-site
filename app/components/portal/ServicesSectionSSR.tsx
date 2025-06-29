@@ -1,30 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, Suspense } from "react";
+import React, { useRef, useEffect } from "react";
 import { motion, useInView, useAnimation } from "framer-motion";
-import {
-  FaGraduationCap,
-  FaBuilding,
-  FaLaptopCode,
-  FaBalanceScale,
-  FaCogs,
-  FaSearch,
-  FaComments,
-  FaDatabase,
-  FaRobot,
-  FaPlug,
-  FaShareAlt,
-  FaVideo,
-} from "react-icons/fa";
-import dynamic from 'next/dynamic';
-
-// TrueFocusを動的インポート（クライアントサイドのみ）
-const TrueFocus = dynamic(() => import('./TrueFocus'), {
-  ssr: false,
-  loading: () => (
-    <div className="animate-pulse bg-gray-200 h-8 w-full rounded"></div>
-  )
-});
 
 /**
  * =========================================================
@@ -44,51 +21,39 @@ const TrueFocus = dynamic(() => import('./TrueFocus'), {
  * ---------------------------------------------------------
  */
 
-// ======= サービスデータ =======
+/**
+ * ==========================================
+ * サービスカード一覧
+ * ==========================================
+ */
 const servicesData = [
   {
-    title: "個人向けリスキリング",
-    icon: <FaGraduationCap size={32} />,
-    description:
-      "生成AIやプロンプトエンジニアリングで、新時代のスキルを習得します。",
-    link: "/reskilling",
-    id: "personal-reskilling"
-  },
-  {
-    title: "法人向けリスキリング",
-    icon: <FaBuilding size={32} />,
-    description:
-      "企業向けDX研修や生成AI研修で、組織全体を最新技術でアップデート。",
-    link: "/corporate",
-    id: "corporate-reskilling"
-  },
-  {
     title: "システム開発",
-    icon: <FaCogs size={32} />,
+    icon: "💻",
     description:
-      "レリバンスエンジニアリング・AIO対策を含む最新AI技術によるシステム開発。",
+      "Webアプリケーション開発からAI統合システムまで幅広く対応。",
     link: "/system-development",
     id: "system-development"
   },
   {
-    title: "AIO対策・GEO",
-    icon: <FaSearch size={32} />,
+    title: "AIO対策",
+    icon: "🚀",
     description:
-      "Mike King理論に基づくレリバンスエンジニアリング＋GEO（生成系検索最適化）でAI検索結果を最適化。",
+      "レリバンスエンジニアリングによるAI時代のSEO最適化サービス。",
     link: "/aio-seo",
     id: "aio-seo"
   },
   {
     title: "チャットボット開発",
-    icon: <FaComments size={32} />,
+    icon: "💬",
     description:
-      "GPT-4活用の高性能チャットボット開発。24時間自動応答で業務効率化を実現。",
+      "ChatGPT・Claude統合チャットボット。顧客対応を24時間自動化。",
     link: "/chatbot-development",
     id: "chatbot-development"
   },
   {
     title: "ベクトルRAG検索",
-    icon: <FaDatabase size={32} />,
+    icon: "🔍",
     description:
       "企業内文書の意味的検索システム。OpenAI Embeddings活用で検索精度95%向上。",
     link: "/vector-rag",
@@ -96,7 +61,7 @@ const servicesData = [
   },
   {
     title: "AI副業",
-    icon: <FaLaptopCode size={32} />,
+    icon: "💼",
     description:
       "ChatGPTを活用したSEOライティングや副業ノウハウをサポート。",
     link: "/fukugyo",
@@ -104,7 +69,7 @@ const servicesData = [
   },
   {
     title: "人材ソリューション",
-    icon: <FaBalanceScale size={32} />,
+    icon: "👥",
     description:
       "AIを活用した人事・労務支援サービス。法令準拠システムで安心サポート。",
     link: "/hr-solutions",
@@ -112,7 +77,7 @@ const servicesData = [
   },
   {
     title: "AIエージェント",
-    icon: <FaRobot size={32} />,
+    icon: "🤖",
     description:
       "Mastra Framework活用の自律型AIエージェント開発。業務自動化とインテリジェント処理を実現。",
     link: "/ai-agents",
@@ -120,7 +85,7 @@ const servicesData = [
   },
   {
     title: "MCPサーバー",
-    icon: <FaPlug size={32} />,
+    icon: "🔌",
     description:
       "Model Context Protocol対応のカスタムサーバー開発。AIシステム連携とデータ統合を効率化。",
     link: "/mcp-servers",
@@ -128,7 +93,7 @@ const servicesData = [
   },
   {
     title: "SNS自動化",
-    icon: <FaShareAlt size={32} />,
+    icon: "📱",
     description:
       "AI活用のSNS投稿自動化とコンテンツ生成。ブランド認知度向上と効率的な運用を実現。",
     link: "/sns-automation",
@@ -136,7 +101,7 @@ const servicesData = [
   },
   {
     title: "動画生成",
-    icon: <FaVideo size={32} />,
+    icon: "🎬",
     description:
       "AI技術を活用した動画コンテンツ生成。マーケティング効果を最大化する映像制作サービス。",
     link: "/video-generation",
@@ -206,7 +171,7 @@ function ServiceCard({
   link,
   id,
 }: {
-  icon: React.ReactNode;
+  icon: string;
   title: string;
   description: string;
   link: string;
@@ -234,13 +199,15 @@ function ServiceCard({
     >
       <a
         href={link}
-        className="block w-full h-full p-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300"
+        className="block w-full h-full p-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg"
         role="article"
         aria-label={`${title}について詳しく見る`}
       >
         {/* アイコン */}
-        <div className="flex justify-center mb-4 text-blue-600">
-          {icon}
+        <div className="flex justify-center mb-4">
+          <span className="text-4xl" role="img" aria-label={title}>
+            {icon}
+          </span>
         </div>
 
         {/* タイトル */}
@@ -254,8 +221,8 @@ function ServiceCard({
         </p>
 
         {/* ホバー時のグラデーション境界線 */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-blue-500/20 border-2 border-transparent bg-clip-padding"></div>
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-lg">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-blue-500/20 border-2 border-blue-300 rounded-lg"></div>
         </div>
       </a>
     </motion.div>
@@ -327,29 +294,10 @@ export default function ServicesSectionSSR() {
               <span className="block text-blue-600">サービス</span>
             </h2>
             
-            {/* SSR時の静的テキスト */}
-            <div className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
-              <noscript>
-                AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供しています。
-              </noscript>
+            {/* 説明テキスト */}
+            <div className="text-xl text-gray-600 max-w-3xl mx-auto">
+              AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供しています。
             </div>
-            
-            {/* TrueFocus（動的インポート） */}
-            <Suspense fallback={
-              <div className="text-xl text-gray-600 max-w-3xl mx-auto">
-                AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供しています。
-              </div>
-            }>
-              <TrueFocus
-                sentence="AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供しています。"
-                manualMode={false}
-                blurAmount={3}
-                animationDuration={0.8}
-                pauseBetweenAnimations={0.4}
-                borderColor="rgba(59, 130, 246, 0.6)"
-                glowColor="rgba(96, 165, 250, 0.8)"
-              />
-            </Suspense>
           </motion.div>
 
           {/* サービスグリッド */}
