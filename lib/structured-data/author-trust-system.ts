@@ -20,6 +20,8 @@ export interface AuthorProfile {
   url?: string;
   alumniOf?: EducationalOrganization[];
   awards?: Award[];
+  // 実際のプロフィール対応
+  personalSocialMedia?: SocialMediaProfile[];
 }
 
 export interface Credential {
@@ -46,6 +48,7 @@ export interface SocialMediaProfile {
   platform: string;
   url: string;
   verified?: boolean;
+  description?: string;
 }
 
 export interface EducationalOrganization {
@@ -86,88 +89,106 @@ export interface TrustSignals {
 }
 
 /**
- * 原田賢治代表 - 著者プロフィール（実績ベース）
+ * 原田賢治代表 - 著者プロフィール（実績ベース・正直版）
  */
 export const HARADA_KENJI_PROFILE: AuthorProfile = {
   '@type': 'Person',
   '@id': 'https://nands.tech/author/harada-kenji',
   name: '原田賢治',
-  jobTitle: '代表取締役・AIエンジニア',
+  jobTitle: '代表取締役・システム開発者',
   worksFor: {
     '@type': 'Organization',
     '@id': 'https://nands.tech/#organization',
     name: '株式会社エヌアンドエス'
   },
-  description: 'AIエンジニア・システム開発者として技術領域での経験を持つ。機械学習、自然言語処理分野での知識を活かし、エンタープライズ向けシステムの設計・開発に取り組む。近年はレリバンスエンジニアリング・AIO対策の研究開発に注力し、AI検索時代の新しい最適化手法の確立に取り組んでいる。',
+  description: '株式会社エヌアンドエス代表取締役（設立2008年・16年の実績）。実践重視のシステム開発者として、特にAI検索最適化・レリバンスエンジニアリング分野で独自の手法を研究・実装。10年間のIT講師経験を活かし、Triple RAGベクトル検索システムなど実用的なAIシステムの構築と技術指導に取り組む。',
   expertise: [
-    'AIシステム開発',
-    '機械学習・深層学習',
-    '自然言語処理',
+    'システム開発・アーキテクチャ',
+    'AI検索最適化',
     'レリバンスエンジニアリング',
-    'システムアーキテクチャ',
-    'クラウドインフラ設計',
-    'DevOps・MLOps',
-    'AIO対策・GEO最適化'
+    'ベクトル検索システム',
+    'Web開発・Next.js',
+    'データベース設計',
+    'IT技術講師・研修',
+    '企業経営・事業開発'
   ],
   credentials: [
     {
       type: 'experience',
-      title: 'AIシステム開発経験',
-      issuer: '株式会社エヌアンドエス',
-      year: 2020,
-      description: '企業向けAIシステムの設計・開発・運用経験'
+      title: '株式会社エヌアンドエス設立・経営',
+      issuer: '法人登記',
+      year: 2008,
+      description: 'AI・システム開発専門企業の設立・経営。16年間の技術と事業の両面でリーダーシップを発揮'
     },
     {
       type: 'experience',
-      title: 'システム開発コンサルティング',
-      issuer: '複数企業',
-      year: 2018,
-      description: '製造業・サービス業でのシステム開発支援'
+      title: 'IT講師・技術指導',
+      issuer: '複数企業・団体',
+      year: 2014,
+      description: '10年間にわたるIT技術指導・研修講師の実績。プログラミング、AI技術、システム開発の実践指導'
     },
     {
-      type: 'certification',
-      title: 'プログラミング・AI技術',
-      issuer: '独学・実務経験',
-      year: 2015,
-      description: 'プログラミング、機械学習、AI技術の習得・実践'
+      type: 'experience',
+      title: 'Triple RAGベクトル検索システム構築',
+      issuer: '自社開発プロジェクト',
+      year: 2024,
+      description: '法律データベース372項目・企業エンティティ111社データを統合した高度なベクトル検索システム。o1-mini + DALL-E 3連携で5000-7000文字記事を自動生成'
+    },
+    {
+      type: 'experience',
+      title: 'レリバンスエンジニアリング実装',
+      issuer: '自社研究開発',
+      year: 2024,
+      description: 'Mike King理論に基づくAI検索最適化手法の日本市場向け実装'
     }
   ],
   achievements: [
     {
-      title: 'レリバンスエンジニアリング手法の研究',
-      description: 'Mike King理論に基づくAI検索最適化手法を日本市場向けに研究・実装',
+      title: '自動記事生成システムの実用化',
+      description: 'Google Sheets管理・30分間隔スケジューラー・Triple RAGベクトル検索を統合した完全自動化システム。無限拡張自己学習機能で継続的な品質向上を実現',
       year: 2024,
       category: 'technical'
     },
     {
-      title: 'エンタープライズシステム開発',
-      description: '企業向けAIシステム・Webアプリケーションの開発・導入支援',
+      title: '企業向けAIシステム開発・導入',
+      description: '複数企業でのAIシステム導入支援。技術的課題解決と事業価値創出を両立',
       year: 2023,
       category: 'business'
     },
     {
-      title: 'AI技術研究・情報発信',
-      description: '最新AI技術・機械学習手法に関する技術研究と情報発信',
-      year: 2023,
-      category: 'academic'
-    },
-    {
-      title: 'オープンソースツール開発',
-      description: 'AIシステム・検索最適化ツールの開発・公開',
+      title: 'Next.js企業サイト完全統合システム',
+      description: '41ページの大規模サイトで統一システム・構造化データ・TOC・SEO対策を完全統合',
       year: 2024,
       category: 'technical'
+    },
+    {
+      title: '10年間のIT技術指導実績',
+      description: '企業研修・技術指導において、理論と実践を組み合わせた効果的な教育プログラムを提供。多数の技術者育成に貢献',
+      year: 2024,
+      category: 'business'
     }
   ],
   socialMedia: [
     {
       platform: 'GitHub',
       url: 'https://github.com/nands-tech',
-      verified: false
+      verified: false,
+      description: '株式会社エヌアンドエス技術リポジトリ'
     },
     {
       platform: 'LinkedIn',
       url: 'https://linkedin.com/company/nands-tech',
-      verified: false
+      verified: false,
+      description: '株式会社エヌアンドエス公式'
+    }
+  ],
+  // 実際のプロフィール（正直ベース）
+  personalSocialMedia: [
+    {
+      platform: 'LinkedIn',
+      url: 'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/',
+      verified: false,
+      description: '原田賢治 - 株式会社エヌアンドエス代表取締役'
     }
   ],
   image: 'https://nands.tech/images/author/harada-kenji.jpg',
@@ -180,11 +201,11 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
 export const NANDS_TRUST_SIGNALS: TrustSignals = {
   authorProfile: HARADA_KENJI_PROFILE,
   organizationTrust: {
-    foundedYear: 2020,
+    foundedYear: 2008,
     employeeCount: '少数精鋭',
     clientCount: '複数企業',
     projectsCompleted: 10,
-    industryExperience: 4
+    industryExperience: 16
   },
   technicalCredibility: {
     openSourceProjects: [
@@ -245,7 +266,12 @@ export class AuthorTrustSystem {
         description: achievement.description,
         dateReceived: achievement.year.toString()
       })),
-      sameAs: this.authorProfile.socialMedia.map(social => social.url),
+      sameAs: [
+        // 実際の個人プロフィール（存在する場合のみ）
+        ...(this.authorProfile.personalSocialMedia?.map(social => social.url) || []),
+        // 会社のソーシャルメディア（関連情報として）
+        ...this.authorProfile.socialMedia.map(social => social.url)
+      ].filter(url => url), // 空の値を除外
       image: this.authorProfile.image,
       url: this.authorProfile.url,
       alumniOf: this.authorProfile.alumniOf

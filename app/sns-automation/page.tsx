@@ -8,6 +8,7 @@ import SNSTechStack from './components/SNSTechStack';
 import SNSShowcase from './components/SNSShowcase';
 import SNSPricingSection from './components/SNSPricingSection';
 import SNSContactSectionSSR from './components/SNSContactSectionSSR';
+import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
 
 export const metadata: Metadata = {
   title: 'SNS自動化システム開発サービス | X・Instagram・Facebook対応AI投稿管理 | 株式会社エヌアンドエス',
@@ -138,6 +139,14 @@ export default async function SNSAutomationPage() {
             unifiedData.structuredData.faq,
           ].filter(Boolean))
         }}
+      />
+
+      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
+      <ClientSideAnchorEnhancer 
+        enableAIDetection={true}
+        enhancementDelay={800}
+        scrollBehavior="smooth"
+        trackingEnabled={true}
       />
 
       {/* ヒーローセクション */}

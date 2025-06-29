@@ -8,6 +8,7 @@ import ChatbotTechStack from './components/ChatbotTechStack'
 import ChatbotShowcase from './components/ChatbotShowcase'
 import ChatbotPricingSection from './components/ChatbotPricingSection'
 import ChatbotContactSectionSSR from './components/ChatbotContactSectionSSR'
+import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer'
 
 export const metadata: Metadata = {
   title: 'チャットボット開発サービス | GPT-4活用の高性能AI自動応答システム | 株式会社エヌアンドエス',
@@ -139,6 +140,14 @@ export default async function ChatbotDevelopmentPage() {
           </nav>
         </div>
       </div>
+
+      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
+      <ClientSideAnchorEnhancer 
+        enableAIDetection={true}
+        enhancementDelay={800}
+        scrollBehavior="smooth"
+        trackingEnabled={true}
+      />
 
       {/* ヒーローセクション */}
       <section id="hero-section">

@@ -5,6 +5,7 @@ import { generateUnifiedPageData } from '@/lib/structured-data/unified-integrati
 import ROICalculator from '@/components/corporate/ROICalculator';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
 
 // Viewport設定
 export const viewport: Viewport = {
@@ -247,6 +248,14 @@ export default async function CorporatePage() {
           { name: '法人向けAIリスキリング', path: '/corporate' }
         ]} /> */}
       </div>
+      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
+      <ClientSideAnchorEnhancer 
+        enableAIDetection={true}
+        enhancementDelay={800}
+        scrollBehavior="smooth"
+        trackingEnabled={true}
+      />
+
       <section id="hero">
         <HeroSectionSSR />
       </section>

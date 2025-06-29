@@ -8,6 +8,7 @@ import MCPTechStack from './components/MCPTechStack';
 import MCPShowcase from './components/MCPShowcase';
 import MCPPricingSection from './components/MCPPricingSection';
 import MCPContactSectionSSR from './components/MCPContactSectionSSR';
+import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
 
 export const metadata: Metadata = {
   title: 'MCPサーバー開発サービス | Model Context Protocol最新技術でAI統合基盤を構築 | 株式会社エヌアンドエス',
@@ -142,6 +143,14 @@ export default async function MCPServersPage() {
           </nav>
         </div>
       </div>
+
+      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
+      <ClientSideAnchorEnhancer 
+        enableAIDetection={true}
+        enhancementDelay={800}
+        scrollBehavior="smooth"
+        trackingEnabled={true}
+      />
 
       {/* ヒーローセクション */}
       <section id="hero-section">
