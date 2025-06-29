@@ -180,7 +180,7 @@ const servicesData = [
     title: "法人向けリスキリング",
     description:
       "企業のDX推進を支援する法人向け人材育成プログラム。AI・データサイエンス研修を提供。",
-    link: "/reskilling",
+    link: "/corporate",
     id: "corporate-reskilling",
     icon: ServiceIcons.building
   },

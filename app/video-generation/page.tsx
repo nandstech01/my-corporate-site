@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { ORGANIZATION_ENTITY, SERVICE_ENTITIES } from '@/lib/structured-data/entity-relationships';
 import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
+import TableOfContents from '@/components/common/TableOfContents';
 import VideoHeroSectionSSR from './components/VideoHeroSectionSSR';
 import VideoServicesSection from './components/VideoServicesSection';
 import VideoTechStack from './components/VideoTechStack';
@@ -198,44 +199,17 @@ export default function VideoGenerationPage() {
           </div>
         </nav>
 
-        {/* TOC (目次) */}
-        <section className="bg-gradient-to-r from-purple-900 to-indigo-900 py-6" id="table-of-contents">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-xl font-bold text-white mb-4">目次</h2>
-            <nav className="space-y-2">
-              {tableOfContents.map((section, index) => (
-                <div key={index}>
-                  <a
-                    href={`#${section.id}`}
-                    className="block text-purple-200 hover:text-white hover:underline py-1"
-                  >
-                    {section.title}
-                  </a>
-                  {section.subsections && section.subsections.length > 0 && (
-                    <div className="ml-4 space-y-1">
-                      {section.subsections.map((subsection, subIndex) => (
-                        <a
-                          key={subIndex}
-                          href={`#${subsection.id}`}
-                          className="block text-sm text-purple-300 hover:text-purple-100 hover:underline py-1"
-                        >
-                          {subsection.title}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </nav>
-          </div>
-        </section>
-
         {/* ヒーローセクション */}
         <section id="hero-section">
           <VideoHeroSectionSSR />
         </section>
 
-        {/* サービス内容 */}
+        {/* 目次（ヒーロー直後に配置、背景色を調整） */}
+        <div className="bg-gray-50">
+          <TableOfContents items={tableOfContents} />
+        </div>
+
+        {/* サービス内容セクション */}
         <section id="services-section">
           <VideoServicesSection />
         </section>

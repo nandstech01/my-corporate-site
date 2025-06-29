@@ -517,6 +517,41 @@ export class UnifiedIntegrationSystem {
         { id: 'aio-case-studies', title: '成功事例', level: 2, anchor: '#aio-case-studies' },
         { id: 'aio-pricing', title: '料金体系', level: 2, anchor: '#aio-pricing' },
         { id: 'aio-contact', title: 'お問い合わせ', level: 2, anchor: '#aio-contact' }
+      ],
+      'chatbot-development': [
+        { id: 'hero-section', title: 'チャットボット開発サービス', level: 2, anchor: '#hero-section' },
+        { id: 'services-section', title: 'サービス詳細', level: 2, anchor: '#services-section' },
+        { id: 'tech-stack-section', title: '技術スタック', level: 2, anchor: '#tech-stack-section' },
+        { id: 'showcase-section', title: '実績・事例', level: 2, anchor: '#showcase-section' },
+        { id: 'pricing-section', title: '料金プラン', level: 2, anchor: '#pricing-section' },
+        { id: 'consultation-section', title: 'お問い合わせ', level: 2, anchor: '#consultation-section' }
+      ],
+      'mcp-servers': [
+        { id: 'hero-section', title: 'MCPサーバー開発サービス', level: 2, anchor: '#hero-section' },
+        { id: 'services-section', title: 'サービス詳細', level: 2, anchor: '#services-section' },
+        { id: 'tech-stack-section', title: '技術スタック', level: 2, anchor: '#tech-stack-section' },
+        { id: 'showcase-section', title: '実績・事例', level: 2, anchor: '#showcase-section' },
+        { id: 'pricing-section', title: '料金プラン', level: 2, anchor: '#pricing-section' },
+        { id: 'contact-section', title: 'お問い合わせ', level: 2, anchor: '#contact-section' }
+      ],
+      'sns-automation': [
+        { id: 'hero-section', title: 'SNS自動化システム開発', level: 2, anchor: '#hero-section' },
+        { id: 'services-section', title: 'サービス詳細', level: 2, anchor: '#services-section' },
+        { id: 'tech-stack-section', title: '技術スタック', level: 2, anchor: '#tech-stack-section' },
+        { id: 'showcase-section', title: '実績・事例', level: 2, anchor: '#showcase-section' },
+        { id: 'pricing-section', title: '料金プラン', level: 2, anchor: '#pricing-section' },
+        { id: 'contact-section', title: 'お問い合わせ', level: 2, anchor: '#contact-section' }
+      ],
+      'corporate': [
+        { id: 'hero', title: '法人向けAIソリューション', level: 2, anchor: '#hero' },
+        { id: 'problems', title: '課題解決', level: 2, anchor: '#problems' },
+        { id: 'services', title: 'サービス内容', level: 2, anchor: '#services' },
+        { id: 'merits', title: '導入メリット', level: 2, anchor: '#merits' },
+        { id: 'case-studies', title: '導入事例', level: 2, anchor: '#case-studies' },
+        { id: 'industries', title: '業界別ソリューション', level: 2, anchor: '#industries' },
+        { id: 'flow', title: '導入の流れ', level: 2, anchor: '#flow' },
+        { id: 'roi-calculator', title: 'ROI計算ツール', level: 2, anchor: '#roi-calculator' },
+        { id: 'contact', title: 'お問い合わせ', level: 2, anchor: '#contact' }
       ]
     };
 
