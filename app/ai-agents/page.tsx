@@ -123,25 +123,23 @@ export default async function AIAgentsPage() {
       {/* Fragment IDとTOCに対応したメインコンテンツ */}
       <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         
-        {/* TOC（目次）- モバイル対応 */}
-        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-          <div className="hidden lg:block fixed top-20 right-4 z-40 w-64">
-            <div 
-              dangerouslySetInnerHTML={{ 
-                __html: TOCComponent({ 
-                  toc: unifiedData.tableOfContents,
-                  title: "AIエージェント開発一覧",
-                  className: "sticky top-4 p-4 bg-white/95 backdrop-blur border rounded-lg shadow-lg"
-                })
-              }}
-            />
-          </div>
-        )}
-
         {/* Hero Section */}
         <section id="agent-hero">
           <AIAgentHeroSection />
         </section>
+
+        {/* 目次（ヒーロー直後に配置） */}
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+          <div
+            dangerouslySetInnerHTML={{ 
+              __html: TOCComponent({ 
+                toc: unifiedData.tableOfContents,
+                title: "目次",
+                className: "py-16 bg-gradient-to-r from-blue-50 to-indigo-50"
+              })
+            }}
+          />
+        )}
 
         {/* Services Section */}
         <section id="agent-services">

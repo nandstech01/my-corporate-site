@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useState, Suspense } from "react";
-import { motion, useInView, useAnimation, AnimatePresence } from "framer-motion";
+import React, { useRef, useEffect, Suspense } from "react";
+import { motion, useInView, useAnimation } from "framer-motion";
 import {
   FaGraduationCap,
   FaBuilding,
@@ -205,14 +205,12 @@ function ServiceCard({
   description,
   link,
   id,
-  onComingSoon,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   link: string;
   id: string;
-  onComingSoon?: () => void;
 }) {
   // 動きのあるアニメーション設定 - ただし控えめ
   const cardVariants = {
@@ -223,11 +221,6 @@ function ServiceCard({
       scale: 1,
       transition: { duration: 0.6, ease: "easeOut" }
     },
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // アナリティクス等の処理をここに追加可能
-    console.log(`Clicked on service: ${title}`);
   };
 
   return (
@@ -241,7 +234,6 @@ function ServiceCard({
     >
       <a
         href={link}
-        onClick={handleClick}
         className="block w-full h-full p-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300"
         role="article"
         aria-label={`${title}について詳しく見る`}
@@ -280,9 +272,6 @@ export default function ServicesSectionSSR() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.3 });
   const mainControls = useAnimation();
-
-  // Coming Soonモーダル
-  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     if (inView) {
@@ -378,7 +367,6 @@ export default function ServicesSectionSSR() {
                 description={service.description}
                 link={service.link}
                 id={service.id}
-                onComingSoon={() => setShowComingSoon(true)}
               />
             ))}
           </motion.div>
@@ -412,41 +400,6 @@ export default function ServicesSectionSSR() {
             </div>
           </motion.div>
         </div>
-
-        {/* Coming Soonモーダル */}
-        <AnimatePresence>
-          {showComingSoon && (
-            <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowComingSoon(false)}
-            >
-              <motion.div
-                className="bg-white p-8 max-w-md text-center border border-gray-200 shadow-xl"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Coming Soon
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  このサービスページは現在準備中です。<br />
-                  近日公開予定ですので、もうしばらくお待ちください。
-                </p>
-                <button
-                  onClick={() => setShowComingSoon(false)}
-                  className="px-6 py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
-                >
-                  閉じる
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </section>
     </>
   );

@@ -725,7 +725,7 @@ export function SemanticLinksComponent({
 export function TOCComponent({ 
   toc, 
   title = "目次",
-  className = "sticky top-4 p-4 bg-white border rounded-lg"
+  className = "py-16 bg-gradient-to-r from-blue-50 to-indigo-50"
 }: { 
   toc: TOCItem[];
   title?: string;  
@@ -734,19 +734,61 @@ export function TOCComponent({
   if (toc.length === 0) return '';
 
   return `
-    <div class="${className}">
-      <h3 class="font-semibold mb-3">${title}</h3>
-      <nav>
-        <ul class="space-y-2">
-          ${toc.map(item => `
-            <li>
-              <a href="${item.anchor}" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
-                ${item.title}
-              </a>
-            </li>
-          `).join('')}
-        </ul>
-      </nav>
-    </div>
+    <section class="${className}">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+            <h2 class="text-2xl font-bold text-white flex items-center">
+              <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              ${title}
+            </h2>
+            <p class="text-blue-100 mt-2">このページの内容に素早くアクセス</p>
+          </div>
+          
+          <nav class="p-8">
+            <div class="grid md:grid-cols-2 gap-6">
+              ${toc.map((item, index) => `
+                <div class="group">
+                  <a href="${item.anchor}" 
+                     class="flex items-start p-4 rounded-xl border border-gray-200 
+                            hover:border-blue-300 hover:bg-blue-50 transition-all duration-300
+                            group-hover:shadow-md">
+                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 
+                               rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
+                      ${index + 1}
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 
+                               transition-colors mb-2 leading-tight">
+                        ${item.title}
+                      </h3>
+                      ${item.children && item.children.length > 0 ? `
+                        <div class="space-y-1">
+                                                     ${item.children.map(child => `
+                             <a href="${child.anchor}" 
+                                class="block text-sm text-gray-600 hover:text-blue-600 
+                                       transition-colors hover:underline pl-2 border-l-2 
+                                       border-gray-200 hover:border-blue-300">
+                               ${child.title}
+                             </a>
+                           `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 
+                               transition-colors flex-shrink-0 mt-1" 
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                </div>
+              `).join('')}
+            </div>
+          </nav>
+        </div>
+      </div>
+    </section>
   `;
 } 

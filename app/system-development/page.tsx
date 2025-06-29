@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { ORGANIZATION_ENTITY, SERVICE_ENTITIES } from '@/lib/structured-data/entity-relationships';
 import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
+import TableOfContents from '@/components/common/TableOfContents';
 import SystemHeroSectionSSR from './components/SystemHeroSectionSSR';
 import ProjectShowcase from './components/ProjectShowcase';
 import TechStackSection from './components/TechStackSection';
@@ -191,42 +192,13 @@ const SystemDevelopmentPage = () => {
           </div>
         </nav>
 
-        {/* TOC (目次) */}
-        <section className="bg-blue-50 py-6" id="table-of-contents">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">目次</h2>
-            <nav className="space-y-2">
-              {tableOfContents.map((section, index) => (
-                <div key={index}>
-                  <a
-                    href={`#${section.id}`}
-                    className="block text-blue-600 hover:text-blue-800 hover:underline py-1"
-                  >
-                    {section.title}
-                  </a>
-                  {section.subsections && section.subsections.length > 0 && (
-                    <div className="ml-4 space-y-1">
-                      {section.subsections.map((subsection, subIndex) => (
-                        <a
-                          key={subIndex}
-                          href={`#${subsection.id}`}
-                          className="block text-sm text-gray-600 hover:text-blue-600 hover:underline py-1"
-                        >
-                          {subsection.title}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </nav>
-          </div>
-        </section>
-        
         {/* ヒーローセクション */}
         <section id="hero-section">
           <SystemHeroSectionSSR />
         </section>
+        
+        {/* 目次（ヒーロー直後に配置） */}
+        <TableOfContents items={tableOfContents} />
         
         {/* プロジェクト実績 */}
         <section id="project-showcase">
