@@ -1,6 +1,73 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 
 const ContactCTA = () => {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    email: '',
+    developmentType: '',
+    budget: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        message: `【システム開発のお問い合わせ】
+会社名: ${formData.company}
+開発種別: ${formData.developmentType}
+予算: ${formData.budget}
+相談内容: ${formData.message}`,
+        page: 'システム開発'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        name: '',
+        company: '',
+        email: '',
+        developmentType: '',
+        budget: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <section id="consultation-section" className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600">
       <div className="container mx-auto px-4">
@@ -74,11 +141,14 @@ const ContactCTA = () => {
               お問い合わせフォーム
             </h3>
             
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-bold mb-2">お名前 *</label>
                 <input 
                   type="text" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:border-white/50 transition-colors"
                   placeholder="山田太郎"
@@ -89,6 +159,9 @@ const ContactCTA = () => {
                 <label className="block text-sm font-bold mb-2">会社名</label>
                 <input 
                   type="text" 
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:border-white/50 transition-colors"
                   placeholder="株式会社○○"
                 />
@@ -98,6 +171,9 @@ const ContactCTA = () => {
                 <label className="block text-sm font-bold mb-2">メールアドレス *</label>
                 <input 
                   type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:border-white/50 transition-colors"
                   placeholder="example@company.com"
@@ -106,7 +182,12 @@ const ContactCTA = () => {
               
               <div>
                 <label className="block text-sm font-bold mb-2">開発種別</label>
-                <select className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white focus:outline-none focus:border-white/50 transition-colors">
+                <select 
+                  name="developmentType"
+                  value={formData.developmentType}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white focus:outline-none focus:border-white/50 transition-colors"
+                >
                   <option value="" className="text-gray-900">選択してください</option>
                   <option value="求人マッチング" className="text-gray-900">求人マッチングシステム</option>
                   <option value="チャットボット" className="text-gray-900">チャットボット</option>
@@ -119,7 +200,12 @@ const ContactCTA = () => {
               
               <div className="md:col-span-2">
                 <label className="block text-sm font-bold mb-2">予算</label>
-                <select className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white focus:outline-none focus:border-white/50 transition-colors">
+                <select 
+                  name="budget"
+                  value={formData.budget}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white focus:outline-none focus:border-white/50 transition-colors"
+                >
                   <option value="" className="text-gray-900">選択してください</option>
                   <option value="50万円未満" className="text-gray-900">50万円未満</option>
                   <option value="50-100万円" className="text-gray-900">50-100万円</option>
@@ -132,6 +218,9 @@ const ContactCTA = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-bold mb-2">ご相談内容 *</label>
                 <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   required
                   rows={4}
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:border-white/50 transition-colors resize-none"

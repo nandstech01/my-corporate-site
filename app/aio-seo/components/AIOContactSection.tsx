@@ -1,6 +1,76 @@
-import React from 'react'
+"use client";
+
+import React, { useState } from 'react'
 
 const AIOContactSection = () => {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    email: '',
+    website: '',
+    service: '',
+    budget: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        message: `【AIO対策・レリバンスエンジニアリングのお問い合わせ】
+会社名: ${formData.company}
+サイトURL: ${formData.website}
+ご希望のサービス: ${formData.service}
+ご予算: ${formData.budget}
+相談内容: ${formData.message}`,
+        page: 'AIO対策'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        name: '',
+        company: '',
+        email: '',
+        website: '',
+        service: '',
+        budget: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <section id="consultation-section" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,7 +93,7 @@ const AIOContactSection = () => {
               お問い合わせフォーム
             </h3>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   お名前 <span className="text-red-500">*</span>
@@ -32,6 +102,8 @@ const AIOContactSection = () => {
                   type="text"
                   id="name"
                   name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -45,6 +117,8 @@ const AIOContactSection = () => {
                   type="text"
                   id="company"
                   name="company"
+                  value={formData.company}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -57,6 +131,8 @@ const AIOContactSection = () => {
                   type="email"
                   id="email"
                   name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -70,6 +146,8 @@ const AIOContactSection = () => {
                   type="url"
                   id="website"
                   name="website"
+                  value={formData.website}
+                  onChange={handleChange}
                   placeholder="https://example.com"
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -82,6 +160,8 @@ const AIOContactSection = () => {
                 <select
                   id="service"
                   name="service"
+                  value={formData.service}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
@@ -103,6 +183,8 @@ const AIOContactSection = () => {
                 <select
                   id="budget"
                   name="budget"
+                  value={formData.budget}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">選択してください</option>
@@ -122,6 +204,8 @@ const AIOContactSection = () => {
                 <textarea
                   id="message"
                   name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={5}
                   placeholder="現在のサイトの課題や、AIO対策で実現したい目標などをお聞かせください"
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

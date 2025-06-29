@@ -61,19 +61,19 @@ const AITrainingSolutions: React.FC<AITrainingSolutionsProps> = ({ animations })
       suffix: "%"
     },
     {
-      number: "20+",
-      label: "導入企業数",
-      suffix: "社"
+      number: "滋賀",
+      label: "拠点エリア",
+      suffix: ""
     },
     {
-      number: "98",
-      label: "顧客満足度",
-      suffix: "%"
+      number: "全国",
+      label: "サービス展開",
+      suffix: ""
     },
     {
-      number: "30+",
-      label: "平均業務効率化率",
-      suffix: "%"
+      number: "2008",
+      label: "設立年",
+      suffix: "年"
     }
   ];
 

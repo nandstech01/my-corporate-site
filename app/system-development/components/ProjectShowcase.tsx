@@ -121,14 +121,14 @@ const PROJECTS = [
     achievements: [
       '24時間自動応答システム',
       '多言語対応（日英中韓）',
-      'カスタマーサポート工数80%削減',
-      '顧客満足度95%以上を維持'
+      'カスタマーサポート業務効率化',
+      '高品質サポート以上を維持'
     ],
     metrics: {
       developmentTime: '2週間',
       responseTime: '<1秒',
       accuracy: '96.8%',
-      costReduction: '工数80%削減'
+      costReduction: '業務効率化'
     },
     status: '運用中',
     url: '',

@@ -1,9 +1,79 @@
 'use client';
 
+"use client";
+
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, PhoneIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 export default function VideoContactSection() {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    company: '',
+    phone: '',
+    service: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        message: `【AI動画生成システムのお問い合わせ】
+会社名: ${formData.company}
+電話番号: ${formData.phone}
+ご興味のあるサービス: ${formData.service}
+メッセージ: ${formData.message}`,
+        page: 'AI動画生成システム'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        company: '',
+        phone: '',
+        service: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <section className="py-20 md:py-32 relative">
       <div className="container mx-auto px-4">
@@ -39,7 +109,7 @@ export default function VideoContactSection() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">
@@ -48,6 +118,9 @@ export default function VideoContactSection() {
                     <input
                       type="text"
                       id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                       placeholder="山田"
                     />
@@ -59,6 +132,9 @@ export default function VideoContactSection() {
                     <input
                       type="text"
                       id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                       placeholder="太郎"
                     />
@@ -72,6 +148,9 @@ export default function VideoContactSection() {
                   <input
                     type="email"
                     id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="example@company.com"
                   />
@@ -84,6 +163,9 @@ export default function VideoContactSection() {
                   <input
                     type="text"
                     id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="株式会社○○"
                   />
@@ -96,6 +178,9 @@ export default function VideoContactSection() {
                   <input
                     type="tel"
                     id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="03-1234-5678"
                   />
@@ -107,6 +192,9 @@ export default function VideoContactSection() {
                   </label>
                   <select
                     id="service"
+                    name="service"
+                    value={formData.service}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
                     <option value="">選択してください</option>
@@ -125,6 +213,9 @@ export default function VideoContactSection() {
                   </label>
                   <textarea
                     id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     rows={5}
                     className="w-full px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                     placeholder="ご要望やご質問をお聞かせください..."

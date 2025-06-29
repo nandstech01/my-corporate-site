@@ -1,9 +1,74 @@
 'use client';
 
+"use client";
+
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, PhoneIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 export default function SNSContactSection() {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    company: '',
+    name: '',
+    email: '',
+    consultation: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        message: `【SNS自動化システムのお問い合わせ】
+会社名: ${formData.company}
+ご相談内容: ${formData.consultation}
+詳細・ご要望: ${formData.message}`,
+        page: 'SNS自動化システム'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        company: '',
+        name: '',
+        email: '',
+        consultation: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <section className="py-20 md:py-32 relative">
       {/* 背景エフェクト */}
@@ -114,13 +179,16 @@ export default function SNSContactSection() {
               <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 backdrop-blur-sm">
                 <h3 className="text-xl font-bold text-white mb-6">お問い合わせフォーム</h3>
                 
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       会社名 <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
                       required
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
                       placeholder="株式会社○○"
@@ -133,6 +201,9 @@ export default function SNSContactSection() {
                     </label>
                     <input
                       type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
                       required
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
                       placeholder="山田 太郎"
@@ -145,6 +216,9 @@ export default function SNSContactSection() {
                     </label>
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       required
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
                       placeholder="example@company.com"
@@ -156,6 +230,9 @@ export default function SNSContactSection() {
                       ご相談内容 <span className="text-red-400">*</span>
                     </label>
                     <select
+                      name="consultation"
+                      value={formData.consultation}
+                      onChange={handleChange}
                       required
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors"
                     >
@@ -173,6 +250,9 @@ export default function SNSContactSection() {
                       詳細・ご要望
                     </label>
                     <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
                       rows={4}
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors resize-none"
                       placeholder="現在の課題や導入したい機能について詳しくお聞かせください"

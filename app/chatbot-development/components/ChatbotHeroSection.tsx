@@ -22,7 +22,7 @@ export default function ChatbotHeroSection() {
           <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
             GPT-4を活用した高性能チャットボットで24時間自動応答を実現。
             <br className="hidden md:block" />
-            工数80%削減、顧客満足度向上を同時に達成します。
+            業務効率化、顧客満足度向上を同時に達成します。
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function ChatbotHeroSection() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <h3 className="text-lg font-semibold mb-2 text-white group-hover:text-yellow-300 transition-colors">
-              工数80%削減
+              業務効率化
             </h3>
             <p className="text-sm text-gray-400">
               自動化により人的コストを大幅削減、効率的な運用を実現

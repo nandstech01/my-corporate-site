@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { motion, useInView, useAnimation } from "framer-motion";
+import React, { useRef, useEffect, useState } from "react";
+import { motion, useInView, useAnimation, AnimatePresence } from "framer-motion";
 import {
   FaGraduationCap,
   FaBuilding,
@@ -71,10 +71,10 @@ const servicesData = [
     id: "system-development"
   },
   {
-    title: "AIO対策",
+    title: "AIO対策・GEO",
     icon: <FaSearch size={32} />,
     description:
-      "Mike King理論に基づくレリバンスエンジニアリングでAI検索結果を最適化。",
+      "Mike King理論に基づくレリバンスエンジニアリング＋GEO（生成系検索最適化）でAI検索結果を最適化。",
     link: "/aio-seo",
     id: "aio-seo"
   },
@@ -206,13 +206,15 @@ function ServiceCard({
   title,
   description,
   link,
-  id
+  id,
+  onComingSoon,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   link: string;
   id: string;
+  onComingSoon?: () => void;
 }) {
   // カード個別のアニメーション設定
   const cardVariants = {
@@ -225,17 +227,25 @@ function ServiceCard({
     },
   };
 
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onComingSoon) {
+      e.preventDefault();
+      onComingSoon();
+    }
+  };
+
   return (
     <motion.a
-      href={link}
+      href={onComingSoon ? '#' : link}
       className={`
         group relative block p-6 border border-gray-200 transition-all duration-300 ease-out
         bg-gray-900 hover:bg-gray-800 hover:border-[#00CFFF]/50 hover:shadow-cyan-glow
         overflow-hidden
       `}
-      variants={cardVariants} // アニメーションを適用
+      variants={cardVariants}
       style={{ transformOrigin: "center" }}
-      whileHover={{ y: -5 }} // ホバー時に少し浮き上がる
+      whileHover={{ y: -5 }}
+      onClick={handleClick}
     >
       {/* グラデーション枠線演出 (hover時) - 不要であれば削除 */}
       <div
@@ -287,6 +297,7 @@ export default function ServicesSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 }); // 発火タイミング調整
   const controls = useAnimation();
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
   useEffect(() => {
     if (isInView) {
@@ -360,11 +371,49 @@ export default function ServicesSection() {
           initial="hidden"
           animate={controls}
         >
-          {servicesData.map((service, index) => (
-            <ServiceCard key={service.id} {...service} /> // id を key に
+          {servicesData.map((service) => (
+            <ServiceCard
+              key={service.id}
+              {...service}
+              onComingSoon={
+                service.id === 'personal-reskilling'
+                  ? () => setComingSoonOpen(true)
+                  : undefined
+              }
+            />
           ))}
         </motion.div>
       </motion.div>
+
+      {/* ▼ "Coming Soon" モーダル */}
+      <AnimatePresence>
+        {comingSoonOpen && (
+          <motion.div
+            className="fixed inset-0 z-[110000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: -20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: -20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="bg-white rounded-2xl p-8 w-11/12 max-w-sm text-center shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-4">Coming&nbsp;Soon</h2>
+              <p className="text-gray-600 mb-6">このサービスは現在準備中です。</p>
+              <button
+                type="button"
+                onClick={() => setComingSoonOpen(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                閉じる
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

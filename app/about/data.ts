@@ -33,8 +33,8 @@ export const timelineItems: TimelineItem[] = [
   },
   {
     date: "2022年4月",
-    title: "退職支援事業開始",
-    description: "「退職あんしん代行」サービスを開始し、キャリアチェンジを総合的にサポート"
+    title: "メディア・SNS事業開始",
+    description: "インフルエンサーマーケット・AI×SNS運用事業"
   },
   {
     date: "2023年6月",
@@ -42,9 +42,9 @@ export const timelineItems: TimelineItem[] = [
     description: "生成AI活用リスキリング研修事業を開始し、次世代のキャリア支援を本格展開"
   },
   {
-    date: "2024年1月",
-    title: "メディア事業拡大",
-    description: "「転職エージェントセレクト」運営開始。キャリアアップの包括的サポートを強化"
+    date: "2024年2月",
+    title: "退職支援事業開始",
+    description: "「退職あんしん代行」サービスを開始し、キャリアチェンジを総合的にサポート化"
   }
 ];
 

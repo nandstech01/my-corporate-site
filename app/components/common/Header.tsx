@@ -27,6 +27,7 @@ export default function Header() {
   const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
   const pathname = usePathname();
   const isTopPage = pathname === '/';
   const isReskillingPage = pathname === '/reskilling';
@@ -77,11 +78,15 @@ export default function Header() {
             {/* PC用ナビゲーション - メインページのみ */}
             {isTopPage && (
               <nav className="hidden md:flex items-center space-x-8">
-                <a href="https://nands.tech/reskilling" target="_blank" rel="noopener noreferrer" className={`${
-                  isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
-                } transition-colors`}>
+                <button
+                  type="button"
+                  onClick={() => setComingSoonOpen(true)}
+                  className={`${
+                    isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
+                  } transition-colors`}
+                >
                   個人向けリスキリング
-                </a>
+                </button>
                 <Link href="/corporate" className={`${
                   isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
                 } transition-colors`}>
@@ -581,13 +586,13 @@ export default function Header() {
                   
                   {/* ボタン部分 */}
                   <div className="flex justify-center space-x-3 pb-4">
-                    <Link
-                      href="/reskilling"
-                      onClick={() => setIsOpen(false)}
+                    <button
+                      type="button"
+                      onClick={() => { setIsOpen(false); setComingSoonOpen(true); }}
                       className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105 border border-cyan-300/30"
                     >
                       個人様
-                    </Link>
+                    </button>
                     <Link
                       href="/corporate"
                       onClick={() => setIsOpen(false)}
@@ -608,14 +613,14 @@ export default function Header() {
                       </h3>
                       <div className="space-y-1">
                         {[
-                          ['個人様リスキリング', '/reskilling', 'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z'],
+                          ['個人様リスキリング', '#coming-soon', 'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z'],
                           ['法人様リスキリング', '/corporate', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4']
                         ].map(([label, href, iconPath]) => (
                           <Link
                             key={href}
-                            href={href}
+                            href="#"
                             className="group flex items-center px-4 py-3 text-gray-700 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/80 rounded-xl transition-all duration-300 backdrop-blur-sm border border-transparent hover:border-cyan-200/50 hover:shadow-md"
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => { e.preventDefault(); setIsOpen(false); setComingSoonOpen(true); }}
                           >
                             <div className="w-6 h-6 mr-3 flex-shrink-0">
                               <svg className="w-full h-full text-gray-500 group-hover:text-cyan-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -649,9 +654,9 @@ export default function Header() {
                         ].map(([label, href, iconPath]) => (
                           <Link
                             key={href}
-                            href={href}
+                            href="#"
                             className="group flex items-center px-4 py-3 text-gray-700 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/80 rounded-xl transition-all duration-300 backdrop-blur-sm border border-transparent hover:border-cyan-200/50 hover:shadow-md"
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => { e.preventDefault(); setIsOpen(false); setComingSoonOpen(true); }}
                           >
                             <div className="w-6 h-6 mr-3 flex-shrink-0">
                               <svg className="w-full h-full text-gray-500 group-hover:text-cyan-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -683,9 +688,9 @@ export default function Header() {
                         ].map(([label, href, iconPath]) => (
                           <Link
                             key={href}
-                            href={href}
+                            href="#"
                             className="group flex items-center px-4 py-3 text-gray-700 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/80 rounded-xl transition-all duration-300 backdrop-blur-sm border border-transparent hover:border-cyan-200/50 hover:shadow-md"
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => { e.preventDefault(); setIsOpen(false); setComingSoonOpen(true); }}
                           >
                             <div className="w-6 h-6 mr-3 flex-shrink-0">
                               <svg className="w-full h-full text-gray-500 group-hover:text-cyan-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -716,9 +721,9 @@ export default function Header() {
                         ].map(([label, href, iconPath]) => (
                           <Link
                             key={href}
-                            href={href}
+                            href="#"
                             className="group flex items-center px-4 py-3 text-gray-700 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/80 rounded-xl transition-all duration-300 backdrop-blur-sm border border-transparent hover:border-cyan-200/50 hover:shadow-md"
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => { e.preventDefault(); setIsOpen(false); setComingSoonOpen(true); }}
                           >
                             <div className="w-6 h-6 mr-3 flex-shrink-0">
                               <svg className="w-full h-full text-gray-500 group-hover:text-cyan-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -744,6 +749,37 @@ export default function Header() {
           )}
         </AnimatePresence>
       )}
+
+      {/* ▼ "Coming Soon" モーダル */}
+      <AnimatePresence>
+        {comingSoonOpen && (
+          <motion.div
+            key="comingSoon"
+            className="fixed inset-0 z-[110000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: -20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: -20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="bg-white rounded-2xl p-8 w-11/12 max-w-sm text-center shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-4">Coming&nbsp;Soon</h2>
+              <p className="text-gray-600 mb-6">この機能は現在準備中です。</p>
+              <button
+                type="button"
+                onClick={() => setComingSoonOpen(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                閉じる
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 } 

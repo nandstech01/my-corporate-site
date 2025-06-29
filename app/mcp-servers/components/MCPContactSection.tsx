@@ -1,4 +1,79 @@
+"use client";
+
+import React, { useState } from 'react';
+
 export default function MCPContactSection() {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    company: '',
+    name: '',
+    email: '',
+    phone: '',
+    service: '',
+    systemScale: '',
+    budget: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        message: `【MCPサーバー開発のお問い合わせ】
+会社名: ${formData.company}
+電話番号: ${formData.phone}
+ご興味のあるサービス: ${formData.service}
+システム規模: ${formData.systemScale}
+ご予算感: ${formData.budget}
+お問い合わせ内容: ${formData.message}`,
+        page: 'MCPサーバー開発'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        company: '',
+        name: '',
+        email: '',
+        phone: '',
+        service: '',
+        systemScale: '',
+        budget: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   return (
     <section id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +94,7 @@ export default function MCPContactSection() {
               MCPサーバー開発のご相談
             </h3>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
@@ -29,6 +104,8 @@ export default function MCPContactSection() {
                     type="text"
                     id="company"
                     name="company"
+                    value={formData.company}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="株式会社○○"
@@ -42,6 +119,8 @@ export default function MCPContactSection() {
                     type="text"
                     id="name"
                     name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="山田 太郎"
@@ -58,6 +137,8 @@ export default function MCPContactSection() {
                     type="email"
                     id="email"
                     name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="example@company.com"
@@ -71,6 +152,8 @@ export default function MCPContactSection() {
                     type="tel"
                     id="phone"
                     name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="03-1234-5678"
                   />
@@ -84,6 +167,8 @@ export default function MCPContactSection() {
                 <select
                   id="service"
                   name="service"
+                  value={formData.service}
+                  onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
@@ -105,7 +190,9 @@ export default function MCPContactSection() {
                 </label>
                 <select
                   id="system-scale"
-                  name="system-scale"
+                  name="systemScale"
+                  value={formData.systemScale}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">選択してください</option>
@@ -124,6 +211,8 @@ export default function MCPContactSection() {
                 <select
                   id="budget"
                   name="budget"
+                  value={formData.budget}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">選択してください</option>
@@ -143,6 +232,8 @@ export default function MCPContactSection() {
                 <textarea
                   id="message"
                   name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={6}
                   required
                   className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -195,7 +286,7 @@ export default function MCPContactSection() {
                   </svg>
                   <div>
                     <div className="font-medium text-gray-900">メールアドレス</div>
-                    <div className="text-gray-600">info@nands.tech</div>
+                    <div className="text-gray-600">contact@nands.tech</div>
                   </div>
                 </div>
 

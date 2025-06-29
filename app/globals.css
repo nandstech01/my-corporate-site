@@ -405,4 +405,14 @@ body {
     break-inside: avoid;
     margin-bottom: 1rem;
   }
+}
+
+/* 水色系グラデーションアニメーション - 左から右への流れ */
+@keyframes gradient-shift {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 } 

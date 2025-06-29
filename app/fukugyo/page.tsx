@@ -12,7 +12,9 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import Breadcrumbs from '../components/common/Breadcrumbs';
 import Image from 'next/image';
+import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration';
 
+// メタデータ（SEO強化）
 export const metadata: Metadata = {
   title: 'AI副業支援・ChatGPTを活用した副収入獲得サポート | 株式会社エヌアンドエス',
   description: 'AIを活用した副業支援サービス。ChatGPTなどの生成AIを活用してスキルを身につけ、副収入を得るためのサポートを提供します。初心者でも始められる実践的なノウハウ、案件獲得の方法、収入アップのコツを解説。',
@@ -34,6 +36,39 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://nands.tech/fukugyo'
   },
+}
+
+// ページコンテキスト定義
+const pageContext: PageContext = {
+  pageSlug: 'fukugyo',
+  pageTitle: 'AI副業支援・ChatGPTを活用した副収入獲得サポート',
+  keywords: [
+    'AI副業',
+    'ChatGPT副業',
+    '副収入',
+    '副業支援',
+    'AIツール',
+    'プロンプトエンジニアリング',
+    '在宅ワーク',
+    'フリーランス',
+    '案件獲得',
+    'スキルアップ',
+    'AI副業支援',
+    '株式会社エヌアンドエス'
+  ],
+  category: 'fukugyo',
+  businessId: 1,
+  categoryId: undefined
+};
+
+// 統合データ取得（SSR）
+async function getUnifiedData() {
+  try {
+    return await generateUnifiedPageData(pageContext);
+  } catch (error) {
+    console.error('統合データ取得エラー:', error);
+    return null;
+  }
 }
 
 type Post = {
@@ -119,54 +154,102 @@ async function getFukugyoCategories(): Promise<Category[]> {
 }
 
 export default async function FukugyoPage() {
-  const [posts, categories] = await Promise.all([
+  const [posts, categories, unifiedData] = await Promise.all([
     getFukugyoPosts(),
-    getFukugyoCategories()
+    getFukugyoCategories(),
+    getUnifiedData()
   ]);
-
-  // 構造化データ
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "AI副業支援・ChatGPTを活用した副収入獲得サポート",
-    "description": "AIを活用した副業支援サービス。ChatGPTなどの生成AIを活用してスキルを身につけ、副収入を得るためのサポートを提供します。",
-    "provider": {
-      "@type": "Organization",
-      "name": "株式会社エヌアンドエス",
-      "sameAs": "https://nands.tech"
-    },
-    "serviceType": "AI副業支援",
-    "offers": {
-      "@type": "Offer",
-      "category": "副業支援サービス",
-      "priceCurrency": "JPY"
-    },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "副業希望者、フリーランス、AI初心者"
-    }
-  };
 
   return (
     <main>
+      {/* 統一構造化データ */}
+      {unifiedData?.structuredData && (
+        <Script
+          id="unified-structured-data-fukugyo"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(unifiedData.structuredData, null, 2)
+          }}
+        />
+      )}
+
+      {/* 追加の副業支援専用構造化データ */}
       <Script
-        id="structured-data-fukugyo"
+        id="fukugyo-service-schema"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": ["Service", "EducationalService"],
+            "name": "AI副業支援・ChatGPTを活用した副収入獲得サポート",
+            "description": "AIを活用した副業支援サービス。ChatGPTなどの生成AIを活用してスキルを身につけ、副収入を得るためのサポートを提供します。",
+            "serviceType": "AI副業支援",
+            "provider": {
+              "@type": "Organization",
+              "name": "株式会社エヌアンドエス",
+              "url": "https://nands.tech"
+            },
+            "areaServed": "JP",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "副業希望者、フリーランス、AI初心者"
+            },
+            "offers": {
+              "@type": "Offer",
+              "category": "副業支援サービス",
+              "priceCurrency": "JPY",
+              "availability": "https://schema.org/InStock"
+            }
+          }, null, 2)
+        }}
       />
+      
       <div className="min-h-screen">
+        {/* パンくずナビ */}
         <div className="container mx-auto px-4">
-          {/* <Breadcrumbs customItems={[
+          <Breadcrumbs customItems={[
             { name: 'ホーム', path: '/' },
             { name: 'AI副業支援', path: '/fukugyo' }
-          ]} /> */}
+          ]} />
         </div>
-        <FukugyoHero />
-        <FukugyoProblems />
-        <FukugyoMerits />
-        <FukugyoFlow />
-        {/* 業界別カテゴリセクション */}
-        <section className="relative py-24 px-4 bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+
+        {/* TOC (目次) */}
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+          <div className="hidden lg:block fixed top-20 right-4 z-40 w-64">
+            <div 
+              dangerouslySetInnerHTML={{ 
+                __html: TOCComponent({ 
+                  toc: unifiedData.tableOfContents,
+                  title: "AI副業支援サービス一覧",
+                  className: "sticky top-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 backdrop-blur border rounded-lg shadow-lg"
+                })
+              }}
+            />
+          </div>
+        )}
+
+        {/* Hero Section */}
+        <section id="hero-section">
+          <FukugyoHero />
+        </section>
+
+        {/* Problems Section */}
+        <section id="problems-section">
+          <FukugyoProblems />
+        </section>
+
+        {/* Merits Section */}
+        <section id="merits-section">
+          <FukugyoMerits />
+        </section>
+
+        {/* Flow Section */}
+        <section id="flow-section">
+          <FukugyoFlow />
+        </section>
+
+        {/* 副業支援カテゴリーセクション */}
+        <section id="categories-section" className="relative py-24 px-4 bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
           {/* Decorative background */}
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:24px_24px]" />
@@ -198,10 +281,9 @@ export default async function FukugyoPage() {
                   'プログラミング': 'fukugyo-programming',
                   '生成AIコンサルタント': 'fukugyo-genai-consultant',
                   '画像・動画生成': 'fukugyo-media-generation',
-                  'default': 'default-post' // Fallback image if needed
+                  'default': 'default-post'
                 };
 
-                // マッピングに基づいて画像パスを取得 (拡張子は仮に.jpgとする)
                 const imageName = imageMap[category.name as keyof typeof imageMap] || imageMap.default;
                 const imagePath = `/images/fukugyo-categories/${imageName}.jpg`;
 
@@ -212,16 +294,14 @@ export default async function FukugyoPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
-                    {/* Image Container - Use Next/Image */}
                     <div className="relative h-48 overflow-hidden">
                       <Image
                         src={imagePath}
                         alt={category.name}
-                        layout="fill" // Use layout="fill" to cover the container
-                        objectFit="cover" // Ensure the image covers the area
+                        layout="fill"
+                        objectFit="cover"
                         className="transform group-hover:scale-110 transition-transform duration-700"
                       />
-                      {/* Optional overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 z-10 opacity-50 group-hover:opacity-30 transition-opacity" />
                     </div>
                     
@@ -261,16 +341,67 @@ export default async function FukugyoPage() {
             </div>
           </div>
         </section>
-        {/* 記事セクション */}
-        <section className="py-16 px-4 bg-gray-50">
+
+        {/* 最新記事セクション */}
+        <section id="articles-section" className="py-16 px-4 bg-gray-50">
           <div className="container mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">最新の記事</h2>
             <PostsGrid initialPosts={posts} />
           </div>
         </section>
-        <BuzzWordSuccessSection />
-        <BuzzWordToolSection />
-        <ContactForm />
+
+        {/* Success Section */}
+        <section id="success-section">
+          <BuzzWordSuccessSection />
+        </section>
+
+        {/* Tools Section */}
+        <section id="tools-section">
+          <BuzzWordToolSection />
+        </section>
+
+        {/* セマンティック関連リンクセクション */}
+        {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
+          <section className="py-16 bg-gradient-to-br from-blue-50 to-cyan-50">
+            <div className="container mx-auto px-4">
+              <div 
+                dangerouslySetInnerHTML={{ 
+                  __html: SemanticLinksComponent({ 
+                    links: unifiedData.semanticLinks,
+                    title: "💼 関連するAI副業支援サービス",
+                    className: "max-w-6xl mx-auto p-8 bg-white rounded-xl shadow-lg"
+                  })
+                }}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Contact Section */}
+        <section id="contact-section">
+          <ContactForm />
+        </section>
+
+        {/* エンティティ関係性を活用したリッチスニペット強化 */}
+        {unifiedData?.entityRelationships && (
+          <Script
+            id="entity-relationships-fukugyo"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                "name": "AI副業支援関連エンティティ",
+                "itemListElement": unifiedData.entityRelationships.map((entity, index) => ({
+                  "@type": "ListItem",
+                  "position": index + 1,
+                  "name": entity.name,
+                  "url": entity['@id']
+                }))
+              }, null, 2)
+            }}
+          />
+        )}
       </div>
     </main>
   );

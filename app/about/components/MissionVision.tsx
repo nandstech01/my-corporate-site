@@ -165,8 +165,8 @@ const MissionVision: React.FC<MissionVisionProps> = ({ animations }) => {
                     </p>
                     <ul className="space-y-6 !text-black">
                       {[
-                        { title: 'キャリア革新', desc: '10万人の働く人々のキャリアトランスフォーメーションを実現' },
-                        { title: '企業変革', desc: '1000社以上の企業のデジタルトランスフォーメーションを支援' },
+                        { title: 'キャリア革新', desc: '働く人々のキャリアトランスフォーメーションと成長支援を実現' },
+                        { title: '企業変革', desc: '企業のデジタルトランスフォーメーションとAI活用推進を支援' },
                         { title: '社会貢献', desc: '日本のAIリテラシ向上を通じた、グローバル競争力の強化' }
                       ].map((item, index) => (
                         <motion.li

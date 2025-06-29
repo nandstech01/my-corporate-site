@@ -12,21 +12,14 @@ import type { Metadata } from 'next'
 import Breadcrumbs from './components/common/Breadcrumbs'
 import FAQSection from './components/portal/FAQSection'
 
-// 重いコンポーネントを動的インポート（SSR無効化）
-const HeroSection = dynamic(() => import('@/app/components/portal/HeroSection'), {
-  ssr: false,
-  loading: () => <div className="w-full h-screen bg-black" />
-})
+// SSR対応版HeroSection（AI検索エンジン最適化）
+import HeroSectionSSR from '@/app/components/portal/HeroSectionSSR'
 
-const ServicesSection = dynamic(() => import('@/app/components/portal/ServicesSection'), {
-  ssr: false,
-  loading: () => <div className="min-h-screen bg-white" />
-})
+// ServicesSectionSSR（AI検索エンジン最適化）
+import ServicesSectionSSR from '@/app/components/portal/ServicesSectionSSR'
 
-const AboutSection = dynamic(() => import('@/app/components/portal/AboutSection'), {
-  ssr: false,
-  loading: () => <div className="min-h-screen bg-gray-50" />
-})
+// AboutSectionSSR（AI検索エンジン最適化）
+import AboutSectionSSR from '@/app/components/portal/AboutSectionSSR'
 
 export const metadata: Metadata = {
   title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
@@ -231,8 +224,8 @@ export default async function HomePage() {
       </div>
       
       {/* 重いコンポーネントは遅延ロード */}
-      <HeroSection />
-      <ServicesSection />
+      <HeroSectionSSR />
+              <ServicesSectionSSR />
       
       {/* 記事セクションはSSR化（SEO強化） */}
       <section className="py-16 bg-gray-50" role="region" aria-labelledby="latest-posts-heading">
@@ -245,7 +238,7 @@ export default async function HomePage() {
         </div>
       </section>
       
-      <AboutSection />
+              <AboutSectionSSR />
       <SustainabilitySection />
       <FeaturedSection />
       <FAQSection />

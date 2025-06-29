@@ -3,7 +3,7 @@ export default function ChatbotShowcase() {
     {
       title: "カスタマーサポートボット",
       category: "ECサイト向け",
-      description: "大手ECサイトの24時間カスタマーサポートを自動化。FAQ対応から注文サポートまで幅広く対応し、顧客満足度95%を達成。",
+      description: "大手ECサイトの24時間カスタマーサポートを自動化。FAQ対応から注文サポートまで幅広く対応し、高品質サポートを達成。",
       features: [
         "24時間自動FAQ対応",
         "注文状況確認・変更",
@@ -11,10 +11,10 @@ export default function ChatbotShowcase() {
         "人間オペレーターへの自動エスカレーション"
       ],
       results: [
-        "問い合わせ対応工数80%削減",
-        "顧客満足度95%達成",
+        "問い合わせ対応業務効率化",
+        "高品質サポート達成",
         "応答時間を平均30分から即時に短縮",
-        "年間運用コスト60%削減"
+        "年間運用コスト大幅削減"
       ],
       tech: ["GPT-4", "Node.js", "MongoDB", "WebSocket"],
       period: "開発期間: 1-2週間",
@@ -35,10 +35,10 @@ export default function ChatbotShowcase() {
         "社内規定・ルール案内"
       ],
       results: [
-        "ヘルプデスク工数70%削減",
-        "従業員満足度92%達成",
+        "ヘルプデスク業務効率化",
+        "従業員満足度向上",
         "問題解決時間を平均2時間から10分に短縮",
-        "IT部門の負荷50%軽減"
+        "IT部門の負荷軽減"
       ],
       tech: ["Claude API", "Python", "FastAPI", "Redis"],
       period: "開発期間: 2-3週間",
@@ -59,9 +59,9 @@ export default function ChatbotShowcase() {
         "地域情報提供"
       ],
       results: [
-        "海外観光客満足度98%達成",
-        "多言語対応コスト75%削減",
-        "予約処理時間90%短縮",
+        "海外観光客満足度向上",
+        "多言語対応コスト効率化",
+        "予約処理時間大幅短縮",
         "スタッフ負荷大幅軽減"
       ],
       tech: ["GPT-4", "翻訳API", "WebSocket", "MongoDB"],
@@ -191,16 +191,16 @@ export default function ChatbotShowcase() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-              <div className="text-4xl font-bold text-green-400 mb-2">80%</div>
-              <div className="text-gray-300">平均工数削減</div>
+              <div className="text-4xl font-bold text-green-400 mb-2">24/7</div>
+              <div className="text-gray-300">稼働時間</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-              <div className="text-4xl font-bold text-yellow-400 mb-2">95%</div>
-              <div className="text-gray-300">平均満足度</div>
+              <div className="text-4xl font-bold text-yellow-400 mb-2">高品質</div>
+              <div className="text-gray-300">サポート</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-              <div className="text-4xl font-bold text-purple-400 mb-2">24時間</div>
-              <div className="text-gray-300">自動対応</div>
+              <div className="text-4xl font-bold text-purple-400 mb-2">GPT-4</div>
+              <div className="text-gray-300">統合技術</div>
             </div>
           </div>
         </div>

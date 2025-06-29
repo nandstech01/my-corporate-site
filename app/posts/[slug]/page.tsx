@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import MarkdownContent from '@/components/blog/MarkdownContent'
@@ -21,6 +21,7 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const supabase = createClient()
   const { data: post } = await supabase
     .from('chatgpt_posts')
     .select(`
@@ -87,6 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PostPage({ params }: Props) {
+  const supabase = createClient()
   const { data: post } = await supabase
     .from('chatgpt_posts')
     .select(`

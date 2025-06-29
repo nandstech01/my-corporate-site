@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "株式会社エヌアンドエス",
+  "name_for_model": "nands_tech_services", 
+  "description_for_human": "レリバンスエンジニアリング・AI技術専門企業。企業向けAIシステム開発、AIO対策、技術コンサルティングサービスを提供。",
+  "description_for_model": "株式会社エヌアンドエスは、レリバンスエンジニアリング・AI技術分野の専門企業です。企業向けAIシステム開発、AIO（AI検索最適化）対策、レリバンスエンジニアリング手法、システム開発コンサルティング、HR Solutions、Vector RAG、Chatbot開発、MCP Servers等の技術サービスを提供しています。サービス情報の問い合わせ、技術相談、会社概要の確認が可能です。",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://nands.tech/api/openapi.json"
+  },
+  "logo_url": "https://nands.tech/logo.svg",
+  "contact_email": "info@nands.tech",
+  "legal_info_url": "https://nands.tech/legal"
+} 

@@ -1,4 +1,87 @@
+"use client";
+
+import React, { useState } from 'react';
+
 export default function VectorRagContactSection() {
+  // フォーム状態管理
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    email: '',
+    dataTypes: [] as string[],
+    documentCount: '',
+    budget: '',
+    message: ''
+  });
+
+  // フォーム送信処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      
+      // 送信データの準備
+      const submitData = {
+        name: formData.name,
+        email: formData.email,
+        message: `【ベクトルRAG検索システムのお問い合わせ】
+会社名: ${formData.company}
+検索対象データの種別: ${formData.dataTypes.join(', ')}
+想定文書数: ${formData.documentCount}
+予算感: ${formData.budget}
+検索要件・課題: ${formData.message}`,
+        page: 'ベクトルRAG検索'
+      };
+
+      // Google Apps Scriptに送信
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      });
+
+      // フォームをリセット
+      setFormData({
+        name: '',
+        company: '',
+        email: '',
+        dataTypes: [],
+        documentCount: '',
+        budget: '',
+        message: ''
+      });
+
+      alert('お問い合わせを受け付けました。');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // 入力値変更処理
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // チェックボックス変更処理
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      dataTypes: checked 
+        ? [...prev.dataTypes, value]
+        : prev.dataTypes.filter(type => type !== value)
+    }));
+  };
   return (
     <section id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +102,7 @@ export default function VectorRagContactSection() {
               詳細相談フォーム
             </h3>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* 基本情報 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -28,6 +111,10 @@ export default function VectorRagContactSection() {
                   </label>
                   <input 
                     type="text" 
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                     className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
                     placeholder="山田 太郎"
                   />
@@ -38,6 +125,10 @@ export default function VectorRagContactSection() {
                   </label>
                   <input 
                     type="text" 
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    required
                     className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
                     placeholder="株式会社○○"
                   />
@@ -50,6 +141,10 @@ export default function VectorRagContactSection() {
                 </label>
                 <input 
                   type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
                   placeholder="example@company.com"
                 />
@@ -72,7 +167,13 @@ export default function VectorRagContactSection() {
                     "その他"
                   ].map((type) => (
                     <label key={type} className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
+                      <input 
+                        type="checkbox" 
+                        value={type}
+                        checked={formData.dataTypes.includes(type)}
+                        onChange={handleCheckboxChange}
+                        className="mr-2" 
+                      />
                       <span className="text-sm text-gray-700">{type}</span>
                     </label>
                   ))}
@@ -83,7 +184,12 @@ export default function VectorRagContactSection() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   想定文書数
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500">
+                <select 
+                  name="documentCount"
+                  value={formData.documentCount}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
+                >
                   <option value="">選択してください</option>
                   <option value="1000-">1,000件未満</option>
                   <option value="1000-10000">1,000〜10,000件</option>
@@ -96,7 +202,12 @@ export default function VectorRagContactSection() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   予算感
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500">
+                <select 
+                  name="budget"
+                  value={formData.budget}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
+                >
                   <option value="">選択してください</option>
                   <option value="50-100">50万円〜100万円</option>
                   <option value="100-200">100万円〜200万円</option>
@@ -111,6 +222,9 @@ export default function VectorRagContactSection() {
                   検索要件・課題について
                 </label>
                 <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
                   placeholder="現在の課題、実現したい検索機能、特別な要件などをお聞かせください"

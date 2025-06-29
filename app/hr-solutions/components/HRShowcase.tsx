@@ -6,15 +6,15 @@ export default function HRShowcase() {
       challenge: "手動での求人マッチングに時間がかかり、精度も不安定。大量の応募者から最適な候補者を見つけるのが困難だった。",
       solution: "機械学習とベクトル検索を活用したAIマッチングシステムを導入。スキル・経験・志向性を多次元で分析し、最適なマッチングを実現。",
       results: [
-        "マッチング精度95%向上",
-        "スクリーニング時間80%短縮",
-        "成約率300%向上",
-        "顧客満足度大幅改善"
+        "マッチング精度大幅向上",
+        "スクリーニング時間大幅短縮",
+        "成約率向上",
+        "顧客満足度向上"
       ],
       metrics: {
-        accuracy: "95%",
-        timeReduction: "80%",
-        satisfaction: "98%"
+        accuracy: "AI分析",
+        timeReduction: "自動化",
+        satisfaction: "高品質"
       }
     },
     {
@@ -23,15 +23,15 @@ export default function HRShowcase() {
       challenge: "採用担当者が履歴書の確認に多大な時間を費やし、応募者も魅力的な書類作成に苦労していた。",
       solution: "AIを活用した書類自動生成システムを導入。応募者の情報から最適化された履歴書・職務経歴書を自動作成。",
       results: [
-        "書類作成時間90%削減",
+        "書類作成時間大幅削減",
         "書類品質の標準化",
-        "採用効率大幅向上",
+        "採用効率向上",
         "応募者体験向上"
       ],
       metrics: {
-        accuracy: "98%",
-        timeReduction: "90%",
-        satisfaction: "96%"
+        accuracy: "自動生成",
+        timeReduction: "効率化",
+        satisfaction: "品質向上"
       }
     },
     {
@@ -40,33 +40,33 @@ export default function HRShowcase() {
       challenge: "既存の求人サイトではユーザーが適切な求人を見つけにくく、離脱率が高い状況だった。",
       solution: "AI搭載の求人サイトを構築し、ユーザーの行動履歴に基づくパーソナライズドレコメンド機能を実装。",
       results: [
-        "ユーザー滞在時間150%増加",
-        "応募率200%向上",
-        "離脱率60%削減",
-        "売上大幅増加"
+        "ユーザー滞在時間増加",
+        "応募率向上",
+        "離脱率削減",
+        "売上向上"
       ],
       metrics: {
-        accuracy: "92%",
-        timeReduction: "75%",
-        satisfaction: "94%"
+        accuracy: "レコメンド",
+        timeReduction: "自動化",
+        satisfaction: "UX向上"
       }
     }
   ];
 
   const overallMetrics = [
     {
-      label: "平均マッチング精度向上",
-      value: "95%",
+      label: "AI技術活用",
+      value: "機械学習",
       unit: ""
     },
     {
-      label: "平均時間短縮",
-      value: "82%",
+      label: "自動化対応",
+      value: "24/7",
       unit: ""
     },
     {
-      label: "平均満足度",
-      value: "96%",
+      label: "業界対応",
+      value: "全業界",
       unit: ""
     }
   ];

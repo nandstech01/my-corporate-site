@@ -43,7 +43,7 @@ const Company: React.FC<CompanyProps> = ({ animations }) => {
     { 
       label: "お問い合わせ", 
       value: [
-        "メール：info@nands.tech",
+        "メール：contact@nands.tech",
         "電話：0120-558-551"
       ],
       list: true

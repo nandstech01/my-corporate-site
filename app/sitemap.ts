@@ -30,6 +30,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/lp`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}/reskilling`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
@@ -58,6 +64,64 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
+    },
+  ];
+
+  // AIサービスページ（統一システム適用済み）
+  const aiServicePages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/ai-agents`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/aio-seo`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/chatbot-development`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/hr-solutions`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/mcp-servers`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/sns-automation`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/system-development`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/vector-rag`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/video-generation`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
   ];
 
@@ -158,12 +222,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/seo-support`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
       url: `${baseUrl}/special`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
@@ -201,8 +259,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // カテゴリの取得
     const { data: categories, error: categoriesError } = await supabase
       .from('categories')
-      .select('slug, updated_at')
-      .eq('status', 'active');
+      .select('slug, updated_at');
 
     if (categoriesError) {
       console.error('Error fetching categories for sitemap:', categoriesError);
@@ -221,6 +278,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 全てのページを結合
     return [
       ...staticPages, 
+      ...aiServicePages,
       ...categoryPages, 
       ...additionalPages,
       ...postPages,
@@ -230,6 +288,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch (error) {
     console.error('Error generating sitemap:', error);
     // エラーが発生した場合は静的ページのみ返す
-    return [...staticPages, ...categoryPages, ...additionalPages];
+    return [...staticPages, ...aiServicePages, ...categoryPages, ...additionalPages];
   }
 } 

@@ -191,7 +191,6 @@ const Footer: React.FC = () => {
                 <FooterItem label="AIO対策" href="/aio-seo" />
                 <FooterItem label="人材ソリューション" href="/hr-solutions" />
                 <FooterItem label="AI副業支援" href="/fukugyo" />
-                <FooterItem label="SEO支援" href="/seo-support" />
               </nav>
             </motion.div>
           </div>

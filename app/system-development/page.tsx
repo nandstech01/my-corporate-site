@@ -1,123 +1,359 @@
 import React from 'react';
-import dynamic from 'next/dynamic';
-import SystemHeroSection from './components/SystemHeroSection';
+import { Metadata } from 'next';
+import { ORGANIZATION_ENTITY, SERVICE_ENTITIES } from '@/lib/structured-data/entity-relationships';
+import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
+import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
+import SystemHeroSectionSSR from './components/SystemHeroSectionSSR';
 import ProjectShowcase from './components/ProjectShowcase';
 import TechStackSection from './components/TechStackSection';
 import DevelopmentFlow from './components/DevelopmentFlow';
-import ContactCTA from './components/ContactCTA';
+import ContactCTASSR from './components/ContactCTASSR';
 
-// 構造化データ（JSON-LD）
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "name": "AIシステム開発サービス",
-  "description": "株式会社エヌアンドエスのAIシステム開発サービス。13法令準拠RAGシステム、30分自動生成システム、24時間運用システムなど、業界最速・最安値でのシステム開発を提供。",
-  "provider": {
-    "@type": "Organization",
-    "name": "株式会社エヌアンドエス",
-    "url": "https://nands.tech",
-    "logo": "https://nands.tech/images/logo.png",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "滋賀県大津市",
-      "addressLocality": "大津市",
-      "addressRegion": "滋賀県",
-      "addressCountry": "JP"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+81-77-575-3757",
-      "contactType": "customer service",
-      "availableLanguage": "Japanese",
-      "email": "info@nands.tech"
-    }
+// メタデータ生成
+export const metadata: Metadata = {
+  title: 'AIシステム開発サービス | 13法令準拠RAG・30分自動生成・24時間運用対応 | 株式会社エヌアンドエス',
+  description: '株式会社エヌアンドエスのAIシステム開発サービス。13法令準拠RAGシステム、30分自動生成システム、24時間運用システムなど、業界最速・最安値でのシステム開発を提供。フルスタック開発から運用まで一貫サポート。',
+  keywords: [
+    'AIシステム開発',
+    'RAGシステム',
+    '自動生成システム',
+    'フルスタック開発',
+    '13法令準拠',
+    '30分自動生成',
+    '24時間運用',
+    'ベクトル検索',
+    'LLM統合',
+    'システム開発会社',
+    '株式会社エヌアンドエス'
+  ],
+  openGraph: {
+    title: 'AIシステム開発サービス | 13法令準拠RAG・30分自動生成・24時間運用',
+    description: '業界最速・最安値のAIシステム開発。RAGシステム、自動生成システム、フルスタックシステムの開発から24時間運用まで一貫サポート。',
+    type: 'website',
+    locale: 'ja_JP'
   },
-  "serviceType": "AIシステム開発",
-  "areaServed": "JP",
-  "hasOfferCatalog": {
-    "@type": "OfferCatalog",
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AIシステム開発サービス | 株式会社エヌアンドエス',
+    description: '13法令準拠RAGシステム、30分自動生成システム開発。業界最速・最安値でAIシステムを構築。'
+  },
+  alternates: {
+    canonical: 'https://nands.tech/system-development'
+  }
+};
+
+// 統一構造化データ生成
+const generateSystemDevelopmentStructuredData = () => {
+  // サービスエンティティ作成
+  const systemDevelopmentService = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
     "name": "AIシステム開発サービス",
-    "itemListElement": [
+    "applicationCategory": "BusinessApplication",
+    "description": "13法令準拠RAGシステム、30分自動生成システム、24時間運用システムの開発・提供サービス",
+    "provider": ORGANIZATION_ENTITY,
+    "offers": [
       {
         "@type": "Offer",
-        "itemOffered": {
-          "@type": "Service",
-          "name": "RAGシステム開発",
-          "description": "13法令準拠RAGシステム、ベクトル検索機能、管理画面付き"
-        },
+        "name": "RAGシステム開発",
+        "description": "13法令準拠RAGシステム、ベクトル検索機能、管理画面付き",
         "priceRange": "500000-",
         "priceCurrency": "JPY"
       },
       {
-        "@type": "Offer",
-        "itemOffered": {
-          "@type": "Service",
-          "name": "自動生成システム開発",
-          "description": "コンテンツ自動生成、外部API連携、スケジューラー機能"
-        },
+        "@type": "Offer", 
+        "name": "自動生成システム開発",
+        "description": "コンテンツ自動生成、外部API連携、30分生成対応",
         "priceRange": "800000-",
         "priceCurrency": "JPY"
       },
       {
         "@type": "Offer",
-        "itemOffered": {
-          "@type": "Service",
-          "name": "フルスタックシステム開発",
-          "description": "フロントエンド、バックエンドAPI、データベース設計"
-        },
+        "name": "フルスタックシステム開発", 
+        "description": "フロントエンド、バックエンドAPI、データベース設計、24時間運用対応",
         "priceRange": "1200000-",
         "priceCurrency": "JPY"
       }
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "reviewCount": "50",
+      "bestRating": "5"
+    },
+    "featureList": [
+      "13法令準拠対応",
+      "30分自動生成機能",
+      "24時間運用サポート",
+      "RAGシステム構築",
+      "ベクトル検索実装",
+      "LLM統合開発"
     ]
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "5.0",
-    "reviewCount": "50",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
-  "review": [
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "田中様"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "退職代行システムの開発をお願いしました。業界最安値を実現する高品質なシステムを短期間で構築していただき、大変満足しています。"
-    }
-  ]
+  };
+
+  return systemDevelopmentService;
 };
 
+// セマンティックリンク生成
+const semanticLinksSystem = new SemanticLinksSystem({
+  minRelevanceScore: 0.4,
+  maxLinksPerSection: 6,
+  enableAIOptimization: true
+});
+
+const semanticLinks = semanticLinksSystem.generateSemanticLinks({
+  currentPage: 'system-development',
+  currentTitle: 'AIシステム開発サービス', 
+  keywords: ['AIシステム開発', 'RAGシステム', '自動生成システム', 'フルスタック開発'],
+  category: 'system-development',
+  priority: 1
+});
+
+// TOC生成
+const autoTOCSystem = new AutoTOCSystem({
+  minLevel: 2,
+  maxLevel: 4,
+  generateFragmentIds: true,
+  aiOptimization: true
+});
+
+const tableOfContents = [
+  { id: 'hero-section', title: 'AIシステム開発サービス', level: 2 },
+  { id: 'project-showcase', title: 'プロジェクト実績', level: 2 },
+  { id: 'tech-stack', title: '技術スタック', level: 2 },
+  { id: 'development-flow', title: '開発フロー', level: 2 },
+  { id: 'system-features', title: 'システム開発の特徴', level: 2, 
+    subsections: [
+      { id: 'compliance-system', title: '13法令準拠RAGシステム', level: 3 },
+      { id: 'auto-generation', title: '30分自動生成システム', level: 3 },
+      { id: 'operation-support', title: '24時間運用対応', level: 3 }
+    ]
+  },
+  { id: 'faq-section', title: 'よくある質問', level: 2 },
+  { id: 'contact-cta', title: 'お問い合わせ', level: 2 }
+];
+
 const SystemDevelopmentPage = () => {
+  const structuredData = generateSystemDevelopmentStructuredData();
+
   return (
     <>
-      {/* 構造化データ */}
+      {/* 統合構造化データ */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       
+      {/* セマンティック内部リンク構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "関連サービス",
+          "itemListElement": semanticLinks.map((link, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": link.url,
+            "name": link.title
+          }))
+        }) }}
+      />
+      
+      {/* エンティティ関係性構造化データ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            ORGANIZATION_ENTITY,
+            structuredData,
+                         ...SERVICE_ENTITIES.filter(service => 
+               service['@id'].includes('/ai-agents') || 
+               service['@id'].includes('/vector-rag') || 
+               service['@id'].includes('/chatbot-development')
+             )
+          ]
+        }) }}
+      />
+      
       <main className="min-h-screen">
+        {/* パンくずナビ */}
+        <nav className="bg-gray-50 px-4 py-2">
+          <div className="max-w-6xl mx-auto">
+            <ol className="flex items-center space-x-2 text-sm">
+              <li><a href="/" className="text-blue-600 hover:underline">ホーム</a></li>
+              <li className="text-gray-500">›</li>
+              <li><a href="/services" className="text-blue-600 hover:underline">サービス</a></li>
+              <li className="text-gray-500">›</li>
+              <li className="text-gray-900">AIシステム開発</li>
+            </ol>
+          </div>
+        </nav>
+
+        {/* TOC (目次) */}
+        <section className="bg-blue-50 py-6" id="table-of-contents">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">目次</h2>
+            <nav className="space-y-2">
+              {tableOfContents.map((section, index) => (
+                <div key={index}>
+                  <a
+                    href={`#${section.id}`}
+                    className="block text-blue-600 hover:text-blue-800 hover:underline py-1"
+                  >
+                    {section.title}
+                  </a>
+                  {section.subsections && section.subsections.length > 0 && (
+                    <div className="ml-4 space-y-1">
+                      {section.subsections.map((subsection, subIndex) => (
+                        <a
+                          key={subIndex}
+                          href={`#${subsection.id}`}
+                          className="block text-sm text-gray-600 hover:text-blue-600 hover:underline py-1"
+                        >
+                          {subsection.title}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+        </section>
+        
         {/* ヒーローセクション */}
-        <SystemHeroSection />
+        <section id="hero-section">
+          <SystemHeroSectionSSR />
+        </section>
         
         {/* プロジェクト実績 */}
-        <ProjectShowcase />
+        <section id="project-showcase">
+          <ProjectShowcase />
+        </section>
         
         {/* 技術スタック */}
-        <TechStackSection />
+        <section id="tech-stack">
+          <TechStackSection />
+        </section>
         
         {/* 開発フロー */}
-        <DevelopmentFlow />
+        <section id="development-flow">
+          <DevelopmentFlow />
+        </section>
+
+        {/* システム開発の特徴・強み */}
+        <section id="system-features" className="py-16 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">
+              エヌアンドエスのAIシステム開発の特徴
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div id="compliance-system" className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-blue-600">
+                  13法令準拠RAGシステム
+                </h3>
+                <p className="text-gray-700">
+                  労働基準法、個人情報保護法など13の法令に準拠したRAGシステムを構築。
+                  コンプライアンスを重視した安全なAIシステムを提供します。
+                </p>
+              </div>
+              <div id="auto-generation" className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-green-600">
+                  30分自動生成システム
+                </h3>
+                <p className="text-gray-700">
+                  コンテンツや資料の自動生成を30分以内で実現。
+                  業務効率化と時間短縮を大幅に改善します。
+                </p>
+              </div>
+              <div id="operation-support" className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-purple-600">
+                  24時間運用対応
+                </h3>
+                <p className="text-gray-700">
+                  システムの24時間運用を前提とした設計・構築。
+                  監視・保守・メンテナンスまで一貫してサポートします。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* セマンティック関連サービス */}
+        <section id="semantic-links" className="py-16">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">
+              関連サービス
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {semanticLinks.map((link, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden border">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-2">
+                      <a 
+                        href={link.url} 
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {link.title}
+                      </a>
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-3">
+                      {link.description}
+                    </p>
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                      関連度: {Math.round(link.relevanceScore * 100)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ・よくある質問 */}
+        <section id="faq-section" className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">
+              よくある質問
+            </h2>
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">
+                  RAGシステムの開発期間はどのくらいですか？
+                </h3>
+                <p className="text-gray-700">
+                  プロジェクトの規模にもよりますが、標準的なRAGシステムであれば2-4週間での構築が可能です。
+                  13法令準拠の要件確認から実装、テストまでを含めた期間となります。
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">
+                  30分自動生成システムはどのような仕組みですか？
+                </h3>
+                <p className="text-gray-700">
+                  LLMとベクトル検索を組み合わせた独自のシステムにより、コンテンツ生成を30分以内で実現。
+                  テンプレート機能や学習機能により、継続利用で精度も向上します。
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">
+                  24時間運用サポートの内容を教えてください
+                </h3>
+                <p className="text-gray-700">
+                  システム監視、障害対応、定期メンテナンス、パフォーマンス最適化を24時間体制で実施。
+                  緊急時の対応から予防保守まで、安定運用をサポートします。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
         
         {/* お問い合わせCTA */}
-        <ContactCTA />
+        <section id="contact-cta">
+          <ContactCTASSR />
+        </section>
       </main>
     </>
   );

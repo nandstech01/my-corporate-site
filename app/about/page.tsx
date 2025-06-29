@@ -49,8 +49,8 @@ const timelineItems: TimelineItem[] = [
   },
   {
     date: "2022年4月",
-    title: "退職支援事業開始",
-    description: "「退職あんしん代行」サービスを開始し、キャリアチェンジを総合的にサポート"
+    title: "メディア・SNS事業開始",
+    description: "インフルエンサーマーケット・AI×SNS運用事業"
   },
   {
     date: "2023年6月",
@@ -58,9 +58,9 @@ const timelineItems: TimelineItem[] = [
     description: "生成AI活用リスキリング研修事業を開始し、次世代のキャリア支援を本格展開"
   },
   {
-    date: "2024年1月",
-    title: "メディア事業拡大",
-    description: "「転職エージェントセレクト」運営開始。キャリアアップの包括的サポートを強化"
+    date: "2024年2月",
+    title: "退職支援事業開始",
+    description: "「退職あんしん代行」サービスを開始し、キャリアチェンジを総合的にサポート化"
   }
 ];
 
@@ -162,7 +162,7 @@ const AboutPage = () => {
       isHeading: false
     },
     {
-      text: "そして、私たちが最も大切にしているのは、「一人ひとりの人生に寄り添う」という姿勢です。退職は単なる離職ではなく、新たな人生の章を開く重要な転換点です。その瞬間に、私たちは最大限の敬意と配慮を持って、あなたの決断をサポ���トいたします。",
+      text: "そして、私たちが最も大切にしているのは、「一人ひとりの人生に寄り添う」という姿勢です。退職は単なる離職ではなく、新たな人生の章を開く重要な転換点です。その瞬間に、私たちは最大限の敬意と配慮を持って、あなたの決断をサポートいたします。",
       isHeading: false
     },
     {
@@ -558,8 +558,8 @@ const AboutPage = () => {
                       </p>
                       <ul className="space-y-6 !text-black">
                         {[
-                          { title: 'キャリア革新', desc: '10万人の働く人々のキャリアトランスフォーメーションを実現' },
-                          { title: '企業変革', desc: '1000社以上の企業のデジタルトランスフォーメーションを支援' },
+                          { title: 'キャリア革新', desc: '働く人々のキャリアトランスフォーメーションと成長支援を実現' },
+                          { title: '企業変革', desc: '企業のデジタルトランスフォーメーションとAI活用推進を支援' },
                           { title: '社会貢献', desc: '日本のAIリテラシ向上を通じた、グローバル競争力の強化' }
                         ].map((item, index) => (
                           <motion.li
@@ -805,9 +805,9 @@ const AboutPage = () => {
               
               <div className="grid md:grid-cols-3 gap-12">
                 {[
-                  { number: "20+", label: "導入企業数" },
-                  { number: "98%", label: "顧客満足度" },
-                  { number: "30%+", label: "平均業務効率化率" }
+                  { number: "滋賀", label: "拠点エリア" },
+                  { number: "2008年", label: "設立年" },
+                  { number: "全国", label: "サービス展開" }
                 ].map((stat, index) => (
                   <motion.div
                     key={index}

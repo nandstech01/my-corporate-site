@@ -20,7 +20,7 @@ export default function VectorRagServicesSection() {
         "多言語対応（日本語、英語、中国語等）",
         "回答精度の継続的学習・改善"
       ],
-      benefits: "顧客満足度95%向上、サポート工数70%削減、24時間対応"
+      benefits: "高品質サポート向上、サポート工数70%削減、24時間対応"
     },
     {
       title: "ナレッジベース構築",

@@ -13,14 +13,14 @@ const AIOServicesSection = () => {
       features: ["エンティティマッピング", "セマンティックトリプル構築", "コンテキスト最適化", "関係性定義"]
     },
     {
-      title: "コンテンツベクトル最適化",
-      description: "AI検索エンジンのベクトル空間で最適な位置を確保するコンテンツ最適化",
+      title: "GEO・コンテンツベクトル最適化",
+      description: "GEO（生成系検索最適化）とベクトル空間での最適化を組み合わせたコンテンツ戦略",
       icon: (
         <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      features: ["ベクトル空間分析", "意味的密度最適化", "キーワード関連性強化", "コンテンツクラスタリング"]
+      features: ["Topical-Coverage（1万字級網羅記事）", "Explain-Then-List構造", "Fragment ID+TOC最適化", "ベクトル空間分析", "意味的密度最適化", "コンテンツクラスタリング"]
     },
     {
       title: "AI検索アルゴリズム対策",
@@ -71,11 +71,11 @@ const AIOServicesSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            AIO対策・レリバンスエンジニアリング
+            AIO対策・GEO・レリバンスエンジニアリング
             <span className="block text-blue-600">サービス一覧</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Mike King理論に基づく包括的なAI検索最適化サービスで、<br />
+            Mike King理論＋GEO（生成系検索最適化）に基づく包括的なAI検索最適化サービスで、<br />
             あなたのサイトをAI検索結果の上位に表示させます
           </p>
         </div>
