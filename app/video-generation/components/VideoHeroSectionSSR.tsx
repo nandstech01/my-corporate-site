@@ -57,7 +57,7 @@ const videoGenerationSchema = {
     "ratingValue": "4.8",
     "bestRating": "5",
     "worstRating": "1",
-    "ratingCount": "67"
+    "ratingCount": 67
   },
   "potentialAction": {
     "@type": "ContactAction",

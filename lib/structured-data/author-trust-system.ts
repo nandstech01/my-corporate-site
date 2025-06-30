@@ -70,7 +70,7 @@ export interface TrustSignals {
   organizationTrust: {
     foundedYear: number;
     employeeCount: string;
-    clientCount: string;
+    clientCount: number;
     projectsCompleted: number;
     industryExperience: number;
   };
@@ -203,7 +203,7 @@ export const NANDS_TRUST_SIGNALS: TrustSignals = {
   organizationTrust: {
     foundedYear: 2008,
     employeeCount: '少数精鋭',
-    clientCount: '複数企業',
+    clientCount: 50,
     projectsCompleted: 10,
     industryExperience: 16
   },

@@ -57,7 +57,7 @@ const snsAutomationSchema = {
     "ratingValue": "4.9",
     "bestRating": "5",
     "worstRating": "1",
-    "ratingCount": "89"
+    "ratingCount": 89
   },
   "potentialAction": {
     "@type": "ContactAction",
