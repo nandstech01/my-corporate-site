@@ -9,6 +9,7 @@ import ProjectShowcase from './components/ProjectShowcase';
 import TechStackSection from './components/TechStackSection';
 import DevelopmentFlow from './components/DevelopmentFlow';
 import ContactCTASSR from './components/ContactCTASSR';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 // メタデータ生成
 export const metadata: Metadata = {
@@ -50,21 +51,22 @@ const generateSystemDevelopmentStructuredData = () => {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "AIシステム開発サービス",
-    "applicationCategory": "BusinessApplication",
-    "description": "13法令準拠RAGシステム、30分自動生成システム、24時間運用システムの開発・提供サービス",
-    "provider": ORGANIZATION_ENTITY,
+    "applicationCategory": "DeveloperApplication",
+    "applicationSubCategory": "AI Development Platform",
+    "operatingSystem": "Linux, Windows, macOS",
+    "programmingLanguage": ["TypeScript", "Python", "JavaScript", "Go"],
+    "runtimePlatform": "Node.js, Docker, Kubernetes",
+    "description": "13法令準拠RAGシステム・30分自動生成・24時間運用対応のAIシステム開発プラットフォーム",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization",
+      "name": "株式会社エヌアンドエス"
+    },
     "offers": [
       {
         "@type": "Offer",
-        "name": "RAGシステム開発",
-        "description": "13法令準拠RAGシステム、ベクトル検索機能、管理画面付き",
-        "priceRange": "500000-",
-        "priceCurrency": "JPY"
-      },
-      {
-        "@type": "Offer", 
-        "name": "自動生成システム開発",
-        "description": "コンテンツ自動生成、外部API連携、30分生成対応",
+        "name": "AIシステム開発基本パッケージ",
+        "description": "RAGシステム、ベクトル検索、LLM統合の基本開発パッケージ",
         "priceRange": "800000-",
         "priceCurrency": "JPY"
       },
@@ -78,8 +80,8 @@ const generateSystemDevelopmentStructuredData = () => {
     ],
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": "5.0",
-      "reviewCount": "50",
+      "ratingValue": "4.9",
+      "reviewCount": "18",
       "bestRating": "5"
     },
     "featureList": [
@@ -197,7 +199,29 @@ const SystemDevelopmentPage = () => {
           <SystemHeroSectionSSR />
         </section>
         
-        {/* 目次（ヒーロー直後に配置） */}
+        {/* システム開発専用チャットbot予定エリア */}
+        <section id="system-chatbot-preview">
+          <FeaturePreviewSection
+            title="AIシステム開発コンサルティングBot"
+            subtitle="リアルタイム技術相談・最適解提案"
+            description="13法令準拠RAGシステム、30分自動生成、24時間運用対応など、システム開発に関する専門的な相談をリアルタイムで受けられるAIコンサルティングシステムです。"
+            features={[
+              "13法令準拠要件の自動チェック・提案",
+              "30分自動生成システムの設計相談",
+              "24時間運用対応のアーキテクチャ設計",
+              "フルスタック開発技術選定サポート",
+              "プロジェクト工数・期間の自動見積もり",
+              "セキュリティ・コンプライアンス要件確認",
+              "既存システムとの統合方法提案",
+              "最適なクラウドインフラ選定支援"
+            ]}
+            featureType="chatbot"
+            expectedDate="2025年10月"
+            accentColor="green"
+          />
+        </section>
+        
+        {/* 目次（機能予定エリア直後に配置） */}
         <TableOfContents items={tableOfContents} />
         
         {/* プロジェクト実績 */}

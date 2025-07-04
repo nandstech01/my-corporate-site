@@ -10,6 +10,7 @@ import Script from 'next/script';
 // SSR Components Import
 import HRHeroSectionSSR from './components/HRHeroSectionSSR';
 import HRContactSectionSSR from './components/HRContactSectionSSR';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration';
@@ -231,6 +232,23 @@ export default async function HRSolutionsPage() {
             </div>
           </section>
         )}
+
+        {/* Feature Preview Section */}
+        <FeaturePreviewSection 
+          featureType="chatbot"
+          title="HR AI アシスタント"
+          subtitle="労働法専門AIアシスタント"
+          
+          description="労働法の専門知識を持つAIアシスタントが、複雑な人事問題に24時間対応します。"
+          features={[
+            "13法令データベース連携",
+            "個別労働相談対応",
+            "退職手続き自動化",
+            "コンプライアンス診断"
+          ]}
+          expectedDate="2025年11月"
+          accentColor="green"
+        />
 
         {/* Contact Section */}
         <section id="hr-contact">

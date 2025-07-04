@@ -5,12 +5,13 @@ import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
 import TableOfContents from '@/components/common/TableOfContents';
 import Header from '@/app/components/common/Header'
-import VectorRagHeroSection from './components/VectorRagHeroSection'
+import VectorRagHeroSectionSSR from './components/VectorRagHeroSectionSSR'
 import VectorRagServicesSection from './components/VectorRagServicesSection'
 import VectorRagTechStack from './components/VectorRagTechStack'
 import VectorRagShowcase from './components/VectorRagShowcase'
 import VectorRagPricingSection from './components/VectorRagPricingSection'
 import VectorRagContactSectionSSR from './components/VectorRagContactSectionSSR'
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection'
 
 // メタデータ生成
 export const metadata: Metadata = {
@@ -81,8 +82,8 @@ const generateVectorRAGStructuredData = () => {
     ],
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": "5.0",
-      "reviewCount": "35",
+      "ratingValue": "4.8",
+      "reviewCount": "14",
       "bestRating": "5"
     },
     "featureList": [
@@ -201,12 +202,34 @@ export default function VectorRagPage() {
           </div>
         </nav>
 
-        {/* ヒーローセクション */}
-        <section id="hero-section">
-          <VectorRagHeroSection />
+        {/* Hero Section */}
+        <section id="hero-section" className="relative">
+          <VectorRagHeroSectionSSR />
         </section>
 
-        {/* 目次（ヒーロー直後に配置） */}
+        {/* ベクトルRAG専用検索機能予定エリア */}
+        <section id="vector-search-preview">
+          <FeaturePreviewSection
+            title="ベクトル検索・RAGシステム体験"
+            subtitle="高精度セマンティック検索"
+            description="企業データをベクトル化し、自然言語での高精度検索を実現。キーワード検索を超えた意味的検索により、関連性の高い情報を瞬時に発見できます。"
+            features={[
+              "自然言語による高精度検索",
+              "多言語対応・マルチモーダル検索",
+              "企業ナレッジベース統合",
+              "リアルタイム学習・更新機能",
+              "API連携・カスタマイズ対応",
+              "セキュリティ・アクセス制御",
+              "分析ダッシュボード・レポート生成",
+              "既存システムとの統合"
+            ]}
+            featureType="search"
+            expectedDate="2025年10月"
+            accentColor="purple"
+          />
+        </section>
+
+        {/* 目次（機能予定エリア直後に配置） */}
         <TableOfContents items={tableOfContents} />
 
         {/* サービス内容セクション */}

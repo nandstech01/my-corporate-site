@@ -10,6 +10,7 @@ import VideoTechStack from './components/VideoTechStack';
 import VideoShowcase from './components/VideoShowcase';
 import VideoPricingSection from './components/VideoPricingSection';
 import VideoContactSectionSSR from './components/VideoContactSectionSSR';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 // メタデータ生成
 export const metadata: Metadata = {
@@ -80,8 +81,8 @@ const generateVideoGenerationStructuredData = () => {
     ],
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": "5.0",
-      "reviewCount": "28",
+      "ratingValue": "4.7",
+      "reviewCount": "16",
       "bestRating": "5"
     },
     "featureList": [
@@ -202,6 +203,28 @@ export default function VideoGenerationPage() {
         {/* ヒーローセクション */}
         <section id="hero-section">
           <VideoHeroSectionSSR />
+        </section>
+
+        {/* 動画生成AI専用ツール予定エリア */}
+        <section id="video-generation-preview">
+          <FeaturePreviewSection
+            title="AI動画生成ツール"
+            subtitle="テキストから動画を自動生成"
+            description="Midjourney、Runway ML、DALL-E等の最新AI技術を統合し、テキストから高品質な動画を自動生成。企業のコンテンツ制作を革新的に効率化します。"
+            features={[
+              "テキストから動画自動生成",
+              "Midjourney・Runway ML・DALL-E統合",
+              "マルチメディア・マルチモーダル対応",
+              "ブランドガイドライン準拠",
+              "A/Bテスト・最適化機能",
+              "リアルタイム編集・カスタマイズ",
+              "多言語動画生成",
+              "API連携・バッチ処理対応"
+            ]}
+            featureType="generation"
+            expectedDate="2026年1月"
+            accentColor="pink"
+          />
         </section>
 
         {/* 目次（ヒーロー直後に配置、背景色を調整） */}

@@ -54,10 +54,10 @@ const videoGenerationSchema = {
   ],
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": "4.8",
+    "ratingValue": "4.6",
     "bestRating": "5",
     "worstRating": "1",
-    "ratingCount": 67
+    "ratingCount": 13
   },
   "potentialAction": {
     "@type": "ContactAction",
@@ -240,6 +240,14 @@ export default function VideoHeroSectionSSR() {
                 aria-label="AI動画生成システムの技術詳細を確認"
               >
                 技術詳細を確認
+              </a>
+              <a
+                href="/reviews"
+                className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl transform hover:scale-105"
+                role="button"
+                aria-label="AI動画生成サービスのレビューを見る"
+              >
+                レビューを見る
               </a>
             </div>
 

@@ -9,6 +9,7 @@ import SNSShowcase from './components/SNSShowcase';
 import SNSPricingSection from './components/SNSPricingSection';
 import SNSContactSectionSSR from './components/SNSContactSectionSSR';
 import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 export const metadata: Metadata = {
   title: 'SNS自動化システム開発サービス | X・Instagram・Facebook対応AI投稿管理 | 株式会社エヌアンドエス',
@@ -308,6 +309,22 @@ export default async function SNSAutomationPage() {
       <Suspense fallback={<div className="py-16 text-center text-white">読み込み中...</div>}>
         <RelatedArticlesSection businessDomain="デジタルマーケティング" serviceType="SNS自動化システム開発" />
       </Suspense>
+
+      {/* Feature Preview Section */}
+      <FeaturePreviewSection 
+        featureType="diagnostic"
+        title="SNS パフォーマンス診断"
+        subtitle="AI分析診断ツール"
+        description="AI分析により、現在のSNS運用の課題を発見し、最適化提案を自動生成します。"
+        features={[
+          "7プラットフォーム一括診断",
+          "エンゲージメント分析",
+          "投稿最適化提案",
+          "ROI改善レポート"
+        ]}
+        expectedDate="2025年12月"
+        accentColor="orange"
+      />
 
       {/* お問い合わせセクション */}
       <section id="contact-section">

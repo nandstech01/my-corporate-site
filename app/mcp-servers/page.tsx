@@ -2,13 +2,14 @@ import React, { Suspense } from 'react';
 import { Metadata } from 'next'
 import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration'
 import { supabase } from '@/lib/supabase/supabase'
-import MCPHeroSection from './components/MCPHeroSection';
+import MCPHeroSectionSSR from './components/MCPHeroSectionSSR';
 import MCPServicesSection from './components/MCPServicesSection';
 import MCPTechStack from './components/MCPTechStack';
 import MCPShowcase from './components/MCPShowcase';
 import MCPPricingSection from './components/MCPPricingSection';
 import MCPContactSectionSSR from './components/MCPContactSectionSSR';
 import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 export const metadata: Metadata = {
   title: 'MCPサーバー開発サービス | Model Context Protocol最新技術でAI統合基盤を構築 | 株式会社エヌアンドエス',
@@ -154,7 +155,7 @@ export default async function MCPServersPage() {
 
       {/* ヒーローセクション */}
       <section id="hero-section">
-        <MCPHeroSection />
+        <MCPHeroSectionSSR />
       </section>
 
       {/* 目次（ヒーロー直後に配置） */}
@@ -265,6 +266,26 @@ export default async function MCPServersPage() {
       <section id="pricing-section">
         <MCPPricingSection />
       </section>
+
+      {/* Feature Preview Section */}
+      <FeaturePreviewSection 
+        featureType="diagnostic"
+        title="MCP サーバー診断ツール"
+        subtitle="AI連携・プロトコル最適化診断"
+        description="既存システムのMCP対応状況を診断し、最適なサーバー構成・プロトコル設計を自動提案します。"
+        features={[
+          "システム連携状況診断",
+          "プロトコル最適化提案",
+          "パフォーマンス分析",
+          "セキュリティ評価",
+          "拡張性評価",
+          "移行コスト試算",
+          "実装ロードマップ生成",
+          "ROI予測レポート"
+        ]}
+        expectedDate="2025年12月"
+        accentColor="blue"
+      />
 
       {/* セマンティック内部リンクセクション */}
       {unifiedData.semanticLinks.length > 0 && (

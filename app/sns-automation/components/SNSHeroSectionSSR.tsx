@@ -54,10 +54,10 @@ const snsAutomationSchema = {
   ],
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": "4.9",
+    "ratingValue": "4.8",
     "bestRating": "5",
     "worstRating": "1",
-    "ratingCount": 89
+    "ratingCount": 17
   },
   "potentialAction": {
     "@type": "ContactAction",
@@ -65,7 +65,11 @@ const snsAutomationSchema = {
       "@type": "EntryPoint",
       "urlTemplate": "https://nands.tech/sns-automation#contact"
     }
-  }
+  },
+  "additionalType": "SNS Automation Service",
+  "serviceType": "Social Media Marketing Automation",
+  "areaServed": "日本",
+  "availableLanguage": ["ja", "en"]
 };
 
 // SNS自動化統計データ（GEO対策）
@@ -241,6 +245,14 @@ export default function SNSHeroSectionSSR() {
               aria-label="SNS自動化システムの事例を見る"
             >
               事例を見る
+            </a>
+            <a
+              href="/reviews"
+              className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl transform hover:scale-105"
+              role="button"
+              aria-label="SNS自動化システムのレビューを見る"
+            >
+              レビューを見る
             </a>
           </div>
 

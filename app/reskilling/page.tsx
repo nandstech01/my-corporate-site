@@ -20,6 +20,7 @@ import AILaborMarketImpact from '../../src/components/AILaborMarketImpact';
 import Footer from '../../src/components/common/Footer';
 import Script from 'next/script';
 import Breadcrumbs from '../components/common/Breadcrumbs';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 import Orb from './Orb';
 import './Orb.css';
 import GradientText from './GradientText';
@@ -204,6 +205,46 @@ const ReskillPage = () => {
       <MentorIntroduction />
       <SubsidyInformation />
       <EnrollmentProcess />
+
+      {/* Feature Preview Section */}
+      <FeaturePreviewSection 
+        featureType="chatbot"
+        title="AI学習アシスタント"
+        subtitle="個人向けスキルアップサポート"
+        description="ChatGPTをはじめとした最新AI技術の学習をサポートする専用アシスタント。個別の学習進度に合わせたカリキュラム提案と実践的なスキル習得をサポートします。"
+        features={[
+          "個別学習プラン自動生成",
+          "ChatGPTスキル診断",
+          "実践課題自動提案",
+          "進捗管理・レポート",
+          "キャリア相談サポート",
+          "業界トレンド情報提供",
+          "転職・副業支援",
+          "継続学習モチベーション管理"
+        ]}
+        expectedDate="2026年2月"
+        accentColor="green"
+      />      
+      {/* Feature Preview Section */}
+      <FeaturePreviewSection 
+        featureType="chatbot"
+        title="AI学習アシスタント"
+        subtitle="個人向けスキルアップサポート"
+        description="ChatGPTをはじめとした最新AI技術の学習をサポートする専用アシスタント。個別の学習進度に合わせたカリキュラム提案と実践的なスキル習得をサポートします。"
+        features={[
+          "個別学習プラン自動生成",
+          "ChatGPTスキル診断",
+          "実践課題自動提案",
+          "進捗管理・レポート",
+          "キャリア相談サポート",
+          "業界トレンド情報提供",
+          "転職・副業支援",
+          "継続学習モチベーション管理"
+        ]}
+        expectedDate="2026年2月"
+        accentColor="green"
+      />
+      
       <EnhancedContactForm />
       <FixedButtons />
       <Footer />

@@ -2,13 +2,14 @@ import { Metadata } from 'next'
 import { Suspense } from 'react'
 import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration'
 import { supabase } from '@/lib/supabase/supabase'
-import ChatbotHeroSection from './components/ChatbotHeroSection'
+import ChatbotHeroSectionSSR from './components/ChatbotHeroSectionSSR'
 import ChatbotServicesSection from './components/ChatbotServicesSection'
 import ChatbotTechStack from './components/ChatbotTechStack'
 import ChatbotShowcase from './components/ChatbotShowcase'
 import ChatbotPricingSection from './components/ChatbotPricingSection'
 import ChatbotContactSectionSSR from './components/ChatbotContactSectionSSR'
 import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer'
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection'
 
 export const metadata: Metadata = {
   title: 'チャットボット開発サービス | GPT-4活用の高性能AI自動応答システム | 株式会社エヌアンドエス',
@@ -151,7 +152,7 @@ export default async function ChatbotDevelopmentPage() {
 
       {/* ヒーローセクション */}
       <section id="hero-section">
-        <ChatbotHeroSection />
+        <ChatbotHeroSectionSSR />
       </section>
 
       {/* 目次（ヒーロー直後に配置） */}
@@ -261,6 +262,28 @@ export default async function ChatbotDevelopmentPage() {
       {/* 料金プランセクション */}
       <section id="pricing-section">
         <ChatbotPricingSection />
+      </section>
+
+      {/* チャットボット機能予定セクション */}
+      <section id="chatbot-feature-preview">
+        <FeaturePreviewSection
+          title="高度なチャットボット開発支援システム"
+          subtitle="リアルタイム設計・自動実装・最適化支援"
+          description="GPT-4を活用したチャットボット設計から実装、運用最適化まで一貫してサポートするAIアシスタント。多言語対応、感情分析、パフォーマンス最適化など高度な機能を自動実装します。"
+          features={[
+            "会話フロー自動設計・最適化",
+            "10言語対応・多言語チャットボット実装",
+            "感情分析・顧客満足度向上機能",
+            "FAQ自動分類・応答精度向上",
+            "カスタマーサポート効率化分析",
+            "リアルタイム性能監視・改善提案",
+            "エスカレーション自動判定・振り分け",
+            "業界特化型テンプレート自動生成"
+          ]}
+          featureType="chatbot"
+          expectedDate="2025年11月"
+          accentColor="blue"
+        />
       </section>
 
       {/* セマンティック内部リンクセクション */}

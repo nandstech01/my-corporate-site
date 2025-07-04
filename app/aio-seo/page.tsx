@@ -1,11 +1,13 @@
 import { Metadata } from 'next'
 import Script from 'next/script'
 import AIOHeroSection from './components/AIOHeroSection'
+import AIOHeroSectionSSR from './components/AIOHeroSectionSSR'
 import AIOServicesSection from './components/AIOServicesSection'
 import AIOCaseStudiesSection from './components/AIOCaseStudiesSection'
 import AIOMethodologySection from './components/AIOMethodologySection'
 import AIOPricingSection from './components/AIOPricingSection'
 import AIOContactSectionSSR from './components/AIOContactSectionSSR'
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection'
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合（本丸）
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration'
@@ -129,14 +131,10 @@ export default async function AIOPage() {
               "name": "ページセクション一覧",
               "numberOfItems": unifiedData.hasPartSchemas.length,
               "itemListElement": unifiedData.hasPartSchemas.map((schema, index) => ({
-                "@type": "ListItem",
-                "position": index + 1,
-                "item": {
-                  "@type": schema['@type'],
-                  "@id": schema['@id'],
-                  "name": schema.name,
-                  "url": schema.url
-                }
+                "@type": schema['@type'],
+                "@id": schema['@id'],
+                "name": schema.name,
+                "url": schema.url
               }))
             }, null, 2)
           }}
@@ -150,48 +148,31 @@ export default async function AIOPage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "ProfessionalService",
-            "name": "Mike King理論準拠レリバンスエンジニアリング",
-            "description": "Mike King理論に基づくGEO（Generative Engine Optimization）・Topical Coverage・Fragment ID最適化専門サービス",
-            "serviceType": "Relevance Engineering",
+            "@type": "SoftwareApplication",
+            "name": "AIO対策・レリバンスエンジニアリング",
+            "applicationCategory": "BusinessApplication",
+            "applicationSubCategory": "SEO Optimization Tool",
+            "operatingSystem": "Web-based",
+            "programmingLanguage": ["JavaScript", "TypeScript", "Python"],
+            "description": "Mike King理論準拠のレリバンスエンジニアリング・GEO最適化・AI検索エンジン対応の統合プラットフォーム",
             "provider": {
-              "@id": "https://nands.jp/#organization"
+              "@type": "Organization",
+              "@id": "https://nands.tech/#organization",
+              "name": "株式会社エヌアンドエス"
             },
-            "areaServed": "JP",
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "レリバンスエンジニアリングサービス",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "GEO（Generative Engine Optimization）",
-                    "description": "生成系検索エンジンに最適化されたTopical Coverage・Fragment ID・TOC構造の設計・実装"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "統一エンティティ関係性システム",
-                    "description": "セマンティック構造化データ・JSON-LD統合・Schema.org拡張による検索エンジン理解度向上"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "AI検索流入対策",
-                    "description": "ChatGPT・Perplexity・Google AI Overviews対応のClick-Recovery最適化"
-                  }
-                }
-              ]
+            "offers": {
+              "@type": "Offer",
+              "name": "AIO対策・レリバンスエンジニアリング",
+              "description": "Mike King理論準拠のAI検索最適化・GEO対策・レリバンスエンジニアリング",
+              "priceRange": "300000-",
+              "priceCurrency": "JPY"
             },
-            "knowsAbout": [
-              "Mike King理論",
-              "Relevance Engineering", 
-              "GEO (Generative Engine Optimization)",
+            "featureList": [
+              "Mike King理論準拠",
+              "GEO最適化",
+              "AI検索エンジン対応",
+              "レリバンスエンジニアリング",
+              "構造化データ最適化",
               "Topical Coverage",
               "Fragment ID最適化",
               "セマンティック構造化データ",
@@ -199,8 +180,8 @@ export default async function AIOPage() {
             ],
             "aggregateRating": {
               "@type": "AggregateRating",
-              "ratingValue": "4.9",
-              "reviewCount": "127",
+              "ratingValue": "4.7",
+              "reviewCount": "12",
               "bestRating": "5"
             }
           }, null, 2)
@@ -221,12 +202,34 @@ export default async function AIOPage() {
           </div>
         </nav>
 
-        {/* ヒーローセクション */}
-        <section id="aio-hero">
-          <AIOHeroSection />
+        {/* Hero Section */}
+        <section id="aio-hero" className="relative">
+          <AIOHeroSectionSSR />
         </section>
 
-        {/* 目次（ヒーロー直後に配置） */}
+        {/* AIO診断ツール予定エリア */}
+        <section id="aio-diagnostic-preview">
+          <FeaturePreviewSection
+            title="AIO診断・レリバンスエンジニアリング分析ツール"
+            subtitle="Mike King理論準拠 AI検索最適化診断"
+            description="URLを入力するだけで、Mike King理論に基づくレリバンスエンジニアリング・GEO対策・AI検索最適化の包括的な診断を実行。ChatGPT・Perplexity・Google AI Overviewsでの発見可能性を詳細分析します。"
+            features={[
+              "Mike King理論準拠のレリバンスエンジニアリング分析",
+              "GEO（Generative Engine Optimization）対策診断",
+              "Topical Coverage・Fragment ID最適化チェック",
+              "AI検索エンジン発見可能性スコア算出",
+              "セマンティック構造化データ適合性評価",
+              "競合サイトとのレリバンス比較分析",
+              "AI検索流入最適化レポート生成",
+              "改善施策の自動提案・優先度付け"
+            ]}
+            featureType="diagnostic"
+            expectedDate="2025年12月"
+            accentColor="purple"
+          />
+        </section>
+
+        {/* 目次（診断ツール直後に配置） */}
         {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
           <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="max-w-6xl mx-auto px-4">

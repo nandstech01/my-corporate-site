@@ -52,10 +52,10 @@ const hrSolutionsSchema = {
   ],
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": "4.8",
+    "ratingValue": "4.9",
     "bestRating": "5",
     "worstRating": "1",
-    "ratingCount": 147
+    "ratingCount": 19
   },
   "potentialAction": {
     "@type": "ContactAction",
@@ -184,6 +184,14 @@ export default function HRHeroSectionSSR() {
               aria-label="人材ソリューションのサービス詳細を見る"
             >
               サービス詳細を見る
+            </a>
+            <a
+              href="/reviews"
+              className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105"
+              role="button"
+              aria-label="人材ソリューションのレビューを見る"
+            >
+              レビューを見る
             </a>
           </div>
 
