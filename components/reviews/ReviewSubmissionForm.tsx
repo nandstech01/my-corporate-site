@@ -28,7 +28,7 @@ interface FormData {
 // 内部フォームコンポーネント（useSearchParamsを使用）
 function ReviewFormContent({ services }: ReviewSubmissionFormProps) {
   const searchParams = useSearchParams();
-  const preselectedService = searchParams.get('service');
+  const preselectedService = searchParams ? searchParams.get('service') : null;
 
   const [formData, setFormData] = useState<FormData>({
     serviceId: preselectedService || '',
