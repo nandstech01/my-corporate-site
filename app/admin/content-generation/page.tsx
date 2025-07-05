@@ -704,7 +704,7 @@ export default function ContentGenerationPage() {
                           </span>
                         </div>
                         <p className="text-gray-300 line-clamp-2">
-                          {result.content.substring(0, 150)}...
+                          {result.content ? result.content.substring(0, 150) + '...' : 'コンテンツがありません'}
                         </p>
                       </div>
                     ))}
@@ -747,7 +747,7 @@ export default function ContentGenerationPage() {
                         {content.title}
                       </h3>
                       <p className="text-gray-300 text-sm mb-4">
-                        {content.content.substring(0, 200)}...
+                        {content.content ? content.content.substring(0, 200) + '...' : 'コンテンツがありません'}
                       </p>
                       
                       {/* メタデータ */}
