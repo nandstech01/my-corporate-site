@@ -27,6 +27,31 @@ type ChatGPTSection = {
   slug: string;
 };
 
+// 記事データの型定義
+type Post = {
+  id: number | string;
+  title: string;
+  content: string;
+  slug: string;
+  status: string;
+  business_id?: number | null;
+  category_id?: number | null;
+  section_id?: number | null;
+  chatgpt_section_id?: number | null;
+  featured_image?: string;
+  thumbnail_url?: string;
+  meta_description?: string;
+  seo_keywords?: string[];
+  meta_keywords?: string[];
+  is_indexable?: boolean;
+  canonical_url?: string;
+  is_chatgpt_special?: boolean;
+  table_type?: 'posts' | 'chatgpt_posts';
+  business?: Business;
+  category?: Category;
+  chatgpt_section?: ChatGPTSection;
+};
+
 export default function EditPostPage({
   params,
 }: {
@@ -61,6 +86,41 @@ export default function EditPostPage({
   const [canonicalUrl, setCanonicalUrl] = React.useState('');
   const [seoKeywordInput, setSeoKeywordInput] = React.useState('');
   const [postId, setPostId] = React.useState<string>('');
+  const [tableType, setTableType] = React.useState<'posts' | 'chatgpt_posts'>('posts');
+
+  // 両方のテーブルから記事を検索する関数
+  const fetchPost = async (slug: string): Promise<Post | null> => {
+    const decodedSlug = decodeURIComponent(slug);
+    
+    // まずpostsテーブルから検索
+    const { data: newPost, error: newError } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('slug', decodedSlug)
+      .single();
+    
+    if (newPost && !newError) {
+      return { ...newPost, table_type: 'posts' };
+    }
+    
+    // postsテーブルに見つからない場合は、chatgpt_postsテーブルから検索
+    const { data: oldPost, error: oldError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        *,
+        business:business_id(id, slug, name),
+        category:category_id(id, slug, name, business_id),
+        chatgpt_section:chatgpt_section_id(id, slug, name)
+      `)
+      .eq('slug', decodedSlug)
+      .single();
+    
+    if (oldPost && !oldError) {
+      return { ...oldPost, table_type: 'chatgpt_posts' };
+    }
+    
+    return null;
+  };
 
   // ChatGPTセクション一覧を取得
   React.useEffect(() => {
@@ -127,41 +187,36 @@ export default function EditPostPage({
 
   // 記事データの取得
   React.useEffect(() => {
-    const fetchPost = async () => {
-      const decodedSlug = decodeURIComponent(params.slug);
-      
-      const { data: post, error } = await supabase
-        .from('chatgpt_posts')
-        .select(`
-          *,
-          business:business_id(id, slug, name),
-          category:category_id(id, slug, name, business_id),
-          chatgpt_section:chatgpt_section_id(id, slug, name)
-        `)
-        .eq('slug', decodedSlug)
-        .single();
+    const loadPost = async () => {
+      const post = await fetchPost(params.slug);
 
-      if (error) {
-        console.error('Error fetching post:', error);
-        if (error.code === 'PGRST116') {
-          alert('投稿が見つかりませんでした');
-          router.push('/admin/posts');
-        }
+      if (!post) {
+        console.error('Post not found');
+        alert('投稿が見つかりませんでした');
+        router.push('/admin/posts');
         return;
       }
 
-      if (post) {
-        setTitle(post.title);
-        setContent(post.content);
-        setStatus(post.status);
-        setThumbnailUrl(post.featured_image || '');
-        setMetaDescription(post.meta_description || '');
-        setSeoKeywords(post.seo_keywords || []);
-        setIsIndexable(post.is_indexable ?? true);
-        setCanonicalUrl(post.canonical_url || '');
-        setPostId(post.id);
-        setIsChatGPTSpecial(post.is_chatgpt_special);
+      setTitle(post.title);
+      setContent(post.content);
+      setStatus(post.status as 'draft' | 'published');
+      setThumbnailUrl(post.featured_image || post.thumbnail_url || '');
+      setMetaDescription(post.meta_description || '');
+      setSeoKeywords(post.seo_keywords || post.meta_keywords || []);
+      setIsIndexable(post.is_indexable ?? true);
+      setCanonicalUrl(post.canonical_url || '');
+      setPostId(post.id.toString());
+      setTableType(post.table_type || 'posts');
 
+      // RAG記事（postsテーブル）の場合
+      if (post.table_type === 'posts') {
+        setIsChatGPTSpecial(false);
+        setBusinessId(post.business_id || null);
+        setCategoryId(post.category_id || null);
+      } else {
+        // ChatGPT記事（chatgpt_postsテーブル）の場合
+        setIsChatGPTSpecial(post.is_chatgpt_special || false);
+        
         if (post.is_chatgpt_special) {
           setChatGPTSectionId(post.chatgpt_section?.id || null);
         } else {
@@ -171,7 +226,7 @@ export default function EditPostPage({
       }
     };
 
-    fetchPost();
+    loadPost();
   }, [params.slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,31 +239,62 @@ export default function EditPostPage({
     }
 
     try {
-      const { error: postError } = await supabase
-        .from('chatgpt_posts')
-        .update({
-          title,
-          content,
-          status,
-          business_id: isChatGPTSpecial ? null : businessId,
-          category_id: isChatGPTSpecial ? null : categoryId,
-          chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
-          featured_image: thumbnailUrl,
-          updated_at: new Date().toISOString(),
-          meta_description: metaDescription,
-          seo_keywords: seoKeywords,
-          is_indexable: isIndexable,
-          canonical_url: canonicalUrl || null,
-          is_chatgpt_special: isChatGPTSpecial
-        })
-        .eq('slug', params.slug);
+      if (tableType === 'posts') {
+        // RAG記事の更新
+        const { error: postError } = await supabase
+          .from('posts')
+          .update({
+            title,
+            content,
+            status,
+            business_id: businessId,
+            category_id: categoryId,
+            thumbnail_url: thumbnailUrl,
+            updated_at: new Date().toISOString(),
+            meta_description: metaDescription,
+            meta_keywords: seoKeywords,
+            canonical_url: canonicalUrl,
+          })
+          .eq('id', postId);
 
-      if (postError) throw postError;
+        if (postError) {
+          console.error('Error updating post:', postError);
+          alert('投稿の更新に失敗しました');
+          return;
+        }
+      } else {
+        // ChatGPT記事の更新
+        const { error: postError } = await supabase
+          .from('chatgpt_posts')
+          .update({
+            title,
+            content,
+            status,
+            business_id: isChatGPTSpecial ? null : businessId,
+            category_id: isChatGPTSpecial ? null : categoryId,
+            chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
+            featured_image: thumbnailUrl,
+            updated_at: new Date().toISOString(),
+            meta_description: metaDescription,
+            seo_keywords: seoKeywords,
+            is_indexable: isIndexable,
+            canonical_url: canonicalUrl,
+            is_chatgpt_special: isChatGPTSpecial,
+          })
+          .eq('id', postId);
 
+        if (postError) {
+          console.error('Error updating post:', postError);
+          alert('投稿の更新に失敗しました');
+          return;
+        }
+      }
+
+      alert('投稿が更新されました');
       router.push('/admin/posts');
     } catch (error) {
       console.error('Error updating post:', error);
-      alert('記事の更新に失敗しました');
+      alert('投稿の更新に失敗しました');
     } finally {
       setIsSubmitting(false);
     }

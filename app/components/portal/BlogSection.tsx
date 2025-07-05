@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { createClient } from '@/utils/supabase/client'
 
 type BlogPost = {
   id: number
@@ -10,34 +11,8 @@ type BlogPost = {
   imageUrl: string
   date: string
   link: string
+  table_type: 'posts' | 'chatgpt_posts'
 }
-
-const dummyPosts: BlogPost[] = [
-  {
-    id: 1,
-    title: "ChatGPT時代の副業が熱い！",
-    excerpt: "AIを活用した新時代の働き方とは？稼げる副業術を徹底解説。",
-    imageUrl: "/images/background.jpg",
-    date: "2025/01/20",
-    link: "/blog/chatgpt-sidejob",
-  },
-  {
-    id: 2,
-    title: "企業が取り組むリスキリング最前線",
-    excerpt: "生成AI研修で社員の生産性が上がる事例が続々。成功のポイントは？",
-    imageUrl: "/images/meeting_scene.png",
-    date: "2025/01/18",
-    link: "/blog/corporate-reskilling",
-  },
-  {
-    id: 3,
-    title: "退職代行で次のキャリアへシフト",
-    excerpt: "2,980円で退職後、すぐにAIスキルで稼ぐ人が急増中の理由。",
-    imageUrl: "/images/amazon-warehouse.jpg",
-    date: "2025/01/15",
-    link: "/blog/taishoku-anshin",
-  },
-]
 
 const fadeInUpVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -95,6 +70,105 @@ function ReflectionOverlay({ hovered }: { hovered: boolean }) {
 
 export default function BlogSection() {
   const [hovered, setHovered] = useState(false);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const supabase = createClient();
+        
+        // postsテーブルから記事を取得（RAG記事）
+        const { data: newPosts, error: newError } = await supabase
+          .from('posts')
+          .select('id, title, meta_description, thumbnail_url, created_at, slug')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        // chatgpt_postsテーブルから記事を取得（ChatGPT記事）
+        const { data: oldPosts, error: oldError } = await supabase
+          .from('chatgpt_posts')
+          .select('id, title, excerpt, thumbnail_url, featured_image, created_at, slug')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (newError) console.error('Error fetching new posts:', newError);
+        if (oldError) console.error('Error fetching old posts:', oldError);
+
+        // データを統一フォーマットに変換
+        const formattedNewPosts: BlogPost[] = (newPosts || []).map(post => ({
+          id: post.id,
+          title: post.title,
+          excerpt: post.meta_description || `${post.title}の記事です。`,
+          imageUrl: post.thumbnail_url || "/images/default-post.jpg",
+          date: new Date(post.created_at).toLocaleDateString('ja-JP'),
+          link: `/posts/${post.slug}`,
+          table_type: 'posts' as const
+        }));
+
+        const formattedOldPosts: BlogPost[] = (oldPosts || []).map(post => {
+          const imageUrl = post.thumbnail_url || post.featured_image;
+          const finalImageUrl = imageUrl 
+            ? imageUrl.startsWith('http') 
+              ? imageUrl 
+              : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
+            : "/images/default-post.jpg";
+          
+          return {
+            id: post.id,
+            title: post.title,
+            excerpt: post.excerpt || `${post.title}の記事です。`,
+            imageUrl: finalImageUrl,
+            date: new Date(post.created_at).toLocaleDateString('ja-JP'),
+            link: `/posts/${post.slug}`,
+            table_type: 'chatgpt_posts' as const
+          };
+        });
+
+        // 両方のテーブルの記事を合体して日付順でソート
+        const allPosts = [...formattedNewPosts, ...formattedOldPosts];
+        allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        // 最大3件に制限
+        setPosts(allPosts.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  // ローディング中の表示
+  if (loading) {
+    return (
+      <section className="w-full py-16 bg-gray-50 text-gray-800">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-6 text-center">最新ブログ記事</h2>
+          <p className="text-center text-gray-600 mb-10">
+            各事業の最新情報をピックアップ。トレンドを逃さずチェック！
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white border border-gray-200 shadow overflow-hidden animate-pulse">
+                <div className="w-full h-48 bg-gray-300"></div>
+                <div className="p-4">
+                  <div className="h-6 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-20 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-6 bg-gray-300 rounded w-32"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full py-16 bg-gray-50 text-gray-800">
@@ -105,13 +179,22 @@ export default function BlogSection() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {dummyPosts.map((post) => (
+          {posts.map((post) => (
             <div key={post.id} className="bg-white border border-gray-200 shadow hover:shadow-lg overflow-hidden">
               <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover" />
               <div className="p-4">
-                <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xl font-semibold line-clamp-2">{post.title}</h3>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    post.table_type === 'posts' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {post.table_type === 'posts' ? 'RAG記事' : 'ChatGPT記事'}
+                  </span>
+                </div>
                 <p className="text-sm text-gray-500 mb-4">{post.date}</p>
-                <p className="text-gray-700 mb-4">{post.excerpt}</p>
+                <p className="text-gray-700 mb-4 line-clamp-3">{post.excerpt}</p>
                 <a
                   href={post.link}
                   className="text-indigo-500 hover:underline font-medium"

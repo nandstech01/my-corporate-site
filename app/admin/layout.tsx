@@ -11,7 +11,7 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-black">
         <div className="flex h-screen">
           {/* サイドバー */}
           <AdminSidebar />
@@ -22,7 +22,7 @@ export default function AdminLayout({
             <AdminHeader />
             
             {/* メインコンテンツ */}
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 p-6">
               <div className="max-w-7xl mx-auto">
                 {children}
               </div>

@@ -49,18 +49,40 @@ type Post = {
   slug: string;
   excerpt: string;
   thumbnail_url: string | null;
-  featured_image: string | null;
+  featured_image?: string | null;
+  created_at: string;
   category?: {
     name: string;
     slug: string;
   };
+  table_type: 'posts' | 'chatgpt_posts';
 };
 
 async function getLatestPosts(): Promise<Post[]> {
   const supabase = createClient();
   
   try {
-    const { data: posts, error } = await supabase
+    // postsテーブルから記事を取得（RAG記事）
+    const { data: newPosts, error: newError } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        meta_description,
+        thumbnail_url,
+        created_at
+      `)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (newError) {
+      console.error('Error fetching new posts:', newError);
+    }
+
+    // chatgpt_postsテーブルから記事を取得（ChatGPT記事）
+    const { data: oldPosts, error: oldError } = await supabase
       .from('chatgpt_posts')
       .select(`
         id,
@@ -69,6 +91,7 @@ async function getLatestPosts(): Promise<Post[]> {
         excerpt,
         thumbnail_url,
         featured_image,
+        created_at,
         categories (
           name,
           slug
@@ -76,23 +99,25 @@ async function getLatestPosts(): Promise<Post[]> {
       `)
       .eq('status', 'published')
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(10);
 
-    if (error) {
-      console.error('Error fetching posts:', error);
-      return [];
+    if (oldError) {
+      console.error('Error fetching old posts:', oldError);
     }
 
-    return (posts || []).map(post => {
-      // Log the image URLs for debugging
-      console.log('Post image URLs:', {
-        id: post.id,
-        title: post.title,
-        thumbnail_url: post.thumbnail_url,
-        featured_image: post.featured_image
-      });
-      
-      // Ensure the image URLs are absolute
+    // データを統一フォーマットに変換
+    const formattedNewPosts: Post[] = (newPosts || []).map(post => ({
+      id: post.id.toString(),
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.meta_description || '',
+      meta_description: post.meta_description,
+      thumbnail_url: post.thumbnail_url,
+      created_at: post.created_at,
+      table_type: 'posts' as const
+    }));
+
+    const formattedOldPosts: Post[] = (oldPosts || []).map(post => {
       const imageUrl = post.thumbnail_url || post.featured_image;
       const finalImageUrl = imageUrl 
         ? imageUrl.startsWith('http') 
@@ -101,15 +126,24 @@ async function getLatestPosts(): Promise<Post[]> {
         : null;
       
       return {
-        id: post.id,
+        id: post.id.toString(),
         title: post.title,
         slug: post.slug,
         excerpt: post.excerpt || '',
         thumbnail_url: finalImageUrl,
         featured_image: post.featured_image,
-        category: post.categories?.[0]
+        created_at: post.created_at,
+        category: post.categories?.[0],
+        table_type: 'chatgpt_posts' as const
       };
     });
+
+    // 両方のテーブルの記事を合体して日付順でソート
+    const allPosts = [...formattedNewPosts, ...formattedOldPosts];
+    allPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // 最大6件に制限
+    return allPosts.slice(0, 6);
   } catch (error) {
     console.error('Error in getLatestPosts:', error);
     return [];
