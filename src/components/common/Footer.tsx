@@ -96,14 +96,14 @@ const Footer: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // 管理画面の場合はフッターを表示しない
   if (pathname && pathname.startsWith('/admin')) {
     return null;
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <footer className="relative font-sans text-white bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">

@@ -32,11 +32,6 @@ export default function Header() {
   const isReskillingPage = pathname === '/reskilling';
   const isLPPage = pathname === '/lp';
 
-  // 管理画面の場合はヘッダーを表示しない
-  if (pathname && pathname.startsWith('/admin')) {
-    return null;
-  }
-
   useEffect(() => {
     const fixedButtons = document.querySelector('.fixed-buttons') as HTMLElement;
     if (fixedButtons) {
@@ -47,6 +42,11 @@ export default function Header() {
       }
     }
   }, [isOpen]);
+
+  // 管理画面の場合はヘッダーを表示しない
+  if (pathname && pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
