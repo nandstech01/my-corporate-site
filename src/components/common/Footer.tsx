@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -93,6 +94,12 @@ const FooterItem: React.FC<FooterItemProps> = ({
  */
 const Footer: React.FC = () => {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+
+  // 管理画面の場合はフッターを表示しない
+  if (pathname && pathname.startsWith('/admin')) {
+    return null;
+  }
 
   useEffect(() => {
     setMounted(true);

@@ -239,9 +239,9 @@ export default function DashboardPage() {
   // 認証のローディング中
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">読み込み中...</h2>
+          <h2 className="text-xl font-semibold text-white">読み込み中...</h2>
         </div>
       </div>
     );
@@ -256,8 +256,8 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-        <span className="ml-2 text-gray-600">データを読み込み中...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <span className="ml-2 text-white">データを読み込み中...</span>
       </div>
     );
   }
@@ -265,7 +265,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+        <div className="bg-red-900 border-l-4 border-red-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -273,10 +273,10 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-200">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-2 text-sm text-red-600 hover:text-red-500"
+                className="mt-2 text-sm text-red-300 hover:text-red-200"
               >
                 再読み込み
               </button>
@@ -289,13 +289,13 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900">ダッシュボード</h1>
+      <h1 className="text-2xl font-semibold text-white">ダッシュボード</h1>
 
       {/* 統計カード */}
       <div className="mt-8">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {/* 総記事数 */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -305,9 +305,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">総記事数</dt>
+                    <dt className="text-sm font-medium text-gray-300 truncate">総記事数</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stats.totalPosts}</div>
+                      <div className="text-2xl font-semibold text-white">{stats.totalPosts}</div>
                     </dd>
                   </dl>
                 </div>
@@ -316,7 +316,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 月間PV */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -327,9 +327,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">月間PV</dt>
+                    <dt className="text-sm font-medium text-gray-300 truncate">月間PV</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stats.monthlyViews}</div>
+                      <div className="text-2xl font-semibold text-white">{stats.monthlyViews}</div>
                     </dd>
                   </dl>
                 </div>
@@ -338,7 +338,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ユニークビジター */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -348,9 +348,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">月間ユニークビジター</dt>
+                    <dt className="text-sm font-medium text-gray-300 truncate">月間ユニークビジター</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stats.recentVisitors}</div>
+                      <div className="text-2xl font-semibold text-white">{stats.recentVisitors}</div>
                     </dd>
                   </dl>
                 </div>
@@ -362,18 +362,18 @@ export default function DashboardPage() {
 
       {/* ページタイプ別統計 */}
       <div className="mt-8">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <div className="bg-gray-800 shadow rounded-lg">
+          <div className="px-5 py-4 border-b border-gray-600">
+            <h3 className="text-lg leading-6 font-medium text-white">
               ページタイプ別アクセス数（月間）
             </h3>
           </div>
           <div className="p-5">
             <div className="grid grid-cols-1 gap-4">
               {stats.pageTypeStats.map((stat) => (
-                <div key={stat.page_type} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-0">
+                <div key={stat.page_type} className="flex items-center justify-between py-3 border-b border-gray-600 last:border-0">
                   <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">{stat.label}</span>
+                    <span className="text-sm font-medium text-gray-300">{stat.label}</span>
                   </div>
                   <div className="flex items-center">
                     <span className="px-2.5 py-1.5 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -388,30 +388,30 @@ export default function DashboardPage() {
       </div>
 
       {/* 最近の記事 */}
-      <div className="mt-8 bg-white shadow rounded-lg mb-8">
-        <div className="px-5 py-4 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <div className="mt-8 bg-gray-800 shadow rounded-lg mb-8">
+        <div className="px-5 py-4 border-b border-gray-600">
+          <h3 className="text-lg leading-6 font-medium text-white">
             最近の記事
           </h3>
         </div>
         <div className="p-5">
           <div className="flow-root">
-            <ul className="-my-5 divide-y divide-gray-200">
+            <ul className="-my-5 divide-y divide-gray-600">
               {stats.recentPosts.map((post) => (
                 <li key={post.id} className="py-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-300 truncate">
                         {post.title}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-400">
                         {new Date(post.created_at).toLocaleDateString('ja-JP')}
                       </p>
                     </div>
                     <div>
                       <Link
                         href={`/admin/posts/${post.slug}/edit`}
-                        className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
+                        className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-700 text-sm leading-5 font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700"
                       >
                         編集
                       </Link>
@@ -426,20 +426,20 @@ export default function DashboardPage() {
 
       {/* デバイス統計 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <div className="bg-gray-800 shadow rounded-lg">
+          <div className="px-5 py-4 border-b border-gray-600">
+            <h3 className="text-lg leading-6 font-medium text-white">
               デバイス別アクセス
             </h3>
           </div>
           <div className="p-5">
             <div className="flow-root">
-              <ul className="-my-4 divide-y divide-gray-200">
+              <ul className="-my-4 divide-y divide-gray-600">
                 {stats.deviceStats.map(({ device_type, count }) => (
                   <li key={device_type} className="py-4">
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-300">
                           {device_type}
                         </p>
                       </div>
@@ -457,20 +457,20 @@ export default function DashboardPage() {
         </div>
 
         {/* 国別統計 */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-5 py-4 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <div className="bg-gray-800 shadow rounded-lg">
+          <div className="px-5 py-4 border-b border-gray-600">
+            <h3 className="text-lg leading-6 font-medium text-white">
               国別アクセス
             </h3>
           </div>
           <div className="p-5">
             <div className="flow-root">
-              <ul className="-my-4 divide-y divide-gray-200">
+              <ul className="-my-4 divide-y divide-gray-600">
                 {stats.countryStats.map(({ country, count }) => (
                   <li key={country} className="py-4">
                     <div className="flex items-center space-x-4">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-300">
                           {country}
                         </p>
                       </div>

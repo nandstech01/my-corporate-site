@@ -150,7 +150,7 @@ export default function PostsPage() {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-center items-center min-h-[200px]">
-          <div className="text-gray-500">読み込み中...</div>
+          <div className="text-white">読み込み中...</div>
         </div>
       </div>
     );
@@ -175,7 +175,7 @@ export default function PostsPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">記事一覧</h1>
+        <h1 className="text-2xl font-bold text-white">記事一覧</h1>
         <div className="flex space-x-2">
           <Link
             href="/admin/content-generation"
@@ -193,19 +193,19 @@ export default function PostsPage() {
       </div>
 
       {posts.length === 0 ? (
-        <div className="bg-white shadow rounded-lg p-6 text-center text-gray-500">
+        <div className="bg-gray-800 shadow rounded-lg p-6 text-center text-white">
           記事がありません
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
+        <div className="bg-gray-800 shadow overflow-hidden sm:rounded-md">
+          <ul className="divide-y divide-gray-600">
             {posts.map((post) => (
-              <li key={`${post.table_type}-${post.slug}`} className="hover:bg-gray-50">
+              <li key={`${post.table_type}-${post.slug}`} className="hover:bg-gray-700">
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-medium text-gray-900">
+                        <span className="text-lg font-medium text-white">
                           {post.title}
                         </span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -218,13 +218,13 @@ export default function PostsPage() {
                         <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                           {post.table_type === 'posts' ? 'RAG記事' : 'ChatGPT記事'}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-300">
                           ID: {post.id}
                         </span>
                         <div className="flex space-x-2">
                           <Link
                             href={`/admin/posts/${post.slug}/edit`}
-                            className="text-sm text-indigo-600 hover:text-indigo-900"
+                            className="text-sm text-indigo-400 hover:text-indigo-300"
                           >
                             編集
                           </Link>
@@ -232,7 +232,7 @@ export default function PostsPage() {
                             href={`/posts/${post.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-gray-500 hover:text-gray-700"
+                            className="text-sm text-gray-300 hover:text-white"
                           >
                             プレビュー ↗
                           </Link>
@@ -247,7 +247,7 @@ export default function PostsPage() {
                       削除
                     </button>
                   </div>
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-gray-300">
                     作成日: {new Date(post.created_at).toLocaleDateString('ja-JP')}
                   </div>
                 </div>

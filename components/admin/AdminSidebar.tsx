@@ -94,7 +94,10 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <div className="flex flex-col w-64 bg-gray-900 border-r border-gray-800 shadow-2xl">
+    <div className="flex flex-col w-64 h-full bg-gray-900 border-r border-gray-800 shadow-2xl">
+      {/* ヘッダー高さ分のスペース */}
+      <div className="h-16"></div>
+      
       {/* ロゴエリア */}
       <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-purple-600 to-blue-600">
         <Link href="/admin/dashboard" className="text-xl font-bold text-white">

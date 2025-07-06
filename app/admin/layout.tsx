@@ -12,22 +12,24 @@ export default function AdminLayout({
   return (
     <AuthProvider>
       <div className="min-h-screen bg-black">
-        <div className="flex h-screen">
-          {/* サイドバー */}
+        {/* ヘッダー */}
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <AdminHeader />
+        </div>
+        
+        {/* サイドバー - 画面の一番上から開始 */}
+        <div className="fixed top-0 bottom-0 left-0 z-40 w-64">
           <AdminSidebar />
-          
-          {/* メインコンテンツエリア */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* ヘッダー */}
-            <AdminHeader />
-            
-            {/* メインコンテンツ */}
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 p-6">
-              <div className="max-w-7xl mx-auto">
-                {children}
-              </div>
-            </main>
-          </div>
+        </div>
+        
+        {/* メインコンテンツエリア */}
+        <div className="ml-64">
+          {/* メインコンテンツ */}
+          <main className="bg-gray-900 p-6 min-h-screen pt-16">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </AuthProvider>

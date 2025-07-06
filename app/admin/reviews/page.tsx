@@ -138,7 +138,7 @@ export default function ReviewsAdminPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">レビュー管理</h1>
+        <h1 className="text-3xl font-bold text-white">レビュー管理</h1>
         <div className="flex space-x-4">
           {/* ステータスフィルタ */}
           <select
@@ -169,19 +169,19 @@ export default function ReviewsAdminPage() {
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">レビューがありません</p>
+            <p className="text-gray-300 text-lg">レビューがありません</p>
           </div>
         ) : (
           reviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div key={review.id} className="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-600">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{review.title}</h3>
+                    <h3 className="text-lg font-semibold text-white">{review.title}</h3>
                     {getStatusBadge(review)}
                   </div>
                   
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                  <div className="flex items-center space-x-4 text-sm text-gray-300 mb-3">
                     <span className="font-medium">{SERVICE_NAMES[review.service_id]}</span>
                     <div className="flex items-center space-x-1">
                       {renderStars(review.rating)}
@@ -190,9 +190,9 @@ export default function ReviewsAdminPage() {
                     <span>{new Date(review.created_at).toLocaleDateString('ja-JP')}</span>
                   </div>
 
-                  <p className="text-gray-700 mb-4">{review.review_body}</p>
+                  <p className="text-gray-300 mb-4">{review.review_body}</p>
 
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-4 text-sm text-gray-300">
                     <span><strong>投稿者:</strong> {review.author_name}</span>
                     {review.author_company && (
                       <span><strong>会社:</strong> {review.author_company}</span>
@@ -203,19 +203,18 @@ export default function ReviewsAdminPage() {
                   </div>
                 </div>
 
-                {/* アクションボタン */}
-                <div className="flex flex-col space-y-2 ml-4">
+                <div className="flex space-x-2 ml-4">
                   {!review.is_approved ? (
                     <button
                       onClick={() => updateReviewStatus(review.id, true)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                      className="px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
                     >
                       承認
                     </button>
                   ) : (
                     <button
                       onClick={() => updateReviewStatus(review.id, false)}
-                      className="px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 transition-colors"
+                      className="px-3 py-1 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md"
                     >
                       承認取消
                     </button>
@@ -223,7 +222,7 @@ export default function ReviewsAdminPage() {
                   
                   <button
                     onClick={() => deleteReview(review.id)}
-                    className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                    className="px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
                   >
                     削除
                   </button>

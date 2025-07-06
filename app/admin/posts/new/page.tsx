@@ -264,15 +264,15 @@ export default function NewPostPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">新規記事作成</h1>
+        <h1 className="text-2xl font-bold text-white">新規記事作成</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 投稿タイプ切り替え */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">投稿タイプ</h2>
+        <div className="bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium mb-4 text-white">投稿タイプ</h2>
           <div className="flex items-center space-x-4">
-            <label className="inline-flex items-center">
+            <label className="inline-flex items-center text-white">
               <input
                 type="radio"
                 className="form-radio"
@@ -281,7 +281,7 @@ export default function NewPostPage() {
               />
               <span className="ml-2">通常記事</span>
             </label>
-            <label className="inline-flex items-center">
+            <label className="inline-flex items-center text-white">
               <input
                 type="radio"
                 className="form-radio"
@@ -295,11 +295,11 @@ export default function NewPostPage() {
 
         {/* カテゴリー選択（通常記事の場合） */}
         {!isChatGPTSpecial && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium mb-4">カテゴリー</h2>
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium mb-4 text-white">カテゴリー</h2>
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-300">
                   事業
                 </label>
                 <select
@@ -316,7 +316,7 @@ export default function NewPostPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-300">
                   カテゴリー
                 </label>
                 <select
@@ -339,8 +339,8 @@ export default function NewPostPage() {
 
         {/* ChatGPTセクション選択（ChatGPT特集の場合） */}
         {isChatGPTSpecial && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium mb-4">ChatGPTセクション</h2>
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium mb-4 text-white">ChatGPTセクション</h2>
             <select
               value={chatGPTSectionId || ''}
               onChange={(e) => setChatGPTSectionId(e.target.value ? Number(e.target.value) : null)}
@@ -357,11 +357,11 @@ export default function NewPostPage() {
         )}
 
         {/* 記事情報 */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">記事情報</h2>
+        <div className="bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium mb-4 text-white">記事情報</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 タイトル
               </label>
               <input
@@ -374,7 +374,7 @@ export default function NewPostPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 サムネイル画像
               </label>
               <ImageUploader
@@ -385,13 +385,13 @@ export default function NewPostPage() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-300">
                   本文
                 </label>
                 <button
                   type="button"
                   onClick={togglePreview}
-                  className="text-sm text-indigo-600 hover:text-indigo-500"
+                  className="text-sm text-indigo-400 hover:text-indigo-300"
                 >
                   {isPreviewMode ? '編集に戻る' : 'プレビュー'}
                 </button>
@@ -419,11 +419,11 @@ export default function NewPostPage() {
         </div>
 
         {/* SEO設定 */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">SEO設定</h2>
+        <div className="bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium mb-4 text-white">SEO設定</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 メタディスクリプション
               </label>
               <textarea
@@ -435,7 +435,7 @@ export default function NewPostPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 SEOキーワード
               </label>
               <div className="mt-1 flex rounded-md shadow-sm">
@@ -480,7 +480,7 @@ export default function NewPostPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 Canonical URL
               </label>
               <input
@@ -508,11 +508,11 @@ export default function NewPostPage() {
         </div>
 
         {/* 公開設定 */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">公開設定</h2>
+        <div className="bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium mb-4 text-white">公開設定</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-300">
                 ステータス
               </label>
               <select

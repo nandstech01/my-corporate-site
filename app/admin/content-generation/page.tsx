@@ -365,9 +365,9 @@ export default function ContentGenerationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="text-white">
       {/* ヘッダー */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-xl mb-6">
         <div className="flex items-center space-x-3 mb-4">
           <SparklesIcon className="w-8 h-8" />
           <h1 className="text-3xl font-bold">コンテンツ生成管理</h1>
@@ -377,7 +377,7 @@ export default function ContentGenerationPage() {
         </p>
       </div>
 
-      <div className="p-6">
+      <div>
         {/* 統計情報 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
