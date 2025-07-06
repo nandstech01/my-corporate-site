@@ -56,6 +56,7 @@ type Post = {
     slug: string;
   };
   table_type: 'posts' | 'chatgpt_posts';
+  is_chatgpt_special?: boolean;
 };
 
 async function getLatestPosts(): Promise<Post[]> {
@@ -92,6 +93,7 @@ async function getLatestPosts(): Promise<Post[]> {
         thumbnail_url,
         featured_image,
         created_at,
+        is_chatgpt_special,
         categories (
           name,
           slug
@@ -134,7 +136,8 @@ async function getLatestPosts(): Promise<Post[]> {
         featured_image: post.featured_image,
         created_at: post.created_at,
         category: post.categories?.[0],
-        table_type: 'chatgpt_posts' as const
+        table_type: 'chatgpt_posts' as const,
+        is_chatgpt_special: post.is_chatgpt_special
       };
     });
 

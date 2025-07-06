@@ -89,7 +89,7 @@ export default function BlogSection() {
         // chatgpt_postsテーブルから記事を取得（ChatGPT記事）
         const { data: oldPosts, error: oldError } = await supabase
           .from('chatgpt_posts')
-          .select('id, title, excerpt, thumbnail_url, featured_image, created_at, slug')
+          .select('id, title, excerpt, thumbnail_url, featured_image, created_at, slug, is_chatgpt_special')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(3);

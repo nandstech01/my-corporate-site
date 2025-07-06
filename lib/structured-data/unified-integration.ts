@@ -65,6 +65,7 @@ export interface UnifiedPageData {
     seo_keywords?: string[];
     category_id?: number;
     section_id?: number;
+    is_chatgpt_special?: boolean;
   }>;
   sections?: Array<{
     id: number;
@@ -378,7 +379,7 @@ export class UnifiedIntegrationSystem {
     try {
       let query = supabase
         .from('chatgpt_posts')
-        .select('*')
+        .select('*, is_chatgpt_special')
         .limit(10);
       
       if (context.categoryId) {

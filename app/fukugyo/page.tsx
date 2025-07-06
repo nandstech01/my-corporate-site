@@ -102,6 +102,7 @@ async function getFukugyoPosts(): Promise<Post[]> {
       excerpt,
       thumbnail_url,
       featured_image,
+      is_chatgpt_special,
       categories!inner (
         name,
         slug

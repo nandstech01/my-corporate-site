@@ -166,6 +166,7 @@ export default async function CategoryPage({
       excerpt,
       thumbnail_url,
       featured_image,
+      is_chatgpt_special,
       category:categories(name, slug)
     `)
     .eq('category_id', category.id)

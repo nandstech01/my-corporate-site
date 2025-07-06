@@ -32,6 +32,7 @@ export function FeaturedSection() {
           featured_image
         `)
         .eq('status', 'published')
+        .eq('is_chatgpt_special', true)
         .order('created_at', { ascending: false })
         .limit(3)
 
