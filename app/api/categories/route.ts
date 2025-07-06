@@ -9,13 +9,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Service Role Key を使用してRLSをバイパス
-const supabaseServiceRole = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// 環境変数のチェック
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  console.warn('Supabase credentials not found');
+}
+
+const supabaseServiceRole = supabaseUrl && supabaseServiceRoleKey 
+  ? createClient(supabaseUrl, supabaseServiceRoleKey)
+  : null;
 
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseServiceRole) {
+      return NextResponse.json(
+        { error: 'Database configuration not available' },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('business_id');
 
