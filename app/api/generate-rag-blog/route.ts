@@ -113,16 +113,57 @@ export async function POST(request: NextRequest) {
     }: BlogGenerationRequest = await request.json();
 
     console.log(`🚀 RAGブログ記事生成開始: "${query}"`);
-    console.log(`📊 RAGデータ数: ${ragData.length}件`);
+    console.log(`📊 RAGデータ: ${ragData ? ragData.length : 0}件`);
     console.log(`📝 目標文字数: ${targetLength}文字`);
+    console.log(`📋 受信データ構造:`, { query, ragData: ragData ? 'あり' : 'なし', targetLength, businessCategory, categorySlug });
 
     // RAGデータの妥当性チェック
-    if (!ragData || ragData.length === 0) {
-      throw new Error('RAGデータが提供されていません');
+    if (!ragData || !Array.isArray(ragData) || ragData.length === 0) {
+      throw new Error(`RAGデータが提供されていません。受信データ: ${JSON.stringify({ ragData: ragData || 'undefined' })}`);
     }
 
-    // RAGデータを整理・要約
-    const ragSummary = ragData.map((item, index) => {
+    // カテゴリ関連性を考慮したRAGデータの重み付けと整理
+    const categoryKeywords = {
+      'reskilling': ['人材育成', 'スキルアップ', '研修', '教育', 'キャリア', '学習'],
+      'ai-agents': ['AIエージェント', 'AI開発', '人工知能', '自動化', 'チャットボット', 'API'],
+      'corporate': ['企業戦略', '経営', 'ビジネス', 'DX', 'デジタル変革', '組織'],
+      'mcp-servers': ['MCP', 'サーバー', 'プロトコル', '連携', '統合', 'API'],
+      'chatbot-development': ['チャットボット', '対話AI', 'NLP', '自然言語処理', 'UI/UX'],
+      'hr-solutions': ['人事', 'HR', '採用', '人材管理', '労務', '組織運営'],
+      'system-development': ['システム開発', 'ソフトウェア', 'アプリ開発', 'Web開発', 'インフラ'],
+      'aio-seo': ['SEO', '検索最適化', 'AIO', 'レリバンスエンジニアリング', 'Webマーケティング'],
+      'sns-automation': ['SNS', 'ソーシャルメディア', '自動化', 'マーケティング', 'コンテンツ配信'],
+      'video-generation': ['動画生成', '映像制作', 'AI動画', 'コンテンツ作成', 'メディア制作'],
+      'vector-rag': ['ベクトル検索', 'RAG', '情報検索', 'AI検索', 'データベース', '知識ベース']
+    };
+
+    const categoryWords = categoryKeywords[categorySlug as keyof typeof categoryKeywords] || [];
+    console.log(`🎯 カテゴリ「${categorySlug}」関連キーワード: ${categoryWords.join(', ')}`);
+
+    // RAGデータにカテゴリ関連性スコアを追加
+    const enhancedRAGData = ragData.map((item, index) => {
+      const content = getSafeContent(item);
+      
+      // カテゴリ関連性スコアを計算
+      let categoryRelevance = 0;
+      const contentLower = content.toLowerCase();
+      categoryWords.forEach(keyword => {
+        if (contentLower.includes(keyword.toLowerCase())) {
+          categoryRelevance += 0.1;
+        }
+      });
+      
+      return {
+        ...item,
+        categoryRelevance,
+        enhancedScore: (item.score || 0) + categoryRelevance
+      };
+    });
+
+    // カテゴリ関連性でソート（関連性の高いものを優先）
+    enhancedRAGData.sort((a, b) => (b.enhancedScore || 0) - (a.enhancedScore || 0));
+
+    const ragSummary = enhancedRAGData.map((item, index) => {
       const sourceLabel = {
         'company': '自社情報',
         'trend': 'トレンドニュース',
@@ -138,12 +179,34 @@ export async function POST(request: NextRequest) {
         ? content.substring(0, maxLength) + '...'
         : content;
 
-      return `[${sourceLabel} ${index + 1}]
+      // カテゴリ関連性が高い場合は特別マーク
+      const relevanceIndicator = item.categoryRelevance > 0.2 ? ' 🎯[高関連性]' : '';
+
+      return `[${sourceLabel} ${index + 1}${relevanceIndicator}]
 ${truncatedContent}
 ${item.metadata?.title ? `タイトル: ${item.metadata.title}` : ''}
 ${item.metadata?.source_url ? `URL: ${item.metadata.source_url}` : ''}
+${item.categoryRelevance > 0 ? `カテゴリ関連性: ${(item.categoryRelevance * 100).toFixed(0)}%` : ''}
 `;
     }).join('\n\n');
+
+    // カテゴリ別の専門性強化指示
+    const categoryExpertise = {
+      'reskilling': '人材育成・リスキリング分野の専門家として、具体的な研修プログラム、スキル開発手法、キャリア設計について詳細に解説してください。',
+      'ai-agents': 'AIエージェント開発の技術専門家として、実装方法、アーキテクチャ、具体的なコード例や設計パターンについて詳しく説明してください。',
+      'corporate': '企業経営・戦略コンサルタントとして、ビジネス戦略、組織運営、DX推進の実践的なアプローチを具体例とともに提案してください。',
+      'mcp-servers': 'MCPサーバー技術の専門家として、プロトコル仕様、実装ガイド、統合方法について技術的な詳細を含めて解説してください。',
+      'chatbot-development': 'チャットボット開発の専門家として、対話設計、NLP技術、UI/UX設計について実践的な手法を詳述してください。',
+      'hr-solutions': '人事・HR分野の専門家として、人材管理システム、採用戦略、組織開発の具体的な手法と事例を説明してください。',
+      'system-development': 'システム開発の技術専門家として、開発手法、アーキテクチャ設計、技術選定について詳細な技術情報を提供してください。',
+      'aio-seo': 'SEO・AIO最適化の専門家として、レリバンスエンジニアリング手法、技術的SEO、コンテンツ戦略について詳しく解説してください。',
+      'sns-automation': 'SNS自動化・マーケティングの専門家として、自動化ツール、コンテンツ戦略、エンゲージメント向上手法を詳述してください。',
+      'video-generation': '動画生成・映像制作の専門家として、AI動画技術、制作ワークフロー、効果的なコンテンツ設計について説明してください。',
+      'vector-rag': 'ベクトル検索・RAG技術の専門家として、技術アーキテクチャ、実装方法、性能最適化について詳細に解説してください。'
+    };
+
+    const expertiseInstruction = categoryExpertise[categorySlug as keyof typeof categoryExpertise] || 
+      '該当分野の専門家として、実践的で価値ある情報を詳しく解説してください。';
 
     // ブログ記事生成プロンプト
     const prompt = `あなたは経験豊富なコンテンツライターです。以下のRAGデータを活用して、SEO最適化された高品質なブログ記事を生成してください。
@@ -153,9 +216,17 @@ ${item.metadata?.source_url ? `URL: ${item.metadata.source_url}` : ''}
 - **目標文字数**: ${targetLength}文字
 - **事業カテゴリ**: ${businessCategory}
 - **カテゴリ**: ${categorySlug}
+- **専門性指示**: ${expertiseInstruction}
 
 ## RAG参考データ
 ${ragSummary}
+
+## カテゴリ特化要件
+特に「${categorySlug}」分野に特化した内容として、以下を重視してください：
+${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、')}` : ''}
+- 該当分野の最新トレンドと実践的な手法
+- 読者が即座に活用できる具体的なアクションアイテム
+- 専門用語の適切な説明と実例の提示
 
 ## 記事生成要件
 

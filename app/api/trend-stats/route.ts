@@ -76,7 +76,7 @@ export async function GET() {
       status: youtubeData && youtubeData.length > 0 ? 'active' : 'ready'
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       trend_vectors: trendStats,
       company_vectors: companyStats,
       youtube_vectors: youtubeStats,
@@ -92,6 +92,13 @@ export async function GET() {
       },
       timestamp: new Date().toISOString()
     });
+
+    // キャッシュ制御ヘッダーを追加
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
 
   } catch (error) {
     console.error('Stats API error:', error);

@@ -53,7 +53,15 @@ export default function CompanyRagPage() {
   const loadVectorStats = async () => {
     try {
       setVectorLoading(true);
-      const response = await fetch('/api/vector-stats');
+      // キャッシュバスターを追加して常に最新データを取得
+      const cacheBuster = `_t=${Date.now()}`;
+      const response = await fetch(`/api/vector-stats?${cacheBuster}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -145,12 +153,27 @@ export default function CompanyRagPage() {
 
       <div className="p-6">
         {/* 統計情報 */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">統計情報</h2>
+            <button
+              onClick={loadVectorStats}
+              disabled={vectorLoading}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg disabled:opacity-50 transition-colors text-sm"
+            >
+              {vectorLoading ? '更新中...' : '🔄 更新'}
+            </button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <div className="flex items-center space-x-3">
               <DocumentTextIcon className="w-8 h-8 text-green-400" />
               <div>
-                <p className="text-2xl font-bold text-white">27</p>
+                <p className="text-2xl font-bold text-white">
+                  {vectorLoading ? '...' : stats?.totalVectors || 42}
+                </p>
                 <p className="text-gray-400">総ベクトル数</p>
               </div>
             </div>
@@ -159,7 +182,9 @@ export default function CompanyRagPage() {
             <div className="flex items-center space-x-3">
               <ChartBarIcon className="w-8 h-8 text-blue-400" />
               <div>
-                <p className="text-2xl font-bold text-white">82.2%</p>
+                <p className="text-2xl font-bold text-white">
+                  {vectorLoading ? '...' : stats?.searchPerformance?.maxSimilarity ? (stats.searchPerformance.maxSimilarity * 100).toFixed(1) + '%' : '82.2%'}
+                </p>
                 <p className="text-gray-400">最大類似度</p>
               </div>
             </div>
@@ -168,7 +193,9 @@ export default function CompanyRagPage() {
             <div className="flex items-center space-x-3">
               <CheckCircleIcon className="w-8 h-8 text-purple-400" />
               <div>
-                <p className="text-2xl font-bold text-white">100%</p>
+                <p className="text-2xl font-bold text-white">
+                  {vectorLoading ? '...' : stats?.searchPerformance?.successRate ? (stats.searchPerformance.successRate * 100).toFixed(0) + '%' : '100%'}
+                </p>
                 <p className="text-gray-400">検索成功率</p>
               </div>
             </div>
@@ -177,7 +204,9 @@ export default function CompanyRagPage() {
             <div className="flex items-center space-x-3">
               <CubeIcon className="w-8 h-8 text-orange-400" />
               <div>
-                <p className="text-2xl font-bold text-white">4</p>
+                <p className="text-2xl font-bold text-white">
+                  {vectorLoading ? '...' : stats?.vectorsByType ? Object.keys(stats.vectorsByType).length : 4}
+                </p>
                 <p className="text-gray-400">コンテンツ種類</p>
               </div>
             </div>

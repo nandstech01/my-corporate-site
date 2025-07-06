@@ -75,7 +75,15 @@ export default function YouTubeRagPage() {
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
-      const response = await fetch('/api/trend-stats'); // YouTube統計も含む
+      // キャッシュバスターを追加して常に最新データを取得
+      const cacheBuster = `_t=${Date.now()}`;
+      const response = await fetch(`/api/trend-stats?${cacheBuster}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -516,6 +524,19 @@ export default function YouTubeRagPage() {
         )}
 
         {/* 統計情報 */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">統計情報</h2>
+            <button
+              onClick={fetchStats}
+              disabled={statsLoading}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg disabled:opacity-50 transition-colors text-sm"
+            >
+              {statsLoading ? '更新中...' : '🔄 更新'}
+            </button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
             <div className="flex items-center">

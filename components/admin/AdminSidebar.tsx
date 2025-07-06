@@ -12,7 +12,8 @@ import {
   BoltIcon,
   GlobeAltIcon,
   CubeIcon,
-  PlayIcon
+  PlayIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 export default function AdminSidebar() {
@@ -64,6 +65,11 @@ export default function AdminSidebar() {
           name: 'コンテンツ生成',
           href: '/admin/content-generation',
           current: pathname === '/admin/content-generation'
+        },
+        {
+          name: 'RAG削除管理',
+          href: '/admin/rag-cleanup',
+          current: pathname === '/admin/rag-cleanup'
         }
       ]
     },

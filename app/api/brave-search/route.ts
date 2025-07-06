@@ -102,6 +102,12 @@ URL: ${newsItem.url}
           // OpenAI Embeddingsでベクトル化
           const embedding = await embeddings.embedSingle(contentForVectorization);
 
+          // 実際のニュース配信日を計算
+          const publishedDate = parseNewsDate(newsItem.published);
+          const trendDate = publishedDate ? publishedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          
+          console.log(`📅 ニュース配信日: ${newsItem.published} → ${trendDate}`);
+
           // trend_vectorsテーブルに保存（既存の構造に合わせて）
           const { data: savedVector, error: saveError } = await supabase
             .from('trend_vectors')
@@ -115,11 +121,12 @@ URL: ${newsItem.url}
                 source: newsItem.source,
                 source_url: newsItem.url,
                 relevance_score: newsItem.relevance,
-                trend_date: new Date().toISOString(),
+                trend_date: trendDate,
                 popularity_score: 0.8,
                 keywords: extractKeywords(newsItem.title, newsItem.description),
                 metadata: {
                   published: newsItem.published,
+                  actual_published_date: trendDate,
                   query: query,
                   retrieved_at: new Date().toISOString(),
                   api_source: 'brave_search_api'
@@ -214,6 +221,54 @@ function calculateRelevance(item: any, query: string, index: number): number {
   }
   
   return Math.min(relevance, 1.0);
+}
+
+// ニュース配信日をパースする関数
+function parseNewsDate(published: string): Date | null {
+  try {
+    // 既に絶対的な日付の場合
+    if (published.includes('T') || published.includes('-')) {
+      const date = new Date(published);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+
+    // 相対的な時間表記をパース（「1 day ago」「2 hours ago」など）
+    const now = new Date();
+    const lowerPublished = published.toLowerCase();
+
+    if (lowerPublished.includes('minute')) {
+      const minutes = parseInt(lowerPublished.match(/(\d+)\s*minute/)?.[1] || '0');
+      return new Date(now.getTime() - minutes * 60 * 1000);
+    }
+    
+    if (lowerPublished.includes('hour')) {
+      const hours = parseInt(lowerPublished.match(/(\d+)\s*hour/)?.[1] || '0');
+      return new Date(now.getTime() - hours * 60 * 60 * 1000);
+    }
+    
+    if (lowerPublished.includes('day')) {
+      const days = parseInt(lowerPublished.match(/(\d+)\s*day/)?.[1] || '0');
+      return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    }
+    
+    if (lowerPublished.includes('week')) {
+      const weeks = parseInt(lowerPublished.match(/(\d+)\s*week/)?.[1] || '0');
+      return new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000);
+    }
+
+    if (lowerPublished.includes('month')) {
+      const months = parseInt(lowerPublished.match(/(\d+)\s*month/)?.[1] || '0');
+      return new Date(now.getTime() - months * 30 * 24 * 60 * 60 * 1000);
+    }
+
+    // パースできない場合は今日の日付を返す
+    return now;
+  } catch (error) {
+    console.error(`日付パースエラー: ${published}`, error);
+    return new Date(); // フォールバック
+  }
 }
 
 // キーワード抽出関数

@@ -124,9 +124,11 @@ export async function POST(request: NextRequest) {
             match_count: limit * (latestNewsMode ? 3 : 1) // 最新ニュースモードでは3倍取得
           });
 
-        // 日付フィルタを適用
+        // 日付フィルタを適用（trend_dateまたはmetadata.publishedを使用）
         if (dateThreshold) {
-          trendQuery = trendQuery.filter('published_at', 'gte', dateThreshold);
+          const dateOnly = dateThreshold.split('T')[0]; // YYYY-MM-DD形式に変換
+          trendQuery = trendQuery.filter('trend_date', 'gte', dateOnly);
+          console.log(`📅 Trend RAG日付フィルタ適用: ${dateOnly}以降`);
         }
 
         const { data: trendResults, error: trendError } = await trendQuery;
@@ -143,17 +145,58 @@ export async function POST(request: NextRequest) {
               ...result.metadata,
               title: result.title,
               source_url: result.source_url,
-              published_at: result.published_at
+              published_at: result.metadata?.published || result.metadata?.retrieved_at,
+              trend_date: result.trend_date
             }
           }));
 
-          // 最新ニュースモードでは日付順でソート
+          // 最新ニュースモードでは日付新しさを重視した再スコアリング
           if (latestNewsMode) {
-            formattedResults.sort((a: SearchResult, b: SearchResult) => {
-              const dateA = new Date(a.metadata.published_at || 0).getTime();
-              const dateB = new Date(b.metadata.published_at || 0).getTime();
-              return dateB - dateA; // 新しい順
+            const now = Date.now();
+            formattedResults = formattedResults.map((result: SearchResult) => {
+              // 安全な日付処理
+              const dateValue = result.metadata?.published_at || 
+                               result.metadata?.trend_date || 
+                               result.metadata?.retrieved_at || 
+                               result.metadata?.created_at;
+              
+              const publishedDate = new Date(dateValue);
+              let daysDiff = Infinity;
+              let freshnessBonus = 0;
+              let freshnessScore = 0;
+              
+              // 有効な日付の場合のみ処理
+              if (dateValue && !isNaN(publishedDate.getTime())) {
+                daysDiff = (now - publishedDate.getTime()) / (1000 * 60 * 60 * 24);
+                
+                if (daysDiff <= 1) {
+                  freshnessBonus = 0.3; // 24時間以内
+                } else if (daysDiff <= 7) {
+                  freshnessBonus = 0.15; // 7日以内
+                } else if (daysDiff <= 30) {
+                  freshnessBonus = 0.05; // 30日以内
+                }
+                
+                freshnessScore = Math.max(0, 1 - (daysDiff / 30)); // 30日で線形減衰
+              }
+              
+              // 最新性を考慮したスコア調整（関連性60% + 新しさ40%）
+              const originalScore = result.score || 0;
+              const enhancedScore = (originalScore * 0.6) + (freshnessScore * 0.4) + freshnessBonus;
+              
+              console.log(`📰 ${result.metadata?.title?.substring(0, 30)}... 
+                         原スコア: ${originalScore.toFixed(3)}, 
+                         新しさ: ${freshnessScore.toFixed(3)}, 
+                         最終: ${enhancedScore.toFixed(3)}`);
+              
+              return {
+                ...result,
+                score: Math.min(enhancedScore, 1.0) // 最大1.0に制限
+              };
             });
+
+            // 強化されたスコアで再ソート
+            formattedResults.sort((a: SearchResult, b: SearchResult) => (b.score || 0) - (a.score || 0));
           }
 
           searchResults.push(...formattedResults);

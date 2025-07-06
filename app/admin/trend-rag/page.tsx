@@ -10,7 +10,8 @@ import {
   MagnifyingGlassIcon,
   NewspaperIcon,
   SparklesIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  PlayIcon
 } from '@heroicons/react/24/outline';
 
 interface NewsItem {
@@ -34,6 +35,10 @@ interface Stats {
   };
   company_vectors: {
     total: number;
+  };
+  youtube_vectors: {
+    total: number;
+    status: string;
   };
   third_rag: {
     total: number;
@@ -65,7 +70,15 @@ export default function TrendRagPage() {
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
-      const response = await fetch('/api/trend-stats');
+      // キャッシュバスターを追加して常に最新データを取得
+      const cacheBuster = `_t=${Date.now()}`;
+      const response = await fetch(`/api/trend-stats?${cacheBuster}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -483,6 +496,19 @@ export default function TrendRagPage() {
         )}
 
         {/* 統計情報 */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">統計情報</h2>
+            <button
+              onClick={fetchStats}
+              disabled={statsLoading}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg disabled:opacity-50 transition-colors text-sm"
+            >
+              {statsLoading ? '更新中...' : '🔄 更新'}
+            </button>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
             <div className="flex items-center">
@@ -516,13 +542,15 @@ export default function TrendRagPage() {
 
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mr-3">
-                <BoltIcon className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
+                <PlayIcon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-blue-400 text-sm font-medium">第3のRAG</p>
-                <p className="text-2xl font-bold text-white">準備中</p>
-                <p className="text-gray-400 text-xs">Coming Soon</p>
+                <p className="text-red-400 text-sm font-medium">YouTubeRAG</p>
+                <p className="text-2xl font-bold text-white">
+                  {statsLoading ? '...' : stats?.youtube_vectors?.total || 0}個
+                </p>
+                <p className="text-gray-400 text-xs">ベクトル化済み</p>
               </div>
             </div>
           </div>

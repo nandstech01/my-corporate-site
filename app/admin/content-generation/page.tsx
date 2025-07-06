@@ -61,6 +61,7 @@ export default function ContentGenerationPage() {
   
   // RAGブログ記事生成関連
   const [showRAGBlogGeneration, setShowRAGBlogGeneration] = useState(false);
+  const [showUsageGuide, setShowUsageGuide] = useState(false);
   const [ragSearchResults, setRagSearchResults] = useState<RAGSearchResult[]>([]);
   const [blogGenerationForm, setBlogGenerationForm] = useState<BlogGenerationForm>({
     query: '',
@@ -155,7 +156,7 @@ export default function ContentGenerationPage() {
     }
   };
 
-  // RAGデータ検索
+  // RAGデータ検索（統合RAGエンドポイント使用）
   const searchRAGData = async () => {
     if (!blogGenerationForm.query.trim()) {
       alert('検索クエリを入力してください');
@@ -164,57 +165,44 @@ export default function ContentGenerationPage() {
 
     setRagSearchLoading(true);
     try {
-      const searchPromises = [];
+      // 統合RAGエンドポイントを使用
+      const response = await fetch('/api/search-rag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: blogGenerationForm.query,
+          sources: blogGenerationForm.selectedRAGs,
+          limit: 5, // 各RAGから5件ずつ取得
+          threshold: 0.3,
+          dateFilter: blogGenerationForm.dateFilter,
+          latestNewsMode: blogGenerationForm.latestNewsMode
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('RAG検索API呼び出しに失敗しました');
+      }
+
+      const result = await response.json();
       
-      // Company RAG検索
-      if (blogGenerationForm.selectedRAGs.includes('company')) {
-        searchPromises.push(
-          fetch('/api/search-company-rag', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: blogGenerationForm.query, limit: 10 })
-          }).then(res => res.json())
-        );
-      }
-
-      // Trend RAG検索
-      if (blogGenerationForm.selectedRAGs.includes('trend')) {
-        searchPromises.push(
-          fetch('/api/search-trend-rag', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: blogGenerationForm.query, limit: 10 })
-          }).then(res => res.json())
-        );
-      }
-
-      // YouTube RAG検索
-      if (blogGenerationForm.selectedRAGs.includes('youtube')) {
-        searchPromises.push(
-          fetch('/api/search-youtube-rag', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: blogGenerationForm.query, limit: 10 })
-          }).then(res => res.json())
-        );
-      }
-
-      const results = await Promise.all(searchPromises);
-      const allResults: RAGSearchResult[] = results.flatMap((result, index) => {
-        const ragType = blogGenerationForm.selectedRAGs[index];
-        return (result.results || []).map((item: any) => ({
+      if (result.success && result.results) {
+        const allResults: RAGSearchResult[] = result.results.map((item: any) => ({
           id: item.id,
           content: item.content,
-          source: ragType,
+          source: item.source,
           score: item.score,
           metadata: item.metadata
         }));
-      });
 
-      setRagSearchResults(allResults);
+        setRagSearchResults(allResults);
+        console.log(`✅ RAG検索完了: ${allResults.length}件取得`);
+        console.log('📊 検索結果統計:', result.summary);
+      } else {
+        throw new Error('RAG検索結果の取得に失敗しました');
+      }
     } catch (error) {
       console.error('RAG search error:', error);
-      alert('RAG検索でエラーが発生しました');
+      alert(`RAG検索でエラーが発生しました: ${(error as Error).message}`);
     } finally {
       setRagSearchLoading(false);
     }
@@ -423,6 +411,290 @@ export default function ContentGenerationPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 使い方マニュアルセクション */}
+        <div className="bg-gray-800 rounded-xl border border-gray-700 mb-6">
+          <div className="p-6 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <DocumentTextIcon className="w-6 h-6 text-blue-400" />
+                <h2 className="text-xl font-semibold">使い方マニュアル</h2>
+              </div>
+              <button
+                onClick={() => setShowUsageGuide(!showUsageGuide)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                {showUsageGuide ? '閉じる' : '使い方を見る'}
+              </button>
+            </div>
+            <p className="text-gray-400 mt-2">
+              トリプルRAGシステムの効果的な活用方法を詳しく解説
+            </p>
+          </div>
+          
+          {showUsageGuide && (
+            <div className="p-6 space-y-6">
+              
+              {/* 基本的な使い方 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold text-white">1</span>
+                  <span>基本的な使い方</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2">📝 検索クエリ</h4>
+                    <p className="text-gray-300 text-sm">
+                      記事のテーマとなるキーワードを入力します。
+                    </p>
+                    <div className="mt-2 text-xs text-gray-400">
+                      例: 「AI エージェント 最新技術」「リスキリング 人材育成」
+                    </div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2">🎯 文字数設定</h4>
+                    <p className="text-gray-300 text-sm">
+                      記事の文字数を選択します。実際に指定文字数で生成されます。
+                    </p>
+                    <div className="mt-2 text-xs text-gray-400">
+                      5,000文字〜8,000文字まで対応
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RAGシステム選択ガイド */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-sm font-bold text-white">2</span>
+                  <span>RAGシステムの選択方法</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2 flex items-center space-x-2">
+                      <span className="w-3 h-3 bg-purple-500 rounded-full"></span>
+                      <span>Company RAG</span>
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-2">
+                      自社の全27サービス・事業情報を活用
+                    </p>
+                    <div className="text-xs text-gray-400">
+                      <strong>選択すべき記事:</strong><br />
+                      • 自社サービスの紹介記事<br />
+                      • 企業の専門性を活かした記事<br />
+                      • 実績・事例を含む記事
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2 flex items-center space-x-2">
+                      <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                      <span>Trend RAG</span>
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-2">
+                      最新ニュース・トレンド情報（57件）
+                    </p>
+                    <div className="text-xs text-gray-400">
+                      <strong>選択すべき記事:</strong><br />
+                      • 最新技術動向の記事<br />
+                      • ニュース解説記事<br />
+                      • 業界トレンド分析記事
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2 flex items-center space-x-2">
+                      <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                      <span>YouTube RAG</span>
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-2">
+                      教育系動画の詳細情報
+                    </p>
+                    <div className="text-xs text-gray-400">
+                      <strong>選択すべき記事:</strong><br />
+                      • 技術解説記事<br />
+                      • 学習ガイド記事<br />
+                      • 実践的なハウツー記事
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 記事タイプ別推奨パターン */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-sm font-bold text-white">3</span>
+                  <span>記事タイプ別推奨パターン</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-green-900 to-green-800 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-xl">🚀</span>
+                      <span>最新技術情報記事</span>
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-300">✓</span>
+                        <span className="text-white">Company RAG + Trend RAG</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-300">✓</span>
+                        <span className="text-white">最新ニュースモード: ON</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-300">✓</span>
+                        <span className="text-white">日付フィルタ: 7days</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-200">
+                      <strong>用途:</strong> 「AI最新技術」「ChatGPT新機能」「生成AI動向」
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-xl">🔧</span>
+                      <span>専門技術深掘り記事</span>
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-300">✓</span>
+                        <span className="text-white">Company RAG + YouTube RAG</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-300">✓</span>
+                        <span className="text-white">最新ニュースモード: OFF</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-300">✓</span>
+                        <span className="text-white">日付フィルタ: all</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-200">
+                      <strong>用途:</strong> 「システム開発手法」「AIエージェント実装」「技術アーキテクチャ」
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-xl">📚</span>
+                      <span>包括的解説記事</span>
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-purple-300">✓</span>
+                        <span className="text-white">Company RAG + Trend RAG + YouTube RAG</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-purple-300">✓</span>
+                        <span className="text-white">最新ニュースモード: OFF</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-purple-300">✓</span>
+                        <span className="text-white">日付フィルタ: 30days</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-200">
+                      <strong>用途:</strong> 「リスキリング完全ガイド」「企業DX戦略」「人材育成体系」
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-orange-900 to-orange-800 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-xl">📰</span>
+                      <span>ニュース解説記事</span>
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-orange-300">✓</span>
+                        <span className="text-white">Trend RAG のみ</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-orange-300">✓</span>
+                        <span className="text-white">最新ニュースモード: ON</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-orange-300">✓</span>
+                        <span className="text-white">日付フィルタ: 7days</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-200">
+                      <strong>用途:</strong> 「AI業界最新動向」「テック業界ニュース」「技術トレンド速報」
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 高度な設定 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm font-bold text-white">4</span>
+                  <span>高度な設定</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2">⚡ 最新ニュースモード</h4>
+                    <p className="text-gray-300 text-sm mb-2">
+                      トレンドRAGの情報に新しさによる重み付けを適用
+                    </p>
+                    <div className="text-xs text-gray-400 space-y-1">
+                      <div>• 24時間以内: +0.3ボーナス</div>
+                      <div>• 7日以内: +0.15ボーナス</div>
+                      <div>• 30日以内: +0.05ボーナス</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2">📅 日付フィルタ</h4>
+                    <p className="text-gray-300 text-sm mb-2">
+                      指定期間内の情報のみを使用
+                    </p>
+                    <div className="text-xs text-gray-400 space-y-1">
+                      <div>• 7days: 直近1週間の情報のみ</div>
+                      <div>• 30days: 直近1ヶ月の情報のみ</div>
+                      <div>• all: 全期間の情報を使用</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 注意事項 */}
+              <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-4">
+                <h4 className="font-medium text-yellow-300 mb-2">⚠️ 注意事項</h4>
+                <ul className="text-sm text-yellow-200 space-y-1">
+                  <li>• 最新ニュースモードON時は、YouTube RAGが自動的に除外されます</li>
+                  <li>• 文字数制限は実際に機能しており、指定した文字数程度で記事が生成されます</li>
+                  <li>• 生成された記事は自動的にRAGシステムに追加され、今後の記事生成で参照可能になります</li>
+                  <li>• カテゴリ関連性システムにより、選択したカテゴリに最適化された記事が生成されます</li>
+                </ul>
+              </div>
+
+              {/* 使用例 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white">5</span>
+                  <span>実際の使用例</span>
+                </h3>
+                
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h4 className="font-medium text-white mb-2">例: 「AI エージェント 最新技術」記事の生成</h4>
+                  <div className="text-sm text-gray-300 space-y-2">
+                    <div><strong>手順1:</strong> 検索クエリに「AI エージェント 最新技術」を入力</div>
+                    <div><strong>手順2:</strong> Company RAG + Trend RAG を選択</div>
+                    <div><strong>手順3:</strong> 最新ニュースモードを ON、日付フィルタを 7days に設定</div>
+                    <div><strong>手順4:</strong> 目標文字数を 6,000文字 に設定</div>
+                                         <div><strong>手順5:</strong> 事業カテゴリを「リスキリング」、記事カテゴリを「AIニュース・トレンド」に設定</div>
+                    <div><strong>手順6:</strong> 「RAGデータ検索」をクリック</div>
+                    <div><strong>手順7:</strong> 検索結果を確認後、「記事生成」をクリック</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RAGブログ記事生成セクション */}
