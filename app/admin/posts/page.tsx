@@ -18,6 +18,7 @@ type Post = {
   created_at: string;
   updated_at: string;
   table_type: 'posts' | 'chatgpt_posts';
+  is_chatgpt_special: boolean;
 };
 
 export default function PostsPage() {
@@ -50,7 +51,7 @@ export default function PostsPage() {
 
       if (newError) throw newError;
 
-      // chatgpt_postsテーブルから記事を取得
+      // chatgpt_postsテーブルから記事を取得（is_chatgpt_specialも取得）
       const { data: oldPosts, error: oldError } = await supabase
         .from('chatgpt_posts')
         .select(`
@@ -63,7 +64,8 @@ export default function PostsPage() {
           thumbnail_url,
           status,
           created_at,
-          updated_at
+          updated_at,
+          is_chatgpt_special
         `)
         .order('created_at', { ascending: false });
 
@@ -81,7 +83,8 @@ export default function PostsPage() {
         status: post.status || 'draft',
         created_at: post.created_at,
         updated_at: post.updated_at,
-        table_type: 'posts'
+        table_type: 'posts',
+        is_chatgpt_special: false
       }));
 
       const formattedOldPosts: Post[] = (oldPosts || []).map(post => ({
@@ -95,7 +98,8 @@ export default function PostsPage() {
         status: post.status || 'draft',
         created_at: post.created_at,
         updated_at: post.updated_at,
-        table_type: 'chatgpt_posts'
+        table_type: 'chatgpt_posts',
+        is_chatgpt_special: post.is_chatgpt_special || false
       }));
 
       // 両方のテーブルの記事を合体して日付順でソート
@@ -215,8 +219,15 @@ export default function PostsPage() {
                         }`}>
                           {post.status === 'published' ? '公開' : '下書き'}
                         </span>
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                          {post.table_type === 'posts' ? 'RAG記事' : 'ChatGPT記事'}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          post.table_type === 'posts' 
+                            ? 'bg-green-100 text-green-800'
+                            : post.is_chatgpt_special 
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {post.table_type === 'posts' ? 'RAG記事' : 
+                           post.is_chatgpt_special ? 'ChatGPT特集記事' : '旧システム記事'}
                         </span>
                         <span className="text-xs text-gray-300">
                           ID: {post.id}
