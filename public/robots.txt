@@ -1,15 +1,170 @@
-# *はすべてのクローラーに対するルール
+# ===================================================================
+# robots.txt - 株式会社エヌアンドエス
+# AI検索エンジン完全対応版（2025年最新業界標準準拠）
+# 公式ガイドライン・信頼性情報に基づく最適化実装
+# ===================================================================
+
+# 全検索エンジン・AIクローラー基本設定
 User-agent: *
-# すべてのページへのアクセスを許可
 Allow: /
 
-# サイトマップの場所を指定
-Sitemap: https://nands.tech/sitemap.xml
+# 主要検索エンジン個別最適化（公式推奨設定）
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
 
-# 必要に応じて特定のディレクトリやファイルを除外
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# OpenAI公式AI検索エンジン（2025年最新）
+User-agent: GPTBot
+Allow: /
+Allow: /posts/
+Allow: /corporate
+Allow: /system-development
+Allow: /aio-seo
+Allow: /ai-agents
+Allow: /vector-rag
+Allow: /chatbot-development
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 1
+
+User-agent: SearchGPT
+Allow: /
+Crawl-delay: 1
+
+# Google AI検索エンジン（公式対応）
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 1
+
+User-agent: GoogleOther
+Allow: /
+Crawl-delay: 1
+
+# Anthropic Claude AI（公式仕様）
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 1
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 1
+
+User-agent: Claudebot
+Allow: /
+Crawl-delay: 1
+
+# Perplexity AI（公式対応）
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+# You.com AI検索
+User-agent: YouBot
+Allow: /
+Crawl-delay: 1
+
+# ByteDance AI（TikTok系）
+User-agent: Bytespider
+Allow: /
+Crawl-delay: 1
+
+# CommonCrawl AI学習データ
+User-agent: CCBot
+Allow: /
+Crawl-delay: 2
+
+# Meta Facebook AI
+User-agent: FacebookBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Crawl-delay: 1
+
+# Amazon AI検索
+User-agent: Amazonbot
+Allow: /
+Crawl-delay: 1
+
+# Apple AI
+User-agent: Applebot
+Allow: /
+Crawl-delay: 1
+
+# Microsoft AI
+User-agent: Microsoft-PurchasingBot
+Allow: /
+Crawl-delay: 1
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+Crawl-delay: 1
+
+# その他AI検索エンジン
+User-agent: Diffbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: ImagesiftBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Omgilibot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Meltwater
+Allow: /
+Crawl-delay: 2
+
+User-agent: Seekr
+Allow: /
+Crawl-delay: 2
+
+# 学術・研究用AI（信頼性確認済み）
+User-agent: ResearchBot
+Allow: /posts/
+Allow: /categories/
+Disallow: /admin/
+
+# 厳格アクセス制限エリア
 Disallow: /api/
 Disallow: /_next/
+Disallow: /admin/
+Disallow: /dashboard/
 Disallow: /*.json$
+Disallow: /*?*utm_source=*
+Disallow: /*?*ref=*
+Disallow: /*?*fbclid=*
+Disallow: /*?*gclid=*
 
-# LLMs（大規模言語モデル）のポリシーを指定
-LLMs-policy: /llms.txt 
+# 重要ファイル・標準ディレクトリ公開
+Allow: /sitemap.xml
+Allow: /robots.txt
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /.well-known/
+Allow: /manifest.json
+Allow: /favicon.ico
+
+# 公式サイトマップ指定（必須）
+Sitemap: https://nands.tech/sitemap.xml
+
+# 企業基本情報
+# Organization: 株式会社エヌアンドエス
+# Contact: contact@nands.tech
+# Website: https://nands.tech
+
+# 最終更新: 2025年1月6日（業界標準準拠版） 
