@@ -87,6 +87,7 @@ export default function EditPostPage({
   const [seoKeywordInput, setSeoKeywordInput] = React.useState('');
   const [postId, setPostId] = React.useState<string>('');
   const [tableType, setTableType] = React.useState<'posts' | 'chatgpt_posts'>('posts');
+  const [isGeneratingSEO, setIsGeneratingSEO] = React.useState(false);
 
   // 両方のテーブルから記事を検索する関数
   const fetchPost = async (slug: string): Promise<Post | null> => {
@@ -333,6 +334,46 @@ export default function EditPostPage({
     setContent(newContent);
   };
 
+  const generateSEOMetadata = async () => {
+    if (!title || !content) {
+      alert('タイトルと本文を入力してからSEOメタデータを生成してください。');
+      return;
+    }
+
+    setIsGeneratingSEO(true);
+    try {
+      const response = await fetch('/api/generate-seo-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          content,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('SEOメタデータの生成に失敗しました');
+      }
+
+      const data = await response.json();
+      setMetaDescription(data.metaDescription);
+      setSeoKeywords(data.seoKeywords);
+      
+      // 生成結果を表示
+      if (data.analysis) {
+        const analysisMessage = `SEOメタデータを生成しました：\n\n主要トピック: ${data.analysis.primary_topic}\nターゲット読者層: ${data.analysis.target_audience}\n価値提案: ${data.analysis.value_proposition}`;
+        alert(analysisMessage);
+      }
+    } catch (error) {
+      console.error('SEOメタデータ生成エラー:', error);
+      alert('SEOメタデータの生成に失敗しました。しばらく時間をおいて再度お試しください。');
+    } finally {
+      setIsGeneratingSEO(false);
+    }
+  };
+
   if (isPreviewMode) {
     return (
       <div className="max-w-6xl mx-auto p-6">
@@ -509,24 +550,58 @@ export default function EditPostPage({
 
         {/* SEO設定 */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">SEO設定</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium">SEO設定</h2>
+            <button
+              type="button"
+              onClick={generateSEOMetadata}
+              disabled={isGeneratingSEO || !title || !content}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGeneratingSEO ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  生成中...
+                </>
+              ) : (
+                'AI自動生成'
+              )}
+            </button>
+          </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                メタディスクリプション
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  メタディスクリプション
+                </label>
+                <span className={`text-xs ${metaDescription.length >= 120 && metaDescription.length <= 160 ? 'text-green-600' : 'text-red-600'}`}>
+                  {metaDescription.length}/160文字 {metaDescription.length >= 120 && metaDescription.length <= 160 ? '✓ 最適' : metaDescription.length < 120 ? '(短すぎ)' : '(長すぎ)'}
+                </span>
+              </div>
               <textarea
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 rows={3}
+                placeholder="120-160文字でChatGPT・Perplexity・Google AIに最適化された説明文を入力..."
               />
+              <p className="mt-1 text-xs text-gray-500">
+                AI検索エンジン最適化: クリック率向上のため、価値提案と具体的な成果を含めてください
+              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                SEOキーワード
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  SEOキーワード
+                </label>
+                <span className={`text-xs ${seoKeywords.length >= 10 && seoKeywords.length <= 15 ? 'text-green-600' : 'text-orange-600'}`}>
+                  {seoKeywords.length}/15個 {seoKeywords.length >= 10 && seoKeywords.length <= 15 ? '✓ 最適' : seoKeywords.length < 10 ? '(少なすぎ)' : '(多すぎ)'}
+                </span>
+              </div>
               <div className="mt-1 flex rounded-md shadow-sm">
                 <input
                   type="text"
@@ -539,6 +614,7 @@ export default function EditPostPage({
                     }
                   }}
                   className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="意図ベースの長テールキーワードを入力..."
                 />
                 <button
                   type="button"
@@ -566,6 +642,9 @@ export default function EditPostPage({
                   </span>
                 ))}
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                AI検索最適化: 関連性の高い共起語と長テールキーワードを重視してください
+              </p>
             </div>
 
             <div>
