@@ -17,6 +17,190 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
+// キーワードデータベース（英語・日本語対応）
+const keywordDatabase = {
+  // 自社サービス関連
+  company: {
+    'AIエージェント': 'AI Agents',
+    'AIエージェント開発': 'AI Agent Development',
+    'チャットボット': 'Chatbot',
+    'チャットボット開発': 'Chatbot Development',
+    'システム開発': 'System Development',
+    'Webアプリ開発': 'Web Application Development',
+    'DX推進': 'Digital Transformation',
+    'AIコンサルティング': 'AI Consulting',
+    'MCPサーバー': 'MCP Servers',
+    'API統合': 'API Integration',
+    'リスキリング': 'Reskilling',
+    '人材育成': 'Human Resource Development',
+    'スキルアップ': 'Skill Enhancement',
+    'キャリア開発': 'Career Development',
+    'デジタルスキル': 'Digital Skills',
+    'AI教育': 'AI Education',
+    'プログラミング研修': 'Programming Training',
+    'テクノロジー教育': 'Technology Education',
+    'SEO対策': 'SEO Optimization',
+    'AIO対策': 'AIO Optimization',
+    'コンテンツマーケティング': 'Content Marketing',
+    'Web最適化': 'Web Optimization',
+    'SNS自動化': 'Social Media Automation',
+    'ソーシャルメディア': 'Social Media',
+    'マーケティング自動化': 'Marketing Automation',
+    'コンテンツ配信': 'Content Distribution',
+    '動画生成': 'Video Generation',
+    'AI動画': 'AI Video',
+    '映像制作': 'Video Production',
+    'メディア制作': 'Media Production',
+    'ベクトル検索': 'Vector Search',
+    'RAG技術': 'RAG Technology',
+    '情報検索': 'Information Retrieval',
+    'AI検索': 'AI Search',
+    'HR Solutions': 'HR Solutions',
+    '人事管理': 'Human Resources Management',
+    '採用支援': 'Recruitment Support',
+    '組織開発': 'Organizational Development'
+  },
+  // 最新技術・トレンド
+  trend: {
+    'AI技術': 'AI Technology',
+    '人工知能': 'Artificial Intelligence',
+    '機械学習': 'Machine Learning',
+    'ディープラーニング': 'Deep Learning',
+    'LLM': 'Large Language Models',
+    'ChatGPT': 'ChatGPT',
+    'GPT-4': 'GPT-4',
+    'OpenAI': 'OpenAI',
+    'Google AI': 'Google AI',
+    'Claude': 'Claude AI',
+    'Gemini': 'Google Gemini',
+    'AI最新動向': 'Latest AI Trends',
+    'テクノロジートレンド': 'Technology Trends',
+    'イノベーション': 'Innovation',
+    'デジタル変革': 'Digital Transformation',
+    'AI活用事例': 'AI Use Cases',
+    'AI導入': 'AI Implementation',
+    'AIソリューション': 'AI Solutions',
+    'エンタープライズAI': 'Enterprise AI',
+    'AI戦略': 'AI Strategy',
+    'データサイエンス': 'Data Science',
+    'ビッグデータ': 'Big Data',
+    'データ活用': 'Data Utilization',
+    'データ分析': 'Data Analytics',
+    'ビジネスインテリジェンス': 'Business Intelligence',
+    'クラウドコンピューティング': 'Cloud Computing',
+    'AWS': 'Amazon Web Services',
+    'Azure': 'Microsoft Azure',
+    'Google Cloud': 'Google Cloud Platform',
+    'API開発': 'API Development',
+    'マイクロサービス': 'Microservices',
+    'DevOps': 'DevOps',
+    'アジャイル開発': 'Agile Development',
+    'サイバーセキュリティ': 'Cybersecurity',
+    'データプライバシー': 'Data Privacy',
+    'GDPR': 'GDPR Compliance',
+    'コンプライアンス': 'Compliance',
+    'エッジコンピューティング': 'Edge Computing',
+    'IoT': 'Internet of Things',
+    'ブロックチェーン': 'Blockchain',
+    'Web3': 'Web3 Technology',
+    'NFT': 'Non-Fungible Tokens',
+    'メタバース': 'Metaverse',
+    'AR/VR': 'Augmented Reality / Virtual Reality',
+    '拡張現実': 'Augmented Reality',
+    '仮想現実': 'Virtual Reality',
+    'ロボティクス': 'Robotics',
+    'オートメーション': 'Automation',
+    'RPA': 'Robotic Process Automation',
+    'ローコード開発': 'Low-Code Development',
+    'ノーコード開発': 'No-Code Development'
+  },
+  // 教育・学習
+  education: {
+    'オンライン学習': 'Online Learning',
+    'Eラーニング': 'E-Learning',
+    'MOOCs': 'Massive Open Online Courses',
+    'デジタル教育': 'Digital Education',
+    'EdTech': 'Educational Technology',
+    'LMS': 'Learning Management System',
+    'プログラミング教育': 'Programming Education',
+    'STEM教育': 'STEM Education',
+    'コーディング': 'Coding',
+    'ソフトウェア開発': 'Software Development',
+    'Web開発': 'Web Development',
+    'モバイルアプリ開発': 'Mobile App Development',
+    'データベース': 'Database',
+    'SQL': 'Structured Query Language',
+    'Python': 'Python Programming',
+    'JavaScript': 'JavaScript',
+    'TypeScript': 'TypeScript',
+    'React': 'React Framework',
+    'Next.js': 'Next.js Framework',
+    'Node.js': 'Node.js',
+    'UI/UX': 'User Interface / User Experience',
+    'フロントエンド': 'Frontend Development',
+    'バックエンド': 'Backend Development',
+    'フルスタック': 'Full Stack Development',
+    'プロジェクト管理': 'Project Management',
+    'アジャイル': 'Agile Methodology',
+    'スクラム': 'Scrum Framework',
+    'テスト駆動開発': 'Test-Driven Development',
+    'CI/CD': 'Continuous Integration / Continuous Deployment',
+    'バージョン管理': 'Version Control',
+    'Git': 'Git Version Control',
+    'GitHub': 'GitHub Platform',
+    'オープンソース': 'Open Source',
+    'コミュニティ': 'Community',
+    'ハッカソン': 'Hackathon',
+    'メンタリング': 'Mentoring',
+    'ピアラーニング': 'Peer Learning',
+    'スキル認定': 'Skill Certification',
+    '資格取得': 'Certification',
+    'キャリアパス': 'Career Path',
+    '転職支援': 'Career Transition Support',
+    'フリーランス': 'Freelancing',
+    'リモートワーク': 'Remote Work',
+    'ワークライフバランス': 'Work-Life Balance',
+    'ダイバーシティ': 'Diversity',
+    'インクルージョン': 'Inclusion'
+  }
+};
+
+// キーワード候補の生成
+const generateKeywordSuggestions = (query: string, isEnglish: boolean) => {
+  const allKeywords = Object.values(keywordDatabase).flatMap(category => Object.entries(category));
+  
+  if (isEnglish) {
+    return allKeywords
+      .filter(([japanese, english]) => 
+        english.toLowerCase().includes(query.toLowerCase()) ||
+        japanese.includes(query)
+      )
+      .map(([japanese, english]) => english)
+      .slice(0, 10);
+  } else {
+    return allKeywords
+      .filter(([japanese, english]) => 
+        japanese.includes(query) ||
+        english.toLowerCase().includes(query.toLowerCase())
+      )
+      .map(([japanese, english]) => japanese)
+      .slice(0, 10);
+  }
+};
+
+// 翻訳機能
+const translateKeyword = (keyword: string, toEnglish: boolean) => {
+  const allKeywords = Object.values(keywordDatabase).flatMap(category => Object.entries(category));
+  
+  if (toEnglish) {
+    const found = allKeywords.find(([japanese, english]) => japanese === keyword);
+    return found ? found[1] : keyword;
+  } else {
+    const found = allKeywords.find(([japanese, english]) => english === keyword);
+    return found ? found[0] : keyword;
+  }
+};
+
 interface GeneratedContent {
   id: number;
   type: string;
@@ -75,6 +259,92 @@ export default function ContentGenerationPage() {
   });
   const [ragSearchLoading, setRagSearchLoading] = useState(false);
   const [blogGenerationLoading, setBlogGenerationLoading] = useState(false);
+  
+  // 🆕 キーワード機能追加
+  const [isEnglishMode, setIsEnglishMode] = useState(false);
+  const [keywordSuggestions, setKeywordSuggestions] = useState<string[]>([]);
+  const [showKeywordSuggestions, setShowKeywordSuggestions] = useState(false);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+
+  // キーワード候補の更新
+  const updateKeywordSuggestions = (query: string) => {
+    if (query.length > 1) {
+      const suggestions = generateKeywordSuggestions(query, isEnglishMode);
+      setKeywordSuggestions(suggestions);
+      setShowKeywordSuggestions(suggestions.length > 0);
+    } else {
+      setKeywordSuggestions([]);
+      setShowKeywordSuggestions(false);
+    }
+  };
+
+  // 検索クエリの更新
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setBlogGenerationForm(prev => ({ ...prev, query: newQuery }));
+    updateKeywordSuggestions(newQuery);
+  };
+
+  // キーワード候補の選択
+  const selectKeywordSuggestion = (keyword: string) => {
+    setBlogGenerationForm(prev => ({ ...prev, query: keyword }));
+    if (!selectedKeywords.includes(keyword)) {
+      setSelectedKeywords(prev => [...prev, keyword]);
+    }
+    setShowKeywordSuggestions(false);
+  };
+
+  // 英語・日本語切り替え
+  const toggleLanguageMode = () => {
+    setIsEnglishMode(prev => {
+      const newMode = !prev;
+      // 現在の検索クエリを翻訳
+      const translatedQuery = translateKeyword(blogGenerationForm.query, newMode);
+      setBlogGenerationForm(prevForm => ({ ...prevForm, query: translatedQuery }));
+      
+      // 選択済みキーワードを翻訳
+      const translatedKeywords = selectedKeywords.map(keyword => 
+        translateKeyword(keyword, newMode)
+      );
+      setSelectedKeywords(translatedKeywords);
+      
+      return newMode;
+    });
+  };
+
+  // キーワードの削除
+  const removeKeyword = (keyword: string) => {
+    setSelectedKeywords(prev => prev.filter(k => k !== keyword));
+  };
+
+  // 選択済みキーワードから検索クエリを構築
+  const buildQueryFromKeywords = () => {
+    if (selectedKeywords.length > 0) {
+      const query = selectedKeywords.join(' ');
+      setBlogGenerationForm(prev => ({ ...prev, query }));
+    }
+  };
+
+  // 人気キーワードの取得（事前定義）
+  const getPopularKeywords = () => {
+    if (isEnglishMode) {
+      return [
+        'AI Technology', 'Machine Learning', 'ChatGPT', 'AI Agents', 'Deep Learning',
+        'Digital Transformation', 'Cloud Computing', 'Data Science', 'Reskilling',
+        'API Development', 'Chatbot Development', 'SEO Optimization', 'Social Media Automation',
+        'Video Generation', 'Vector Search', 'System Development', 'Web Development',
+        'AI Education', 'Programming Training', 'Innovation'
+      ];
+    } else {
+      return [
+        'AI技術', '機械学習', 'ChatGPT', 'AIエージェント', 'ディープラーニング',
+        'デジタル変革', 'クラウドコンピューティング', 'データサイエンス', 'リスキリング',
+        'API開発', 'チャットボット開発', 'SEO対策', 'SNS自動化',
+        '動画生成', 'ベクトル検索', 'システム開発', 'Web開発',
+        'AI教育', 'プログラミング研修', 'イノベーション'
+      ];
+    }
+  };
 
   // 認証チェック
   useEffect(() => {
@@ -721,28 +991,137 @@ export default function ContentGenerationPage() {
             <div className="p-6 space-y-6">
               {/* 検索設定 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    検索クエリ
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={blogGenerationForm.query}
-                      onChange={(e) => setBlogGenerationForm({
-                        ...blogGenerationForm,
-                        query: e.target.value
-                      })}
-                      placeholder="例: レリバンスエンジニアリングとSEO最適化"
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <MagnifyingGlassIcon className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        🔍 検索クエリ
+                      </label>
+                      
+                      {/* 言語切り替えボタン */}
+                      <div className="flex items-center space-x-1">
+                        <button
+                          type="button"
+                          onClick={toggleLanguageMode}
+                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                            !isEnglishMode 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          }`}
+                        >
+                          🇯🇵 日本語
+                        </button>
+                        <button
+                          type="button"
+                          onClick={toggleLanguageMode}
+                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                            isEnglishMode 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          }`}
+                        >
+                          🇺🇸 English
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* 検索クエリ入力欄 */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={blogGenerationForm.query}
+                        onChange={handleQueryChange}
+                        placeholder={isEnglishMode ? 
+                          "e.g., AI Technology Machine Learning Development" : 
+                          "例: レリバンスエンジニアリングとSEO最適化"
+                        }
+                        className="w-full px-4 py-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        onFocus={() => setShowKeywordSuggestions(keywordSuggestions.length > 0)}
+                        onBlur={() => setTimeout(() => setShowKeywordSuggestions(false), 200)}
+                      />
+                      <MagnifyingGlassIcon className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                      
+                      {/* キーワード候補の表示 */}
+                      {showKeywordSuggestions && keywordSuggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {keywordSuggestions.map((keyword, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => selectKeywordSuggestion(keyword)}
+                              className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm"
+                            >
+                              {keyword}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-gray-400">
+                      {isEnglishMode ? 
+                        "Enter keywords for global information retrieval" :
+                        "海外情報取得のため英語・日本語キーワードを使い分けできます"
+                      }
+                    </p>
+                  </div>
+                  
+                  {/* 選択済みキーワード */}
+                  {selectedKeywords.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        🏷️ 選択済みキーワード
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedKeywords.map((keyword, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full flex items-center space-x-1"
+                          >
+                            <span>{keyword}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeKeyword(keyword)}
+                              className="text-purple-200 hover:text-white ml-1"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={buildQueryFromKeywords}
+                        className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                      >
+                        🔄 検索クエリに反映
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* 人気キーワード */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🔥 人気キーワード ({isEnglishMode ? 'English' : '日本語'})
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {getPopularKeywords().slice(0, 8).map((keyword, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => selectKeywordSuggestion(keyword)}
+                          className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-gray-200 text-xs rounded transition-colors"
+                        >
+                          {keyword}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    目標文字数
+                    {isEnglishMode ? "🎯 Target Word Count" : "🎯 目標文字数"}
                   </label>
                   <select
                     value={blogGenerationForm.targetLength}
@@ -752,18 +1131,24 @@ export default function ContentGenerationPage() {
                     })}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value={5000}>5,000文字</option>
-                    <option value={6000}>6,000文字</option>
-                    <option value={7000}>7,000文字</option>
-                    <option value={8000}>8,000文字</option>
+                    <option value={5000}>{isEnglishMode ? "5,000 words" : "5,000文字"}</option>
+                    <option value={6000}>{isEnglishMode ? "6,000 words" : "6,000文字"}</option>
+                    <option value={7000}>{isEnglishMode ? "7,000 words" : "7,000文字"}</option>
+                    <option value={8000}>{isEnglishMode ? "8,000 words" : "8,000文字"}</option>
                   </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {isEnglishMode ? 
+                      "Article will be generated with approximately this word count" :
+                      "実際に指定文字数程度で記事が生成されます"
+                    }
+                  </p>
                 </div>
               </div>
 
               {/* RAGシステム選択 */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
-                  使用するRAGシステム
+                  🎯 使用するRAGシステム
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <label className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors">
@@ -781,9 +1166,23 @@ export default function ContentGenerationPage() {
                       }}
                       className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
                     />
-                    <div>
-                      <div className="font-medium text-white">Company RAG</div>
-                      <div className="text-sm text-gray-400">自社情報・サービス</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white flex items-center space-x-2">
+                        <span className="w-3 h-3 bg-purple-500 rounded-full"></span>
+                        <span>Company RAG</span>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {isEnglishMode ? 
+                          "Company services & expertise" : 
+                          "自社情報・サービス・専門性"
+                        }
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {isEnglishMode ? 
+                          "Best for: Corporate solutions, case studies" : 
+                          "適用: 企業ソリューション、事例紹介"
+                        }
+                      </div>
                     </div>
                   </label>
                   
@@ -802,9 +1201,23 @@ export default function ContentGenerationPage() {
                       }}
                       className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
                     />
-                    <div>
-                      <div className="font-medium text-white">Trend RAG</div>
-                      <div className="text-sm text-gray-400">最新ニュース・トレンド</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white flex items-center space-x-2">
+                        <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span>Trend RAG</span>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {isEnglishMode ? 
+                          "Latest news & global trends (57 items)" : 
+                          "最新ニュース・グローバルトレンド（57件）"
+                        }
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {isEnglishMode ? 
+                          "Best for: Industry analysis, news insights" : 
+                          "適用: 業界分析、ニュース解説"
+                        }
+                      </div>
                     </div>
                   </label>
                   
@@ -823,11 +1236,37 @@ export default function ContentGenerationPage() {
                       }}
                       className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
                     />
-                    <div>
-                      <div className="font-medium text-white">YouTube RAG</div>
-                      <div className="text-sm text-gray-400">教育系動画情報</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white flex items-center space-x-2">
+                        <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                        <span>YouTube RAG</span>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {isEnglishMode ? 
+                          "Educational video content & tutorials" : 
+                          "教育系動画・チュートリアル情報"
+                        }
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {isEnglishMode ? 
+                          "Best for: How-to guides, tech tutorials" : 
+                          "適用: ハウツーガイド、技術解説"
+                        }
+                      </div>
                     </div>
                   </label>
+                </div>
+                
+                {/* RAGシステムの組み合わせ推奨 */}
+                <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-300 mb-2">
+                    💡 {isEnglishMode ? "Recommended Combinations" : "推奨組み合わせ"}
+                  </h4>
+                  <div className="text-xs text-blue-200 space-y-1">
+                    <div>• <strong>{isEnglishMode ? "Global Tech Analysis" : "グローバル技術分析"}:</strong> Company + Trend RAG</div>
+                    <div>• <strong>{isEnglishMode ? "Comprehensive Guides" : "包括的ガイド"}:</strong> {isEnglishMode ? "All 3 RAG systems" : "全3システム"}</div>
+                    <div>• <strong>{isEnglishMode ? "Technical Deep-Dive" : "技術深掘り"}:</strong> Company + YouTube RAG</div>
+                  </div>
                 </div>
               </div>
 
@@ -835,7 +1274,7 @@ export default function ContentGenerationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    事業カテゴリ
+                    {isEnglishMode ? "📁 Business Category" : "📁 事業カテゴリ"}
                   </label>
                   <select
                     value={blogGenerationForm.businessCategory}
@@ -845,7 +1284,7 @@ export default function ContentGenerationPage() {
                     })}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="">選択してください</option>
+                    <option value="">{isEnglishMode ? "Please select" : "選択してください"}</option>
                     {businesses.map((business) => (
                       <option key={business.slug} value={business.slug}>
                         {business.name}
@@ -856,7 +1295,7 @@ export default function ContentGenerationPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    記事カテゴリ
+                    {isEnglishMode ? "🏷️ Article Category" : "🏷️ 記事カテゴリ"}
                   </label>
                   <select
                     value={blogGenerationForm.categorySlug}
@@ -866,7 +1305,7 @@ export default function ContentGenerationPage() {
                     })}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="">選択してください</option>
+                    <option value="">{isEnglishMode ? "Please select" : "選択してください"}</option>
                     {filteredCategories.map((category) => (
                       <option key={category.slug} value={category.slug}>
                         {category.name}
@@ -876,12 +1315,114 @@ export default function ContentGenerationPage() {
                 </div>
               </div>
 
+              {/* 高度な設定 */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm font-bold text-white">⚙️</span>
+                  <span>{isEnglishMode ? "Advanced Settings" : "高度な設定"}</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* 日付フィルタ */}
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span>📅</span>
+                      <span>{isEnglishMode ? "Date Filter" : "日付フィルタ"}</span>
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-3">
+                      {isEnglishMode ? 
+                        "Use information from specified time period only" : 
+                        "指定期間内の情報のみを使用"
+                      }
+                    </p>
+                    <select
+                      value={blogGenerationForm.dateFilter}
+                      onChange={(e) => setBlogGenerationForm({
+                        ...blogGenerationForm,
+                        dateFilter: e.target.value as 'all' | '7days' | '30days' | '90days'
+                      })}
+                      className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white text-sm focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="all">{isEnglishMode ? "All periods" : "全期間"}</option>
+                      <option value="7days">{isEnglishMode ? "Last 7 days" : "直近7日間"}</option>
+                      <option value="30days">{isEnglishMode ? "Last 30 days" : "直近30日間"}</option>
+                      <option value="90days">{isEnglishMode ? "Last 90 days" : "直近90日間"}</option>
+                    </select>
+                    <div className="text-xs text-gray-400 mt-2 space-y-1">
+                      <div>• <strong>7days:</strong> {isEnglishMode ? "Recent news & trends only" : "最新ニュース・トレンドのみ"}</div>
+                      <div>• <strong>30days:</strong> {isEnglishMode ? "Monthly updates & analysis" : "月次アップデート・分析"}</div>
+                      <div>• <strong>all:</strong> {isEnglishMode ? "All available information" : "全期間の情報を使用"}</div>
+                    </div>
+                  </div>
+                  
+                  {/* 最新ニュースモード */}
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span>⚡</span>
+                      <span>{isEnglishMode ? "Latest News Mode" : "最新ニュースモード"}</span>
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-3">
+                      {isEnglishMode ? 
+                        "Apply freshness weighting to trend information" : 
+                        "トレンド情報に新しさによる重み付けを適用"
+                      }
+                    </p>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={blogGenerationForm.latestNewsMode}
+                        onChange={(e) => setBlogGenerationForm({
+                          ...blogGenerationForm,
+                          latestNewsMode: e.target.checked
+                        })}
+                        className="w-4 h-4 text-purple-600 bg-gray-600 border-gray-500 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-white text-sm">
+                        {isEnglishMode ? "Enable Latest News Mode" : "最新ニュースモードを有効化"}
+                      </span>
+                    </label>
+                    <div className="text-xs text-gray-400 mt-3 space-y-1">
+                      <div>• <strong>{isEnglishMode ? "24h:" : "24時間以内:"}</strong> +0.3 {isEnglishMode ? "bonus" : "ボーナス"}</div>
+                      <div>• <strong>{isEnglishMode ? "7d:" : "7日以内:"}</strong> +0.15 {isEnglishMode ? "bonus" : "ボーナス"}</div>
+                      <div>• <strong>{isEnglishMode ? "30d:" : "30日以内:"}</strong> +0.05 {isEnglishMode ? "bonus" : "ボーナス"}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 推奨設定パターン */}
+                <div className="mt-4 p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                  <h4 className="text-sm font-medium text-green-300 mb-3">
+                    🎯 {isEnglishMode ? "Recommended Settings for Global Content" : "海外情報取得向け推奨設定"}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-green-200">
+                    <div>
+                      <strong>{isEnglishMode ? "🌍 Global Tech News:" : "🌍 グローバルテックニュース:"}</strong>
+                      <ul className="ml-4 mt-1 space-y-1">
+                        <li>• {isEnglishMode ? "Language: English" : "言語: 英語"}</li>
+                        <li>• RAG: Trend + Company</li>
+                        <li>• {isEnglishMode ? "Date Filter: 7days" : "日付フィルタ: 7days"}</li>
+                        <li>• {isEnglishMode ? "Latest News Mode: ON" : "最新ニュースモード: ON"}</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <strong>{isEnglishMode ? "🔬 Technical Deep-Dive:" : "🔬 技術深掘り分析:"}</strong>
+                      <ul className="ml-4 mt-1 space-y-1">
+                        <li>• {isEnglishMode ? "Language: English" : "言語: 英語"}</li>
+                        <li>• RAG: All 3 systems</li>
+                        <li>• {isEnglishMode ? "Date Filter: 30days" : "日付フィルタ: 30days"}</li>
+                        <li>• {isEnglishMode ? "Latest News Mode: OFF" : "最新ニュースモード: OFF"}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* アクションボタン */}
               <div className="flex items-center space-x-4">
                 <button
                   onClick={async () => {
                     if (!blogGenerationForm.query.trim()) {
-                      alert('検索クエリを入力してください');
+                      alert(isEnglishMode ? 'Please enter a search query' : '検索クエリを入力してください');
                       return;
                     }
                     
@@ -894,7 +1435,9 @@ export default function ContentGenerationPage() {
                           query: blogGenerationForm.query,
                           sources: blogGenerationForm.selectedRAGs,
                           limit: 10,
-                          threshold: 0.3
+                          threshold: 0.3,
+                          dateFilter: blogGenerationForm.dateFilter,
+                          latestNewsMode: blogGenerationForm.latestNewsMode
                         })
                       });
                       
@@ -902,11 +1445,11 @@ export default function ContentGenerationPage() {
                         const data = await response.json();
                         setRagSearchResults(data.results || []);
                       } else {
-                        throw new Error('RAG検索に失敗しました');
+                        throw new Error(isEnglishMode ? 'RAG search failed' : 'RAG検索に失敗しました');
                       }
                     } catch (error) {
-                      console.error('RAG検索エラー:', error);
-                      alert('RAG検索でエラーが発生しました');
+                      console.error('RAG search error:', error);
+                      alert(isEnglishMode ? 'An error occurred during RAG search' : 'RAG検索でエラーが発生しました');
                     } finally {
                       setRagSearchLoading(false);
                     }
@@ -915,7 +1458,10 @@ export default function ContentGenerationPage() {
                   className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <MagnifyingGlassIcon className="w-5 h-5" />
-                  <span>{ragSearchLoading ? 'RAG検索中...' : 'RAGデータ検索'}</span>
+                  <span>{ragSearchLoading ? 
+                    (isEnglishMode ? 'Searching RAG...' : 'RAG検索中...') : 
+                    (isEnglishMode ? 'Search RAG Data' : 'RAGデータ検索')
+                  }</span>
                 </button>
                 
                 {ragSearchResults.length > 0 && (
@@ -925,7 +1471,10 @@ export default function ContentGenerationPage() {
                     className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                   >
                     <RocketLaunchIcon className="w-5 h-5" />
-                    <span>{blogGenerationLoading ? 'ブログ記事生成中...' : 'ブログ記事生成'}</span>
+                    <span>{blogGenerationLoading ? 
+                      (isEnglishMode ? 'Generating Article...' : 'ブログ記事生成中...') : 
+                      (isEnglishMode ? 'Generate Blog Article' : 'ブログ記事生成')
+                    }</span>
                   </button>
                 )}
               </div>
@@ -936,7 +1485,10 @@ export default function ContentGenerationPage() {
                   <div className="flex items-center space-x-2 mb-4">
                     <ChartBarIcon className="w-5 h-5 text-green-400" />
                     <h3 className="text-lg font-semibold text-white">
-                      RAG検索結果: {ragSearchResults.length}件
+                      {isEnglishMode ? 
+                        `RAG Search Results: ${ragSearchResults.length} items` : 
+                        `RAG検索結果: ${ragSearchResults.length}件`
+                      }
                     </h3>
                   </div>
                   
@@ -944,19 +1496,19 @@ export default function ContentGenerationPage() {
                     <div className="bg-blue-600/20 p-3 rounded">
                       <div className="text-blue-400 text-sm">Company RAG</div>
                       <div className="text-xl font-bold text-white">
-                        {ragSearchResults.filter(r => r.source === 'company').length}件
+                        {ragSearchResults.filter(r => r.source === 'company').length}{isEnglishMode ? ' items' : '件'}
                       </div>
                     </div>
                     <div className="bg-green-600/20 p-3 rounded">
                       <div className="text-green-400 text-sm">Trend RAG</div>
                       <div className="text-xl font-bold text-white">
-                        {ragSearchResults.filter(r => r.source === 'trend').length}件
+                        {ragSearchResults.filter(r => r.source === 'trend').length}{isEnglishMode ? ' items' : '件'}
                       </div>
                     </div>
                     <div className="bg-red-600/20 p-3 rounded">
                       <div className="text-red-400 text-sm">YouTube RAG</div>
                       <div className="text-xl font-bold text-white">
-                        {ragSearchResults.filter(r => r.source === 'youtube').length}件
+                        {ragSearchResults.filter(r => r.source === 'youtube').length}{isEnglishMode ? ' items' : '件'}
                       </div>
                     </div>
                   </div>
@@ -972,14 +1524,30 @@ export default function ContentGenerationPage() {
                             {result.source.toUpperCase()}
                           </span>
                           <span className="text-gray-400">
-                            スコア: {(result.score || 0).toFixed(3)}
+                            {isEnglishMode ? 'Score:' : 'スコア:'} {(result.score || 0).toFixed(3)}
                           </span>
                         </div>
                         <p className="text-gray-300 line-clamp-2">
-                          {result.content ? result.content.substring(0, 150) + '...' : 'コンテンツがありません'}
+                          {result.content ? 
+                            result.content.substring(0, 150) + '...' : 
+                            (isEnglishMode ? 'No content available' : 'コンテンツがありません')
+                          }
                         </p>
                       </div>
                     ))}
+                  </div>
+                  
+                  {/* 推奨アクション */}
+                  <div className="mt-4 p-3 bg-purple-900/30 border border-purple-700 rounded-lg">
+                    <h4 className="text-sm font-medium text-purple-300 mb-2">
+                      💡 {isEnglishMode ? "Next Steps" : "次のステップ"}
+                    </h4>
+                    <p className="text-xs text-purple-200">
+                      {isEnglishMode ? 
+                        "Review the search results above and click 'Generate Blog Article' to create a high-quality article using this RAG data." :
+                        "上記の検索結果を確認し、「ブログ記事生成」をクリックしてRAGデータを活用した高品質な記事を作成してください。"
+                      }
+                    </p>
                   </div>
                 </div>
               )}

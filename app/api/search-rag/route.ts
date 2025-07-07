@@ -96,13 +96,17 @@ export async function POST(request: NextRequest) {
         } else {
           const formattedResults: SearchResult[] = (companyResults || []).map((result: any) => ({
             id: result.id,
-            content: result.content,
+            content: result.content_chunk || result.content || '', // content_chunkを優先的に使用
             source: 'company',
             score: result.similarity,
             metadata: {
               ...result.metadata,
-              source_type: result.source_type,
-              source_url: result.source_url,
+              page_slug: result.page_slug,
+              content_type: result.content_type,
+              section_title: result.section_title,
+              fragment_id: result.fragment_id,
+              service_id: result.service_id,
+              relevance_score: result.relevance_score,
               created_at: result.created_at
             }
           }));
@@ -138,15 +142,19 @@ export async function POST(request: NextRequest) {
         } else {
           let formattedResults: SearchResult[] = (trendResults || []).map((result: any) => ({
             id: result.id,
-            content: result.content,
+            content: result.content || '',
             source: 'trend',
             score: result.similarity,
             metadata: {
               ...result.metadata,
-              title: result.title,
+              title: result.trend_topic || result.title || '',
+              source: result.source,
               source_url: result.source_url,
+              relevance_score: result.relevance_score,
               published_at: result.metadata?.published || result.metadata?.retrieved_at,
-              trend_date: result.trend_date
+              trend_date: result.trend_date,
+              keywords: result.keywords,
+              popularity_score: result.popularity_score
             }
           }));
 

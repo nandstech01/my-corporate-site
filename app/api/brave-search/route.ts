@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
           q: query,
           count: '10',
           country: 'JP',
-          search_lang: 'en', // 英語で検索してより多くの結果を取得
-          freshness: 'pd', // Past day - 最新ニュース用
+          search_lang: 'en',
+          freshness: 'pd',
           result_filter: 'web'
         })}`,
         {
@@ -204,21 +204,36 @@ function extractDomain(url: string): string {
 
 // 関連度を計算する関数
 function calculateRelevance(item: any, query: string, index: number): number {
-  let relevance = 0.9 - (index * 0.05); // 基本スコア
+  let relevance = 0.8 - (index * 0.03); // より緩やかな減衰
   
   const title = (item.title || '').toLowerCase();
   const description = (item.description || '').toLowerCase();
-  const queryLower = query.toLowerCase();
+  const queryTerms = query.toLowerCase().split(' ');
   
-  // タイトルにクエリが含まれる場合のボーナス
-  if (title.includes(queryLower)) {
-    relevance += 0.1;
-  }
+  // すべての検索語が含まれているかチェック
+  const allTermsInTitle = queryTerms.every(term => title.includes(term));
+  const allTermsInDesc = queryTerms.every(term => description.includes(term));
   
-  // 説明にクエリが含まれる場合のボーナス
-  if (description.includes(queryLower)) {
-    relevance += 0.05;
-  }
+  // フレーズ完全一致のボーナス（最も高いスコア）
+  if (title.includes(query.toLowerCase())) relevance += 0.2;
+  if (description.includes(query.toLowerCase())) relevance += 0.15;
+  
+  // すべての検索語を含む場合のボーナス
+  if (allTermsInTitle) relevance += 0.15;
+  if (allTermsInDesc) relevance += 0.1;
+  
+  // 個別の検索語の出現頻度によるボーナス
+  const termFrequencyBonus = queryTerms.reduce((bonus, term) => {
+    const titleCount = (title.match(new RegExp(term, 'g')) || []).length;
+    const descCount = (description.match(new RegExp(term, 'g')) || []).length;
+    return bonus + (titleCount * 0.02) + (descCount * 0.01);
+  }, 0);
+  
+  relevance += Math.min(termFrequencyBonus, 0.1); // 最大0.1までのボーナス
+  
+  // 記事の新しさによるボーナス
+  if (item.age && item.age.includes('minute')) relevance += 0.1;
+  else if (item.age && item.age.includes('hour')) relevance += 0.05;
   
   return Math.min(relevance, 1.0);
 }

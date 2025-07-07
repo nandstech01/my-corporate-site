@@ -41,7 +41,14 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 YouTube Data API検索開始 - クエリ: "${query}"`);
 
     // YouTube Data API v3 - Search: list endpoint
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&order=relevance&key=${apiKey}`;
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({
+      part: 'snippet',
+      q: query,
+      type: 'video',
+      maxResults: maxResults.toString(),
+      order: 'relevance',
+      key: apiKey
+    })}`;
 
     console.log(`📡 YouTube Data API呼び出し中...`);
     
@@ -49,9 +56,18 @@ export async function POST(request: NextRequest) {
     const searchData = await searchResponse.json();
 
     if (!searchResponse.ok) {
-      console.error('❌ YouTube Data API検索エラー:', searchData);
+      console.error('❌ YouTube Data API検索エラー:', {
+        status: searchResponse.status,
+        statusText: searchResponse.statusText,
+        data: searchData,
+        url: searchUrl
+      });
       return NextResponse.json(
-        { error: `YouTube Data API検索エラー: ${searchData.error?.message || 'Unknown error'}` },
+        { 
+          error: `YouTube Data API検索エラー: ${searchData.error?.message || 'Unknown error'}`,
+          details: searchData,
+          status: searchResponse.status
+        },
         { status: 500 }
       );
     }
@@ -77,9 +93,18 @@ export async function POST(request: NextRequest) {
     const videosData = await videosResponse.json();
 
     if (!videosResponse.ok) {
-      console.error('❌ YouTube Videos API エラー:', videosData);
+      console.error('❌ YouTube Videos API エラー:', {
+        status: videosResponse.status,
+        statusText: videosResponse.statusText,
+        data: videosData,
+        url: videosUrl
+      });
       return NextResponse.json(
-        { error: `YouTube Videos API エラー: ${videosData.error?.message || 'Unknown error'}` },
+        { 
+          error: `YouTube Videos API エラー: ${videosData.error?.message || 'Unknown error'}`,
+          details: videosData,
+          status: videosResponse.status
+        },
         { status: 500 }
       );
     }
@@ -154,44 +179,87 @@ export async function POST(request: NextRequest) {
 
 // 関連度計算関数
 function calculateRelevance(video: any, query: string, index: number): number {
-  let relevance = 0.9 - (index * 0.05); // 基本スコア (検索順位ベース)
+  let relevance = 0.8 - (index * 0.03); // より緩やかな減衰
   
   const title = (video.snippet.title || '').toLowerCase();
   const description = (video.snippet.description || '').toLowerCase();
   const channelTitle = (video.snippet.channelTitle || '').toLowerCase();
-  const queryLower = query.toLowerCase();
+  const queryTerms = query.toLowerCase().split(' ');
+  const tags = (video.snippet.tags || []).map((tag: string) => tag.toLowerCase());
   
-  // タイトルにクエリが含まれる場合のボーナス
-  if (title.includes(queryLower)) {
-    relevance += 0.15;
+  // フレーズ完全一致のボーナス（最も高いスコア）
+  if (title.includes(query.toLowerCase())) relevance += 0.2;
+  if (description.includes(query.toLowerCase())) relevance += 0.15;
+  
+  // すべての検索語が含まれているかチェック
+  const allTermsInTitle = queryTerms.every(term => title.includes(term));
+  const allTermsInDesc = queryTerms.every(term => description.includes(term));
+  const allTermsInTags = queryTerms.every(term => 
+    tags.some((tag: string) => tag.includes(term))
+  );
+  
+  if (allTermsInTitle) relevance += 0.15;
+  if (allTermsInDesc) relevance += 0.1;
+  if (allTermsInTags) relevance += 0.1;
+  
+  // 個別の検索語の出現頻度によるボーナス
+  const termFrequencyBonus = queryTerms.reduce((bonus, term) => {
+    const titleCount = (title.match(new RegExp(term, 'g')) || []).length;
+    const descCount = (description.match(new RegExp(term, 'g')) || []).length;
+    const tagCount = tags.filter((tag: string) => tag.includes(term)).length;
+    return bonus + (titleCount * 0.02) + (descCount * 0.01) + (tagCount * 0.01);
+  }, 0);
+  
+  relevance += Math.min(termFrequencyBonus, 0.1);
+  
+  // 動画の品質スコア
+  const viewCount = parseInt(video.statistics.viewCount || '0');
+  const likeCount = parseInt(video.statistics.likeCount || '0');
+  const duration = parseDuration(video.contentDetails.duration);
+  
+  // 高評価率によるボーナス（5%以上の高評価率で最大0.1のボーナス）
+  if (viewCount > 0) {
+    const likeRatio = (likeCount / viewCount) * 100;
+    relevance += Math.min(likeRatio / 50, 0.1);
   }
   
-  // 説明にクエリが含まれる場合のボーナス
-  if (description.includes(queryLower)) {
+  // 適度な動画長によるボーナス（5-30分の動画を優遇）
+  const durationMinutes = duration / 60;
+  if (durationMinutes >= 5 && durationMinutes <= 30) {
     relevance += 0.05;
   }
   
-  // チャンネル名にクエリが含まれる場合のボーナス
-  if (channelTitle.includes(queryLower)) {
-    relevance += 0.1;
-  }
+  // 新しい動画によるボーナス
+  const publishedDate = new Date(video.snippet.publishedAt);
+  const now = new Date();
+  const monthsOld = (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+  if (monthsOld <= 1) relevance += 0.1;
+  else if (monthsOld <= 3) relevance += 0.05;
   
-  // 教育的キーワードのボーナス
-  const educationalKeywords = ['tutorial', 'explained', 'guide', 'how to', 'learn', 'course', 'lecture'];
+  // 教育的コンテンツの重み付けを強化
+  const educationalKeywords = [
+    'tutorial', 'explained', 'guide', 'how to', 'learn', 'course', 'lecture',
+    'チュートリアル', '解説', 'ガイド', '講座', '入門', '学習', 'レクチャー'
+  ];
   const hasEducationalKeyword = educationalKeywords.some(keyword => 
-    title.includes(keyword) || description.includes(keyword)
+    title.includes(keyword) || description.includes(keyword) || 
+    tags.some((tag: string) => tag.includes(keyword))
   );
   if (hasEducationalKeyword) {
-    relevance += 0.1;
+    relevance += 0.15;
   }
   
-  // AI/技術関連キーワードのボーナス
-  const techKeywords = ['ai', 'machine learning', 'deep learning', 'neural network', 'algorithm', 'programming'];
+  // AI/技術関連キーワードの重み付けを強化
+  const techKeywords = [
+    'ai', 'machine learning', 'deep learning', 'neural network', 'algorithm', 'programming',
+    '人工知能', '機械学習', 'ディープラーニング', 'ニューラルネットワーク', 'アルゴリズム', 'プログラミング'
+  ];
   const hasTechKeyword = techKeywords.some(keyword => 
-    title.includes(keyword) || description.includes(keyword)
+    title.includes(keyword) || description.includes(keyword) || 
+    tags.some((tag: string) => tag.includes(keyword))
   );
   if (hasTechKeyword) {
-    relevance += 0.08;
+    relevance += 0.1;
   }
   
   return Math.min(relevance, 1.0);

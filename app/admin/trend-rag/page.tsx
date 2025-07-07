@@ -271,22 +271,120 @@ export default function TrendRagPage() {
 
   // プリセットクエリ
   const presetQueries = [
+    // AI技術・モデル関連（英語）
+    'Large Language Models',
+    'GPT-4 updates',
+    'Claude AI developments',
+    'ChatGPT features',
+    'OpenAI research',
+    'Anthropic Claude',
+    'Google Bard updates',
+    'Microsoft Copilot',
+    'AI model training',
+    'Neural network architecture',
+    'Transformer models',
+    'Multimodal AI',
+    'Computer vision AI',
+    'Natural language processing',
+    'Deep learning breakthroughs',
+    'AI reasoning capabilities',
+    'AGI developments',
+    'AI safety research',
+    'AI alignment',
+    'Reinforcement learning',
+    
+    // AI業界・ビジネス関連（英語）
+    'AI startup funding',
+    'AI venture capital',
+    'AI industry trends',
+    'AI market analysis',
+    'AI enterprise adoption',
+    'AI productivity tools',
+    'AI automation',
+    'AI workforce impact',
+    'AI regulation news',
+    'AI ethics discussions',
+    'AI governance',
+    'AI policy updates',
+    'AI competition',
+    'Tech giants AI',
+    'AI partnerships',
+    'AI acquisitions',
+    
+    // 検索・RAG技術関連（英語）
+    'relevance engineering',
+    'RAG improvements',
+    'vector databases',
+    'semantic search',
+    'embedding models',
+    'retrieval augmented generation',
+    'information retrieval',
+    'search algorithms',
+    'ranking systems',
+    'query understanding',
+    'document retrieval',
+    'knowledge graphs',
+    'AI search optimization',
+    'search relevance',
+    'personalized search',
+    'contextual search',
+    
+    // 開発・エンジニアリング関連（英語）
+    'AI developer tools',
+    'LLM optimization',
+    'LLMO techniques',
+    'AI model deployment',
+    'AI infrastructure',
+    'MLOps practices',
+    'AI model serving',
+    'AI scalability',
+    'AI performance tuning',
+    'Prompt engineering',
+    'Fine-tuning methods',
+    'AI model evaluation',
+    'AI benchmarks',
+    'AI testing frameworks',
+    
+    // 企業・組織別ニュース（英語）
+    'OpenAI announcements',
+    'Google AI updates',
+    'Microsoft AI news',
+    'Anthropic research',
+    'Meta AI developments',
+    'Tesla AI progress',
+    'NVIDIA AI advances',
+    'Amazon AI services',
+    'Apple machine learning',
+    'DeepMind research',
+    'Hugging Face updates',
+    'Stability AI news',
+    
+    // 応用分野（英語）
+    'AI healthcare',
+    'AI finance',
+    'AI education',
+    'AI robotics',
+    'AI autonomous vehicles',
+    'AI content generation',
+    'AI code generation',
+    'AI image generation',
+    'AI video synthesis',
+    'AI music creation',
+    'AI translation',
+    'AI recommendation systems',
+    
+    // 日本語（重要なもののみ）
+    '生成AI 技術',
+    'AI 業界 トレンド',
+    '機械学習 最新研究',
+    'レリバンスエンジニアリング',
+    'AI検索最適化',
+    'LLM最適化',
+    'ChatGPT ニュース',
     'OpenAI 最新ニュース',
     'Google AI 発表',
     'Microsoft AI アップデート',
-    'Claude AI 新機能',
-    'ChatGPT ニュース',
-    'AI 業界 トレンド',
-    '生成AI 技術',
-    '機械学習 最新研究',
-    'relevance engineering',
-    'レリバンスエンジニアリング',
-    'Google AI Mode',
-    'LLMO optimization',
-    'AI search optimization',
-    'semantic search',
-    'AI検索最適化',
-    'LLM最適化'
+    'Claude AI 新機能'
   ];
 
   if (authLoading) {
@@ -405,25 +503,11 @@ export default function TrendRagPage() {
                 
                 <div className="flex space-x-2">
                   <button
-                    onClick={handleVectorizeSelected}
-                    disabled={selectedItems.length === 0 || loading}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
-                  >
-                    選択をベクトル化
-                  </button>
-                  <button
-                    onClick={handleVectorizeAll}
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
-                  >
-                    全てベクトル化
-                  </button>
-                  <button
                     onClick={handleGenerateContent}
                     disabled={newsItems.filter(item => item.vectorized).length === 0}
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
                   >
-                    記事生成
+                    記事生成 ({newsItems.filter(item => item.vectorized).length}件のベクトル化済み記事から)
                   </button>
                 </div>
               </div>
@@ -432,20 +516,9 @@ export default function TrendRagPage() {
                 {newsItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-4 rounded-lg border transition-all ${
-                      selectedItems.includes(item.id)
-                        ? 'bg-purple-900/30 border-purple-500'
-                        : 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                    }`}
+                    className="p-4 rounded-lg border bg-gray-800 border-gray-700 hover:border-gray-600 transition-all"
                   >
                     <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleItemSelect(item.id)}
-                        className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                      />
-                      
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
