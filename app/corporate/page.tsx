@@ -207,349 +207,381 @@ export default async function CorporatePage() {
       'iPullRank'
     ],
     category: '法人向けAIソリューション',
-    businessId: 3 // 法人向けAIリスキリング研修事業
+    businessId: undefined,
+    categoryId: undefined,
+    // Mike King理論準拠: GEO最適化対象クエリ（AI検索エンジン上位表示）
+    targetQueries: [
+      '法人向けAI研修導入方法',
+      '企業AI活用コンサルティング',
+      'DX推進AI研修プログラム',
+      '組織変革AI活用事例',
+      'ChatGPT企業研修効果',
+      'AI業務効率化成功事例',
+      '生成AI人材育成プログラム',
+      'プロンプトエンジニアリング企業研修'
+    ],
+    // Phase 4: AI検索・Trust Layer対応
+    enableAISearchDetection: true,
+    enableTrustSignals: true
   });
 
-  // データ処理（統一システム対応）
-  const posts = (pageData.posts || []).map((post: any) => ({
-    id: post.id,
-    title: post.title,
-    slug: post.slug,
-    excerpt: post.excerpt,
-    thumbnail_url: post.thumbnail_url,
-    featured_image: post.featured_image
-  }));
+  // ベクトルRAGシステム統合（自社RAG最大活用）
+  const vectorRAGSchema = {
+    "@context": "https://schema.org",
+    "@type": "DataFeed",
+    "name": "企業向けAI研修ナレッジベース",
+    "description": "株式会社エヌアンドエスのベクトルRAGシステムによる企業AI研修専門知識データベース",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization"
+    },
+    "dataset": {
+      "@type": "Dataset",
+      "name": "Corporate AI Training Knowledge Base",
+      "description": "15年間の実績と42の専門領域をベクトル化した企業AI研修専門データベース",
+      "creator": {
+        "@type": "Organization",
+        "@id": "https://nands.tech/#organization"
+      },
+      "keywords": [
+        "法人向けAI研修",
+        "企業向け生成AI活用",
+        "DX推進プログラム",
+        "AI業務効率化",
+        "組織変革支援",
+        "プロンプトエンジニアリング",
+        "ChatGPT企業活用",
+        "AI活用コンサルティング"
+      ],
+      "temporalCoverage": "2009/2024",
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "日本全国",
+        "geo": {
+          "@type": "GeoShape",
+          "addressCountry": "JP"
+        }
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "application/json",
+        "contentUrl": "https://nands.tech/api/search-rag"
+      }
+    },
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "企業向けAI研修プログラム",
+        "description": "42の専門領域をカバーする包括的AI研修カリキュラム"
+      },
+      {
+        "@type": "Thing", 
+        "name": "DX推進AI活用支援",
+        "description": "組織全体のデジタルトランスフォーメーション推進"
+      },
+      {
+        "@type": "Thing",
+        "name": "生成AI業務効率化",
+        "description": "ChatGPT・Claude等を活用した業務プロセス最適化"
+      }
+    ]
+  };
 
   return (
-    <main className="min-h-screen">
-      {/* 構造化データの処理を修正 */}
-      {Array.isArray(pageData.structuredData) ? 
-        pageData.structuredData.map((data: any, index: number) => (
-          <Script
-            key={`structured-data-corporate-success-${index}`}
-            id={`structured-data-corporate-success-${index}`}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-          />
-        )) : 
-        <Script
-          key="structured-data-corporate-success"
-          id="structured-data-corporate-success"
+    <>
+      {/* 統一構造化データ（Mike King理論準拠） */}
+      {pageData?.structuredData && (
+        <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.structuredData) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(pageData.structuredData, null, 2)
+          }}
         />
-      }
-      
-      {/* 削除：右側固定TOCは削除 */}
+      )}
 
-      <div className="container mx-auto px-4">
-        {/* <Breadcrumbs customItems={[
-          { name: 'ホーム', path: '/' },
-          { name: '法人向けAIリスキリング', path: '/corporate' }
-        ]} /> */}
-      </div>
-      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
-      <ClientSideAnchorEnhancer 
-        enableAIDetection={true}
-        enhancementDelay={800}
-        scrollBehavior="smooth"
-        trackingEnabled={true}
+      {/* ベクトルRAGシステム統合スキーマ（競合優位性の核心） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(vectorRAGSchema, null, 2)
+        }}
       />
 
-      <section id="hero">
-        <HeroSectionSSR />
-      </section>
-
-      {/* 目次（ヒーロー直後に配置） */}
-      {pageData.tableOfContents && pageData.tableOfContents.length > 0 && (
-        <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                <h2 className="text-2xl font-bold text-white flex items-center">
-                  <svg 
-                    className="w-6 h-6 mr-3" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                    />
-                  </svg>
-                  目次
-                </h2>
-                <p className="text-blue-100 mt-2">
-                  このページの内容に素早くアクセス
-                </p>
-              </div>
-              
-              <nav className="p-8">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {pageData.tableOfContents.map((item: any, index: number) => (
-                    <div key={index} className="group">
-                      <a
-                        href={`#${item.id}`}
-                        className="flex items-start p-4 rounded-xl border border-gray-200 
-                                 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300
-                                 group-hover:shadow-md"
-                      >
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 
-                                       rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 
-                                       transition-colors mb-2 leading-tight">
-                            {item.title}
-                          </h3>
-                        </div>
-                        <svg 
-                          className="w-5 h-5 text-gray-400 group-hover:text-blue-500 
-                                   transition-colors flex-shrink-0 mt-1" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M9 5l7 7-7 7" 
-                          />
-                        </svg>
-                      </a>
-                      
-                      {/* Subsections */}
-                      {item.children && item.children.length > 0 && (
-                        <div className="mt-3 ml-12 space-y-1">
-                          {item.children.map((subsection: any, subIndex: number) => (
-                            <a
-                              key={subIndex}
-                              href={`#${subsection.id}`}
-                              className="block text-sm text-gray-600 hover:text-blue-600 
-                                       transition-colors hover:underline pl-2 border-l-2 
-                                       border-gray-200 hover:border-blue-300
-                                       py-1 hover:bg-blue-50 rounded"
-                            >
-                              {subsection.title}
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </nav>
-            </div>
-          </div>
-        </section>
+      {/* Phase 3: GEO最適化hasPartスキーマ（AI検索エンジン最適化） */}
+      {pageData?.geoOptimizedHasPart && (
+        <script
+          id="geo-optimized-haspart-corporate"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(pageData.geoOptimizedHasPart.jsonLd, null, 2)
+          }}
+        />
       )}
-      
-      {/* セマンティック内部リンク統合ナビゲーション */}
-      <section className="py-8 px-4 bg-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
-            <a
-              href="/corporate/case-studies"
-              className="group bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl p-6 text-white hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-3xl">🔧</div>
-                <div>
-                  <h3 className="text-lg font-bold mb-1">技術実績・専門性</h3>
-                  <p className="text-blue-100 text-sm">実際の開発・運営実績をご確認</p>
-                </div>
-              </div>
-            </a>
-            
-            <a
-              href="#roi-calculator"
-              className="group bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-white hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-3xl">📊</div>
-                <div>
-                  <h3 className="text-lg font-bold mb-1">ROI計算ツール</h3>
-                  <p className="text-green-100 text-sm">投資対効果を即座に計算</p>
-                </div>
-              </div>
-            </a>
-            
-            <a
-              href="#contact"
-              className="group bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-3xl">💬</div>
-                <div>
-                  <h3 className="text-lg font-bold mb-1">無料相談</h3>
-                  <p className="text-purple-100 text-sm">専門スタッフがサポート</p>
-                </div>
-              </div>
-            </a>
-          </div>
-          
-          {/* エンティティ関係性 - 関連サービス */}
-          {pageData.semanticLinks && pageData.semanticLinks.length > 0 && (
-            <div className="mt-8 p-6 bg-gray-800 rounded-xl">
-              <h3 className="text-lg font-bold text-white mb-4">関連サービス</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pageData.semanticLinks.slice(0, 6).map((link: any, index: number) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    className="group bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-all duration-300"
-                  >
-                    <h4 className="text-sm font-semibold text-white group-hover:text-blue-300 mb-1">
-                      {link.title}
-                    </h4>
-                    <p className="text-xs text-gray-300">
-                      {link.description}
-                    </p>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
 
-      <section id="problems">
-        <CorporateProblems />
-      </section>
-      <section id="services">
-        <ServicesSection />
-      </section>
-      <section id="merits">
-        <CorporateMerits />
-      </section>
-      <section id="case-studies">
-        <CaseStudiesSection />
-      </section>
-      
-      {/* 業界別ソリューション（軽量化） */}
-      <section id="industries" className="py-16 px-4 bg-white">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">業界別ソリューション</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">製造業</h3>
-              <p className="text-gray-600 mb-4">生産効率向上とAI活用による品質管理</p>
-              <a href="/industries/manufacturing" className="text-blue-600 hover:text-blue-800 font-medium">詳しく見る →</a>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">金融・保険</h3>
-              <p className="text-gray-600 mb-4">リスク管理とカスタマーサービス向上</p>
-              <a href="/industries/finance" className="text-blue-600 hover:text-blue-800 font-medium">詳しく見る →</a>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">小売・EC</h3>
-              <p className="text-gray-600 mb-4">顧客体験向上と在庫最適化</p>
-              <a href="/industries/retail" className="text-blue-600 hover:text-blue-800 font-medium">詳しく見る →</a>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <section id="flow">
-        <CorporateFlow />
-      </section>
-      
-      {/* ROI計算ツール */}
-      <section id="roi-calculator" className="py-16 px-4 bg-gradient-to-br from-gray-900 to-gray-800">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">ROI計算ツール</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
-              AIリスキリング研修による投資対効果を、実際の数値で計算してみましょう。
-            </p>
-          </div>
-          <ROICalculator />
-        </div>
-      </section>
-      
-      <section id="faq">
-        <FaqSection />
-      </section>
-      <section id="contact">
-        <ContactSectionSSR />
-      </section>
-      
-      {/* 最新の記事セクション（統一システム対応） */}
-      <section className="py-16 px-4 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">最新の記事</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              AI導入・リスキリング・キャリア支援に関する最新情報と実践的なノウハウをお届けします
-            </p>
-          </div>
+      {/* 法人向けAI研修専用スキーマ（E-E-A-T最大化） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "EducationalOrganization",
+            "name": "株式会社エヌアンドエス AI研修部門",
+            "alternateName": "N&S Corporate AI Training Division",
+            "description": "15年の実績を持つ企業向けAI研修・リスキリング専門組織。42の専門領域で組織変革を支援。",
+            "foundingDate": "2009",
+            "areaServed": {
+              "@type": "Country",
+              "name": "日本"
+            },
+            "offers": [
+              {
+                "@type": "EducationalOccupationalProgram",
+                "name": "企業向けAIリスキリング研修プログラム",
+                "description": "生成AI活用による業務効率化・組織変革を実現する包括的研修プログラム",
+                "provider": {
+                  "@type": "Organization",
+                  "@id": "https://nands.tech/#organization"
+                },
+                "educationalCredentialAwarded": "AI活用認定資格",
+                "numberOfCredits": 42,
+                "timeToComplete": "P3M",
+                "programPrerequisites": "基本的なPC操作スキル",
+                "occupationalCategory": [
+                  "AI活用推進担当者",
+                  "DX推進リーダー", 
+                  "業務効率化スペシャリスト",
+                  "組織変革マネージャー"
+                ],
+                "competencyRequired": [
+                  "ChatGPT活用スキル",
+                  "プロンプトエンジニアリング",
+                  "AI業務自動化",
+                  "データ分析AI活用",
+                  "生成AI戦略立案"
+                ],
+                "educationalProgramMode": [
+                  "オンライン研修",
+                  "対面研修",
+                  "ハイブリッド研修",
+                  "カスタマイズ研修"
+                ]
+              }
+            ],
+            "hasCredential": [
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "企業AI活用マスター認定",
+                "description": "企業における生成AI活用のエキスパート認定資格",
+                "credentialCategory": "Professional Certification",
+                "competencyRequired": [
+                  "ChatGPT高度活用",
+                  "AI業務プロセス設計", 
+                  "組織AI導入戦略",
+                  "ROI測定・改善"
+                ]
+              }
+            ],
+            "alumni": [
+              {
+                "@type": "Person",
+                "name": "企業AI活用成功事例集",
+                "description": "15年間で300社以上の企業AI導入成功実績"
+              }
+            ]
+          }, null, 2)
+        }}
+      />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {posts.slice(0, 3).map((post: any, index: number) => (
-              <a
-                key={post.id}
-                href={`/posts/${post.slug}`}
-                className="group transform hover:-translate-y-1 transition-all duration-300"
-              >
-                <article className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
-                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                    {(post.thumbnail_url || post.featured_image) ? (
-                      <Image
-                        src={post.thumbnail_url || post.featured_image}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        priority={index === 0}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                        <div className="text-white text-4xl font-bold">
-                          {index + 1}
-                        </div>
-                      </div>
-                    )}
+      <main className="min-h-screen bg-white">
+        {/* AI検索流入対応: Click-Recovery Banner */}
+        {pageData?.aiSearchDetection?.shouldShowBanner && (
+          <section className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3">
+            <div className="container mx-auto px-4 text-center">
+              <p className="text-sm">
+                🤖 AI検索からお越しですか？ 
+                <strong className="ml-2">{pageData.aiSearchDetection.recoveryMessage.title}</strong>
+                <span className="ml-2">{pageData.aiSearchDetection.recoveryMessage.message}</span>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* パンくずナビ（構造化データ対応） */}
+        <nav className="bg-gray-50 px-4 py-3 border-b">
+          <div className="container mx-auto">
+            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
+              <li className="text-gray-500">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/services" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
+              <li className="text-gray-500">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <span className="text-gray-900" itemProp="name">法人向けAI研修</span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
+          </div>
+        </nav>
+
+        {/* Fragment ID対応セクション構造 */}
+        <article itemScope itemType="https://schema.org/WebPage">
+          <meta itemProp="name" content="法人向けAIリスキリング研修・業務効率化支援" />
+          <meta itemProp="description" content="株式会社エヌアンドエスの法人向けAIリスキリング研修・業務効率化支援サービス。生成AIを活用した業務改善、DX推進、人材育成を通じて企業の競争力を高めます。" />
+
+          {/* ヒーローセクション */}
+          <section id="hero-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ヒーローセクション" />
+            <HeroSectionSSR />
+          </section>
+
+          {/* 目次（AI検索最適化） */}
+          {pageData?.tableOfContents && pageData.tableOfContents.length > 0 && (
+            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center">
+                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      法人向けAI研修サービス一覧
+                    </h2>
+                    <p className="text-blue-100 mt-2">15年の実績と42の専門領域で企業の AI 活用を支援</p>
                   </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2 flex-grow">
-                      {post.title}
-                    </h3>
-                    {post.excerpt && (
-                      <p className="text-gray-600 line-clamp-3 mb-4 flex-grow">
-                        {post.excerpt}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-blue-600 font-medium group-hover:text-blue-800 transition-colors duration-200">
-                        詳しく見る →
-                      </span>
-                      <div className="flex items-center space-x-1">
-                        <span className="inline-flex items-center justify-center bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
-                          NEW
-                        </span>
-                      </div>
+                  <nav className="p-8">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {pageData.tableOfContents.map((item, index) => (
+                        <a
+                          key={index}
+                          href={`#${item.id}`}
+                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 group"
+                        >
+                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              {item.title}
+                            </h3>
+                            {item.children && item.children.length > 0 && (
+                              <ul className="mt-2 space-y-1">
+                                {item.children.map((child, childIndex) => (
+                                  <li key={childIndex}>
+                                    <a 
+                                      href={`#${child.id}`}
+                                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                                    >
+                                      • {child.title}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </a>
+                      ))}
                     </div>
-                  </div>
-                </article>
-              </a>
-            ))}
-          </div>
+                  </nav>
+                </div>
+              </div>
+            </section>
+          )}
 
-          <div className="text-center mt-12">
-            <a
-              href="/posts"
-              className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            >
-              すべての記事を見る
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
+          {/* サービス概要セクション */}
+          <section id="services-overview" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="サービス概要" />
+            <ServicesSection />
+          </section>
+
+          {/* 企業の課題セクション */}
+          <section id="corporate-problems" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="企業の課題" />
+            <CorporateProblems />
+          </section>
+
+          {/* 導入事例セクション */}
+          <section id="case-studies" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="導入事例" />
+            <CaseStudiesSection />
+          </section>
+
+          {/* よくある質問セクション */}
+          <section id="faq-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="よくある質問" />
+            <FaqSection />
+          </section>
+
+          {/* 導入のメリットセクション */}
+          <section id="corporate-merits" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="導入のメリット" />
+            <CorporateMerits />
+          </section>
+
+          {/* 導入フローセクション */}
+          <section id="corporate-flow" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="導入の流れ" />
+            <CorporateFlow />
+          </section>
+
+          {/* ROI計算ツール */}
+          <section id="roi-calculator" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ROI計算ツール" />
+            <div className="container mx-auto px-4">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-3xl font-bold text-center mb-12">AI研修導入効果計算ツール</h2>
+                <ROICalculator />
+              </div>
+            </div>
+          </section>
+
+          {/* セマンティックリンクセクション（ベクトルRAG活用） */}
+          {pageData?.semanticLinks && pageData.semanticLinks.length > 0 && (
+            <section id="related-services" className="py-16 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="max-w-6xl mx-auto">
+                  <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+                    🤖 関連するAIソリューション
+                  </h2>
+                  <p className="text-center text-gray-600 mb-8">
+                    当社のベクトルRAGシステムが推奨する関連サービス
+                  </p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {pageData.semanticLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
+                      >
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                          {link.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          関連性スコア: {link.relevanceScore?.toFixed(2)}
+                        </p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* お問い合わせセクション */}
+          <section id="contact-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="お問い合わせ" />
+            <ContactSectionSSR />
+          </section>
+        </article>
+      </main>
+    </>
   );
 }

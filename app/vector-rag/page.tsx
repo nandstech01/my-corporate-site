@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { ORGANIZATION_ENTITY, SERVICE_ENTITIES } from '@/lib/structured-data/entity-relationships';
 import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
+import { generateUnifiedPageData, type PageContext } from '@/lib/structured-data/unified-integration';
 import TableOfContents from '@/components/common/TableOfContents';
 import Header from '@/app/components/common/Header'
 import VectorRagHeroSectionSSR from './components/VectorRagHeroSectionSSR'
@@ -46,324 +47,530 @@ export const metadata: Metadata = {
   }
 };
 
-// 統一構造化データ生成
-const generateVectorRAGStructuredData = () => {
-  // ベクトルRAGサービスエンティティ作成
-  const vectorRAGService = {
+// ページコンテキスト定義（レリバンスエンジニアリング最適化）
+const pageContext: PageContext = {
+  pageSlug: 'vector-rag',
+  pageTitle: 'ベクトルRAG開発・知識ベース構築サービス',
+  keywords: [
+    // ベクトルRAG専門コア
+    'ベクトルRAG', 'Vector RAG', 'pgvector活用', 'OpenAI Embeddings',
+    'セマンティック検索', 'ベクトル検索', '知識ベース構築', 'Embedding技術',
+    '類似検索', 'AI検索システム', 'コサイン類似度', 'ベクトルデータベース',
+    
+    // Mike King理論・GEO対応
+    'レリバンスエンジニアリング', 'Mike King理論', 'GEO対策', 'AI検索最適化',
+    'Fragment ID最適化', 'TopicalCoverage', 'セマンティック構造化データ',
+    
+    // 競合優位性（トリプルRAGシステム）
+    'トリプルRAGシステム', '自社RAG', 'トレンドRAG', 'YouTubeRAG',
+    'マルチRAG統合', 'ベクトル統合検索', 'AI検索ランキング向上',
+    
+    // 技術仕様
+    'Supabase pgvector', 'PostgreSQL拡張', 'リアルタイム更新',
+    'マルチモーダル対応', 'スケーラブル設計', 'API統合'
+  ],
+  category: 'ベクトルRAG開発',
+  businessId: undefined,
+  categoryId: undefined,
+  // Phase 3: GEO最適化対象クエリ（AI検索エンジン上位表示）
+  targetQueries: [
+    'ベクトルRAG pgvector 開発',
+    'OpenAI Embeddings 検索システム',
+    'セマンティック検索 システム構築',
+    '知識ベース ベクトル化',
+    'トリプルRAGシステム 統合',
+    'AI検索システム 企業向け',
+    'ベクトルデータベース 活用',
+    'コサイン類似度 検索最適化'
+  ],
+  // Phase 4: AI検索・Trust Layer対応
+  enableAISearchDetection: true,
+  enableTrustSignals: true
+};
+
+// 統合データ取得（SSR）
+async function getUnifiedData() {
+  try {
+    return await generateUnifiedPageData(pageContext);
+  } catch (error) {
+    console.error('統合データ取得エラー:', error);
+    return null;
+  }
+}
+
+export default async function VectorRagPage() {
+  // 統合レリバンスエンジニアリングデータを取得
+  const unifiedData = await getUnifiedData();
+
+  // 業界最強ベクトルRAGシステム統合スキーマ（競合優位性の核心）
+  const vectorRAGAdvantageSchema = {
     "@context": "https://schema.org",
-    "@type": ["Service", "SoftwareApplication"],
-    "name": "ベクトルRAG開発サービス",
-    "applicationCategory": "BusinessApplication",
-    "description": "AI検索システム、知識ベース構築、Embedding技術を活用した高精度なRAGシステムの開発・提供サービス",
-    "provider": ORGANIZATION_ENTITY,
-    "serviceType": "VectorRAGDevelopment",
-    "offers": [
+    "@type": "DataFeed", 
+    "name": "業界最強ベクトルRAGシステム・トリプルRAG統合プラットフォーム",
+    "description": "株式会社エヌアンドエスの3つのRAGシステム（自社RAG・トレンドRAG・YouTubeRAG）を統合したベクトル検索プラットフォーム。OpenAI Embeddings・pgvector・Mike King理論を完全統合。",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization"
+    },
+    "dataset": [
       {
-        "@type": "Offer",
-        "name": "ベクトル検索システム開発",
-        "description": "高精度な類似検索・セマンティック検索システムの構築",
-        "priceRange": "600000-",
-        "priceCurrency": "JPY"
+        "@type": "Dataset",
+        "name": "自社RAGナレッジベース",
+        "description": "42専門領域をカバーする15年間の実績データをベクトル化。pgvectorとOpenAI Embeddingsによる高精度検索を実現。",
+        "keywords": ["企業ナレッジ", "専門知識", "実績データ", "ベクトル検索"],
+        "creator": { "@id": "https://nands.tech/#organization" },
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/search-rag"
+        }
       },
       {
-        "@type": "Offer",
-        "name": "知識ベース構築サービス",
-        "description": "企業文書のベクトル化・インデックス化・検索最適化",
-        "priceRange": "800000-",
-        "priceCurrency": "JPY"
+        "@type": "Dataset", 
+        "name": "トレンドRAGシステム",
+        "description": "リアルタイム技術動向・業界トレンドをベクトル化。最新情報による高関連性検索を提供。",
+        "keywords": ["技術トレンド", "業界動向", "リアルタイム更新", "トレンド分析"],
+        "temporalCoverage": "2024/継続更新"
       },
       {
-        "@type": "Offer",
-        "name": "RAGシステム統合開発",
-        "description": "LLMとベクトル検索を統合した包括的RAGシステム",
-        "priceRange": "1500000-",
-        "priceCurrency": "JPY"
+        "@type": "Dataset",
+        "name": "YouTubeRAGシステム", 
+        "description": "動画コンテンツの音声・映像・メタデータをベクトル化。マルチモーダル検索対応。",
+        "keywords": ["動画検索", "マルチモーダル", "音声認識", "映像解析"]
       }
     ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "14",
-      "bestRating": "5"
-    },
-    "featureList": [
-      "高精度ベクトル検索",
-      "マルチモーダル対応",
-      "リアルタイム更新",
-      "スケーラブル設計",
-      "API統合対応",
-      "多言語対応",
-      "セキュリティ強化",
-      "コスト最適化"
-    ],
-    "applicationSubCategory": [
-      "Vector Search",
-      "Semantic Search", 
-      "Knowledge Management",
-      "Information Retrieval",
-      "AI-Powered Search"
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "トリプルRAG統合技術",
+        "description": "自社・トレンド・YouTubeの3つのRAGシステムを統合したベクトル検索プラットフォーム"
+      },
+      {
+        "@type": "Thing",
+        "name": "pgvector高速検索",
+        "description": "PostgreSQL拡張pgvectorによる高速ベクトル検索とコサイン類似度最適化"
+      },
+      {
+        "@type": "Thing",
+        "name": "Mike King理論準拠",
+        "description": "レリバンスエンジニアリング・GEO対策によるAI検索エンジン最適化"
+      }
     ]
   };
 
-  return vectorRAGService;
-};
-
-// セマンティックリンク生成
-const semanticLinksSystem = new SemanticLinksSystem({
-  minRelevanceScore: 0.4,
-  maxLinksPerSection: 6,
-  enableAIOptimization: true
-});
-
-const semanticLinks = semanticLinksSystem.generateSemanticLinks({
-  currentPage: 'vector-rag',
-  currentTitle: 'ベクトルRAG開発サービス',
-  keywords: ['ベクトルRAG', 'AI検索', '知識ベース', 'Embedding技術', 'セマンティック検索'],
-  category: 'vector-rag',
-  priority: 1
-});
-
-// TOC生成（ベクトルRAG特化）
-const tableOfContents = [
-  { id: 'hero-section', title: 'ベクトルRAG開発サービス', level: 2 },
-  { id: 'services-section', title: 'サービス内容', level: 2 },
-  { id: 'tech-stack', title: '技術スタック', level: 2 },
-  { id: 'showcase', title: '開発実績', level: 2 },
-  { id: 'vector-features', title: 'ベクトルRAGの特徴', level: 2,
-    subsections: [
-      { id: 'high-precision-search', title: '高精度検索技術', level: 3 },
-      { id: 'multimodal-support', title: 'マルチモーダル対応', level: 3 },
-      { id: 'scalable-architecture', title: 'スケーラブル設計', level: 3 }
-    ]
-  },
-  { id: 'pricing-section', title: '料金プラン', level: 2 },
-  { id: 'faq-section', title: 'よくある質問', level: 2 },
-  { id: 'contact-section', title: 'お問い合わせ', level: 2 }
-];
-
-export default function VectorRagPage() {
-  const structuredData = generateVectorRAGStructuredData();
-
   return (
     <>
-      {/* 統合構造化データ */}
+      {/* 統一構造化データ（Mike King理論準拠） */}
+      {unifiedData?.structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(unifiedData.structuredData, null, 2)
+          }}
+        />
+      )}
+
+      {/* 業界最強ベクトルRAGシステム統合スキーマ（競合優位性の核心） */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(vectorRAGAdvantageSchema, null, 2)
+        }}
       />
-      
-      {/* セマンティック内部リンク構造化データ */}
+
+      {/* Phase 3: GEO最適化hasPartスキーマ（AI検索エンジン最適化） */}
+      {unifiedData?.geoOptimizedHasPart && (
+        <script
+          id="geo-optimized-haspart-vector-rag"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(unifiedData.geoOptimizedHasPart.jsonLd, null, 2)
+          }}
+        />
+      )}
+
+      {/* ベクトルRAG専用技術スキーマ */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          "name": "関連サービス",
-          "itemListElement": semanticLinks.map((link, index) => ({
-            "@type": "ListItem",
-            "position": index + 1,
-            "url": link.url,
-            "name": link.title
-          }))
-        }) }}
-      />
-      
-      {/* エンティティ関係性構造化データ */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@graph": [
-            ORGANIZATION_ENTITY,
-            structuredData,
-            ...SERVICE_ENTITIES.filter(service => 
-              service['@id'].includes('/system-development') || 
-              service['@id'].includes('/ai-agents') || 
-              service['@id'].includes('/chatbot-development')
-            )
-          ]
-        }) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "ベクトルRAG開発・知識ベース構築サービス",
+            "applicationCategory": "DeveloperApplication",
+            "applicationSubCategory": "Vector Search Platform",
+            "operatingSystem": "Linux, Docker, Kubernetes",
+            "programmingLanguage": ["Python", "TypeScript", "SQL", "JavaScript"],
+            "runtimePlatform": "PostgreSQL, Node.js, Docker",
+            "description": "OpenAI Embeddings・pgvector・トリプルRAGシステム統合による業界最高レベルのベクトル検索・知識ベース構築プラットフォーム。Mike King理論準拠のレリバンスエンジニアリング対応。",
+            "offers": {
+              "@type": "Offer",
+              "price": "600000",
+              "priceCurrency": "JPY",
+              "priceSpecification": {
+                "@type": "PriceSpecification",
+                "name": "ベクトルRAG・知識ベース構築基本パッケージ",
+                "description": "pgvector・OpenAI Embeddings・トリプルRAGシステム統合・セマンティック検索構築"
+              }
+            },
+            "provider": {
+              "@id": "https://nands.tech/#organization"
+            },
+            "featureList": [
+              "OpenAI Embeddings統合",
+              "pgvector高速検索",
+              "トリプルRAGシステム統合",
+              "セマンティック検索",
+              "コサイン類似度最適化",
+              "リアルタイム更新",
+              "マルチモーダル対応",
+              "スケーラブル設計",
+              "API統合対応",
+              "多言語ベクトル化",
+              "知識ベース自動構築",
+              "Mike King理論準拠",
+              "レリバンスエンジニアリング対応",
+              "AI検索ランキング向上"
+            ],
+            "softwareRequirements": [
+              "PostgreSQL 14+",
+              "pgvector 0.5+",
+              "OpenAI API",
+              "Python 3.11+",
+              "TypeScript 5+",
+              "Docker",
+              "Kubernetes",
+              "Supabase"
+            ]
+          }, null, 2)
+        }}
       />
 
       <main className="min-h-screen bg-white">
-        {/* Header */}
-        <Header />
+        {/* AI検索流入対応: Click-Recovery Banner */}
+        {unifiedData?.aiSearchDetection?.shouldShowBanner && (
+          <section className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3">
+            <div className="container mx-auto px-4 text-center">
+              <p className="text-sm">
+                🔍 AI検索からお越しですか？ 
+                <strong className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.title}</strong>
+                <span className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.message}</span>
+              </p>
+            </div>
+          </section>
+        )}
 
-        {/* パンくずナビ */}
+        {/* パンくずナビ（構造化データ対応） */}
         <nav className="bg-gray-50 px-4 py-2">
           <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm">
-              <li><a href="/" className="text-blue-600 hover:underline">ホーム</a></li>
+            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
               <li className="text-gray-500">›</li>
-              <li><a href="/services" className="text-blue-600 hover:underline">サービス</a></li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/services" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
               <li className="text-gray-500">›</li>
-              <li className="text-gray-900">ベクトルRAG開発</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <span className="text-gray-900" itemProp="name">ベクトルRAG開発</span>
+                <meta itemProp="position" content="3" />
+              </li>
             </ol>
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <section id="hero-section" className="relative">
-          <VectorRagHeroSectionSSR />
-        </section>
+        {/* Fragment ID対応セクション構造 */}
+        <article itemScope itemType="https://schema.org/WebPage">
+          <meta itemProp="name" content="ベクトルRAG開発・知識ベース構築サービス" />
+          <meta itemProp="description" content="OpenAI Embeddings・pgvector・トリプルRAGシステム統合による業界最高レベルのベクトル検索・セマンティック検索・知識ベース構築サービス。Mike King理論準拠のレリバンスエンジニアリング対応。" />
 
-        {/* ベクトルRAG専用検索機能予定エリア */}
-        <section id="vector-search-preview">
-          <FeaturePreviewSection
-            title="ベクトル検索・RAGシステム体験"
-            subtitle="高精度セマンティック検索"
-            description="企業データをベクトル化し、自然言語での高精度検索を実現。キーワード検索を超えた意味的検索により、関連性の高い情報を瞬時に発見できます。"
-            features={[
-              "自然言語による高精度検索",
-              "多言語対応・マルチモーダル検索",
-              "企業ナレッジベース統合",
-              "リアルタイム学習・更新機能",
-              "API連携・カスタマイズ対応",
-              "セキュリティ・アクセス制御",
-              "分析ダッシュボード・レポート生成",
-              "既存システムとの統合"
-            ]}
-            featureType="search"
-            expectedDate="2025年10月"
-            accentColor="purple"
-          />
-        </section>
+          {/* Hero Section */}
+          <section id="vector-rag-hero" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ヒーローセクション" />
+            <VectorRagHeroSectionSSR />
+          </section>
 
-        {/* 目次（機能予定エリア直後に配置） */}
-        <TableOfContents items={tableOfContents} />
+          {/* ベクトル検索・RAGシステム体験予定エリア */}
+          <section id="vector-search-preview">
+            <FeaturePreviewSection
+              title="ベクトル検索・RAGシステム体験"
+              subtitle="トリプルRAG統合・高精度セマンティック検索"
+              description="当社のベクトルRAGシステム（自社RAG・トレンドRAG・YouTubeRAG）を体験。OpenAI Embeddings・pgvectorによる高精度検索で、関連性の高い情報を瞬時に発見できます。"
+              features={[
+                "トリプルRAGシステム統合検索（自社・トレンド・YouTube）",
+                "OpenAI Embeddings・pgvector高速検索",
+                "セマンティック検索・コサイン類似度最適化",
+                "自然言語による意味的検索",
+                "多言語対応・マルチモーダル検索",
+                "リアルタイム学習・更新機能",
+                "API連携・カスタマイズ対応",
+                "分析ダッシュボード・レポート生成"
+              ]}
+              featureType="search"
+              expectedDate="2025年9月"
+              accentColor="purple"
+            />
+          </section>
 
-        {/* サービス内容セクション */}
-        <section id="services-section">
-          <VectorRagServicesSection />
-        </section>
-
-        {/* 技術スタック */}
-        <section id="tech-stack">
-          <VectorRagTechStack />
-        </section>
-
-        {/* 開発実績 */}
-        <section id="showcase">
-          <VectorRagShowcase />
-        </section>
-
-        {/* ベクトルRAGの特徴・強み */}
-        <section id="vector-features" className="py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              エヌアンドエスのベクトルRAGの特徴
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div id="high-precision-search" className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-blue-600">
-                  高精度検索技術
-                </h3>
-                <p className="text-gray-700">
-                  最新のEmbedding技術と類似度計算により、従来のキーワード検索を大幅に上回る精度を実現。
-                  意味的に関連性の高い情報を正確に検索できます。
-                </p>
+          {/* 目次（機能予定エリア直後に配置） */}
+          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-indigo-50">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center">
+                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      ベクトルRAG・知識ベース構築サービス一覧
+                    </h2>
+                    <p className="text-purple-100 mt-2">トリプルRAGシステム・OpenAI Embeddings・pgvector統合</p>
+                  </div>
+                  <nav className="p-8">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {unifiedData.tableOfContents.map((item, index) => (
+                        <a
+                          key={index}
+                          href={`#${item.id}`}
+                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-300 group"
+                        >
+                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                              {item.title}
+                            </h3>
+                            {item.children && item.children.length > 0 && (
+                              <ul className="mt-2 space-y-1">
+                                {item.children.map((child, childIndex) => (
+                                  <li key={childIndex}>
+                                    <a 
+                                      href={`#${child.id}`}
+                                      className="text-sm text-gray-600 hover:text-purple-600 transition-colors"
+                                    >
+                                      • {child.title}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </nav>
+                </div>
               </div>
-              <div id="multimodal-support" className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-green-600">
-                  マルチモーダル対応
-                </h3>
-                <p className="text-gray-700">
-                  テキスト、画像、音声、動画など複数のデータ形式に対応。
-                  統合的な検索体験で、多様なコンテンツから最適な情報を発見できます。
-                </p>
-              </div>
-              <div id="scalable-architecture" className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-purple-600">
-                  スケーラブル設計
-                </h3>
-                <p className="text-gray-700">
-                  大量データにも対応できる分散アーキテクチャを採用。
-                  企業の成長に合わせてシステムを拡張でき、長期的な運用をサポートします。
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+            </section>
+          )}
 
-        {/* セマンティック関連サービス */}
-        <section id="semantic-links" className="py-16">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              関連サービス
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {semanticLinks.map((link, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden border">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold mb-2">
-                      <a 
-                        href={link.url} 
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        {link.title}
-                      </a>
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      {link.description}
+          {/* サービス内容セクション */}
+          <section id="services-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="サービス内容" />
+            <VectorRagServicesSection />
+          </section>
+
+          {/* 技術スタック */}
+          <section id="tech-stack" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="技術スタック" />
+            <VectorRagTechStack />
+          </section>
+
+          {/* 開発実績 */}
+          <section id="showcase" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="開発実績" />
+            <VectorRagShowcase />
+          </section>
+
+          {/* トリプルRAGシステム統合の業界最強優位性セクション */}
+          <section id="triple-rag-advantage" className="py-16 bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-900 text-white" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="トリプルRAGシステム統合の優位性" />
+            <div className="container mx-auto px-4">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-3xl font-bold text-center mb-12">🚀 業界最強！トリプルRAGシステム統合による圧倒的競合優位性</h2>
+                <p className="text-center text-purple-100 mb-12 text-lg">
+                  当社独自の3つのRAGシステムを統合した業界唯一のベクトル検索プラットフォーム
+                </p>
+                
+                <div className="grid md:grid-cols-3 gap-8 mb-12">
+                  {/* 自社RAGシステム */}
+                  <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                    <h3 className="text-xl font-bold mb-4 text-purple-300">🏢 自社RAGナレッジベース</h3>
+                    <p className="text-purple-100 mb-4">
+                      15年間の実績・42専門領域をベクトル化。企業の専門知識とノウハウを最大限活用。
                     </p>
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                      関連度: {Math.round(link.relevanceScore * 100)}%
-                    </span>
+                    <ul className="text-sm text-purple-200 space-y-1">
+                      <li>• 15年間の蓄積実績データ</li>
+                      <li>• 42専門領域カバー</li>
+                      <li>• 企業固有ナレッジ最適化</li>
+                      <li>• プライベートナレッジ統合</li>
+                    </ul>
+                  </div>
+
+                  {/* トレンドRAGシステム */}
+                  <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                    <h3 className="text-xl font-bold mb-4 text-indigo-300">📈 トレンドRAGシステム</h3>
+                    <p className="text-purple-100 mb-4">
+                      リアルタイム技術動向・業界トレンドをベクトル化。最新情報で常に関連性最大化。
+                    </p>
+                    <ul className="text-sm text-purple-200 space-y-1">
+                      <li>• リアルタイム技術動向分析</li>
+                      <li>• 業界トレンド自動取得</li>
+                      <li>• 最新情報関連性向上</li>
+                      <li>• 継続的データ更新</li>
+                    </ul>
+                  </div>
+
+                  {/* YouTubeRAGシステム */}
+                  <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                    <h3 className="text-xl font-bold mb-4 text-cyan-300">🎥 YouTubeRAGシステム</h3>
+                    <p className="text-purple-100 mb-4">
+                      動画コンテンツ・音声・映像をベクトル化。マルチモーダル検索で情報取得革新。
+                    </p>
+                    <ul className="text-sm text-purple-200 space-y-1">
+                      <li>• 動画コンテンツ理解</li>
+                      <li>• 音声認識・テキスト化</li>
+                      <li>• 映像情報抽出</li>
+                      <li>• マルチモーダル統合検索</li>
+                    </ul>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* FAQ・よくある質問 */}
-        <section id="faq-section" className="py-16 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              よくある質問
-            </h2>
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-3 text-gray-900">
-                  ベクトルRAGと従来の検索システムの違いは何ですか？
-                </h3>
-                <p className="text-gray-700">
-                  従来のキーワード検索は完全一致が基本ですが、ベクトルRAGは意味的な類似性に基づいて検索します。
-                  「顧客満足度向上」と検索しても「お客様の喜び」のような類似表現のドキュメントも適切にヒットします。
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-3 text-gray-900">
-                  どのような企業データに対応できますか？
-                </h3>
-                <p className="text-gray-700">
-                  マニュアル、FAQ、報告書、プレゼンテーション、メール、チャットログなど、
-                  様々な形式の企業データに対応可能です。PDFや画像内のテキストも処理できます。
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-3 text-gray-900">
-                  システムの導入期間と運用開始までの流れを教えてください
-                </h3>
-                <p className="text-gray-700">
-                  要件定義から本格運用まで通常4-8週間程度です。
-                  データ準備→ベクトル化→インデックス構築→検索精度調整→運用開始の流れで進めます。
-                </p>
+                {/* 技術的優位性 */}
+                <div className="bg-white/5 backdrop-blur-sm p-8 rounded-xl">
+                  <h3 className="text-2xl font-bold text-center mb-8 text-white">⚡ 技術的優位性</h3>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h4 className="text-lg font-bold mb-4 text-purple-300">🔧 OpenAI Embeddings統合</h4>
+                      <ul className="text-purple-100 space-y-2">
+                        <li>• text-embedding-3-large活用</li>
+                        <li>• 3,072次元ベクトル高精度</li>
+                        <li>• 多言語対応・意味理解</li>
+                        <li>• コサイン類似度最適化</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold mb-4 text-indigo-300">⚡ pgvector高速検索</h4>
+                      <ul className="text-purple-100 space-y-2">
+                        <li>• PostgreSQL拡張活用</li>
+                        <li>• インデックス最適化</li>
+                        <li>• 並列処理・高速化</li>
+                        <li>• スケーラブル設計</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* 料金プラン */}
-        <section id="pricing-section">
-          <VectorRagPricingSection />
-        </section>
+          {/* ベクトルRAGの特徴・強み */}
+          <section id="vector-features" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ベクトルRAGの特徴" />
+            <div className="max-w-6xl mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12">
+                🎯 エヌアンドエスのベクトルRAGの特徴
+              </h2>
+              
+              <div className="grid md:grid-cols-3 gap-8">
+                {/* 高精度検索技術 */}
+                <div id="high-precision-search" className="bg-white p-6 rounded-xl shadow-lg">
+                  <h3 className="text-xl font-bold mb-4 text-purple-600">🎯 高精度検索技術</h3>
+                  <p className="text-gray-600 mb-4">
+                    OpenAI Embeddingsとpgvectorを組み合わせた業界最高レベルの検索精度を実現。
+                  </p>
+                  <ul className="text-sm text-gray-500 space-y-1">
+                    <li>• 検索精度92%以上</li>
+                    <li>• 意味的類似検索</li>
+                    <li>• 自然言語理解</li>
+                    <li>• コンテキスト保持</li>
+                  </ul>
+                </div>
 
-        {/* お問い合わせ */}
-        <section id="contact-section">
-          <VectorRagContactSectionSSR />
-        </section>
+                {/* マルチモーダル対応 */}
+                <div id="multimodal-support" className="bg-white p-6 rounded-xl shadow-lg">
+                  <h3 className="text-xl font-bold mb-4 text-indigo-600">🔗 マルチモーダル対応</h3>
+                  <p className="text-gray-600 mb-4">
+                    テキスト・画像・音声・動画を統合的に検索。あらゆる形式のデータから情報取得。
+                  </p>
+                  <ul className="text-sm text-gray-500 space-y-1">
+                    <li>• テキスト・画像統合</li>
+                    <li>• 音声認識・検索</li>
+                    <li>• 動画コンテンツ理解</li>
+                    <li>• 統合的情報取得</li>
+                  </ul>
+                </div>
+
+                {/* スケーラブル設計 */}
+                <div id="scalable-architecture" className="bg-white p-6 rounded-xl shadow-lg">
+                  <h3 className="text-xl font-bold mb-4 text-green-600">📈 スケーラブル設計</h3>
+                  <p className="text-gray-600 mb-4">
+                    大規模データ対応・高速処理・自動スケーリングで企業成長に合わせて拡張可能。
+                  </p>
+                  <ul className="text-sm text-gray-500 space-y-1">
+                    <li>• 大規模データ対応</li>
+                    <li>• 自動スケーリング</li>
+                    <li>• 負荷分散処理</li>
+                    <li>• パフォーマンス最適化</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 料金プランセクション */}
+          <section id="pricing-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="料金プラン" />
+            <VectorRagPricingSection />
+          </section>
+
+          {/* セマンティック関連リンクセクション */}
+          {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
+            <section id="related-services" className="py-16 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="max-w-6xl mx-auto">
+                  <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+                    🔍 関連するベクトルRAG・AI開発サービス
+                  </h2>
+                  <p className="text-center text-gray-600 mb-8">
+                    当社のトリプルRAGシステムが推奨するベクトル検索関連サービス
+                  </p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {unifiedData.semanticLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group"
+                      >
+                        <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2">
+                          {link.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          関連性スコア: {link.relevanceScore?.toFixed(2)}
+                        </p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* お問い合わせセクション */}
+          <section id="contact-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="お問い合わせ" />
+            <VectorRagContactSectionSSR />
+          </section>
+        </article>
       </main>
     </>
-  )
+  );
 } 

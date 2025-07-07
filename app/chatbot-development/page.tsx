@@ -1,438 +1,510 @@
-import { Metadata } from 'next'
-import { Suspense } from 'react'
-import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration'
-import { supabase } from '@/lib/supabase/supabase'
-import ChatbotHeroSectionSSR from './components/ChatbotHeroSectionSSR'
-import ChatbotServicesSection from './components/ChatbotServicesSection'
-import ChatbotTechStack from './components/ChatbotTechStack'
-import ChatbotShowcase from './components/ChatbotShowcase'
-import ChatbotPricingSection from './components/ChatbotPricingSection'
-import ChatbotContactSectionSSR from './components/ChatbotContactSectionSSR'
-import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer'
-import FeaturePreviewSection from '@/components/common/FeaturePreviewSection'
+import React from 'react';
+import { Metadata } from 'next';
+import { generateUnifiedPageData, type PageContext } from '@/lib/structured-data/unified-integration';
+import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
+import ChatbotHeroSectionSSR from './components/ChatbotHeroSectionSSR';
+import ChatbotServicesSection from './components/ChatbotServicesSection';
+import ChatbotTechStack from './components/ChatbotTechStack';
+import ChatbotShowcase from './components/ChatbotShowcase';
+import ChatbotContactSectionSSR from './components/ChatbotContactSectionSSR';
 
+// メタデータ生成
 export const metadata: Metadata = {
-  title: 'チャットボット開発サービス | GPT-4活用の高性能AI自動応答システム | 株式会社エヌアンドエス',
-  description: 'GPT-4を活用した高性能チャットボット開発。24時間自動応答、多言語対応、カスタマーサポート業務効率化を実現。6つの業界別特化ソリューションで80%の工数削減を達成。',
+  title: 'チャットボット開発サービス | GPT-4・Claude統合・24時間自動応答 | 株式会社エヌアンドエス',
+  description: '株式会社エヌアンドエスのチャットボット開発サービス。GPT-4・Claude統合、ベクトルRAG活用、業界特化、多言語対応で24時間高品質な自動応答を実現。顧客対応を革新します。',
   keywords: [
     'チャットボット開発',
-    'GPT-4',
-    'AI開発',
-    '自動応答システム',
+    'GPT-4チャットボット', 
+    'Claude統合',
+    'AI自動応答',
+    '24時間対応',
     'カスタマーサポート',
+    'ベクトルRAG',
+    '業界特化',
     '多言語対応',
-    '業務効率化',
-    'FAQ自動応答',
-    'ECサイト販売ボット',
-    '社内ヘルプデスク',
-    'データ分析ボット'
+    'エスカレーション機能',
+    '株式会社エヌアンドエス'
   ],
   openGraph: {
-    title: 'チャットボット開発サービス | GPT-4活用の高性能AI自動応答システム',
-    description: 'GPT-4を活用した高性能チャットボット開発。24時間自動応答、多言語対応、カスタマーサポート業務効率化を実現。',
-    url: 'https://nands.tech/chatbot-development',
-    siteName: '株式会社エヌアンドエス',
-    images: [
-      {
-        url: '/images/chatbot-og.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'チャットボット開発サービス - GPT-4活用AI自動応答システム',
-      },
-    ],
-    locale: 'ja_JP',
+    title: 'チャットボット開発サービス | GPT-4・Claude統合・24時間自動応答',
+    description: 'GPT-4・Claude統合チャットボット。ベクトルRAG活用・業界特化・多言語対応で24時間高品質な自動応答を実現。',
     type: 'website',
+    locale: 'ja_JP'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'チャットボット開発サービス | GPT-4活用の高性能AI自動応答システム',
-    description: 'GPT-4を活用した高性能チャットボット開発。24時間自動応答、多言語対応、カスタマーサポート業務効率化を実現。',
-    images: ['/images/chatbot-og.jpg'],
+    title: 'チャットボット開発サービス | 株式会社エヌアンドエス',
+    description: 'GPT-4・Claude統合・ベクトルRAG活用で24時間高品質な自動応答チャットボットを開発。'
   },
-}
+  alternates: {
+    canonical: 'https://nands.tech/chatbot-development'
+  }
+};
 
-// ページコンテキスト定義
-const pageContext = {
+// ページコンテキスト定義（レリバンスエンジニアリング最適化）
+const pageContext: PageContext = {
   pageSlug: 'chatbot-development',
-  pageName: 'chatbot-development',
-  pageTitle: 'チャットボット開発サービス',
-  businessDomain: 'AI・機械学習',
-  serviceType: 'チャットボット開発',
+  pageTitle: 'チャットボット開発・GPT-4統合・自動応答システム',
   keywords: [
-    'チャットボット開発', 'GPT-4', 'AI自動応答', 'カスタマーサポート',
-    '多言語対応', '業務効率化', 'FAQ自動応答', 'ECサイトボット'
+    // チャットボット開発コア
+    'チャットボット開発', 'GPT-4 チャットボット', 'Claude 統合', 'OpenAI API',
+    'AI自動応答', '24時間対応', 'カスタマーサポート', '顧客対応自動化',
+    'LINE Bot', 'Slack Bot', 'Teams Bot', 'Discord Bot', 'Web チャット',
+    
+    // Mike King理論・GEO対応
+    'レリバンスエンジニアリング', 'Mike King理論', 'GEO対策', 'AI検索最適化',
+    'Fragment ID最適化', 'TopicalCoverage', 'セマンティック構造化データ',
+    
+    // ベクトルRAG統合（競合優位性の核心）
+    'ベクトルRAG活用', 'トリプルRAGシステム', 'pgvector活用',
+    'OpenAI Embeddings', 'セマンティック検索', 'ナレッジベース統合',
+    '企業固有知識', 'FAQシステム', 'マルチモーダル対応',
+    
+    // 技術仕様
+    'Next.js開発', 'TypeScript開発', 'Webhooks統合', 'API連携',
+    'リアルタイム処理', 'WebSocket', 'サーバーレス', 'スケーラブル設計'
   ],
-  primaryKeywords: [
-    'チャットボット開発', 'GPT-4', 'AI自動応答', 'カスタマーサポート',
-    '多言語対応', '業務効率化', 'FAQ自動応答', 'ECサイトボット'
+  category: 'チャットボット開発',
+  businessId: undefined,
+  categoryId: undefined,
+  // Phase 3: GEO最適化対象クエリ（AI検索エンジン上位表示）
+  targetQueries: [
+    'GPT-4 チャットボット 開発',
+    'Claude 統合 チャットボット',
+    'ベクトルRAG チャットボット',
+    '24時間 自動応答 システム',
+    'AI カスタマーサポート',
+    'LINE Bot 開発 GPT-4',
+    'Slack Bot 業務自動化',
+    'チャットボット 業界特化'
   ],
-  category: 'AI・機械学習',
-  targetAudience: ['企業のカスタマーサポート担当者', 'ECサイト運営者', '社内IT担当者', '教育機関担当者'],
-  painPoints: [
-    '24時間対応の人的コスト',
-    '多言語サポートの困難さ',
-    '繰り返し質問への対応負荷',
-    'カスタマーサポート品質の一貫性'
-  ],
-  solutions: [
-    'GPT-4による高精度自動応答',
-    '10言語対応チャットボット',
-    'FAQ自動分類・振り分け',
-    '24時間365日安定稼働'
-  ],
-  benefits: [
-    '80%の工数削減実績',
-    '95%の顧客満足度達成',
-    '60%のコスト削減',
-    '24時間自動対応'
-  ]
+  // Phase 4: AI検索・Trust Layer対応
+  enableAISearchDetection: true,
+  enableTrustSignals: true
+};
+
+// 統合データ取得（SSR）
+async function getUnifiedData() {
+  try {
+    return await generateUnifiedPageData(pageContext);
+  } catch (error) {
+    console.error('統合データ取得エラー:', error);
+    return null;
+  }
 }
 
 export default async function ChatbotDevelopmentPage() {
-  // 統合データ生成
-  const unifiedData = await generateUnifiedPageData(pageContext)
-  
+  // 統合レリバンスエンジニアリングデータを取得
+  const unifiedData = await getUnifiedData();
+
+  // チャットボット×ベクトルRAG統合スキーマ（競合優位性の核心）
+  const chatbotRAGIntegrationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "インテリジェント・チャットボット開発プラットフォーム",
+    "applicationCategory": "BusinessApplication",
+    "applicationSubCategory": "Customer Support Bot",
+    "operatingSystem": "Web Browser, Mobile, Slack, LINE, Teams, Discord",
+    "programmingLanguage": ["TypeScript", "Python", "JavaScript"],
+    "runtimePlatform": "Node.js, Cloud Functions, WebSocket",
+    "description": "GPT-4・Claude統合・ベクトルRAG活用による業界最高レベルのインテリジェント・チャットボット開発プラットフォーム。トリプルRAGシステム・24時間自動応答・Mike King理論準拠のレリバンスエンジニアリング対応。",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "400000",
+      "priceCurrency": "JPY",
+      "priceSpecification": {
+        "@type": "PriceSpecification",
+        "name": "チャットボット開発・GPT-4統合基本パッケージ",
+        "description": "GPT-4・Claude統合・ベクトルRAG活用・24時間自動応答・業界特化チャットボット開発"
+      }
+    },
+    "featureList": [
+      "GPT-4・Claude 3.5 Sonnet統合",
+      "ベクトルRAG・ナレッジベース活用",
+      "トリプルRAGシステム統合",
+      "24時間365日自動応答",
+      "多言語対応（日本語・英語・中国語）",
+      "業界特化カスタマイズ",
+      "LINE・Slack・Teams・Discord統合",
+      "エスカレーション機能",
+      "感情分析・意図理解",
+      "学習機能・継続改善",
+      "API連携・Webhooks対応",
+      "リアルタイム処理・WebSocket",
+      "Mike King理論準拠",
+      "レリバンスエンジニアリング対応"
+    ],
+    "softwareRequirements": [
+      "OpenAI GPT-4 API",
+      "Claude 3.5 Sonnet API",
+      "pgvector",
+      "PostgreSQL 14+",
+      "Node.js 18+",
+      "TypeScript 5+",
+      "WebSocket支援",
+      "OAuth 2.0",
+      "Webhooks"
+    ]
+  };
+
+  // ベクトルRAG統合チャットボット・ナレッジベーススキーマ
+  const knowledgeBaseIntegrationSchema = {
+    "@context": "https://schema.org",
+    "@type": "DataFeed",
+    "name": "チャットボット向けベクトルRAGナレッジベース",
+    "description": "株式会社エヌアンドエスのトリプルRAGシステム（自社・トレンド・YouTube）をチャットボットに統合したナレッジベース。企業固有知識・FAQ・技術文書をベクトル化して24時間高精度回答を実現。",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization"
+    },
+    "dataset": [
+      {
+        "@type": "Dataset",
+        "name": "企業FAQナレッジベース",
+        "description": "企業の過去問い合わせ・FAQ・マニュアルをベクトル化。高精度な回答生成を実現。",
+        "keywords": ["FAQ", "カスタマーサポート", "問い合わせ履歴", "マニュアル"],
+        "creator": { "@id": "https://nands.tech/#organization" }
+      },
+      {
+        "@type": "Dataset",
+        "name": "業界特化ナレッジ",
+        "description": "42専門領域の業界知識をベクトル化。業界特化チャットボットを実現。",
+        "keywords": ["業界知識", "専門用語", "技術文書", "プロセス説明"]
+      },
+      {
+        "@type": "Dataset",
+        "name": "マルチモーダル対応データ",
+        "description": "テキスト・画像・音声・動画の複合データをベクトル化。統合的な回答生成。",
+        "keywords": ["マルチモーダル", "画像認識", "音声理解", "動画解析"]
+      }
+    ],
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "ベクトル類似検索",
+        "description": "pgvectorとOpenAI Embeddingsによる意味的類似検索でコンテキストに適した回答を生成"
+      },
+      {
+        "@type": "Thing",
+        "name": "リアルタイム学習",
+        "description": "新しい問い合わせから継続的に学習し、回答精度を向上"
+      },
+      {
+        "@type": "Thing",
+        "name": "Mike King理論活用",
+        "description": "レリバンスエンジニアリングによるAI検索最適化とGEO対策"
+      }
+    ]
+  };
+
   return (
-    <main className="min-h-screen bg-white">
-      {/* 統一構造化データ */}
+    <>
+      {/* 統一構造化データ（Mike King理論準拠） */}
+      {unifiedData?.structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(unifiedData.structuredData, null, 2)
+          }}
+        />
+      )}
+
+      {/* チャットボット×ベクトルRAG統合スキーマ（競合優位性の核心） */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            unifiedData.structuredData.service,
-            unifiedData.structuredData.softwareApplication,
-            unifiedData.structuredData.breadcrumbs,
-            unifiedData.structuredData.faq,
-          ].filter(Boolean))
+          __html: JSON.stringify(chatbotRAGIntegrationSchema, null, 2)
         }}
       />
 
-      {/* パンくずリスト */}
-      <div className="bg-gray-50 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex" aria-label="Breadcrumb">
-            <ol className="inline-flex items-center space-x-1 md:space-x-3">
-              <li className="inline-flex items-center">
-                <a href="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                  ホーム
-                </a>
-              </li>
-              <li>
-                <div className="flex items-center">
-                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <a href="/services" className="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">
-                    サービス
-                  </a>
-                </div>
-              </li>
-              <li aria-current="page">
-                <div className="flex items-center">
-                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2">
-                    チャットボット開発
-                  </span>
-                </div>
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
-
-      {/* Jump-Link CTA強化システム（Googleガイドライン100%準拠） */}
-      <ClientSideAnchorEnhancer 
-        enableAIDetection={true}
-        enhancementDelay={800}
-        scrollBehavior="smooth"
-        trackingEnabled={true}
+      {/* ベクトルRAG統合ナレッジベーススキーマ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(knowledgeBaseIntegrationSchema, null, 2)
+        }}
       />
 
-      {/* ヒーローセクション */}
-      <section id="hero-section">
-        <ChatbotHeroSectionSSR />
-      </section>
-
-      {/* 目次（ヒーロー直後に配置） */}
-      {unifiedData.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-        <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                <h2 className="text-2xl font-bold text-white flex items-center">
-                  <svg 
-                    className="w-6 h-6 mr-3" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                    />
-                  </svg>
-                  目次
-                </h2>
-                <p className="text-blue-100 mt-2">
-                  このページの内容に素早くアクセス
-                </p>
-              </div>
-              
-              <nav className="p-8">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {unifiedData.tableOfContents.map((item, index) => (
-                    <div key={index} className="group">
-                      <a
-                        href={`#${item.id}`}
-                        className="flex items-start p-4 rounded-xl border border-gray-200 
-                                 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300
-                                 group-hover:shadow-md"
-                      >
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 
-                                       rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 
-                                       transition-colors mb-2 leading-tight">
-                            {item.title}
-                          </h3>
-                        </div>
-                        <svg 
-                          className="w-5 h-5 text-gray-400 group-hover:text-blue-500 
-                                   transition-colors flex-shrink-0 mt-1" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M9 5l7 7-7 7" 
-                          />
-                        </svg>
-                      </a>
-                      
-                       {/* Subsections */}
-                       {item.children && item.children.length > 0 && (
-                         <div className="mt-3 ml-12 space-y-1">
-                           {item.children.map((subsection, subIndex) => (
-                             <a
-                               key={subIndex}
-                               href={`#${subsection.id}`}
-                               className="block text-sm text-gray-600 hover:text-blue-600 
-                                        transition-colors hover:underline pl-2 border-l-2 
-                                        border-gray-200 hover:border-blue-300
-                                        py-1 hover:bg-blue-50 rounded"
-                             >
-                               {subsection.title}
-                             </a>
-                           ))}
-                         </div>
-                       )}
-                    </div>
-                  ))}
-                </div>
-              </nav>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* サービス紹介セクション */}
-      <section id="services-section">
-        <ChatbotServicesSection />
-      </section>
-
-      {/* 技術スタックセクション */}
-      <section id="tech-stack-section">
-        <ChatbotTechStack />
-      </section>
-
-      {/* 実績ショーケースセクション */}
-      <section id="showcase-section">
-        <ChatbotShowcase />
-      </section>
-
-      {/* 料金プランセクション */}
-      <section id="pricing-section">
-        <ChatbotPricingSection />
-      </section>
-
-      {/* チャットボット機能予定セクション */}
-      <section id="chatbot-feature-preview">
-        <FeaturePreviewSection
-          title="高度なチャットボット開発支援システム"
-          subtitle="リアルタイム設計・自動実装・最適化支援"
-          description="GPT-4を活用したチャットボット設計から実装、運用最適化まで一貫してサポートするAIアシスタント。多言語対応、感情分析、パフォーマンス最適化など高度な機能を自動実装します。"
-          features={[
-            "会話フロー自動設計・最適化",
-            "10言語対応・多言語チャットボット実装",
-            "感情分析・顧客満足度向上機能",
-            "FAQ自動分類・応答精度向上",
-            "カスタマーサポート効率化分析",
-            "リアルタイム性能監視・改善提案",
-            "エスカレーション自動判定・振り分け",
-            "業界特化型テンプレート自動生成"
-          ]}
-          featureType="chatbot"
-          expectedDate="2025年11月"
-          accentColor="blue"
+      {/* Phase 3: GEO最適化hasPartスキーマ（AI検索エンジン最適化） */}
+      {unifiedData?.geoOptimizedHasPart && (
+        <script
+          id="geo-optimized-haspart-chatbot"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(unifiedData.geoOptimizedHasPart.jsonLd, null, 2)
+          }}
         />
-      </section>
-
-      {/* セマンティック内部リンクセクション */}
-      {unifiedData.semanticLinks.length > 0 && (
-        <section className="py-16 bg-gray-50 border-t border-gray-200" id="related-services-section">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
-              関連サービス・ソリューション
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {unifiedData.semanticLinks.slice(0, 6).map((link, index) => (
-                <div key={index} className="bg-white border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    <a href={link.url} className="hover:text-blue-600 transition-colors">
-                      {link.title}
-                    </a>
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {link.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {link.keywords.slice(0, 3).map((keyword, kidx) => (
-                      <span key={kidx} className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium">
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                  <a
-                    href={link.url}
-                    className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
-                  >
-                    詳細を見る
-                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       )}
 
-      {/* データベース連携記事表示 */}
-      <Suspense fallback={<div className="py-16 text-center">読み込み中...</div>}>
-        <RelatedArticlesSection businessDomain="AI・機械学習" serviceType="チャットボット開発" />
-      </Suspense>
+      <main className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-900">
+        {/* AI検索流入対応: Click-Recovery Banner */}
+        {unifiedData?.aiSearchDetection?.shouldShowBanner && (
+          <section className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-3">
+            <div className="container mx-auto px-4 text-center">
+              <p className="text-sm">
+                🤖 AI検索からお越しですか？ 
+                <strong className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.title}</strong>
+                <span className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.message}</span>
+              </p>
+            </div>
+          </section>
+        )}
 
-      {/* お問い合わせセクション */}
-      <section id="consultation-section">
-        <ChatbotContactSectionSSR />
-      </section>
-    </main>
-  )
-}
+        {/* パンくずナビ（構造化データ対応） */}
+        <nav className="bg-gray-50 px-4 py-2">
+          <div className="max-w-6xl mx-auto">
+            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
+              <li className="text-gray-500">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/services" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
+              <li className="text-gray-500">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <span className="text-gray-900" itemProp="name">チャットボット開発</span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
+          </div>
+        </nav>
 
-// データベース連携記事表示コンポーネント
-async function RelatedArticlesSection({ 
-  businessDomain, 
-  serviceType 
-}: { 
-  businessDomain: string
-  serviceType: string 
-}) {
-  try {
-    // チャットボット関連記事を取得
-    const { data: posts } = await supabase
-      .from('posts')
-      .select(`
-        id,
-        title,
-        excerpt,
-        slug,
-        published_at,
-        seo_keywords,
-        categories (
-          name,
-          slug
-        )
-      `)
-      .contains('seo_keywords', ['チャットボット'])
-      .eq('published', true)
-      .order('published_at', { ascending: false })
-      .limit(6)
+        {/* Fragment ID対応セクション構造 */}
+        <article itemScope itemType="https://schema.org/WebPage">
+          <meta itemProp="name" content="チャットボット開発・GPT-4統合・自動応答システム" />
+          <meta itemProp="description" content="GPT-4・Claude統合・ベクトルRAG活用による業界最高レベルのインテリジェント・チャットボット開発。24時間自動応答・業界特化・多言語対応で顧客対応を革新。Mike King理論準拠のレリバンスエンジニアリング対応。" />
 
-    if (!posts || posts.length === 0) {
-      return null
-    }
+          {/* Hero Section */}
+          <section id="chatbot-hero" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ヒーローセクション" />
+            <ChatbotHeroSectionSSR />
+          </section>
 
-    return (
-      <section className="py-16 bg-white" id="related-articles-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
-            チャットボット開発関連記事
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <article key={post.id} className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    {post.categories && Array.isArray(post.categories) && post.categories.length > 0 && (
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium">
-                        {post.categories[0].name}
-                      </span>
-                    )}
-                    {post.categories && !Array.isArray(post.categories) && (
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium">
-                        {(post.categories as any).name}
-                      </span>
-                    )}
-                    <time className="text-xs text-gray-500">
-                      {new Date(post.published_at).toLocaleDateString('ja-JP')}
-                    </time>
+          {/* チャットボット体験予定エリア */}
+          <section id="chatbot-demo-preview">
+            <FeaturePreviewSection
+              title="インテリジェント・チャットボット体験"
+              subtitle="GPT-4・Claude統合・ベクトルRAG活用"
+              description="当社のトリプルRAGシステムを統合したインテリジェント・チャットボットを体験。GPT-4・Claude・ベクトル検索による高精度な自動応答で、24時間365日の顧客対応を実現できます。"
+              features={[
+                "GPT-4・Claude 3.5 Sonnet統合による高精度対話",
+                "トリプルRAGシステム・ナレッジベース活用",
+                "24時間365日自動応答・即座な問題解決",
+                "多言語対応（日本語・英語・中国語・韓国語）",
+                "業界特化カスタマイズ・専門用語対応",
+                "感情分析・意図理解・コンテキスト保持",
+                "エスカレーション機能・人間オペレーター連携",
+                "学習機能・継続的な回答精度向上"
+              ]}
+              featureType="chatbot"
+              expectedDate="2025年8月"
+              accentColor="green"
+            />
+          </section>
+
+          {/* 目次（機能予定エリア直後に配置） */}
+          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center">
+                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      チャットボット開発サービス一覧
+                    </h2>
+                    <p className="text-green-100 mt-2">GPT-4・Claude統合・ベクトルRAG活用・24時間自動応答</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
-                    <a href={`/posts/${post.slug}`} className="hover:text-blue-600 transition-colors">
-                      {post.title}
-                    </a>
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-                  {post.seo_keywords && post.seo_keywords.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {post.seo_keywords.slice(0, 3).map((keyword: string, idx: number) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-50 text-gray-600 text-xs">
-                          #{keyword}
-                        </span>
+                  <nav className="p-8">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {unifiedData.tableOfContents.map((item: any, index: number) => (
+                        <a
+                          key={index}
+                          href={`#${item.id}`}
+                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all duration-300 group"
+                        >
+                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                              {item.title}
+                            </h3>
+                            {item.children && item.children.length > 0 && (
+                              <ul className="mt-2 space-y-1">
+                                {item.children.map((child: any, childIndex: number) => (
+                                  <li key={childIndex}>
+                                    <a 
+                                      href={`#${child.id}`}
+                                      className="text-sm text-gray-600 hover:text-green-600 transition-colors"
+                                    >
+                                      • {child.title}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </a>
                       ))}
                     </div>
-                  )}
-                  <a
-                    href={`/posts/${post.slug}`}
-                    className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
-                  >
-                    続きを読む
-                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </a>
+                  </nav>
                 </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  } catch (error) {
-    console.error('Error fetching related articles:', error)
-    return null
-  }
+              </div>
+            </section>
+          )}
+
+          {/* Services Section */}
+          <section id="chatbot-services" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="サービス一覧" />
+            <ChatbotServicesSection />
+          </section>
+
+          {/* Tech Stack Section */}
+          <section id="chatbot-techstack" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="技術スタック" />
+            <ChatbotTechStack />
+          </section>
+
+          {/* Showcase Section */}
+          <section id="chatbot-showcase" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="開発実績" />
+            <ChatbotShowcase />
+          </section>
+
+          {/* チャットボット×ベクトルRAG統合の優位性セクション */}
+          <section id="chatbot-rag-advantage" className="py-16 bg-gray-800" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="チャットボット×ベクトルRAG統合の優位性" />
+            <div className="container mx-auto px-4">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-3xl font-bold text-center mb-12 text-white">🚀 チャットボット×ベクトルRAG統合による圧倒的競合優位性</h2>
+                <p className="text-center text-gray-300 mb-12 text-lg">
+                  当社独自のトリプルRAGシステムとチャットボットを統合した業界最高レベルの自動応答プラットフォーム
+                </p>
+                
+                <div className="grid md:grid-cols-3 gap-8 mb-12">
+                  {/* インテリジェント回答生成 */}
+                  <div className="bg-gray-700 p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-green-400">🧠 インテリジェント回答生成</h3>
+                    <p className="text-gray-300 mb-4">
+                      ベクトルRAGとGPT-4を組み合わせた高度な回答生成。企業固有知識を活用した正確で文脈に適した応答を実現。
+                    </p>
+                    <ul className="text-sm text-gray-400 space-y-1">
+                      <li>• セマンティック検索による関連情報取得</li>
+                      <li>• コンテキスト保持型対話</li>
+                      <li>• 企業固有ナレッジベース活用</li>
+                      <li>• 回答精度継続的向上</li>
+                    </ul>
+                  </div>
+
+                  {/* 24時間高品質サポート */}
+                  <div className="bg-gray-700 p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-blue-400">🌟 24時間高品質サポート</h3>
+                    <p className="text-gray-300 mb-4">
+                      人間レベルの回答品質を24時間365日提供。エスカレーション機能により複雑な問い合わせも適切に対応。
+                    </p>
+                    <ul className="text-sm text-gray-400 space-y-1">
+                      <li>• 24時間365日稼働</li>
+                      <li>• 人間レベル回答品質</li>
+                      <li>• 即座な問題解決</li>
+                      <li>• エスカレーション機能</li>
+                    </ul>
+                  </div>
+
+                  {/* マルチプラットフォーム対応 */}
+                  <div className="bg-gray-700 p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-purple-400">🔗 マルチプラットフォーム対応</h3>
+                    <p className="text-gray-300 mb-4">
+                      LINE・Slack・Teams・Discord・Webサイトなど、あらゆるプラットフォームに統合可能。
+                    </p>
+                    <ul className="text-sm text-gray-400 space-y-1">
+                      <li>• LINE Bot・Slack Bot統合</li>
+                      <li>• Teams・Discord対応</li>
+                      <li>• Webサイト埋め込み</li>
+                      <li>• API・Webhooks連携</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 技術的優位性 */}
+                <div className="bg-gray-700/50 p-8 rounded-xl">
+                  <h3 className="text-2xl font-bold text-center mb-8 text-white">⚡ 技術的優位性</h3>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h4 className="text-lg font-bold mb-4 text-green-400">🤖 最新LLM統合</h4>
+                      <ul className="text-gray-300 space-y-2">
+                        <li>• GPT-4o最新モデル活用</li>
+                        <li>• Claude 3.5 Sonnet統合</li>
+                        <li>• マルチモーダル対応</li>
+                        <li>• Function Calling活用</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold mb-4 text-blue-400">🔍 ベクトルRAG統合</h4>
+                      <ul className="text-gray-300 space-y-2">
+                        <li>• pgvector高速検索</li>
+                        <li>• OpenAI Embeddings統合</li>
+                        <li>• トリプルRAGシステム活用</li>
+                        <li>• リアルタイム学習機能</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* セマンティック関連リンクセクション */}
+          {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
+            <section id="related-services" className="py-16 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="max-w-6xl mx-auto">
+                  <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+                    🤖 関連するチャットボット・AI開発サービス
+                  </h2>
+                  <p className="text-center text-gray-600 mb-8">
+                    当社のトリプルRAGシステムが推奨するチャットボット関連サービス
+                  </p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {unifiedData.semanticLinks.map((link: any, index: number) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 group"
+                      >
+                        <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors mb-2">
+                          {link.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          関連性スコア: {link.relevanceScore?.toFixed(2)}
+                        </p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* お問い合わせセクション */}
+          <section id="contact" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="お問い合わせ" />
+            <ChatbotContactSectionSSR />
+          </section>
+        </article>
+      </main>
+    </>
+  );
 } 

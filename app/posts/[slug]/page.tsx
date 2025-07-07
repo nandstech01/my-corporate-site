@@ -188,14 +188,16 @@ export default async function PostPage({ params }: PageProps) {
     }))
   }
 
-  // 著者情報（ORCID/Wikidata sameAs対応）
+  // 著者情報（Google E-E-A-T準拠・ORCID対応）
   const authorSchema = {
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": "https://nands.tech/author/harada-kenji",
     "name": "原田賢治",
+    "givenName": "賢治",
+    "familyName": "原田",
     "jobTitle": "代表取締役・AI技術責任者",
-    "description": "Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。",
+    "description": "Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。15年以上のAI・システム開発経験を持つ。",
     "knowsAbout": [
       "Relevance Engineering",
       "Mike King Theory",
@@ -206,9 +208,16 @@ export default async function PostPage({ params }: PageProps) {
       "Vector RAG Systems",
       "AI Agent Development",
       "企業AI研修",
-      "生成AI活用コンサルティング"
+      "生成AI活用コンサルティング",
+      "退職代行サービス",
+      "AI技術コンサルティング"
     ],
     "affiliation": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization",
+      "name": "株式会社エヌアンドエス"
+    },
+    "worksFor": {
       "@type": "Organization",
       "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス"
@@ -216,19 +225,25 @@ export default async function PostPage({ params }: PageProps) {
     "url": "https://nands.tech/about",
     "image": "https://nands.tech/images/author/harada-kenji.jpg",
     "sameAs": [
-      "https://orcid.org/0000-0000-0000-0000", // 実際のORCID IDに更新
-      "https://www.wikidata.org/wiki/Q000000", // 実際のWikidata IDに更新
-      "https://twitter.com/nands_tech",
-      "https://linkedin.com/company/nands-tech"
+      "https://orcid.org/0009-0007-2241-9100",
+      "https://x.com/NANDS_AI",
+      "https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/"
     ],
-    "expertise": "AI Search Optimization, Relevance Engineering, Generative AI Business Integration",
-    "alumniOf": {
-      "@type": "EducationalOrganization",
-      "name": "関西大学"
-    }
+    "expertise": "AI Search Optimization, Relevance Engineering, Generative AI Business Integration, 退職代行サービス",
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "AI・システム開発15年以上の実務経験"
+      }
+    ],
+    "nationality": {
+      "@type": "Country",
+      "name": "日本"
+    },
+    "knowsLanguage": ["ja", "en"]
   }
 
-  // Mike King理論準拠: BlogPosting + hasPart + AIO LLMO最適化
+  // Mike King理論準拠: BlogPosting + hasPart + AIO LLMO最適化（Google 2024年ガイドライン対応）
   const enhancedStructuredData = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -236,12 +251,14 @@ export default async function PostPage({ params }: PageProps) {
     "headline": post.title,
     "alternativeHeadline": post.meta_description || `${post.content.substring(0, 100)}...`,
     "description": post.meta_description || post.excerpt || `${post.content.substring(0, 160)}...`,
+    "abstract": post.meta_description || post.excerpt || `${post.content.substring(0, 200)}...`,
     "image": {
       "@type": "ImageObject",
       "url": post.thumbnail_url || post.featured_image || "https://nands.tech/images/default-post.jpg",
       "width": 1200,
       "height": 630,
-      "caption": post.title
+      "caption": post.title,
+      "alt": post.title
     },
     
     // 著者情報強化（E-E-A-T対策）
@@ -250,6 +267,8 @@ export default async function PostPage({ params }: PageProps) {
       "@type": "Organization", 
       "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス",
+      "legalName": "株式会社エヌアンドエス",
+      "url": "https://nands.tech",
       "logo": {
         "@type": "ImageObject",
         "url": "https://nands.tech/logo.png",
@@ -257,7 +276,29 @@ export default async function PostPage({ params }: PageProps) {
         "height": 60
       },
       "foundingDate": "2008",
-      "description": "Mike King理論準拠のレリバンスエンジニアリング実装企業"
+      "description": "Mike King理論準拠のレリバンスエンジニアリング実装企業。AI技術コンサルティング、退職代行サービス、生成AI最適化を提供。",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "皇子が丘２丁目10-25-3004号",
+        "addressLocality": "大津市",
+        "addressRegion": "滋賀県",
+        "postalCode": "520-0025",
+        "addressCountry": "JP"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "contact@nands.tech",
+        "contactType": "customer service",
+        "availableLanguage": ["Japanese", "English"]
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "日本"
+      },
+      "serviceArea": {
+        "@type": "Country",
+        "name": "日本"
+      }
     },
     
     // 日時情報
@@ -352,10 +393,27 @@ export default async function PostPage({ params }: PageProps) {
         "name": faq.question,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": faq.answer
+          "text": faq.answer,
+          "author": {
+            "@type": "Person",
+            "name": "原田賢治"
+          }
         }
       }))
-    })
+    }),
+
+    // Google音声検索最適化
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["h1", "h2", ".faq-section"]
+    },
+
+    // Googleニュース最適化
+    "isAccessibleForFree": true,
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": "https://nands.tech/#website"
+    }
   }
 
   // HOW TO構造化データ（別スキーマ）
@@ -477,7 +535,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* FAQ表示（自動抽出） */}
         {faqData.length > 0 && (
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6 faq-section">
             <h2 className="text-xl font-bold mb-6 text-blue-900">よくある質問</h2>
             <div className="space-y-6">
               {faqData.map((faq: any, index: number) => (
@@ -490,8 +548,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* HOW TO表示（自動抽出） */}
-        {howToData.steps.length > 0 && (
+        {/* HOW TO表示（自動抽出） - 非表示に変更 */}
+        {/* {howToData.steps.length > 0 && (
           <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">
             <h2 className="text-xl font-bold mb-6 text-green-900">実装ガイド</h2>
             <div className="space-y-4">
@@ -508,7 +566,7 @@ export default async function PostPage({ params }: PageProps) {
               ))}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* 著者セクション */}
         <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6">
@@ -529,13 +587,13 @@ export default async function PostPage({ params }: PageProps) {
               <p className="text-sm text-gray-600 mb-3">代表取締役・AI技術責任者</p>
               <p className="text-gray-700 mb-4">
                 Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。
-                15年以上のAI・システム開発経験を持ち、関西地方を中心に全国で企業のDX・AI活用を支援。
+                15年以上のAI・システム開発経験を持ち、全国で企業のDX・AI活用、退職代行サービスを支援。
               </p>
               <div className="flex gap-2">
-                <a href="https://twitter.com/nands_tech" className="text-indigo-600 hover:text-indigo-800 text-sm">
-                  Twitter
+                <a href="https://x.com/NANDS_AI" className="text-indigo-600 hover:text-indigo-800 text-sm">
+                  X (Twitter)
                 </a>
-                <a href="https://linkedin.com/company/nands-tech" className="text-indigo-600 hover:text-indigo-800 text-sm">
+                <a href="https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/" className="text-indigo-600 hover:text-indigo-800 text-sm">
                   LinkedIn
                 </a>
                 <a href="/about" className="text-indigo-600 hover:text-indigo-800 text-sm">

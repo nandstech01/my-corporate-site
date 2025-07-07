@@ -63,7 +63,12 @@ const pageContext: PageContext = {
     '統一エンティティシステム', 'TOC自動生成', 'HowTo Schema',
     
     // サービス特化
-    'AI検索流入対策', 'Click-Recovery最適化', 'Trust Layer構築'
+    'AI検索流入対策', 'Click-Recovery最適化', 'Trust Layer構築',
+    
+    // ベクトルRAG統合（競合優位性の核心）
+    'ベクトルRAG活用', 'トリプルRAGシステム', 'pgvector活用',
+    'OpenAI Embeddings', 'セマンティック関連性', 'AI検索ランキング',
+    'レリバンス最大化', 'コンテンツ最適化', 'エンティティ関係性'
   ],
   category: 'レリバンスエンジニアリング',
   businessId: undefined,
@@ -77,8 +82,15 @@ const pageContext: PageContext = {
     'Topical Coverage最適化',
     'Fragment ID SEO',
     'セマンティック構造化データ',
-    'AIO対策 専門企業'
-  ]
+    'AIO対策 専門企業',
+    'AI Overviews 上位表示',
+    'Perplexity 最適化',
+    'GEO対策 実装方法',
+    'レリバンスエンジニアリング 成功事例'
+  ],
+  // Phase 4: AI検索・Trust Layer対応
+  enableAISearchDetection: true,
+  enableTrustSignals: true
 }
 
 // 統合データ取得（SSR）
@@ -95,9 +107,71 @@ export default async function AIOPage() {
   // 統合レリバンスエンジニアリングデータを取得
   const unifiedData = await getUnifiedData()
 
+  // ベクトルRAGシステム統合スキーマ（レリバンスエンジニアリングの核心）
+  const vectorRAGLeverageSchema = {
+    "@context": "https://schema.org",
+    "@type": "DataFeed",
+    "name": "レリバンスエンジニアリング専門ナレッジベース",
+    "description": "株式会社エヌアンドエスのベクトルRAGシステムによるMike King理論・GEO対策・AI検索最適化専門知識データベース",
+    "provider": {
+      "@type": "Organization",
+      "@id": "https://nands.tech/#organization"
+    },
+    "dataset": {
+      "@type": "Dataset",
+      "name": "Mike King Relevance Engineering Knowledge Base",
+      "description": "15年間の実績とMike King理論完全準拠のレリバンスエンジニアリング専門データベース",
+      "creator": {
+        "@type": "Organization",
+        "@id": "https://nands.tech/#organization"
+      },
+      "keywords": [
+        "Mike King理論",
+        "レリバンスエンジニアリング",
+        "GEO対策",
+        "AI検索最適化",
+        "Fragment ID最適化",
+        "Topical Coverage",
+        "セマンティック構造化データ",
+        "AI Overviews最適化"
+      ],
+      "temporalCoverage": "2009/2024",
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "グローバル",
+        "geo": {
+          "@type": "GeoShape",
+          "addressCountry": ["JP", "US", "GB"]
+        }
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "application/json",
+        "contentUrl": "https://nands.tech/api/search-rag"
+      }
+    },
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Mike King理論実装",
+        "description": "iPullRank創設者Mike King氏のレリバンスエンジニアリング理論の実装方法"
+      },
+      {
+        "@type": "Thing",
+        "name": "GEO対策技術",
+        "description": "Generative Engine Optimizationによる生成系AI検索エンジン最適化"
+      },
+      {
+        "@type": "Thing",
+        "name": "セマンティック構造化データ",
+        "description": "意味的関連性を最大化する高度な構造化データ実装技術"
+      }
+    ]
+  };
+
   return (
     <>
-      {/* 統一構造化データ（JSON-LD） */}
+      {/* 統一構造化データ（Mike King理論準拠） */}
       {unifiedData?.structuredData && (
         <Script
           id="unified-structured-data-aio-seo"
@@ -107,6 +181,15 @@ export default async function AIOPage() {
           }}
         />
       )}
+
+      {/* ベクトルRAGシステム統合スキーマ（競合優位性の核心） */}
+      <Script
+        id="vector-rag-leverage-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(vectorRAGLeverageSchema, null, 2)
+        }}
+      />
 
       {/* Phase 3: GEO最適化hasPartスキーマ（専用出力） */}
       {unifiedData?.geoOptimizedHasPart && (
@@ -154,7 +237,7 @@ export default async function AIOPage() {
             "applicationSubCategory": "SEO Optimization Tool",
             "operatingSystem": "Web-based",
             "programmingLanguage": ["JavaScript", "TypeScript", "Python"],
-            "description": "Mike King理論準拠のレリバンスエンジニアリング・GEO最適化・AI検索エンジン対応の統合プラットフォーム",
+            "description": "Mike King理論準拠のレリバンスエンジニアリング・GEO最適化・AI検索エンジン対応の統合プラットフォーム。ベクトルRAGシステムによる競合優位性を確立。",
             "provider": {
               "@type": "Organization",
               "@id": "https://nands.tech/#organization",
@@ -163,9 +246,14 @@ export default async function AIOPage() {
             "offers": {
               "@type": "Offer",
               "name": "AIO対策・レリバンスエンジニアリング",
-              "description": "Mike King理論準拠のAI検索最適化・GEO対策・レリバンスエンジニアリング",
-              "priceRange": "300000-",
-              "priceCurrency": "JPY"
+              "description": "Mike King理論準拠のAI検索最適化・GEO対策・レリバンスエンジニアリング。ベクトルRAGシステム統合による業界最高レベルの成果を保証。",
+              "price": "300000",
+              "priceCurrency": "JPY",
+              "priceSpecification": {
+                "@type": "PriceSpecification",
+                "name": "レリバンスエンジニアリング基本パッケージ",
+                "description": "Mike King理論準拠・GEO対策・Fragment ID最適化・セマンティック構造化データ実装"
+              }
             },
             "featureList": [
               "Mike King理論準拠",
@@ -176,268 +264,248 @@ export default async function AIOPage() {
               "Topical Coverage",
               "Fragment ID最適化",
               "セマンティック構造化データ",
-              "AI検索エンジン最適化"
+              "AI検索エンジン最適化",
+              "ベクトルRAG統合",
+              "トリプルRAGシステム活用",
+              "pgvector セマンティック検索",
+              "OpenAI Embeddings統合",
+              "関連性スコア最大化",
+              "AI検索ランキング向上"
             ],
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.7",
-              "reviewCount": "12",
-              "bestRating": "5"
-            }
+            "softwareRequirements": [
+              "Google Search Console",
+              "Schema.org Validator",
+              "Mike King理論フレームワーク",
+              "iPullRank メソドロジー",
+              "ベクトルRAGシステム",
+              "pgvector",
+              "OpenAI Embeddings API"
+            ]
           }, null, 2)
         }}
       />
 
       <main className="min-h-screen bg-white">
+        {/* AI検索流入対応: Click-Recovery Banner */}
+        {unifiedData?.aiSearchDetection?.shouldShowBanner && (
+          <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3">
+            <div className="container mx-auto px-4 text-center">
+              <p className="text-sm">
+                🎯 AI検索からお越しですか？ 
+                <strong className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.title}</strong>
+                <span className="ml-2">{unifiedData.aiSearchDetection.recoveryMessage.message}</span>
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* パンくずナビ */}
         <nav className="bg-gray-50 px-4 py-2">
           <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm">
-              <li><a href="/" className="text-blue-600 hover:underline">ホーム</a></li>
+            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
               <li className="text-gray-500">›</li>
-              <li><a href="/services" className="text-blue-600 hover:underline">サービス</a></li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href="/services" className="text-blue-600 hover:underline" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
               <li className="text-gray-500">›</li>
-              <li className="text-gray-900">AIO対策・レリバンスエンジニアリング</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <span className="text-gray-900" itemProp="name">AIO対策・レリバンスエンジニアリング</span>
+                <meta itemProp="position" content="3" />
+              </li>
             </ol>
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <section id="aio-hero" className="relative">
-          <AIOHeroSectionSSR />
-        </section>
+        {/* Fragment ID対応セクション構造 */}
+        <article itemScope itemType="https://schema.org/WebPage">
+          <meta itemProp="name" content="AIO対策・GEO・レリバンスエンジニアリング" />
+          <meta itemProp="description" content="Mike King理論準拠のレリバンスエンジニアリング専門サービス。GEO・Topical Coverage・Fragment ID最適化・セマンティック構造化データでAI検索エンジン上位表示を実現。" />
 
-        {/* AIO診断ツール予定エリア */}
-        <section id="aio-diagnostic-preview">
-          <FeaturePreviewSection
-            title="AIO診断・レリバンスエンジニアリング分析ツール"
-            subtitle="Mike King理論準拠 AI検索最適化診断"
-            description="URLを入力するだけで、Mike King理論に基づくレリバンスエンジニアリング・GEO対策・AI検索最適化の包括的な診断を実行。ChatGPT・Perplexity・Google AI Overviewsでの発見可能性を詳細分析します。"
-            features={[
-              "Mike King理論準拠のレリバンスエンジニアリング分析",
-              "GEO（Generative Engine Optimization）対策診断",
-              "Topical Coverage・Fragment ID最適化チェック",
-              "AI検索エンジン発見可能性スコア算出",
-              "セマンティック構造化データ適合性評価",
-              "競合サイトとのレリバンス比較分析",
-              "AI検索流入最適化レポート生成",
-              "改善施策の自動提案・優先度付け"
-            ]}
-            featureType="diagnostic"
-            expectedDate="2025年12月"
-            accentColor="purple"
-          />
-        </section>
+          {/* ヒーローセクション */}
+          <section id="hero-section" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ヒーローセクション" />
+            <AIOHeroSectionSSR />
+          </section>
 
-        {/* 目次（診断ツール直後に配置） */}
-        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-          <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center">
-                    <svg 
-                      className="w-6 h-6 mr-3" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                      />
-                    </svg>
-                    目次
-                  </h2>
-                  <p className="text-blue-100 mt-2">
-                    このページの内容に素早くアクセス
-                  </p>
-                </div>
-                
-                <nav className="p-8">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {unifiedData.tableOfContents.map((item, index) => (
-                      <div key={index} className="group">
+          {/* 目次（AI検索最適化） */}
+          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center">
+                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      レリバンスエンジニアリング・Mike King理論サービス一覧
+                    </h2>
+                    <p className="text-purple-100 mt-2">業界最高レベルのAI検索最適化・GEO対策・Fragment ID最適化</p>
+                  </div>
+                  <nav className="p-8">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {unifiedData.tableOfContents.map((item, index) => (
                         <a
+                          key={index}
                           href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 
-                                   hover:border-blue-300 hover:bg-blue-50 transition-all duration-300
-                                   group-hover:shadow-md"
+                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-300 group"
                         >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 
-                                         rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
+                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
                             {index + 1}
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 
-                                         transition-colors mb-2 leading-tight">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
                               {item.title}
                             </h3>
+                            {item.children && item.children.length > 0 && (
+                              <ul className="mt-2 space-y-1">
+                                {item.children.map((child, childIndex) => (
+                                  <li key={childIndex}>
+                                    <a 
+                                      href={`#${child.id}`}
+                                      className="text-sm text-gray-600 hover:text-purple-600 transition-colors"
+                                    >
+                                      • {child.title}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
-                          <svg 
-                            className="w-5 h-5 text-gray-400 group-hover:text-blue-500 
-                                     transition-colors flex-shrink-0 mt-1" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M9 5l7 7-7 7" 
-                            />
-                          </svg>
                         </a>
-                        
-                                                 {/* Subsections */}
-                         {item.children && item.children.length > 0 && (
-                           <div className="mt-3 ml-12 space-y-1">
-                             {item.children.map((subsection, subIndex) => (
-                               <a
-                                 key={subIndex}
-                                 href={`#${subsection.id}`}
-                                 className="block text-sm text-gray-600 hover:text-blue-600 
-                                          transition-colors hover:underline pl-2 border-l-2 
-                                          border-gray-200 hover:border-blue-300
-                                          py-1 hover:bg-blue-50 rounded"
-                               >
-                                 {subsection.title}
-                               </a>
-                             ))}
-                           </div>
-                         )}
-                      </div>
+                      ))}
+                    </div>
+                  </nav>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* AIOサービスセクション */}
+          <section id="aio-services" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="AIOサービス" />
+            <AIOServicesSection />
+          </section>
+
+          {/* ケーススタディセクション */}
+          <section id="case-studies" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ケーススタディ" />
+            <AIOCaseStudiesSection />
+          </section>
+
+          {/* メソドロジーセクション */}
+          <section id="methodology" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="メソドロジー" />
+            <AIOMethodologySection />
+          </section>
+
+          {/* ベクトルRAG統合の優位性セクション */}
+          <section id="vector-rag-advantage" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="ベクトルRAG統合の優位性" />
+            <div className="container mx-auto px-4">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-3xl font-bold text-center mb-12">🚀 ベクトルRAGシステム統合による競合優位性</h2>
+                
+                <div className="grid md:grid-cols-3 gap-8">
+                  {/* トリプルRAGシステム */}
+                  <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-purple-600">🔗 トリプルRAGシステム</h3>
+                    <p className="text-gray-600 mb-4">
+                      自社RAG・トレンドRAG・YouTubeRAGの3つのRAGシステムを統合活用。業界最高レベルの関連性スコアを実現。
+                    </p>
+                    <ul className="text-sm text-gray-500 space-y-1">
+                      <li>• 42専門領域ナレッジベース</li>
+                      <li>• リアルタイムトレンド反映</li>
+                      <li>• 動画コンテンツ理解</li>
+                      <li>• セマンティック関連性最大化</li>
+                    </ul>
+                  </div>
+
+                  {/* pgvector活用 */}
+                  <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-pink-600">⚡ pgvector高精度検索</h3>
+                    <p className="text-gray-600 mb-4">
+                      PostgreSQL拡張のpgvectorとOpenAI Embeddingsを活用した高精度セマンティック検索を実装。
+                    </p>
+                    <ul className="text-sm text-gray-500 space-y-1">
+                      <li>• OpenAI text-embedding-3-large</li>
+                      <li>• コサイン類似度最適化</li>
+                      <li>• インデックス高速化</li>
+                      <li>• リアルタイム更新対応</li>
+                    </ul>
+                  </div>
+
+                  {/* AI検索ランキング向上 */}
+                  <div className="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 className="text-xl font-bold mb-4 text-indigo-600">📈 AI検索ランキング向上</h3>
+                    <p className="text-gray-600 mb-4">
+                      ベクトルRAGによる関連性最大化でChatGPT・Perplexity・AI Overviewsでの上位表示を実現。
+                    </p>
+                    <ul className="text-sm text-gray-500 space-y-1">
+                      <li>• ChatGPT検索最適化</li>
+                      <li>• Perplexity上位表示</li>
+                      <li>• AI Overviews引用獲得</li>
+                      <li>• 関連性スコア最大化</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 料金プランセクション */}
+          <section id="pricing" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="料金プラン" />
+            <AIOPricingSection />
+          </section>
+
+          {/* セマンティックリンクセクション（ベクトルRAG活用） */}
+          {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
+            <section id="related-services" className="py-16 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="max-w-6xl mx-auto">
+                  <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+                    🎯 関連するレリバンスエンジニアリングサービス
+                  </h2>
+                  <p className="text-center text-gray-600 mb-8">
+                    当社のベクトルRAGシステムが推奨するMike King理論関連サービス
+                  </p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {unifiedData.semanticLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group"
+                      >
+                        <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2">
+                          {link.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          関連性スコア: {link.relevanceScore?.toFixed(2)}
+                        </p>
+                      </a>
                     ))}
                   </div>
-                </nav>
+                </div>
               </div>
-            </div>
+            </section>
+          )}
+
+          {/* お問い合わせセクション */}
+          <section id="contact" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="お問い合わせ" />
+            <AIOContactSectionSSR />
           </section>
-        )}
-
-        {/* サービス一覧セクション */}
-        <section id="aio-services">
-          <AIOServicesSection />
-        </section>
-
-        {/* Methodology Section - Mike King理論 */}
-        <section id="aio-methodology">
-          <AIOMethodologySection />
-        </section>
-
-        {/* Case Studies Section */}
-        <section id="aio-case-studies">
-          <AIOCaseStudiesSection />
-        </section>
-
-        {/* Pricing Section */}
-        <section id="aio-pricing">
-          <AIOPricingSection />
-        </section>
-
-        {/* セマンティック関連リンクセクション */}
-        {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
-          <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <div className="container mx-auto px-4">
-              <div 
-                dangerouslySetInnerHTML={{ 
-                  __html: SemanticLinksComponent({ 
-                    links: unifiedData.semanticLinks,
-                    title: "🔗 レリバンスエンジニアリング関連サービス",
-                    className: "max-w-6xl mx-auto p-8 bg-white rounded-xl shadow-lg border border-blue-100"
-                  })
-                }}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* Contact Section */}
-        <section id="aio-contact">
-          <AIOContactSectionSSR />
-        </section>
-
-        {/* エンティティ関係性を活用したリッチスニペット強化 */}
-        {unifiedData?.entityRelationships && (
-          <Script
-            id="entity-relationships-aio-seo"
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "ItemList",
-                "name": "レリバンスエンジニアリング関連エンティティ",
-                "description": "Mike King理論に基づくレリバンスエンジニアリング・GEO関連のエンティティ関係性",
-                "itemListElement": unifiedData.entityRelationships.map((entity, index) => ({
-                  "@type": "ListItem",
-                  "position": index + 1,
-                  "item": {
-                    "@id": entity["@id"],
-                    "name": entity.name,
-                    "knowsAbout": entity.knowsAbout
-                  }
-                }))
-              }, null, 2)
-            }}
-          />
-        )}
-
-        {/* DB連携関連記事（レリバンスエンジニアリング・GEO関連） */}
-        {unifiedData?.posts && unifiedData.posts.length > 0 && (
-          <section className="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-12">
-                📖 レリバンスエンジニアリング・GEO関連記事
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                {unifiedData.posts.slice(0, 6).map((post) => (
-                  <a
-                    key={post.id}
-                    href={`/posts/${post.slug}`}
-                    className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-indigo-100 hover:border-indigo-300"
-                  >
-                    <h3 className="font-semibold text-lg mb-2 text-gray-800">{post.title}</h3>
-                    {post.excerpt && (
-                      <p className="text-gray-600 text-sm mb-3">{post.excerpt}</p>
-                    )}
-                    {post.seo_keywords && post.seo_keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {post.seo_keywords.slice(0, 3).map((keyword) => (
-                          <span
-                            key={keyword}
-                            className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Mike King理論・GEO最適化の専門性アピール */}
-        <section className="py-16 bg-white border-t border-gray-200">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">
-              🎯 Mike King理論準拠 レリバンスエンジニアリング専門企業
-            </h2>
-            <p className="text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              当社は<strong>Mike King理論</strong>に基づく<strong>レリバンスエンジニアリング</strong>の専門企業として、
-              <strong>GEO（Generative Engine Optimization）</strong>・<strong>Topical Coverage</strong>・
-              <strong>Fragment ID最適化</strong>等の最新手法を用いて、
-              AI検索エンジン（ChatGPT・Perplexity・Google AI Overviews）での上位表示を実現いたします。
-            </p>
-          </div>
-        </section>
-
+        </article>
       </main>
     </>
-  )
+  );
 } 
