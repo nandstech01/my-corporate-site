@@ -16,6 +16,7 @@ import {
   RocketLaunchIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
+import XPostGenerationSection from './components/XPostGenerationSection';
 
 // キーワードデータベース（英語・日本語対応）
 const keywordDatabase = {
@@ -1554,6 +1555,9 @@ export default function ContentGenerationPage() {
             </div>
           )}
         </div>
+
+        {/* X投稿生成セクション */}
+        <XPostGenerationSection className="mb-8" />
 
         {/* コンテンツ一覧 */}
         <div className="bg-gray-800 rounded-xl border border-gray-700">

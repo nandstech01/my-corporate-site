@@ -2,6 +2,96 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 import { supabase } from '@/lib/supabase/supabase';
 
+/**
+ * GET: URLクエリパラメータからBrave Search（X投稿取得用）
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q');
+    const count = parseInt(searchParams.get('count') || '10');
+
+    if (!query) {
+      return NextResponse.json(
+        { error: 'クエリパラメータ "q" が必要です' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`🔍 Brave Search GET API - クエリ: "${query}"`);
+
+    const BRAVE_API_KEY = process.env.BRAVE_API_KEY;
+    if (!BRAVE_API_KEY) {
+      return NextResponse.json({
+        error: 'BRAVE_API_KEY が設定されていません',
+        query,
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
+    }
+
+    // Brave Search API呼び出し
+    const searchResponse = await fetch(
+      `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({
+        q: query,
+        count: count.toString(),
+        country: 'JP',
+        search_lang: 'en',
+        freshness: 'pd',
+        result_filter: 'web'
+      })}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip',
+          'X-Subscription-Token': BRAVE_API_KEY,
+        },
+      }
+    );
+
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error(`Brave Search API エラー: ${searchResponse.status} - ${errorText}`);
+      return NextResponse.json({
+        error: `Brave Search API エラー: ${searchResponse.status}`,
+        details: errorText,
+        query,
+        timestamp: new Date().toISOString()
+      }, { status: searchResponse.status });
+    }
+
+    const braveData = await searchResponse.json();
+    const braveResults = braveData.web?.results || [];
+
+    console.log(`📊 Brave Search GET結果: ${braveResults.length}件`);
+
+    // 結果を返す（ベクトル化なし、X投稿取得用）
+    const results = braveResults.map((item: any, index: number) => ({
+      title: item.title || '',
+      url: item.url || '',
+      description: item.description || '',
+      age: item.age || '',
+      source: item.profile?.name || extractDomain(item.url)
+    }));
+
+    return NextResponse.json({
+      results,
+      total: results.length,
+      query,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Brave Search GET エラー:', error);
+    return NextResponse.json(
+      { error: 'Brave Search GET でエラーが発生しました: ' + (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST: 従来のニュース取得・ベクトル化機能
+ */
 export async function POST(request: NextRequest) {
   try {
     const { query, type = 'news' } = await request.json();
