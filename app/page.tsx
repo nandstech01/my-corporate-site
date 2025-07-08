@@ -21,6 +21,15 @@ import ServicesSectionSSR from '@/app/components/portal/ServicesSectionSSR'
 // AboutSectionSSR（AI検索エンジン最適化）
 import AboutSectionSSR from '@/app/components/portal/AboutSectionSSR'
 
+// Schema.org 16.0+ 最新機能をインポート
+import {
+  IPTCDigitalSourceType,
+  createAIServiceTransparency,
+  createJapaneseCertifications,
+  createJapaneseGovernmentBenefits,
+  generateLatestOrganizationSchema
+} from '@/lib/structured-data/schema-org-latest';
+
 export const metadata: Metadata = {
   title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
   description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。2008年の設立以来、時代に寄り添ったソリューションを提供しています。',
@@ -645,6 +654,41 @@ export default async function HomePage() {
     ]
   };
 
+  // Schema.org 16.0+ 対応構造化データ
+  const latestOrganizationSchema = generateLatestOrganizationSchema(
+    {
+      '@id': 'https://nands.tech/#organization',
+      name: 'エヌアンドエス株式会社',
+      description: 'AI・システム開発・リスキリング研修で企業のDXを支援',
+      url: 'https://nands.tech'
+    },
+    {
+      includeAITransparency: true,
+      includeCertifications: true,
+      includeGovernmentBenefits: true
+    }
+  );
+
+  // AI透明性ステートメント
+  const aiTransparencyStatement = {
+    digitalSourceTypes: createAIServiceTransparency(),
+    statement: '当社サービスはAI技術を活用していますが、人間の専門知識と品質管理を重視しています。'
+  };
+
+  // 助成金情報の追加
+  const subsidyInformation = {
+    humanResourcesDevelopment: {
+      name: '人材開発支援助成金',
+      coverage: '最大80%補助',
+      description: 'リスキリング研修費用の大部分を助成金でカバー可能'
+    },
+    itIntroduction: {
+      name: 'IT導入補助金',
+      coverage: '最大75%補助',
+      description: 'システム開発・AI導入費用を大幅に削減'
+    }
+  };
+
   return (
     <main>
       {/* 【最強LLMO構造化データ】Google Gemini LLM + AI Overviews完全対応 */}
@@ -685,6 +729,38 @@ export default async function HomePage() {
       <FeaturedSection />
       <FAQSection />
       <ContactSection />
+
+      <Script
+        id="schema-org-16-organization"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(latestOrganizationSchema, null, 2),
+        }}
+      />
+
+      <Script
+        id="ai-transparency-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'TechArticle',
+            '@id': 'https://nands.tech/#ai-transparency',
+            headline: 'AI技術透明性に関する声明',
+            text: aiTransparencyStatement.statement,
+            digitalSourceType: aiTransparencyStatement.digitalSourceTypes,
+            author: {
+              '@type': 'Organization',
+              '@id': 'https://nands.tech/#organization'
+            },
+            publisher: {
+              '@type': 'Organization', 
+              '@id': 'https://nands.tech/#organization'
+            },
+            datePublished: '2024-01-01'
+          }, null, 2),
+        }}
+      />
     </main>
   )
 } 
