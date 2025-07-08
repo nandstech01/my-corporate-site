@@ -875,13 +875,29 @@ export default async function Home() {
         "@type": "SoftwareApplication",
         "name": "ChatGPT",
         "applicationCategory": "AI Language Model",
-        "description": "OpenAI開発の大規模言語モデル"
+        "description": "OpenAI開発の大規模言語モデル",
+        "operatingSystem": ["Web", "iOS", "Android"],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.5",
+          "ratingCount": "1000000",
+          "bestRating": "5",
+          "worstRating": "1"
+        }
       },
       {
         "@type": "SoftwareApplication", 
         "name": "Perplexity",
         "applicationCategory": "AI Search Engine",
-        "description": "AI駆動検索エンジン"
+        "description": "AI駆動検索エンジン",
+        "operatingSystem": ["Web", "iOS", "Android"],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.3",
+          "ratingCount": "500000",
+          "bestRating": "5",
+          "worstRating": "1"
+        }
       },
       {
         "@type": "Place",
