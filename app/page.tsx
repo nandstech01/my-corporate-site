@@ -30,6 +30,13 @@ import {
   generateLatestOrganizationSchema
 } from '@/lib/structured-data/schema-org-latest';
 
+// AI検索エンジン最適化をインポート
+import {
+  generateAIEnhancedUnifiedPageData,
+  generateAIEnhancedStructuredDataJSON,
+  generateAISearchReport
+} from '@/lib/structured-data/unified-integration-ai-enhanced';
+
 export const metadata: Metadata = {
   title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
   description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。2008年の設立以来、時代に寄り添ったソリューションを提供しています。',
@@ -162,7 +169,7 @@ async function getLatestPosts(): Promise<Post[]> {
   }
 }
 
-export default async function HomePage() {
+export default async function Home() {
   const posts = await getLatestPosts();
   const structuredData = getStructuredData();
   
@@ -689,6 +696,23 @@ export default async function HomePage() {
     }
   };
 
+  // AI検索エンジン最適化データ生成
+  const aiEnhancedData = await generateAIEnhancedUnifiedPageData(
+    {
+      pageSlug: '',
+      pageTitle: 'エヌアンドエス | AI・システム開発・リスキリング研修',
+      keywords: ['AI', 'システム開発', 'リスキリング', 'レリバンスエンジニアリング', 'RAG', 'ChatGPT'],
+      category: 'corporate'
+    },
+    ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
+  );
+
+  // AI検索最適化レポート
+  const aiSearchReport = generateAISearchReport(aiEnhancedData);
+
+  // AI検索最適化構造化データ
+  const aiEnhancedStructuredDataJSON = generateAIEnhancedStructuredDataJSON(aiEnhancedData);
+
   return (
     <main>
       {/* 【最強LLMO構造化データ】Google Gemini LLM + AI Overviews完全対応 */}
@@ -758,6 +782,37 @@ export default async function HomePage() {
               '@id': 'https://nands.tech/#organization'
             },
             datePublished: '2024-01-01'
+          }, null, 2),
+        }}
+      />
+
+      <Script
+        id="ai-search-optimization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: aiEnhancedStructuredDataJSON,
+        }}
+      />
+
+      <Script
+        id="ai-search-metadata"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            '@id': 'https://nands.tech/#ai-search-metadata',
+            name: 'AI検索エンジン最適化メタデータ',
+            description: 'ChatGPT、Perplexity、Claude等のAI検索エンジン最適化情報',
+            aiSearchOptimization: {
+              targetEngines: aiEnhancedData.aiSearchOptimization?.targetEngines,
+              readinessScore: aiEnhancedData.aiSearchOptimization?.readinessScore,
+              optimizationLevel: 'advanced',
+              lastOptimized: new Date().toISOString().split('T')[0]
+            },
+            detailedKnowledgeProfile: aiEnhancedData.detailedKnowsAbout,
+            enhancedEntityRelationships: aiEnhancedData.enhancedMentions,
+            fragmentIdOptimization: aiEnhancedData.fragmentIdEnhancement
           }, null, 2),
         }}
       />
