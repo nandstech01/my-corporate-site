@@ -811,6 +811,59 @@ export function generateEnhancedPotentialActions(
 ): PotentialActionSchema[] {
   let actions = [...JAPANESE_ENTERPRISE_ACTIONS];
   
+  // 不完全なオブジェクトを検証・修正する
+  actions = actions.map(action => {
+    // RegisterActionのobjectが不完全なCourseの場合、完全なものに置き換え
+    if (action['@type'] === 'RegisterAction' && action.object && action.object['@type'] === 'Course') {
+      // 既に完全な場合はそのまま、不完全な場合は除外または修正
+      if (!action.object.name || !action.object.description) {
+        // 不完全なCourseを完全なものに修正
+        action.object = {
+          '@type': 'Course',
+          '@id': 'https://nands.tech/reskilling#course',
+          name: 'AI・プロンプトエンジニアリング リスキリング研修',
+          description: '生成AI活用とプロンプトエンジニアリングの実践的研修プログラム。ChatGPT、Claude等の最新AI技術を業務に活用するためのスキルを習得します。人材開発支援助成金適用で受講料最大80%補助対象。',
+          courseMode: 'online',
+          availableLanguage: 'Japanese',
+          provider: {
+            '@type': 'Organization',
+            '@id': 'https://nands.tech/#organization',
+            name: 'エヌアンドエス株式会社',
+            url: 'https://nands.tech'
+          },
+          offers: {
+            '@type': 'Offer',
+            name: 'リスキリング研修受講料',
+            description: '人材開発支援助成金適用で最大80%補助',
+            price: '200000',
+            priceCurrency: 'JPY',
+            availability: 'https://schema.org/InStock',
+            validFrom: '2024-01-01',
+            validThrough: '2024-12-31'
+          },
+          hasCourseInstance: [
+            {
+              '@type': 'CourseInstance',
+              courseMode: 'online',
+              instructor: {
+                '@type': 'Person',
+                name: '原田賢治',
+                '@id': 'https://nands.tech/#founder',
+                jobTitle: '代表取締役・AI技術コンサルタント'
+              },
+              location: {
+                '@type': 'VirtualLocation',
+                name: 'オンライン研修',
+                url: 'https://nands.tech/reskilling'
+              }
+            }
+          ]
+        };
+      }
+    }
+    return action;
+  });
+  
   // コンテキスト別フィルタリング
   if (context?.serviceType) {
     actions = actions.filter(action => 
