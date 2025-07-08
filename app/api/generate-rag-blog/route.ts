@@ -101,6 +101,10 @@ function parseGeneratedContent(content: string): any {
   }
 }
 
+// Next.js 14のAPI Routes用のタイムアウト設定（本番環境対応）
+export const maxDuration = 300; // 5分
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -271,14 +275,23 @@ ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、
 
 記事は必ず${targetLength}文字程度になるよう、十分に詳細で価値ある内容にしてください。JSONの文字列内では改行は\\nで表現し、引用符は\\"でエスケープしてください。`;
 
-    // OpenAI o1-miniで記事生成
+    // OpenAI o1-miniで記事生成（本番環境タイムアウト対応）
     console.log('🤖 OpenAI o1-miniで記事生成中...');
-    const completion = await openai.chat.completions.create({
-      model: "o1-mini",
-      messages: [
-        {
-          role: "user",
-          content: `${prompt}
+    let completion;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        console.log(`🔄 OpenAI API呼び出し試行 ${retryCount + 1}/${maxRetries + 1}`);
+        
+        completion = await Promise.race([
+          openai.chat.completions.create({
+            model: "o1-mini",
+            messages: [
+              {
+                role: "user",
+                content: `${prompt}
 
 【システム指示】
 あなたは日本のトップレベルのSEOライター・コンテンツマーケターです。レリバンスエンジニアリング、構造化データ、ユーザー体験を重視した高品質な記事を生成します。
@@ -290,12 +303,35 @@ ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、
 4. 出力は指定されたJSON構造に完全に従うこと
 
 レスポンスはJSONのみで開始してください：`
+              }
+            ],
+            max_completion_tokens: 4000,
+          }),
+          // 240秒（4分）でタイムアウト
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('OpenAI API timeout after 240 seconds')), 240000)
+          )
+        ]);
+        
+        console.log('✅ OpenAI API呼び出し成功');
+        break; // 成功したらループを抜ける
+        
+      } catch (error) {
+        retryCount++;
+        console.error(`❌ OpenAI API呼び出しエラー (試行 ${retryCount}/${maxRetries + 1}):`, error);
+        
+        if (retryCount > maxRetries) {
+          throw new Error(`OpenAI API呼び出しが${maxRetries + 1}回失敗しました: ${(error as Error).message}`);
         }
-      ],
-      max_completion_tokens: 4000,
-    });
+        
+        // リトライ前に少し待機（指数バックオフ）
+        const waitTime = Math.pow(2, retryCount) * 1000; // 2秒, 4秒, 8秒...
+        console.log(`⏳ ${waitTime/1000}秒後にリトライします...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
 
-    const generatedContent = completion.choices[0]?.message?.content;
+    const generatedContent = (completion as any)?.choices[0]?.message?.content;
     if (!generatedContent) {
       throw new Error('記事生成に失敗しました');
     }
