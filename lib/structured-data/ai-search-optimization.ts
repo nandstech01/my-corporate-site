@@ -15,6 +15,12 @@ import {
   SERVICE_ENTITIES,
   type EntityRelationship 
 } from './entity-relationships';
+import {
+  generateEnhancedPotentialActions,
+  generateEnhancedAdditionalTypes,
+  generateEnhancedSameAs,
+  type PotentialActionSchema
+} from './schema-org-latest';
 
 // =============================================================================
 // AI検索エンジン最適化の型定義
@@ -814,6 +820,597 @@ export function checkAISearchReadiness(schema: any): {
     score: scoreResult.totalScore,
     recommendations
   };
+}
+
+// =============================================================================
+// AI検索最適化強化システム (Schema.org 16.0+ 統合)
+// =============================================================================
+
+/**
+ * 強化版AI検索最適化スキーマ
+ */
+export interface EnhancedAIOptimizedSchema {
+  // 基本AI最適化
+  knowsAbout: DetailedKnowsAbout[];
+  mentions: DetailedMentions[];
+  
+  // Schema.org 16.0+ 強化要素
+  potentialAction: PotentialActionSchema[];
+  additionalType: string[];
+  sameAs: string[];
+  
+  // AI検索エンジン特化プロパティ
+  aiSearchMetadata: {
+    targetEngines: string[];
+    optimizationLevel: 'basic' | 'advanced' | 'expert';
+    readinessScore: number;
+    fragmentIdMapping: Record<string, string>;
+    semanticConnections: Record<string, number>;
+    queryTargeting: Record<string, string[]>;
+  };
+  
+  // ナレッジグラフ連携
+  knowledgeGraphIntegration: {
+    entityDensity: number;
+    relationshipStrength: number;
+    topicalAuthority: number;
+    semanticCoverage: number;
+  };
+}
+
+/**
+ * AI検索エンジン別詳細設定
+ */
+export interface AdvancedAIEngineConfig extends AISearchEngineConfig {
+  // Schema.org 16.0+ 活用度
+  potentialActionUtilization: 'minimal' | 'moderate' | 'extensive';
+  additionalTypeImportance: number; // 0-1
+  sameAsWeighting: number; // 0-1
+  
+  // AI特化最適化
+  semanticUnderstandingFocus: string[];
+  queryProcessingPreference: 'exact' | 'semantic' | 'hybrid';
+  entityRecognitionPriority: number; // 0-1
+  
+  // 日本語対応レベル
+  japaneseLanguageSupport: 'basic' | 'intermediate' | 'native';
+  culturalContextAwareness: number; // 0-1
+}
+
+/**
+ * 拡張AI検索エンジン設定
+ */
+export const ADVANCED_AI_SEARCH_ENGINE_CONFIGS: Record<string, AdvancedAIEngineConfig> = {
+  ChatGPT: {
+    ...AI_SEARCH_ENGINE_CONFIGS.ChatGPT,
+    potentialActionUtilization: 'extensive',
+    additionalTypeImportance: 0.8,
+    sameAsWeighting: 0.9,
+    semanticUnderstandingFocus: [
+      'entityRelationships', 
+      'contextualRelevance', 
+      'domainExpertise'
+    ],
+    queryProcessingPreference: 'hybrid',
+    entityRecognitionPriority: 0.85,
+    japaneseLanguageSupport: 'intermediate',
+    culturalContextAwareness: 0.7
+  },
+  
+  Perplexity: {
+    ...AI_SEARCH_ENGINE_CONFIGS.Perplexity,
+    potentialActionUtilization: 'extensive',
+    additionalTypeImportance: 0.9,
+    sameAsWeighting: 1.0,
+    semanticUnderstandingFocus: [
+      'sourceCredibility',
+      'factualAccuracy',
+      'entityVerification'
+    ],
+    queryProcessingPreference: 'semantic',
+    entityRecognitionPriority: 0.95,
+    japaneseLanguageSupport: 'intermediate',
+    culturalContextAwareness: 0.6
+  },
+  
+  Claude: {
+    ...AI_SEARCH_ENGINE_CONFIGS.Claude,
+    potentialActionUtilization: 'extensive',
+    additionalTypeImportance: 0.85,
+    sameAsWeighting: 0.8,
+    semanticUnderstandingFocus: [
+      'contextualDepth',
+      'nuancedUnderstanding',
+      'multiModalReasoning'
+    ],
+    queryProcessingPreference: 'semantic',
+    entityRecognitionPriority: 0.9,
+    japaneseLanguageSupport: 'native',
+    culturalContextAwareness: 0.9
+  },
+  
+  Gemini: {
+    ...AI_SEARCH_ENGINE_CONFIGS.Gemini,
+    potentialActionUtilization: 'moderate',
+    additionalTypeImportance: 0.75,
+    sameAsWeighting: 0.85,
+    semanticUnderstandingFocus: [
+      'multiModalIntegration',
+      'visualContext',
+      'broadKnowledge'
+    ],
+    queryProcessingPreference: 'hybrid',
+    entityRecognitionPriority: 0.8,
+    japaneseLanguageSupport: 'intermediate',
+    culturalContextAwareness: 0.75
+  },
+  
+  DeepSeek: {
+    ...AI_SEARCH_ENGINE_CONFIGS.DeepSeek,
+    potentialActionUtilization: 'moderate',
+    additionalTypeImportance: 0.7,
+    sameAsWeighting: 0.75,
+    semanticUnderstandingFocus: [
+      'technicalAccuracy',
+      'codeUnderstanding',
+      'logicalReasoning'
+    ],
+    queryProcessingPreference: 'exact',
+    entityRecognitionPriority: 0.8,
+    japaneseLanguageSupport: 'basic',
+    culturalContextAwareness: 0.5
+  }
+};
+
+// =============================================================================
+// 拡張AI検索最適化システム
+// =============================================================================
+
+export class EnhancedAISearchOptimizationSystem extends AISearchOptimizationSystem {
+  private advancedConfigs: Record<string, AdvancedAIEngineConfig>;
+  
+  constructor() {
+    super();
+    this.advancedConfigs = ADVANCED_AI_SEARCH_ENGINE_CONFIGS;
+  }
+  
+  /**
+   * 強化版AI最適化スキーマ生成
+   */
+  generateEnhancedAIOptimizedSchema(
+    baseEntity: EntityRelationship,
+    targetEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude'],
+    context?: {
+      slug: string;
+      title: string;
+      category: string;
+      fragmentIds: string[];
+      serviceType?: string;
+      isJapaneseEnterprise?: boolean;
+      isAIFocused?: boolean;
+    }
+  ): EnhancedAIOptimizedSchema {
+    // 基本AI最適化要素
+    const basicSchema = this.generateAIOptimizedSchema(baseEntity, targetEngines, context);
+    
+    // Schema.org 16.0+ 強化要素
+    const potentialAction = generateEnhancedPotentialActions(
+      baseEntity['@type'],
+      { serviceType: context?.serviceType }
+    );
+    
+    const additionalType = generateEnhancedAdditionalTypes(
+      baseEntity['@type'],
+      {
+        isJapaneseEnterprise: context?.isJapaneseEnterprise ?? true,
+        isAIFocused: context?.isAIFocused ?? true,
+        industrySpecific: this.extractIndustryContext(context?.category)
+      }
+    );
+    
+    const sameAs = generateEnhancedSameAs(
+      baseEntity['@id'],
+      {
+        includeIndustryRefs: true,
+        includeJapaneseRefs: true,
+        includeAIRefs: context?.isAIFocused ?? true,
+        includeKnowledgeGraph: true
+      }
+    );
+    
+    // AI検索メタデータ強化
+    const aiSearchMetadata = this.generateAdvancedAISearchMetadata(
+      targetEngines,
+      context
+    );
+    
+    // ナレッジグラフ連携強化
+    const knowledgeGraphIntegration = this.calculateKnowledgeGraphMetrics(
+      basicSchema.knowsAbout || [],
+      basicSchema.mentions || [],
+      additionalType,
+      sameAs
+    );
+    
+    return {
+      knowsAbout: basicSchema.knowsAbout || [],
+      mentions: basicSchema.mentions || [],
+      potentialAction,
+      additionalType,
+      sameAs,
+      aiSearchMetadata,
+      knowledgeGraphIntegration
+    };
+  }
+  
+  /**
+   * 高度なAI検索メタデータ生成
+   */
+  private generateAdvancedAISearchMetadata(
+    targetEngines: string[],
+    context?: any
+  ): any {
+    const configs = targetEngines.map(engine => this.advancedConfigs[engine]).filter(Boolean);
+    
+    // エンジン別最適化レベル計算
+    const optimizationLevels = configs.map(config => {
+      const score = this.calculateAdvancedOptimizationScore(config, context);
+      if (score >= 90) return 'expert';
+      if (score >= 75) return 'advanced';
+      return 'basic';
+    });
+    
+    const primaryOptimizationLevel = this.determineOverallOptimizationLevel(optimizationLevels);
+    
+    // Fragment ID意味マッピング強化
+    const fragmentIdMapping = this.generateSemanticFragmentMapping(
+      context?.fragmentIds || []
+    );
+    
+    // セマンティック接続強度計算
+    const semanticConnections = this.calculateSemanticConnections(
+      targetEngines,
+      context
+    );
+    
+    // クエリターゲティング強化
+    const queryTargeting = this.generateAdvancedQueryTargeting(
+      configs,
+      context
+    );
+    
+    // 総合準備スコア計算
+    const readinessScore = this.calculateAdvancedReadinessScore(
+      configs,
+      context
+    );
+    
+    return {
+      targetEngines,
+      optimizationLevel: primaryOptimizationLevel,
+      readinessScore,
+      fragmentIdMapping,
+      semanticConnections,
+      queryTargeting
+    };
+  }
+  
+  /**
+   * ナレッジグラフメトリクス計算
+   */
+  private calculateKnowledgeGraphMetrics(
+    knowsAbout: any[],
+    mentions: any[],
+    additionalTypes: string[],
+    sameAs: string[]
+  ): any {
+    // エンティティ密度計算
+    const totalEntityReferences = knowsAbout.length + mentions.length + sameAs.length;
+    const entityDensity = Math.min(1.0, totalEntityReferences / 50); // 50を最大基準
+    
+    // 関係性強度計算
+    const relationshipStrength = this.calculateRelationshipStrength(
+      knowsAbout,
+      mentions
+    );
+    
+    // トピック権威性計算
+    const topicalAuthority = this.calculateTopicalAuthority(
+      knowsAbout,
+      additionalTypes
+    );
+    
+    // セマンティックカバレッジ計算
+    const semanticCoverage = this.calculateSemanticCoverage(
+      knowsAbout,
+      mentions,
+      additionalTypes
+    );
+    
+    return {
+      entityDensity,
+      relationshipStrength,
+      topicalAuthority,
+      semanticCoverage
+    };
+  }
+  
+  /**
+   * 業界コンテキスト抽出
+   */
+  private extractIndustryContext(category?: string): string[] {
+    const industryMapping: Record<string, string[]> = {
+      'ai-agents': ['software', 'ai', 'automation'],
+      'aio-seo': ['marketing', 'seo', 'digital'],
+      'vector-rag': ['ai', 'data', 'search'],
+      'system-development': ['software', 'technology', 'development'],
+      'reskilling': ['education', 'training', 'hr'],
+      'hr-solutions': ['hr', 'consulting', 'training'],
+      'chatbot-development': ['ai', 'software', 'automation'],
+      'mcp-servers': ['ai', 'software', 'integration'],
+      'video-generation': ['ai', 'media', 'content'],
+      'sns-automation': ['marketing', 'automation', 'social']
+    };
+    
+    return category ? (industryMapping[category] || []) : [];
+  }
+  
+  /**
+   * 高度最適化スコア計算
+   */
+  private calculateAdvancedOptimizationScore(
+    config: AdvancedAIEngineConfig,
+    context?: any
+  ): number {
+    let score = 0;
+    
+    // 基本要素スコア (60%)
+    score += 60 * (config.entityRelationshipWeight || 0);
+    
+    // Schema.org 16.0+ 要素スコア (25%)
+    score += 25 * (
+      (config.additionalTypeImportance * 0.4) +
+      (config.sameAsWeighting * 0.4) +
+      (config.potentialActionUtilization === 'extensive' ? 0.2 : 
+       config.potentialActionUtilization === 'moderate' ? 0.1 : 0)
+    );
+    
+    // 言語・文化対応スコア (15%)
+    score += 15 * (
+      (config.japaneseLanguageSupport === 'native' ? 1.0 :
+       config.japaneseLanguageSupport === 'intermediate' ? 0.7 : 0.4) * 0.6 +
+      (config.culturalContextAwareness * 0.4)
+    );
+    
+    return Math.round(score);
+  }
+  
+  /**
+   * セマンティックフラグメントマッピング生成
+   */
+  private generateSemanticFragmentMapping(fragmentIds: string[]): Record<string, string> {
+    const mapping: Record<string, string> = {};
+    
+    fragmentIds.forEach(fragmentId => {
+      // Fragment IDから意味的カテゴリを推定
+      const semanticCategory = this.inferSemanticCategory(fragmentId);
+      mapping[fragmentId] = semanticCategory;
+    });
+    
+    return mapping;
+  }
+  
+  /**
+   * セマンティックカテゴリ推定
+   */
+  private inferSemanticCategory(fragmentId: string): string {
+    const categoryPatterns: Record<string, string> = {
+      'hero': 'introduction',
+      'service': 'offering',
+      'feature': 'capability',
+      'benefit': 'value-proposition',
+      'process': 'methodology',
+      'technology': 'technical-specification',
+      'team': 'organization',
+      'contact': 'interaction',
+      'faq': 'information',
+      'case-study': 'evidence',
+      'pricing': 'commercial',
+      'about': 'organizational'
+    };
+    
+    for (const [pattern, category] of Object.entries(categoryPatterns)) {
+      if (fragmentId.toLowerCase().includes(pattern)) {
+        return category;
+      }
+    }
+    
+    return 'general-content';
+  }
+  
+  /**
+   * 関係性強度計算
+   */
+  private calculateRelationshipStrength(
+    knowsAbout: any[],
+    mentions: any[]
+  ): number {
+    // knowsAboutとmentions間の相互参照数
+    const crossReferences = knowsAbout.filter(ka =>
+      mentions.some(mention => 
+        mention.relatedKnowledge?.includes(ka.subject) ||
+        ka.relatedTechnologies?.some((tech: string) => 
+          mention.entity.includes(tech)
+        )
+      )
+    ).length;
+    
+    const totalPossibleConnections = knowsAbout.length * mentions.length;
+    
+    return totalPossibleConnections > 0 ? 
+      Math.min(1.0, (crossReferences * 2) / Math.sqrt(totalPossibleConnections)) : 0;
+  }
+  
+  /**
+   * トピック権威性計算
+   */
+  private calculateTopicalAuthority(
+    knowsAbout: any[],
+    additionalTypes: string[]
+  ): number {
+    // 高専門度（レベル4-5）の知識領域数
+    const expertKnowledgeCount = knowsAbout.filter(ka => ka.expertiseLevel >= 4).length;
+    
+    // AI関連タイプの数
+    const aiRelatedTypes = additionalTypes.filter(type => 
+      type.toLowerCase().includes('ai') || 
+      type.toLowerCase().includes('machine') ||
+      type.toLowerCase().includes('intelligent')
+    ).length;
+    
+    // 権威性スコア計算
+    const authorityScore = (expertKnowledgeCount * 0.7) + (aiRelatedTypes * 0.3);
+    
+    return Math.min(1.0, authorityScore / 10); // 10を最大基準
+  }
+  
+  /**
+   * セマンティックカバレッジ計算
+   */
+  private calculateSemanticCoverage(
+    knowsAbout: any[],
+    mentions: any[],
+    additionalTypes: string[]
+  ): number {
+    // ユニークな概念・技術の総数
+    const allConcepts = new Set([
+      ...knowsAbout.map(ka => ka.subject),
+      ...knowsAbout.flatMap(ka => ka.synonyms || []),
+      ...knowsAbout.flatMap(ka => ka.relatedTechnologies || []),
+      ...mentions.map(m => m.entity),
+      ...mentions.flatMap(m => m.coOccurringTerms || []),
+      ...additionalTypes
+    ]);
+    
+    // セマンティックカバレッジ算出
+    return Math.min(1.0, allConcepts.size / 100); // 100を最大基準
+  }
+  
+  /**
+   * 高度クエリターゲティング生成
+   */
+  private generateAdvancedQueryTargeting(
+    configs: AdvancedAIEngineConfig[],
+    context?: any
+  ): Record<string, string[]> {
+    const queryTargeting: Record<string, string[]> = {};
+    
+    configs.forEach(config => {
+      const engineQueries = this.generateEngineSpecificQueries(config, context);
+      queryTargeting[config.engineName] = engineQueries;
+    });
+    
+    return queryTargeting;
+  }
+  
+  /**
+   * エンジン特化クエリ生成
+   */
+  private generateEngineSpecificQueries(
+    config: AdvancedAIEngineConfig,
+    context?: any
+  ): string[] {
+    const baseQueries = [
+      `${context?.category || 'AI'} サービス`,
+      `${context?.title || 'システム開発'} 会社`,
+      'AI 導入 支援',
+      'システム開発 助成金'
+    ];
+    
+    // エンジン特化クエリ追加
+    const engineSpecificQueries: Record<string, string[]> = {
+      ChatGPT: [
+        'ChatGPT 連携 開発',
+        'AI チャットボット 構築',
+        'プロンプトエンジニアリング 研修'
+      ],
+      Perplexity: [
+        'AI 検索最適化',
+        'レリバンスエンジニアリング',
+        'SEO AI対策'
+      ],
+      Claude: [
+        'Claude API 開発',
+        'MCP サーバー構築',
+        'AI エージェント開発'
+      ],
+      Gemini: [
+        'Google AI 活用',
+        'マルチモーダル AI',
+        'Gemini API 統合'
+      ],
+      DeepSeek: [
+        'AI コード生成',
+        'プログラミング支援',
+        '技術的AI実装'
+      ]
+    };
+    
+    return [
+      ...baseQueries,
+      ...(engineSpecificQueries[config.engineName] || [])
+    ];
+  }
+  
+  /**
+   * 高度準備スコア計算
+   */
+  private calculateAdvancedReadinessScore(
+    configs: AdvancedAIEngineConfig[],
+    context?: any
+  ): number {
+    const scores = configs.map(config => 
+      this.calculateAdvancedOptimizationScore(config, context)
+    );
+    
+    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+  }
+  
+  /**
+   * 全体最適化レベル決定
+   */
+  private determineOverallOptimizationLevel(levels: string[]): 'basic' | 'advanced' | 'expert' {
+    const expertCount = levels.filter(l => l === 'expert').length;
+    const advancedCount = levels.filter(l => l === 'advanced').length;
+    
+    if (expertCount >= levels.length * 0.6) return 'expert';
+    if (advancedCount + expertCount >= levels.length * 0.7) return 'advanced';
+    return 'basic';
+  }
+  
+  /**
+   * セマンティック接続計算
+   */
+  private calculateSemanticConnections(
+    targetEngines: string[],
+    context?: any
+  ): Record<string, number> {
+    const connections: Record<string, number> = {};
+    
+    targetEngines.forEach(engine => {
+      const config = this.advancedConfigs[engine];
+      if (config) {
+        // エンジン別セマンティック理解重視度
+        const semanticWeight = 
+          config.queryProcessingPreference === 'semantic' ? 1.0 :
+          config.queryProcessingPreference === 'hybrid' ? 0.8 : 0.6;
+        
+        connections[engine] = semanticWeight * config.entityRecognitionPriority;
+      }
+    });
+    
+    return connections;
+  }
 }
 
 export default AISearchOptimizationSystem; 

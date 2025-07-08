@@ -32,9 +32,9 @@ import {
 
 // AI検索エンジン最適化をインポート
 import {
-  generateAIEnhancedUnifiedPageData,
-  generateAIEnhancedStructuredDataJSON,
-  generateAISearchReport
+  generateCompleteAIEnhancedUnifiedPageData,
+  generateCompleteAIEnhancedStructuredDataJSON,
+  generateEnhancedAISearchReport
 } from '@/lib/structured-data/unified-integration-ai-enhanced';
 
 export const metadata: Metadata = {
@@ -697,7 +697,7 @@ export default async function Home() {
   };
 
   // AI検索エンジン最適化データ生成
-  const aiEnhancedData = await generateAIEnhancedUnifiedPageData(
+  const aiEnhancedData = await generateCompleteAIEnhancedUnifiedPageData(
     {
       pageSlug: '',
       pageTitle: 'エヌアンドエス | AI・システム開発・リスキリング研修',
@@ -708,10 +708,10 @@ export default async function Home() {
   );
 
   // AI検索最適化レポート
-  const aiSearchReport = generateAISearchReport(aiEnhancedData);
+  const aiSearchReport = generateEnhancedAISearchReport(aiEnhancedData);
 
   // AI検索最適化構造化データ
-  const aiEnhancedStructuredDataJSON = generateAIEnhancedStructuredDataJSON(aiEnhancedData);
+  const aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
 
   return (
     <main>

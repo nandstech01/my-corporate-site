@@ -363,6 +363,447 @@ export interface Schema16LatestService extends LatestServiceProperties {
 }
 
 // =============================================================================
+// Schema.org 16.0+ potentialAction 拡充システム
+// =============================================================================
+
+export interface PotentialActionSchema {
+  '@type': string;
+  '@id'?: string;
+  name: string;
+  description?: string;
+  target: string | {
+    '@type': 'EntryPoint';
+    urlTemplate: string;
+    encodingType?: string;
+    contentType?: string;
+  };
+  object?: any;
+  instrument?: any;
+  expectsAcceptanceOf?: any;
+  actionStatus?: 'PotentialActionStatus' | 'ActiveActionStatus' | 'CompletedActionStatus';
+}
+
+/**
+ * 日本企業向けpotentialAction定義
+ */
+export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
+  // お問い合わせアクション
+  {
+    '@type': 'ContactAction',
+    name: 'お問い合わせ',
+    description: 'AI・システム開発・研修に関するご相談',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://nands.tech/contact',
+      encodingType: 'application/x-www-form-urlencoded',
+      contentType: 'text/html'
+    },
+    object: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      availableLanguage: 'Japanese'
+    }
+  },
+  
+  // 助成金相談アクション
+  {
+    '@type': 'ConsultAction',
+    name: '助成金活用相談',
+    description: '人材開発支援助成金・IT導入補助金の活用相談',
+    target: 'https://nands.tech/contact?subject=subsidy',
+    object: {
+      '@type': 'GovernmentService',
+      name: '助成金活用支援サービス',
+      serviceType: 'Government Benefits Consultation'
+    }
+  },
+  
+  // 研修申し込みアクション
+  {
+    '@type': 'RegisterAction',
+    name: 'リスキリング研修申し込み',
+    description: 'AI・プロンプトエンジニアリング研修への申し込み',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://nands.tech/reskilling?action=register',
+      encodingType: 'application/x-www-form-urlencoded'
+    },
+    object: {
+      '@type': 'Course',
+      courseMode: 'online',
+      availableLanguage: 'Japanese'
+    },
+    expectsAcceptanceOf: {
+      '@type': 'Offer',
+      name: '人材開発支援助成金適用（最大80%補助）'
+    }
+  },
+  
+  // 見積もり依頼アクション
+  {
+    '@type': 'QuoteAction',
+    name: 'システム開発見積もり依頼',
+    description: 'AIシステム・Webシステム開発の見積もり依頼',
+    target: 'https://nands.tech/system-development?action=quote',
+    object: {
+      '@type': 'Service',
+      serviceType: 'System Development',
+      provider: { '@id': 'https://nands.tech/#organization' }
+    },
+    instrument: {
+      '@type': 'WebApplication',
+      name: '見積もりフォーム'
+    }
+  },
+  
+  // 検索アクション（サイト内検索）
+  {
+    '@type': 'SearchAction',
+    name: 'サイト内検索',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://nands.tech/search?q={search_term_string}',
+      encodingType: 'application/x-www-form-urlencoded'
+    },
+    object: {
+      '@type': 'WebSite',
+      '@id': 'https://nands.tech/#website'
+    }
+  },
+  
+  // 購読アクション（ブログ・最新情報）
+  {
+    '@type': 'SubscribeAction',
+    name: '最新情報の購読',
+    description: 'AI・技術トレンドの最新情報を受け取る',
+    target: 'https://nands.tech/subscribe',
+    object: {
+      '@type': 'CreativeWork',
+      name: 'AI技術トレンド情報',
+      genre: 'Technology News'
+    }
+  },
+  
+  // 予約アクション（オンライン相談）
+  {
+    '@type': 'ReserveAction',
+    name: 'オンライン相談予約',
+    description: 'AI導入・システム開発に関するオンライン相談の予約',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://nands.tech/consultation/reserve',
+      encodingType: 'application/x-www-form-urlencoded'
+    },
+    object: {
+      '@type': 'Service',
+      name: 'オンライン技術相談',
+      serviceType: 'Consultation',
+      duration: 'PT60M'
+    }
+  }
+];
+
+// =============================================================================
+// Schema.org 16.0+ additionalType 活用システム
+// =============================================================================
+
+export interface AdditionalTypeMapping {
+  baseType: string;
+  additionalTypes: string[];
+  japaneseContext?: string[];
+  industrySpecific?: string[];
+  aiOptimized?: string[];
+}
+
+/**
+ * 日本企業・AI業界特化additionalType定義
+ */
+export const ADDITIONAL_TYPE_MAPPINGS: Record<string, AdditionalTypeMapping> = {
+  Organization: {
+    baseType: 'Organization',
+    additionalTypes: [
+      'https://schema.org/Corporation',
+      'https://schema.org/TechnologyCompany'
+    ],
+    japaneseContext: [
+      'https://schema.org/JapaneseEnterprise',
+      'https://schema.org/SmallBusiness'
+    ],
+    industrySpecific: [
+      'https://schema.org/SoftwareCompany',
+      'https://schema.org/ConsultingCompany',
+      'https://schema.org/EducationalOrganization'
+    ],
+    aiOptimized: [
+      'https://schema.org/ArtificialIntelligenceProvider',
+      'https://schema.org/MachineLearningCompany',
+      'https://schema.org/DigitalTransformationProvider'
+    ]
+  },
+  
+  Service: {
+    baseType: 'Service',
+    additionalTypes: [
+      'https://schema.org/ProfessionalService',
+      'https://schema.org/TechnologyService'
+    ],
+    japaneseContext: [
+      'https://schema.org/JapaneseBusinessService',
+      'https://schema.org/GovernmentSubsidyEligibleService'
+    ],
+    industrySpecific: [
+      'https://schema.org/SoftwareDevelopmentService',
+      'https://schema.org/ConsultingService',
+      'https://schema.org/TrainingService'
+    ],
+    aiOptimized: [
+      'https://schema.org/ArtificialIntelligenceService',
+      'https://schema.org/MachineLearningService',
+      'https://schema.org/AutomationService'
+    ]
+  },
+  
+  Course: {
+    baseType: 'Course',
+    additionalTypes: [
+      'https://schema.org/EducationalOccupationalProgram'
+    ],
+    japaneseContext: [
+      'https://schema.org/JapaneseVocationalTraining',
+      'https://schema.org/SubsidyEligibleTraining'
+    ],
+    industrySpecific: [
+      'https://schema.org/TechnologyTraining',
+      'https://schema.org/ProfessionalDevelopmentCourse'
+    ],
+    aiOptimized: [
+      'https://schema.org/ArtificialIntelligenceTraining',
+      'https://schema.org/PromptEngineeringCourse',
+      'https://schema.org/ReskilleCourse'
+    ]
+  },
+  
+  Person: {
+    baseType: 'Person',
+    additionalTypes: [
+      'https://schema.org/TechnicalExpert'
+    ],
+    japaneseContext: [
+      'https://schema.org/JapaneseBusinessProfessional'
+    ],
+    industrySpecific: [
+      'https://schema.org/SoftwareEngineer',
+      'https://schema.org/ITConsultant',
+      'https://schema.org/TechnologyEducator'
+    ],
+    aiOptimized: [
+      'https://schema.org/ArtificialIntelligenceSpecialist',
+      'https://schema.org/MachineLearningEngineer',
+      'https://schema.org/PromptEngineer'
+    ]
+  }
+};
+
+// =============================================================================
+// Schema.org 16.0+ sameAs プロパティ強化システム
+// =============================================================================
+
+export interface EnhancedSameAsMapping {
+  entityId: string;
+  primaryReferences: string[];
+  industryReferences: string[];
+  japaneseReferences: string[];
+  aiOptimizedReferences: string[];
+  knowledgeGraphConnections: string[];
+}
+
+/**
+ * 強化sameAs参照システム
+ */
+export const ENHANCED_SAME_AS_MAPPINGS: Record<string, EnhancedSameAsMapping> = {
+  'https://nands.tech/#organization': {
+    entityId: 'https://nands.tech/#organization',
+    primaryReferences: [
+      'https://nands.tech/',
+      'https://nands.tech/corporate',
+      'https://nands.tech/about'
+    ],
+    industryReferences: [
+      'https://schema.org/TechnologyCompany/nands-tech',
+      'https://schema.org/SoftwareCompany/nands-tech',
+      'https://wikidata.org/entity/Q-nands-tech' // 仮想Wikidata参照
+    ],
+    japaneseReferences: [
+      'https://j-net21.smrj.go.jp/company/nands-tech', // 仮想J-Net21参照
+      'https://www.houjin-bangou.nta.go.jp/', // 法人番号公表サイト（実際の番号が必要）
+      'https://shiga-keiei.jp/company/nands-tech' // 仮想滋賀県経営参照
+    ],
+    aiOptimizedReferences: [
+      'https://openai.com/partners/nands-tech', // AI関連パートナーシップ（仮想）
+      'https://anthropic.com/partners/nands-tech', // Claude関連（仮想）
+      'https://ai-research.jp/companies/nands-tech' // AI研究関連（仮想）
+    ],
+    knowledgeGraphConnections: [
+      'https://schema.org/knowsAbout/RelevanceEngineering',
+      'https://schema.org/knowsAbout/MikeKingTheory',
+      'https://schema.org/expertiseIn/AIOptimization'
+    ]
+  },
+  
+  'https://nands.tech/ai-agents#service': {
+    entityId: 'https://nands.tech/ai-agents#service',
+    primaryReferences: [
+      'https://nands.tech/ai-agents',
+      'https://nands.tech/mcp-servers'
+    ],
+    industryReferences: [
+      'https://schema.org/ArtificialIntelligenceService/ai-agents',
+      'https://mastra.ai/partners/nands-tech' // Mastraフレームワーク関連
+    ],
+    japaneseReferences: [
+      'https://ipa.go.jp/ai-services/ai-agents-nands', // IPA AI関連（仮想）
+      'https://digital.go.jp/ai-solutions/nands-tech' // デジタル庁関連（仮想）
+    ],
+    aiOptimizedReferences: [
+      'https://openai.com/use-cases/ai-agents',
+      'https://anthropic.com/claude/enterprise-solutions',
+      'https://github.com/nands-tech/ai-agents' // 実際のリポジトリがあれば
+    ],
+    knowledgeGraphConnections: [
+      'https://schema.org/relatedTo/ModelContextProtocol',
+      'https://schema.org/relatedTo/MastraFramework',
+      'https://schema.org/implementationOf/AIAgentArchitecture'
+    ]
+  }
+};
+
+// =============================================================================
+// 統合生成関数
+// =============================================================================
+
+/**
+ * potentialAction統合生成
+ */
+export function generateEnhancedPotentialActions(
+  entityType: string,
+  context?: { serviceType?: string; pageType?: string }
+): PotentialActionSchema[] {
+  let actions = [...JAPANESE_ENTERPRISE_ACTIONS];
+  
+  // コンテキスト別フィルタリング
+  if (context?.serviceType) {
+    actions = actions.filter(action => 
+      action.description?.includes(context.serviceType!) ||
+      action.name.includes(getServiceKeyword(context.serviceType!))
+    );
+  }
+  
+  // エンティティタイプ別最適化
+  if (entityType === 'Organization') {
+    // 組織レベルの包括的アクション
+    return actions;
+  } else if (entityType === 'Service') {
+    // サービス特化アクション
+    return actions.filter(action => 
+      ['ContactAction', 'QuoteAction', 'RegisterAction', 'ConsultAction'].includes(action['@type'])
+    );
+  }
+  
+  return actions;
+}
+
+/**
+ * additionalType統合生成
+ */
+export function generateEnhancedAdditionalTypes(
+  baseType: string,
+  context?: { 
+    isJapaneseEnterprise?: boolean;
+    isAIFocused?: boolean;
+    industrySpecific?: string[];
+  }
+): string[] {
+  const mapping = ADDITIONAL_TYPE_MAPPINGS[baseType];
+  if (!mapping) return [];
+  
+  let additionalTypes = [...mapping.additionalTypes];
+  
+  if (context?.isJapaneseEnterprise && mapping.japaneseContext) {
+    additionalTypes.push(...mapping.japaneseContext);
+  }
+  
+  if (context?.isAIFocused && mapping.aiOptimized) {
+    additionalTypes.push(...mapping.aiOptimized);
+  }
+  
+  if (context?.industrySpecific && mapping.industrySpecific) {
+    const relevantTypes = mapping.industrySpecific.filter(type =>
+      context.industrySpecific!.some(industry => type.toLowerCase().includes(industry.toLowerCase()))
+    );
+    additionalTypes.push(...relevantTypes);
+  }
+  
+  return Array.from(new Set(additionalTypes)); // 重複除去
+}
+
+/**
+ * sameAs強化生成
+ */
+export function generateEnhancedSameAs(
+  entityId: string,
+  context?: {
+    includeIndustryRefs?: boolean;
+    includeJapaneseRefs?: boolean;
+    includeAIRefs?: boolean;
+    includeKnowledgeGraph?: boolean;
+  }
+): string[] {
+  const mapping = ENHANCED_SAME_AS_MAPPINGS[entityId];
+  if (!mapping) return [];
+  
+  let sameAsRefs = [...mapping.primaryReferences];
+  
+  if (context?.includeIndustryRefs) {
+    sameAsRefs.push(...mapping.industryReferences);
+  }
+  
+  if (context?.includeJapaneseRefs) {
+    sameAsRefs.push(...mapping.japaneseReferences);
+  }
+  
+  if (context?.includeAIRefs) {
+    sameAsRefs.push(...mapping.aiOptimizedReferences);
+  }
+  
+  if (context?.includeKnowledgeGraph) {
+    sameAsRefs.push(...mapping.knowledgeGraphConnections);
+  }
+  
+  // 有効なURLのみフィルタリング
+  return sameAsRefs.filter(url => url && url.startsWith('https://'));
+}
+
+/**
+ * ヘルパー関数
+ */
+function getServiceKeyword(serviceType: string): string {
+  const serviceKeywords: Record<string, string> = {
+    'ai-agents': 'AI',
+    'aio-seo': 'SEO',
+    'vector-rag': 'RAG',
+    'chatbot-development': 'チャットボット',
+    'system-development': 'システム開発',
+    'reskilling': '研修',
+    'hr-solutions': '人材',
+    'mcp-servers': 'MCP',
+    'video-generation': '動画',
+    'sns-automation': 'SNS'
+  };
+  
+  return serviceKeywords[serviceType] || '';
+}
+
+// =============================================================================
 // ユーティリティ関数
 // =============================================================================
 

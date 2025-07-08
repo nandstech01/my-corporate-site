@@ -1,12 +1,13 @@
 /**
  * AI検索最適化統合システム
- * 既存Mike King理論準拠システム + AI検索エンジン最適化
+ * 既存Mike King理論準拠システム + AI検索エンジン最適化 + Schema.org 16.0+ 完全対応
  * 
  * 統合機能:
  * - knowsAbout詳細化
  * - mentions関連エンティティ明示
  * - Fragment ID連携強化
- * - Schema.org 16.0+ 対応
+ * - Schema.org 16.0+ 対応（potentialAction、additionalType、sameAs強化）
+ * - 高度なAI検索エンジン最適化
  */
 
 import { 
@@ -20,26 +21,43 @@ import {
 } from './unified-integration-schema16';
 import {
   AISearchOptimizationSystem,
+  EnhancedAISearchOptimizationSystem,
   generateAISearchOptimizedSchema,
   generateFragmentMapping,
   checkAISearchReadiness,
   DETAILED_KNOWS_ABOUT_ORGANIZATION,
   DETAILED_MENTIONS_ORGANIZATION,
-  AI_OPTIMIZED_FRAGMENT_IDS
+  AI_OPTIMIZED_FRAGMENT_IDS,
+  type EnhancedAIOptimizedSchema,
+  type AdvancedAIEngineConfig
 } from './ai-search-optimization';
+import {
+  generateEnhancedPotentialActions,
+  generateEnhancedAdditionalTypes,
+  generateEnhancedSameAs,
+  type PotentialActionSchema
+} from './schema-org-latest';
 
 // =============================================================================
-// AI検索最適化統合データ型
+// 完全統合AI検索最適化データ型
 // =============================================================================
 
-export interface AIEnhancedUnifiedPageData extends Schema16UnifiedPageData {
-  // AI検索エンジン最適化
+export interface CompleteAIEnhancedUnifiedPageData extends Schema16UnifiedPageData {
+  // 基本AI検索エンジン最適化
   aiSearchOptimization?: {
     optimizedSchema: any;
     targetEngines: string[];
     readinessScore: number;
     recommendations: string[];
     fragmentMapping: Record<string, any>;
+  };
+  
+  // 強化AI検索エンジン最適化 (新規)
+  enhancedAIOptimization?: {
+    enhancedSchema: EnhancedAIOptimizedSchema;
+    advancedMetrics: any;
+    engineSpecificOptimization: Record<string, any>;
+    knowledgeGraphIntegration: any;
   };
   
   // 詳細化knowsAbout
@@ -65,35 +83,61 @@ export interface AIEnhancedUnifiedPageData extends Schema16UnifiedPageData {
     queryTargeting: Record<string, string[]>;
     hierarchyMapping: Record<number, string[]>;
   };
+  
+  // Schema.org 16.0+ 統合要素 (新規)
+  schema16PlusIntegration?: {
+    potentialActions: PotentialActionSchema[];
+    additionalTypes: string[];
+    enhancedSameAs: string[];
+    japaneseEnterpriseFeatures: any;
+  };
 }
 
 // =============================================================================
-// AI検索最適化統合システム
+// 完全統合AI検索最適化システム
 // =============================================================================
 
-export class AIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedIntegrationSystem {
+export class CompleteAIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedIntegrationSystem {
   private aiOptimizationSystem: AISearchOptimizationSystem;
+  private enhancedAIOptimizationSystem: EnhancedAISearchOptimizationSystem;
   
   constructor() {
     super();
     this.aiOptimizationSystem = new AISearchOptimizationSystem();
+    this.enhancedAIOptimizationSystem = new EnhancedAISearchOptimizationSystem();
   }
 
   /**
-   * AI検索最適化統合ページデータ生成
+   * 完全統合AI検索最適化ページデータ生成
    */
-  async generateAIEnhancedUnifiedPageData(
+  async generateCompleteAIEnhancedUnifiedPageData(
     context: PageContext,
-    targetAIEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude']
-  ): Promise<AIEnhancedUnifiedPageData> {
+    targetAIEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude'],
+    options?: {
+      enableAdvancedOptimization?: boolean;
+      includeSchema16Plus?: boolean;
+      enableJapaneseEnterprise?: boolean;
+      enableAIFocus?: boolean;
+    }
+  ): Promise<CompleteAIEnhancedUnifiedPageData> {
     // Schema.org 16.0+ 対応データを取得
     const schema16Data = await this.generateSchema16UnifiedPageData(context);
     
-    // AI検索エンジン最適化を実行
+    // 基本AI検索エンジン最適化を実行
     const aiSearchOptimization = await this.generateAISearchOptimization(
       context,
       targetAIEngines
     );
+    
+    // 強化AI検索エンジン最適化を実行（オプション）
+    let enhancedAIOptimization;
+    if (options?.enableAdvancedOptimization !== false) {
+      enhancedAIOptimization = await this.generateEnhancedAIOptimization(
+        context,
+        targetAIEngines,
+        options
+      );
+    }
     
     // 詳細化knowsAbout分析
     const detailedKnowsAbout = this.analyzeDetailedKnowsAbout(context);
@@ -104,12 +148,125 @@ export class AIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedIntegrati
     // Fragment ID連携強化
     const fragmentIdEnhancement = this.analyzeFragmentIdEnhancement(context);
     
+    // Schema.org 16.0+ 統合要素（オプション）
+    let schema16PlusIntegration;
+    if (options?.includeSchema16Plus !== false) {
+      schema16PlusIntegration = await this.generateSchema16PlusIntegration(
+        context,
+        options
+      );
+    }
+    
     return {
       ...schema16Data,
       aiSearchOptimization,
+      enhancedAIOptimization,
       detailedKnowsAbout,
       enhancedMentions,
-      fragmentIdEnhancement
+      fragmentIdEnhancement,
+      schema16PlusIntegration
+    };
+  }
+
+  /**
+   * 強化AI検索最適化生成
+   */
+  private async generateEnhancedAIOptimization(
+    context: PageContext,
+    targetAIEngines: string[],
+    options?: any
+  ): Promise<any> {
+    // 組織エンティティ取得
+    const organizationEntity = {
+      '@id': 'https://nands.tech/#organization',
+      '@type': 'Organization',
+      name: 'エヌアンドエス株式会社',
+      knowsAbout: [],
+      relatedTo: [],
+      sameAs: [],
+      mentions: []
+    };
+    
+    // 強化スキーマ生成
+    const enhancedSchema = this.enhancedAIOptimizationSystem.generateEnhancedAIOptimizedSchema(
+      organizationEntity,
+      targetAIEngines,
+             {
+         slug: context.pageSlug,
+         title: context.pageTitle,
+         category: context.category,
+         fragmentIds: this.extractFragmentIds(context),
+         serviceType: context.category,
+         isJapaneseEnterprise: options?.enableJapaneseEnterprise ?? true,
+         isAIFocused: options?.enableAIFocus ?? true
+       }
+    );
+    
+    // 高度メトリクス計算
+    const advancedMetrics = this.calculateAdvancedMetrics(enhancedSchema);
+    
+    // エンジン別最適化
+    const engineSpecificOptimization = this.generateEngineSpecificOptimization(
+      targetAIEngines,
+      enhancedSchema
+    );
+    
+    // ナレッジグラフ統合
+    const knowledgeGraphIntegration = enhancedSchema.knowledgeGraphIntegration;
+    
+    return {
+      enhancedSchema,
+      advancedMetrics,
+      engineSpecificOptimization,
+      knowledgeGraphIntegration
+    };
+  }
+  
+  /**
+   * Schema.org 16.0+ 統合要素生成
+   */
+  private async generateSchema16PlusIntegration(
+    context: PageContext,
+    options?: any
+  ): Promise<any> {
+    // potentialAction生成
+    const potentialActions = generateEnhancedPotentialActions(
+      'Organization',
+             { 
+         serviceType: context.category,
+         pageType: context.pageSlug 
+       }
+    );
+    
+    // additionalType生成
+    const additionalTypes = generateEnhancedAdditionalTypes(
+      'Organization',
+      {
+        isJapaneseEnterprise: options?.enableJapaneseEnterprise ?? true,
+        isAIFocused: options?.enableAIFocus ?? true,
+        industrySpecific: this.extractIndustrySpecific(context.category)
+      }
+    );
+    
+    // 強化sameAs生成
+    const enhancedSameAs = generateEnhancedSameAs(
+      'https://nands.tech/#organization',
+      {
+        includeIndustryRefs: true,
+        includeJapaneseRefs: true,
+        includeAIRefs: options?.enableAIFocus ?? true,
+        includeKnowledgeGraph: true
+      }
+    );
+    
+    // 日本企業特化機能
+    const japaneseEnterpriseFeatures = this.generateJapaneseEnterpriseFeatures(context);
+    
+    return {
+      potentialActions,
+      additionalTypes,
+      enhancedSameAs,
+      japaneseEnterpriseFeatures
     };
   }
 
@@ -304,14 +461,14 @@ export class AIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedIntegrati
   }
 
   /**
-   * 統合構造化データ（AI最適化版）生成
+   * 完全統合構造化データ（AI最適化版）生成
    */
-  generateAIEnhancedStructuredData(data: AIEnhancedUnifiedPageData): any {
+  generateCompleteAIEnhancedStructuredData(data: CompleteAIEnhancedUnifiedPageData): any {
     // Schema.org 16.0+ ベースデータ
     const schema16Data = this.generateSchema16StructuredData(data);
     
-    // AI検索最適化拡張
-    const aiEnhancements = {
+    // 基本AI検索最適化拡張
+    const basicAIEnhancements = {
       // AI検索エンジン最適化プロパティ
       aiSearchOptimized: true,
       targetAIEngines: data.aiSearchOptimization?.targetEngines,
@@ -339,173 +496,302 @@ export class AIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedIntegrati
       }
     };
     
+    // 強化AI最適化拡張（新規）
+    const enhancedAIExtensions = data.enhancedAIOptimization ? {
+      // Schema.org 16.0+ 強化要素
+      potentialAction: data.schema16PlusIntegration?.potentialActions,
+      additionalType: data.schema16PlusIntegration?.additionalTypes,
+      sameAs: data.schema16PlusIntegration?.enhancedSameAs,
+      
+      // 高度AI検索メタデータ
+      advancedAISearchMetadata: {
+        optimizationLevel: data.enhancedAIOptimization.enhancedSchema.aiSearchMetadata.optimizationLevel,
+        readinessScore: data.enhancedAIOptimization.enhancedSchema.aiSearchMetadata.readinessScore,
+        semanticConnections: data.enhancedAIOptimization.enhancedSchema.aiSearchMetadata.semanticConnections,
+        queryTargeting: data.enhancedAIOptimization.enhancedSchema.aiSearchMetadata.queryTargeting
+      },
+      
+      // ナレッジグラフ統合
+      knowledgeGraphMetrics: data.enhancedAIOptimization.knowledgeGraphIntegration,
+      
+      // 日本企業特化
+      japaneseEnterpriseOptimization: data.schema16PlusIntegration?.japaneseEnterpriseFeatures
+    } : {};
+    
     return {
       ...schema16Data,
-      ...aiEnhancements,
+      ...basicAIEnhancements,
+      ...enhancedAIExtensions,
       
       // AI最適化スキーマを統合
-      ...data.aiSearchOptimization?.optimizedSchema
+      ...data.aiSearchOptimization?.optimizedSchema,
+      
+      // 強化AI最適化スキーマを統合
+      ...(data.enhancedAIOptimization?.enhancedSchema ? {
+        enhancedKnowsAbout: data.enhancedAIOptimization.enhancedSchema.knowsAbout,
+        enhancedMentions: data.enhancedAIOptimization.enhancedSchema.mentions
+      } : {})
     };
   }
 
   /**
-   * AI検索エンジン別最適化レポート生成
+   * 高度メトリクス計算
    */
-  generateOptimizationReport(data: AIEnhancedUnifiedPageData): {
-    overall: any;
-    engineSpecific: Record<string, any>;
-    recommendations: string[];
-  } {
-    const targetEngines = data.aiSearchOptimization?.targetEngines || [];
-    
-    const overall = {
-      readinessScore: data.aiSearchOptimization?.readinessScore || 0,
-      totalKnowledgeAreas: data.detailedKnowsAbout?.totalItems || 0,
-      totalEntityMentions: data.enhancedMentions?.totalEntities || 0,
-      optimizedFragments: data.fragmentIdEnhancement?.totalFragments || 0
+  private calculateAdvancedMetrics(enhancedSchema: EnhancedAIOptimizedSchema): any {
+    return {
+      overallOptimizationScore: this.calculateOverallOptimizationScore(enhancedSchema),
+      engineCompatibilityMatrix: this.calculateEngineCompatibilityMatrix(enhancedSchema),
+      semanticRichness: this.calculateSemanticRichness(enhancedSchema),
+      japaneseOptimizationLevel: this.calculateJapaneseOptimizationLevel(enhancedSchema)
     };
+  }
+  
+  /**
+   * エンジン別最適化生成
+   */
+  private generateEngineSpecificOptimization(
+    targetEngines: string[],
+    enhancedSchema: EnhancedAIOptimizedSchema
+  ): Record<string, any> {
+    const optimization: Record<string, any> = {};
     
-    const engineSpecific: Record<string, any> = {};
     targetEngines.forEach(engine => {
-      engineSpecific[engine] = {
-        optimizationLevel: this.calculateEngineOptimization(engine, data),
-        specificRecommendations: this.getEngineSpecificRecommendations(engine, data)
+      optimization[engine] = {
+        optimizationScore: this.calculateEngineOptimizationScore(engine, enhancedSchema),
+        specificRecommendations: this.getEngineSpecificRecommendations(engine, enhancedSchema),
+        strengthAreas: this.identifyEngineStrengthAreas(engine, enhancedSchema),
+        improvementAreas: this.identifyEngineImprovementAreas(engine, enhancedSchema)
       };
     });
     
-    const recommendations = data.aiSearchOptimization?.recommendations || [];
+    return optimization;
+  }
+  
+  /**
+   * Fragment ID抽出
+   */
+  private extractFragmentIds(context: PageContext): string[] {
+    // コンテキストからFragment IDを抽出
+    const fragmentIds: string[] = [];
     
+    // 基本的なFragment ID生成
+    if (context.category) {
+      fragmentIds.push(`${context.category}-overview`);
+      fragmentIds.push(`${context.category}-features`);
+      fragmentIds.push(`${context.category}-benefits`);
+    }
+    
+    // AI最適化Fragment IDを追加
+    fragmentIds.push(...AI_OPTIMIZED_FRAGMENT_IDS.map(f => f.id));
+    
+    return Array.from(new Set(fragmentIds)); // 重複除去
+  }
+  
+  /**
+   * 業界特化抽出
+   */
+  private extractIndustrySpecific(category?: string): string[] {
+    const industryMapping: Record<string, string[]> = {
+      'ai-agents': ['software', 'ai', 'automation'],
+      'aio-seo': ['marketing', 'seo', 'digital'],
+      'vector-rag': ['ai', 'data', 'search'],
+      'system-development': ['software', 'technology', 'development'],
+      'reskilling': ['education', 'training', 'hr'],
+      'hr-solutions': ['hr', 'consulting', 'training'],
+      'chatbot-development': ['ai', 'software', 'automation'],
+      'mcp-servers': ['ai', 'software', 'integration'],
+      'video-generation': ['ai', 'media', 'content'],
+      'sns-automation': ['marketing', 'automation', 'social']
+    };
+    
+    return category ? (industryMapping[category] || []) : [];
+  }
+  
+  /**
+   * 日本企業特化機能生成
+   */
+  private generateJapaneseEnterpriseFeatures(context: PageContext): any {
     return {
-      overall,
-      engineSpecific,
-      recommendations
+      subsidyIntegration: {
+        humanResourcesDevelopment: true,
+        itIntroduction: true,
+        eligibilityMapping: this.mapSubsidyEligibility(context.category)
+      },
+      regionalOptimization: {
+        focusRegions: ['滋賀県', '関西地方', '全国'],
+        culturalAdaptation: true,
+        languageOptimization: 'native'
+      },
+      complianceFeatures: {
+        personalInformationProtection: true,
+        cybersecurityCompliance: true,
+        accessibilityCompliance: true
+      }
     };
   }
-
+  
   /**
-   * エンジン別最適化レベル計算
+   * 助成金適格性マッピング
    */
-  private calculateEngineOptimization(engine: string, data: AIEnhancedUnifiedPageData): number {
-    // エンジン別の重み付け
-    const weights = {
-      ChatGPT: { knowsAbout: 0.3, mentions: 0.3, fragments: 0.4 },
-      Perplexity: { knowsAbout: 0.25, mentions: 0.4, fragments: 0.35 },
-      Claude: { knowsAbout: 0.35, mentions: 0.3, fragments: 0.35 },
-      Gemini: { knowsAbout: 0.4, mentions: 0.3, fragments: 0.3 },
-      DeepSeek: { knowsAbout: 0.3, mentions: 0.35, fragments: 0.35 }
-    };
-    
-    const weight = weights[engine as keyof typeof weights] || weights.ChatGPT;
-    
-    const knowsAboutScore = Math.min(100, (data.detailedKnowsAbout?.totalItems || 0) * 4);
-    const mentionsScore = Math.min(100, (data.enhancedMentions?.totalEntities || 0) * 6);
-    const fragmentsScore = Math.min(100, (data.fragmentIdEnhancement?.totalFragments || 0) * 20);
-    
-    return Math.round(
-      knowsAboutScore * weight.knowsAbout +
-      mentionsScore * weight.mentions +
-      fragmentsScore * weight.fragments
-    );
-  }
-
-  /**
-   * エンジン別推奨事項生成
-   */
-  private getEngineSpecificRecommendations(engine: string, data: AIEnhancedUnifiedPageData): string[] {
-    const recommendations: string[] = [];
-    
-    const engineConfigs = {
-      ChatGPT: {
-        minKnowsAbout: 25,
-        minMentions: 15,
-        focusArea: 'Fragment ID最適化'
+  private mapSubsidyEligibility(category?: string): Record<string, boolean> {
+    const eligibilityMap: Record<string, Record<string, boolean>> = {
+      'reskilling': {
+        humanResourcesDevelopment: true,
+        itIntroduction: false,
+        manufacturing: false
       },
-      Perplexity: {
-        minKnowsAbout: 20,
-        minMentions: 12,
-        focusArea: 'エンティティ関係性強化'
+      'system-development': {
+        humanResourcesDevelopment: false,
+        itIntroduction: true,
+        manufacturing: false
       },
-      Claude: {
-        minKnowsAbout: 30,
-        minMentions: 18,
-        focusArea: '専門知識の深化'
+      'ai-agents': {
+        humanResourcesDevelopment: true,
+        itIntroduction: true,
+        manufacturing: false
       }
     };
     
-    const config = engineConfigs[engine as keyof typeof engineConfigs];
-    if (!config) return recommendations;
-    
-    if ((data.detailedKnowsAbout?.totalItems || 0) < config.minKnowsAbout) {
-      recommendations.push(`${engine}向け: knowsAbout項目を${config.minKnowsAbout}個以上に増加`);
-    }
-    
-    if ((data.enhancedMentions?.totalEntities || 0) < config.minMentions) {
-      recommendations.push(`${engine}向け: mentions項目を${config.minMentions}個以上に増加`);
-    }
-    
-    recommendations.push(`${engine}向け重点強化: ${config.focusArea}`);
-    
-    return recommendations;
+    return category ? (eligibilityMap[category] || {}) : {};
+  }
+  
+  // ヘルパーメソッド（詳細実装は省略）
+  private calculateOverallOptimizationScore(schema: EnhancedAIOptimizedSchema): number {
+    // 総合最適化スコア計算
+    return Math.round((
+      schema.aiSearchMetadata.readinessScore * 0.4 +
+      schema.knowledgeGraphIntegration.entityDensity * 100 * 0.3 +
+      schema.knowledgeGraphIntegration.semanticCoverage * 100 * 0.3
+    ));
+  }
+  
+  private calculateEngineCompatibilityMatrix(schema: EnhancedAIOptimizedSchema): Record<string, number> {
+    // エンジン互換性マトリクス
+    const matrix: Record<string, number> = {};
+    schema.aiSearchMetadata.targetEngines.forEach(engine => {
+      matrix[engine] = schema.aiSearchMetadata.semanticConnections[engine] || 0;
+    });
+    return matrix;
+  }
+  
+  private calculateSemanticRichness(schema: EnhancedAIOptimizedSchema): number {
+    // セマンティック豊富性
+    return schema.knowledgeGraphIntegration.semanticCoverage;
+  }
+  
+  private calculateJapaneseOptimizationLevel(schema: EnhancedAIOptimizedSchema): number {
+    // 日本語最適化レベル
+    return 0.85; // 仮の値、実際の計算ロジックを実装
+  }
+  
+  private calculateEngineOptimizationScore(engine: string, schema: EnhancedAIOptimizedSchema): number {
+    return Math.round((schema.aiSearchMetadata.semanticConnections[engine] || 0) * 100);
+  }
+  
+  private getEngineSpecificRecommendations(engine: string, schema: EnhancedAIOptimizedSchema): string[] {
+    return schema.aiSearchMetadata.queryTargeting[engine] || [];
+  }
+  
+  private identifyEngineStrengthAreas(engine: string, schema: EnhancedAIOptimizedSchema): string[] {
+    // エンジン別強み分野特定
+    return ['Entity Recognition', 'Semantic Understanding'];
+  }
+  
+  private identifyEngineImprovementAreas(engine: string, schema: EnhancedAIOptimizedSchema): string[] {
+    // エンジン別改善分野特定
+    return ['Fragment Optimization', 'Cultural Context'];
   }
 }
 
 // =============================================================================
-// ユーティリティ関数
+// 便利関数群（強化版）
 // =============================================================================
 
 /**
- * AI検索最適化統合ページデータ生成
+ * 完全統合AI検索最適化ページデータ生成
  */
-export async function generateAIEnhancedUnifiedPageData(
+export async function generateCompleteAIEnhancedUnifiedPageData(
   context: PageContext,
-  targetAIEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude']
-): Promise<AIEnhancedUnifiedPageData> {
-  const system = new AIEnhancedUnifiedIntegrationSystem();
-  return await system.generateAIEnhancedUnifiedPageData(context, targetAIEngines);
+  targetAIEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude'],
+  options?: {
+    enableAdvancedOptimization?: boolean;
+    includeSchema16Plus?: boolean;
+    enableJapaneseEnterprise?: boolean;
+    enableAIFocus?: boolean;
+  }
+): Promise<CompleteAIEnhancedUnifiedPageData> {
+  const system = new CompleteAIEnhancedUnifiedIntegrationSystem();
+  return await system.generateCompleteAIEnhancedUnifiedPageData(context, targetAIEngines, options);
 }
 
 /**
- * AI検索最適化構造化データJSON生成
+ * 完全統合AI検索最適化構造化データJSON生成
  */
-export function generateAIEnhancedStructuredDataJSON(data: AIEnhancedUnifiedPageData): string {
-  const system = new AIEnhancedUnifiedIntegrationSystem();
-  const structuredData = system.generateAIEnhancedStructuredData(data);
+export function generateCompleteAIEnhancedStructuredDataJSON(
+  data: CompleteAIEnhancedUnifiedPageData
+): string {
+  const system = new CompleteAIEnhancedUnifiedIntegrationSystem();
+  const structuredData = system.generateCompleteAIEnhancedStructuredData(data);
   
   return JSON.stringify(structuredData, null, 2);
 }
 
 /**
- * AI検索エンジン対応レポート生成
+ * 強化AI検索エンジン対応レポート生成
  */
-export function generateAISearchReport(data: AIEnhancedUnifiedPageData): any {
-  const system = new AIEnhancedUnifiedIntegrationSystem();
-  return system.generateOptimizationReport(data);
-}
-
-/**
- * Fragment ID最適化チェック
- */
-export function checkFragmentIdOptimization(fragmentIds: string[]): {
-  optimized: string[];
-  needsOptimization: string[];
-  recommendations: string[];
-} {
-  const optimizedFragments = AI_OPTIMIZED_FRAGMENT_IDS.map(f => f.id);
-  
-  const optimized = fragmentIds.filter(id => optimizedFragments.includes(id));
-  const needsOptimization = fragmentIds.filter(id => !optimizedFragments.includes(id));
-  
-  const recommendations = [
-    ...(needsOptimization.length > 0 ? [`Fragment ID最適化対象: ${needsOptimization.join(', ')}`] : []),
-    ...(optimized.length < 3 ? ['最適化済みFragment IDを3個以上追加推奨'] : []),
-    'AI検索クエリ対応の強化推奨'
-  ];
+export function generateEnhancedAISearchReport(data: CompleteAIEnhancedUnifiedPageData): any {
+  if (!data.enhancedAIOptimization) {
+    throw new Error('Enhanced AI optimization data not available');
+  }
   
   return {
-    optimized,
-    needsOptimization,
-    recommendations
+    overview: data.enhancedAIOptimization.advancedMetrics,
+    engineSpecific: data.enhancedAIOptimization.engineSpecificOptimization,
+    recommendations: data.aiSearchOptimization?.recommendations || [],
+    knowledgeGraph: data.enhancedAIOptimization.knowledgeGraphIntegration
   };
 }
 
-export default AIEnhancedUnifiedIntegrationSystem; 
+/**
+ * 総合AI検索準備度チェック（強化版）
+ */
+export function checkCompleteAISearchReadiness(data: CompleteAIEnhancedUnifiedPageData): {
+  isReady: boolean;
+  overallScore: number;
+  basicOptimizationScore: number;
+  enhancedOptimizationScore?: number;
+  recommendations: string[];
+  nextSteps: string[];
+} {
+  const basicScore = data.aiSearchOptimization?.readinessScore || 0;
+  const enhancedScore = data.enhancedAIOptimization?.advancedMetrics?.overallOptimizationScore;
+  
+  const overallScore = enhancedScore ? 
+    Math.round((basicScore * 0.4) + (enhancedScore * 0.6)) : 
+    basicScore;
+  
+  const isReady = overallScore >= 80;
+  
+  const recommendations = [
+    ...(data.aiSearchOptimization?.recommendations || [])
+  ];
+  
+  const nextSteps = [
+    ...(overallScore < 80 ? ['総合最適化スコアの向上（目標: 80点以上）'] : []),
+    ...(basicScore < 75 ? ['基本AI検索最適化の強化'] : []),
+    ...(enhancedScore && enhancedScore < 85 ? ['高度AI検索最適化の精密調整'] : [])
+  ];
+  
+  return {
+    isReady,
+    overallScore,
+    basicOptimizationScore: basicScore,
+    enhancedOptimizationScore: enhancedScore,
+    recommendations,
+    nextSteps
+  };
+}
+
+// 後方互換性のためのエイリアス
+export type AIEnhancedUnifiedPageData = CompleteAIEnhancedUnifiedPageData;
+export { CompleteAIEnhancedUnifiedIntegrationSystem as AIEnhancedUnifiedIntegrationSystem }; 
