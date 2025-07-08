@@ -6,6 +6,10 @@ import ROICalculator from '@/components/corporate/ROICalculator';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
+import PostsGridSSR from '@/components/common/PostsGridSSR';
+import PostsGridAnimations from '@/components/common/PostsGridAnimations';
+import { Suspense } from 'react';
+import { createClient } from '@/utils/supabase/server';
 
 // Viewport設定
 export const viewport: Viewport = {
@@ -175,7 +179,121 @@ const CorporateFlow = dynamic(() => import('./components/CorporateFlow'), {
   )
 });
 
+type Post = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  meta_description?: string;
+  thumbnail_url: string | null;
+  featured_image?: string | null;
+  created_at: string;
+  category?: {
+    name: string;
+    slug: string;
+  };
+  table_type: 'posts' | 'chatgpt_posts';
+  is_chatgpt_special?: boolean;
+};
+
+async function getLatestPosts(): Promise<Post[]> {
+  const supabase = createClient();
+  
+  try {
+    // postsテーブルから記事を取得（RAG記事）
+    const { data: newPosts, error: newError } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        meta_description,
+        thumbnail_url,
+        created_at
+      `)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (newError) {
+      console.error('Error fetching new posts:', newError);
+    }
+
+    // chatgpt_postsテーブルから記事を取得（ChatGPT記事）
+    const { data: oldPosts, error: oldError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        id,
+        title,
+        slug,
+        excerpt,
+        thumbnail_url,
+        featured_image,
+        created_at,
+        is_chatgpt_special,
+        categories (
+          name,
+          slug
+        )
+      `)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (oldError) {
+      console.error('Error fetching old posts:', oldError);
+    }
+
+    // データを統一フォーマットに変換
+    const formattedNewPosts: Post[] = (newPosts || []).map(post => ({
+      id: post.id.toString(),
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.meta_description || '',
+      meta_description: post.meta_description,
+      thumbnail_url: post.thumbnail_url,
+      created_at: post.created_at,
+      table_type: 'posts' as const
+    }));
+
+    const formattedOldPosts: Post[] = (oldPosts || []).map(post => {
+      const imageUrl = post.thumbnail_url || post.featured_image;
+      const finalImageUrl = imageUrl 
+        ? imageUrl.startsWith('http') 
+          ? imageUrl 
+          : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
+        : null;
+      
+      return {
+        id: post.id.toString(),
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt || '',
+        thumbnail_url: finalImageUrl,
+        featured_image: post.featured_image,
+        created_at: post.created_at,
+        category: post.categories?.[0],
+        table_type: 'chatgpt_posts' as const,
+        is_chatgpt_special: post.is_chatgpt_special
+      };
+    });
+
+    // 両方のテーブルの記事を合体して日付順でソート
+    const allPosts = [...formattedNewPosts, ...formattedOldPosts];
+    allPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // 最大6件に制限
+    return allPosts.slice(0, 6);
+  } catch (error) {
+    console.error('Error in getLatestPosts:', error);
+    return [];
+  }
+}
+
 export default async function CorporatePage() {
+  // ブログ記事を取得
+  const posts = await getLatestPosts();
+  
   // 統一システム適用（Mike King理論準拠）
   const pageData = await generateUnifiedPageData({
     pageSlug: 'corporate',
@@ -575,6 +693,24 @@ export default async function CorporatePage() {
               </div>
             </section>
           )}
+
+          {/* ブログ記事セクション（フッター前） */}
+          <section id="latest-blog-posts" className="py-16 bg-gray-50 blog-section" role="region" aria-labelledby="latest-posts-heading" itemScope itemType="https://schema.org/WebPageElement">
+            <meta itemProp="name" content="最新ブログ記事" />
+            <div className="container mx-auto px-4">
+              <h2 id="latest-posts-heading" className="text-3xl font-bold text-center mb-12">
+                最新の記事 - 生成AI・企業研修・技術情報
+              </h2>
+              <p className="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                AI活用事例、企業研修の実績、最新技術情報など、法人のAI導入に役立つ情報をお届けします。
+                業界別の活用事例や導入効果についても詳しく解説しています。
+              </p>
+              <PostsGridSSR initialPosts={posts} />
+              <Suspense fallback={null}>
+                <PostsGridAnimations />
+              </Suspense>
+            </div>
+          </section>
 
           {/* お問い合わせセクション */}
           <section id="contact-section" itemScope itemType="https://schema.org/WebPageElement">
