@@ -186,10 +186,34 @@ export default async function ChatbotHeroSectionSSR() {
             "itemReviewed": {
               "@type": "SoftwareApplication",
               "name": "チャットボット開発サービス",
+              "description": "GPT-4・Claude統合による高性能チャットボット開発サービス。24時間365日自動応答、多言語対応、ベクトルRAG活用でカスタマーサポート業務を完全自動化。業界特化型カスタマイズ対応。",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Any",
               "provider": {
                 "@type": "Organization",
                 "@id": "https://nands.tech/#organization",
                 "name": "株式会社エヌアンドエス"
+              },
+              "offers": {
+                "@type": "Offer",
+                "priceCurrency": "JPY",
+                "price": "500000",
+                "priceSpecification": {
+                  "@type": "PriceSpecification",
+                  "priceCurrency": "JPY",
+                  "minPrice": "500000",
+                  "maxPrice": "5000000"
+                },
+                "description": "GPT-4統合チャットボット開発パッケージ（基本機能・多言語対応・24時間サポート含む）",
+                "availability": "https://schema.org/InStock",
+                "validFrom": "2024-01-01"
+              },
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": displayRating,
+                "bestRating": 5,
+                "worstRating": 1,
+                "ratingCount": displayCount
               }
             },
             "ratingValue": displayRating,
