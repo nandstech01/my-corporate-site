@@ -430,8 +430,96 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
     },
     object: {
       '@type': 'Course',
+      '@id': 'https://nands.tech/reskilling#course',
+      name: 'AI・プロンプトエンジニアリング リスキリング研修',
+      description: '生成AI活用とプロンプトエンジニアリングの実践的研修プログラム。ChatGPT、Claude等の最新AI技術を業務に活用するためのスキルを習得します。人材開発支援助成金適用で受講料最大80%補助対象。',
       courseMode: 'online',
-      availableLanguage: 'Japanese'
+      availableLanguage: 'Japanese',
+      provider: {
+        '@type': 'Organization',
+        '@id': 'https://nands.tech/#organization',
+        name: 'エヌアンドエス株式会社',
+        url: 'https://nands.tech'
+      },
+      offers: {
+        '@type': 'Offer',
+        name: 'リスキリング研修受講料',
+        description: '人材開発支援助成金適用で最大80%補助',
+        price: '200000',
+        priceCurrency: 'JPY',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2024-01-01',
+        validThrough: '2024-12-31',
+        priceValidUntil: '2024-12-31',
+        eligibleQuantity: {
+          '@type': 'QuantitativeValue',
+          minValue: 1,
+          maxValue: 20,
+          unitText: '名'
+        },
+        category: 'Government Subsidy Eligible Training'
+      },
+      hasCourseInstance: [
+        {
+          '@type': 'CourseInstance',
+          courseMode: 'online',
+          instructor: {
+            '@type': 'Person',
+            name: '原田賢治',
+            '@id': 'https://nands.tech/#founder',
+            jobTitle: '代表取締役・AI技術コンサルタント'
+          },
+          courseSchedule: {
+            '@type': 'Schedule',
+            duration: 'P5D',
+            repeatFrequency: 'Monthly'
+          },
+          location: {
+            '@type': 'VirtualLocation',
+            name: 'オンライン研修',
+            url: 'https://nands.tech/reskilling'
+          }
+        }
+      ],
+      educationalLevel: 'Professional',
+      teaches: [
+        'プロンプトエンジニアリング',
+        'ChatGPT業務活用',
+        'Claude活用技術',
+        'AI倫理とガバナンス',
+        '生成AI導入戦略'
+      ],
+      timeRequired: 'P5D',
+      coursePrerequisites: '基本的なPC操作スキル',
+      educationalCredentialAwarded: {
+        '@type': 'EducationalOccupationalCredential',
+        name: 'AI活用実践認定証',
+        credentialCategory: 'Professional Certification'
+      },
+      occupationalCategory: [
+        'AI技術者',
+        'プロンプトエンジニア',
+        'DX推進担当者'
+      ],
+      about: [
+        'Artificial Intelligence',
+        'Prompt Engineering',
+        'Digital Transformation',
+        'Human Resources Development'
+      ],
+      inLanguage: 'ja-JP',
+      isAccessibleForFree: false,
+      financialAid: [
+        {
+          '@type': 'GovernmentService',
+          name: '人材開発支援助成金',
+          description: '厚生労働省による研修費用80%補助制度',
+          funder: {
+            '@type': 'GovernmentOrganization',
+            name: '厚生労働省'
+          }
+        }
+      ]
     },
     expectsAcceptanceOf: {
       '@type': 'Offer',
