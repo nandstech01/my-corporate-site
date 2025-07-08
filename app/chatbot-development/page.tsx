@@ -165,21 +165,53 @@ export default async function ChatbotDevelopmentPage() {
       {
         "@type": "Dataset",
         "name": "企業FAQナレッジベース",
-        "description": "企業の過去問い合わせ・FAQ・マニュアルをベクトル化。高精度な回答生成を実現。",
+        "description": "株式会社エヌアンドエスが蓄積した企業の過去問い合わせ・FAQ・マニュアル専門ベクトル化データベース。顧客サポート履歴、製品マニュアル、技術文書、トラブルシューティング情報を高精度でベクトル化し、OpenAI Embeddingsとpgvectorによるセマンティック検索を実現。GPT-4・Claude統合により、コンテキストを理解した自然な回答生成、類似問題の自動提案、エスカレーション判定を提供。24時間365日の高品質カスタマーサポートを可能にする、次世代企業FAQ専門知識データベース。",
         "keywords": ["FAQ", "カスタマーサポート", "問い合わせ履歴", "マニュアル"],
-        "creator": { "@id": "https://nands.tech/#organization" }
+        "creator": { 
+          "@type": "Organization",
+          "@id": "https://nands.tech/#organization" 
+        },
+        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "temporalCoverage": "2009/2024",
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/search-rag"
+        }
       },
       {
         "@type": "Dataset",
         "name": "業界特化ナレッジ",
-        "description": "42専門領域の業界知識をベクトル化。業界特化チャットボットを実現。",
-        "keywords": ["業界知識", "専門用語", "技術文書", "プロセス説明"]
+        "description": "株式会社エヌアンドエスが15年間蓄積した42専門領域の業界知識ベクトル化データベース。製造業、金融、医療、IT、建設、物流、小売など多業界の専門用語、技術文書、業務プロセス、法規制情報、ベストプラクティスを網羅的にベクトル化。OpenAI Embeddingsによる意味的検索で、業界特化チャットボットの高精度回答を実現。専門性の高い質問に対する的確な回答生成、業界動向分析、技術トレンド予測を提供する、業界最先端の専門知識データベース。",
+        "keywords": ["業界知識", "専門用語", "技術文書", "プロセス説明"],
+        "creator": { 
+          "@type": "Organization",
+          "@id": "https://nands.tech/#organization" 
+        },
+        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "temporalCoverage": "2009/2024",
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/search-rag"
+        }
       },
       {
         "@type": "Dataset",
         "name": "マルチモーダル対応データ",
-        "description": "テキスト・画像・音声・動画の複合データをベクトル化。統合的な回答生成。",
-        "keywords": ["マルチモーダル", "画像認識", "音声理解", "動画解析"]
+        "description": "株式会社エヌアンドエスが開発したテキスト・画像・音声・動画の複合データマルチモーダルベクトル化システム。文書テキスト、画像認識、音声解析、動画コンテンツを統合的にベクトル化し、OpenAI CLIP・Whisper・GPT-4V等の最新マルチモーダルAIを活用。複数メディア形式の情報を同時に理解・処理し、視覚的説明、音声ガイド、動画デモンストレーションを含む包括的な回答生成を実現。次世代マルチモーダルチャットボットの基盤となる統合型知識データベース。",
+        "keywords": ["マルチモーダル", "画像認識", "音声理解", "動画解析"],
+        "creator": { 
+          "@type": "Organization",
+          "@id": "https://nands.tech/#organization" 
+        },
+        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "temporalCoverage": "2024/継続更新",
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/search-rag"
+        }
       }
     ],
     "about": [

@@ -120,7 +120,7 @@ export default async function AIOPage() {
     "dataset": {
       "@type": "Dataset",
       "name": "Mike King Relevance Engineering Knowledge Base",
-      "description": "15年間の実績とMike King理論完全準拠のレリバンスエンジニアリング専門データベース",
+      "description": "株式会社エヌアンドエスが15年間蓄積したMike King理論完全準拠のレリバンスエンジニアリング専門データベース。iPullRank創設者Mike King氏の革新的理論をベースに、GEO対策（Generative Engine Optimization）、AI検索最適化、Fragment ID最適化、Topical Coverage最大化、セマンティック構造化データ実装を統合。ChatGPT、Perplexity、Claude、Gemini等の生成AI検索エンジンでの上位表示を実現するAI Overviews最適化技術を集約。業界最先端のレリバンスエンジニアリング専門知識データベース。",
       "creator": {
         "@type": "Organization",
         "@id": "https://nands.tech/#organization"
@@ -144,6 +144,7 @@ export default async function AIOPage() {
           "addressCountry": ["JP", "US", "GB"]
         }
       },
+      "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
       "distribution": {
         "@type": "DataDownload",
         "encodingFormat": "application/json",

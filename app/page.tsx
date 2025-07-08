@@ -9,8 +9,9 @@ import PostsGridAnimations from '@/components/common/PostsGridAnimations'
 import Script from 'next/script'
 import { getStructuredData } from './structured-data'
 import type { Metadata } from 'next'
-import Breadcrumbs from './components/common/Breadcrumbs'
+
 import FAQSection from './components/portal/FAQSection'
+import TableOfContents from '@/components/common/TableOfContents'
 
 // SSR対応版HeroSection（AI検索エンジン最適化）
 import HeroSectionSSR from '@/app/components/portal/HeroSectionSSR'
@@ -58,6 +59,74 @@ export const metadata: Metadata = {
   },
   keywords: '総合人材支援,キャリアコンサルティング,生成AI研修,リスキリング,人材育成,キャリア支援,退職支援,エヌアンドエス,NANDS,転職支援',
 }
+
+// Mike King理論準拠 - 人間とAIの両方に最適化されたFragment ID
+const tocItems = [
+  { 
+    id: 'ai-solutions', 
+    title: 'AI活用ソリューション', 
+    level: 1,
+    semanticWeight: 0.95,
+    targetQueries: ['AI 人材変革', '生成AI 企業導入', 'AI リスキリング', 'ChatGPT 社員研修'],
+    entities: ['生成AI', 'リスキリング', '人材変革', 'DX推進']
+  },
+  { 
+    id: 'services-training', 
+    title: 'サービス・研修一覧', 
+    level: 1,
+    semanticWeight: 0.92,
+    targetQueries: ['AI研修 サービス一覧', 'ChatGPT 企業研修', '生成AI 導入支援', 'AI Agent 開発'],
+    entities: ['AI研修', 'ChatGPT研修', 'AI Agent開発', 'Vector RAG構築']
+  },
+  { 
+    id: 'knowledge-insights', 
+    title: '最新知見・専門情報', 
+    level: 1,
+    semanticWeight: 0.88,
+    targetQueries: ['AI 最新情報', 'Mike King理論', 'レリバンスエンジニアリング', 'LLMO対策'],
+    entities: ['Mike King理論', 'レリバンスエンジニアリング', 'LLMO', 'AI検索最適化']
+  },
+  { 
+    id: 'company-expertise', 
+    title: '会社実績・専門性', 
+    level: 1,
+    semanticWeight: 0.85,
+    targetQueries: ['エヌアンドエス 実績', '滋賀県 AI企業', '15年実績 退職代行', '関西 AI研修'],
+    entities: ['株式会社エヌアンドエス', '滋賀県', '関西地方', '15年実績']
+  },
+  { 
+    id: 'sustainability', 
+    title: 'サステナビリティ', 
+    level: 1,
+    semanticWeight: 0.82,
+    targetQueries: ['AI 倫理', '持続可能 AI', 'AI 責任', 'AI ガバナンス'],
+    entities: ['AI倫理', '持続可能性', 'AIガバナンス', '責任あるAI']
+  },
+  { 
+    id: 'premium-solutions', 
+    title: '注目ソリューション', 
+    level: 1,
+    semanticWeight: 0.90,
+    targetQueries: ['プレミアム AI', '高度 AI開発', 'カスタム AI', 'エンタープライズ AI'],
+    entities: ['プレミアムAI', 'エンタープライズ', 'カスタム開発', '高度AI']
+  },
+  { 
+    id: 'faq-support', 
+    title: 'よくある質問・サポート', 
+    level: 1,
+    semanticWeight: 0.87,
+    targetQueries: ['AI導入 FAQ', 'ChatGPT 使い方', 'AI 導入課題', 'AI 研修 質問'],
+    entities: ['AI導入', 'FAQ', 'トラブルシューティング', '導入支援']
+  },
+  { 
+    id: 'contact', 
+    title: 'お問い合わせ', 
+    level: 1,
+    semanticWeight: 0.84,
+    targetQueries: ['AI 相談', 'AI導入 問い合わせ', '無料相談 AI', 'AI 専門家'],
+    entities: ['AI相談', '無料相談', 'AI専門家', 'サポート']
+  }
+];
 
 type Post = {
   id: string;
@@ -713,8 +782,139 @@ export default async function Home() {
   // AI検索最適化構造化データ
   const aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
 
+  // Mike King理論完全準拠 - 高度なFragment ID最適化スキーマ（GEO・LLMO・AIO対策）
+  const fragmentIdOptimizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://nands.tech/#ai-optimized-mainpage",
+    "name": "株式会社エヌアンドエス | AI検索最適化実装メインページ",
+    "description": "Mike King理論準拠のFragment ID最適化実装。ChatGPT・Perplexity・Gemini等のAI検索エンジンに完全対応したセマンティック構造化データ。",
+    "url": "https://nands.tech",
+    "inLanguage": "ja-JP",
+    
+    // AI検索エンジン最適化メタデータ
+    "aiSearchOptimization": {
+      "targetEngines": ["ChatGPT", "Perplexity", "Claude", "Gemini", "Google AI Overviews"],
+      "optimizationLevel": "expert",
+      "semanticWeightTotal": tocItems.reduce((sum, item) => sum + (item.semanticWeight || 0), 0),
+      "mikeKingTheoryCompliance": true,
+      "geoOptimized": true,
+      "llmoOptimized": true,
+      "aioOptimized": true
+    },
+    
+    // 高度なFragment IDマッピング
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "AI検索最適化Fragment IDリスト",
+      "description": "Mike King理論準拠・セマンティック重み付け済みFragment ID構成",
+      "numberOfItems": tocItems.length,
+      "itemListElement": tocItems.map((item, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "name": item.title,
+        "url": `https://nands.tech#${item.id}`,
+        "description": `${item.title} - セマンティック重み: ${item.semanticWeight}`,
+        "semanticWeight": item.semanticWeight,
+        "targetQueries": item.targetQueries,
+        "entities": item.entities,
+        "hierarchyLevel": item.level
+      }))
+    },
+    
+    // 拡張hasPartスキーマ（Mike King理論準拠）
+    "hasPart": tocItems.map(item => ({
+      "@type": "WebPageElement",
+      "@id": `https://nands.tech#${item.id}`,
+      "name": item.title,
+      "url": `https://nands.tech#${item.id}`,
+      "identifier": item.id,
+      "semanticWeight": item.semanticWeight,
+      "targetQueries": item.targetQueries,
+      "entities": item.entities,
+      "hierarchyLevel": item.level,
+      "isPartOf": {
+        "@id": "https://nands.tech/#ai-optimized-mainpage"
+      },
+      "mentions": item.entities?.map(entity => ({
+        "@type": "Thing",
+        "name": entity,
+        "relevance": "high"
+      })),
+      "potentialAction": {
+        "@type": "ReadAction",
+        "target": `https://nands.tech#${item.id}`,
+        "name": `${item.title}を読む`
+      }
+    })),
+    
+    // AI検索エンジン特化キーワード
+    "about": [
+      "Mike King理論", "レリバンスエンジニアリング", "GEO対策", "LLMO最適化", "AIO戦略",
+      "AI検索エンジン最適化", "Fragment ID", "セマンティック構造化データ", "ChatGPT SEO",
+      "Perplexity最適化", "Google AI Overviews", "生成AI研修", "AI Agent開発", "Vector RAG"
+    ],
+    
+    // 高度なmention（エンティティ関係性）
+    "mentions": [
+      {
+        "@type": "Person",
+        "name": "Mike King",
+        "jobTitle": "iPullRank創設者",
+        "description": "レリバンスエンジニアリング理論の提唱者",
+        "sameAs": "https://ipullrank.com/about/mike-king/",
+        "knowsAbout": ["レリバンスエンジニアリング", "SEO", "AI検索最適化"]
+      },
+      {
+        "@type": "Concept",
+        "name": "レリバンスエンジニアリング",
+        "description": "Mike King理論による検索関連性最適化手法",
+        "category": "AI検索最適化手法"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "ChatGPT",
+        "applicationCategory": "AI Language Model",
+        "description": "OpenAI開発の大規模言語モデル"
+      },
+      {
+        "@type": "SoftwareApplication", 
+        "name": "Perplexity",
+        "applicationCategory": "AI Search Engine",
+        "description": "AI駆動検索エンジン"
+      },
+      {
+        "@type": "Place",
+        "name": "滋賀県大津市",
+        "description": "株式会社エヌアンドエス本社所在地",
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "35.0116",
+          "longitude": "135.8681"
+        }
+      }
+    ],
+    
+    // セマンティック接続性スコア
+    "semanticConnectivity": {
+      "totalSemanticWeight": tocItems.reduce((sum, item) => sum + (item.semanticWeight || 0), 0),
+      "averageSemanticWeight": tocItems.reduce((sum, item) => sum + (item.semanticWeight || 0), 0) / tocItems.length,
+      "hierarchyComplexity": Math.max(...tocItems.map(item => item.level)),
+      "entityDensity": tocItems.reduce((sum, item) => sum + (item.entities?.length || 0), 0)
+    }
+  };
+
   return (
     <main>
+      {/* Fragment ID最適化構造化データ */}
+      <Script
+        id="fragment-id-optimization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(fragmentIdOptimizationSchema, null, 2)
+        }}
+      />
+
       {/* 【最強LLMO構造化データ】Google Gemini LLM + AI Overviews完全対応 */}
       <Script
         id="llmo-structured-data"
@@ -722,20 +922,29 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(llmoOptimizedData) }}
       />
       
-      {/* パンくずナビ */}
-      <div className="container mx-auto px-4">
-        <Breadcrumbs />
+
+
+      {/* Table of Contents（Fragment ID ナビゲーション） */}
+      <div className="bg-black py-4 border-b border-gray-800 pt-20">
+        <div className="container mx-auto px-4">
+          <TableOfContents items={tocItems} compact={true} />
+        </div>
       </div>
       
-      {/* メインコンテンツ（AI検索最適化） */}
-      <HeroSectionSSR />
-              <ServicesSectionSSR />
+      {/* メインコンテンツ（AI検索最適化 + Fragment ID対応） */}
+      <section id="ai-solutions" className="scroll-mt-20">
+        <HeroSectionSSR />
+      </section>
+
+      <section id="services-training" className="scroll-mt-20">
+        <ServicesSectionSSR />
+      </section>
       
       {/* 記事セクション（自社RAG活用・AI Overviews最適化） */}
-      <section className="py-16 bg-gray-50 blog-section" role="region" aria-labelledby="latest-posts-heading">
+      <section id="knowledge-insights" className="py-16 bg-gray-50 blog-section scroll-mt-20" role="region" aria-labelledby="latest-posts-heading">
         <div className="container mx-auto px-4">
           <h2 id="latest-posts-heading" className="text-3xl font-bold text-center mb-12">
-            最新の記事 - 生成AI・LLMO・レリバンスエンジニアリング
+            最新知見・専門情報 - Mike King理論・LLMO対策
           </h2>
           <p className="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
             Mike King理論準拠のレリバンスエンジニアリング、Google AI Overviews最適化、LLMO対策の最新情報をお届けします。
@@ -748,11 +957,25 @@ export default async function Home() {
         </div>
       </section>
       
-              <AboutSectionSSR />
-      <SustainabilitySection />
-      <FeaturedSection />
-      <FAQSection />
-      <ContactSection />
+      <section id="company-expertise" className="scroll-mt-20">
+        <AboutSectionSSR />
+      </section>
+
+      <section id="sustainability" className="scroll-mt-20">
+        <SustainabilitySection />
+      </section>
+
+      <section id="premium-solutions" className="scroll-mt-20">
+        <FeaturedSection />
+      </section>
+
+      <section id="faq-support" className="scroll-mt-20">
+        <FAQSection />
+      </section>
+
+      <section id="contact" className="scroll-mt-20">
+        <ContactSection />
+      </section>
 
       <Script
         id="schema-org-16-organization"

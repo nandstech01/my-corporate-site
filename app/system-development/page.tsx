@@ -62,6 +62,7 @@ export const metadata: Metadata = {
   }
 };
 
+
 // ページコンテキスト定義（Mike King理論準拠）
 const pageContext = {
   pageSlug: 'system-development',

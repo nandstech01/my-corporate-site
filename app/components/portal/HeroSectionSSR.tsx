@@ -147,7 +147,8 @@ export default function HeroSectionSSR() {
             "description": "株式会社エヌアンドエスのメインビジュアルエリア",
             "about": [
               "AIとともに未来を切り拓く",
-              "個人・法人向けリスキリング", 
+              "AIシステム開発",
+              "リスキリング研修", 
               "AI副業サポート",
               "退職サポート",
               "キャリア支援"
@@ -208,7 +209,7 @@ export default function HeroSectionSSR() {
           >
             {/* PC版のテキスト */}
             <span className="hidden md:inline">
-              個人・法人向けリスキリングからAI副業、退職サポートまで。
+              AIシステム開発・リスキリング研修からAI副業、退職サポートまで。
               <br />
               <span className="font-semibold" style={{ color: '#00CFFF' }}>NANDS</span>
               があなたのキャリアをトータルでサポートします。
@@ -216,7 +217,7 @@ export default function HeroSectionSSR() {
 
             {/* スマホ版のテキスト */}
             <span className="block md:hidden text-center">
-              個人・法人向けリスキリングから
+              AIシステム開発・リスキリング研修から
               <br />
               AI副業、退職サポートまで。
               <br />

@@ -231,7 +231,7 @@ function StructuredDataScript() {
 
 /**
  * ==========================================
- * Card: サービスカード（SSR版・プロフェッショナル）
+ * Card: サービスカード（SSR版・プレミアム黒ベース）
  * ==========================================
  */
 function ServiceCard({
@@ -251,28 +251,35 @@ function ServiceCard({
     <div className="group relative">
       <a
         href={link}
-        className="flex flex-col items-center justify-center w-full h-full p-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg transform hover:scale-105 text-center"
+        className="flex flex-col items-center justify-center w-full h-full p-8 bg-gradient-to-br from-gray-800/60 to-gray-900/60 border border-gray-700/50 backdrop-blur-sm shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 rounded-xl transform hover:scale-105 hover:-translate-y-2 text-center relative overflow-hidden"
         role="article"
         aria-label={`${title}について詳しく見る`}
       >
+        {/* シマーエフェクト */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+        
         {/* アイコン */}
-        <div className="flex items-center justify-center mb-4">
-          {icon}
+        <div className="flex items-center justify-center mb-6 relative z-10">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 group-hover:scale-110 transition-transform duration-300">
+            <div className="text-cyan-400 group-hover:text-white transition-colors duration-300">
+              {icon}
+            </div>
+          </div>
         </div>
 
         {/* タイトル */}
-        <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-xl font-bold text-white mb-4 group-hover:text-cyan-300 transition-colors duration-300 relative z-10">
           {title}
         </h3>
 
         {/* 説明 */}
-        <p className="text-gray-600 text-sm leading-relaxed">
+        <p className="text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 relative z-10">
           {description}
         </p>
 
-        {/* ホバー時のグラデーション境界線 */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-lg">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-blue-500/20 border-2 border-blue-300 rounded-lg"></div>
+        {/* プレミアムホバーエフェクト */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 border border-cyan-400/50 rounded-xl shadow-lg shadow-cyan-500/20" />
         </div>
       </a>
     </div>
@@ -281,7 +288,7 @@ function ServiceCard({
 
 /**
  * ==========================================
- * メインセクション（真のSSR版）
+ * メインセクション（プレミアム黒ベースSSR版）
  * ==========================================
  */
 export default function ServicesSectionSSR() {
@@ -292,33 +299,44 @@ export default function ServicesSectionSSR() {
 
       <section
         id="services"
-        className="relative py-20 bg-white overflow-hidden"
+        className="relative py-20 bg-black overflow-hidden"
         role="region"
         aria-label="サービス一覧"
       >
-        {/* パララックス背景（軽量版） */}
-        <div
-          className="absolute inset-0 bg-[url('/images/background.jpg')] bg-cover bg-center bg-fixed opacity-10 pointer-events-none"
-          aria-hidden="true"
-        />
+        {/* プレミアム背景エフェクト */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          {/* グラデーション背景 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900" />
+          
+          {/* 放射状グラデーション */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full filter blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full filter blur-3xl" />
+          
+          {/* グリッドパターン */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.02)_1px,transparent_1px)] bg-[size:24px_24px]" />
+        </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* セクションタイトル */}
+          {/* セクションタイトル - 1行に洗練 */}
           <div className="text-center mb-16">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-              私たちの
-              <span className="block text-blue-600">サービス</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                私たちのサービス
+              </span>
             </h2>
             
+            {/* アクセントライン */}
+            <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 mx-auto rounded-full mb-8" />
+            
             {/* 説明テキスト */}
-            <div className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <div className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供しています。
             </div>
           </div>
 
-          {/* サービスグリッド（SSR版） */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* サービスグリッド（プレミアムSSR版） */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {servicesData.map((service) => (
               <ServiceCard
                 key={service.id}
@@ -331,27 +349,35 @@ export default function ServicesSectionSSR() {
             ))}
           </div>
 
-          {/* 下部CTA */}
-          <div className="text-center mt-16">
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-gray-200 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                お気軽にご相談ください
-              </h3>
-              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                どのサービスが最適かわからない場合も、<br />
-                専門スタッフが丁寧にヒアリングいたします
-              </p>
-              <a
-                href="/contact"
-                className="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-bold border border-gray-200 hover:bg-blue-700 transition-colors rounded-lg"
-                role="button"
-                aria-label="お問い合わせフォームへ移動"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.13 8.13 0 01-2.939-.541l-3.515 1.464a.25.25 0 01-.329-.329l1.464-3.515A8.13 8.13 0 013 12a8 8 0 018-8 8 8 0 018 8z" />
-                </svg>
-                無料相談する
-              </a>
+          {/* プレミアム下部CTA */}
+          <div className="text-center mt-20">
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 backdrop-blur-sm p-10 rounded-2xl relative overflow-hidden">
+              {/* 背景エフェクト */}
+              <div className="absolute inset-0">
+                <div className="absolute top-0 left-1/4 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl" />
+                <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full filter blur-3xl" />
+              </div>
+              
+              <div className="relative z-10">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                  お気軽にご相談ください
+                </h3>
+                <p className="text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+                  どのサービスが最適かわからない場合も、<br />
+                  専門スタッフが丁寧にヒアリングいたします
+                </p>
+                <a
+                  href="/contact"
+                  className="inline-flex items-center px-10 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold border border-cyan-500/50 hover:from-cyan-500 hover:to-blue-500 hover:border-cyan-400 transition-all duration-300 rounded-xl shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-105 group"
+                  role="button"
+                  aria-label="お問い合わせフォームへ移動"
+                >
+                  <svg className="w-5 h-5 mr-3 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.13 8.13 0 01-2.939-.541l-3.515 1.464a.25.25 0 01-.329-.329l1.464-3.515A8.13 8.13 0 013 12a8 8 0 018-8 8 8 0 018 8z" />
+                  </svg>
+                  無料相談する
+                </a>
+              </div>
             </div>
           </div>
         </div>

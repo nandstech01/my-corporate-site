@@ -2,6 +2,318 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fragment ID最適化 - スムーススクロール対応 */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* ヘッダー固定時の調整 */
+}
+
+/* Fragment ID アンカーリンク最適化 */
+.scroll-mt-20 {
+  scroll-margin-top: 5rem; /* 80px */
+}
+
+/* プレミアム黒ベース Table of Contents */
+.toc-container {
+  position: sticky;
+  top: 80px;
+  z-index: 30;
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.95) 0%, 
+    rgba(15, 15, 15, 0.95) 50%, 
+    rgba(0, 0, 0, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.toc-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.75rem;
+  padding: 1.25rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  -ms-overflow-style: auto;
+  /* スクロール可能であることを示すフェードエフェクト */
+  mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    black 2%, 
+    black 98%, 
+    transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, 
+    transparent 0%, 
+    black 2%, 
+    black 98%, 
+    transparent 100%);
+}
+
+.toc-nav::-webkit-scrollbar {
+  height: 3px;
+}
+
+.toc-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.toc-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.toc-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.toc-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-width: 160px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+
+.toc-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.1), 
+    transparent);
+  transition: left 0.5s;
+}
+
+.toc-link:hover::before {
+  left: 100%;
+}
+
+.toc-link:hover,
+.toc-link.active {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.2) 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* プレミアム黒ベース - セマンティック重み付け視覚化 */
+.toc-link-high-semantic {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.375rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fbbf24;
+  background: linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.15) 0%, 
+    rgba(245, 158, 11, 0.2) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.15),
+              0 0 40px rgba(251, 191, 36, 0.05);
+  position: relative;
+  overflow: hidden;
+  min-width: 160px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+
+.toc-link-high-semantic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(251, 191, 36, 0.2), 
+    transparent);
+  transition: left 0.5s;
+}
+
+.toc-link-high-semantic:hover::before {
+  left: 100%;
+}
+
+.toc-link-high-semantic:hover {
+  background: linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.25) 0%, 
+    rgba(245, 158, 11, 0.3) 100%);
+  color: #fbbf24;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(251, 191, 36, 0.25),
+              0 0 60px rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.toc-link-high-semantic.active {
+  background: linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.3) 0%, 
+    rgba(245, 158, 11, 0.35) 100%);
+  color: #fbbf24;
+  box-shadow: 0 8px 30px rgba(251, 191, 36, 0.3),
+              0 0 50px rgba(251, 191, 36, 0.15);
+  transform: translateY(-1px);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.toc-link-medium-semantic {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 550;
+  color: rgba(99, 179, 237, 1);
+  background: linear-gradient(135deg, 
+    rgba(99, 179, 237, 0.1) 0%, 
+    rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(99, 179, 237, 0.25);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 15px rgba(99, 179, 237, 0.12),
+              0 0 30px rgba(99, 179, 237, 0.05);
+  position: relative;
+  overflow: hidden;
+  min-width: 160px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+
+.toc-link-medium-semantic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(99, 179, 237, 0.15), 
+    transparent);
+  transition: left 0.5s;
+}
+
+.toc-link-medium-semantic:hover::before {
+  left: 100%;
+}
+
+.toc-link-medium-semantic:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 179, 237, 0.2) 0%, 
+    rgba(59, 130, 246, 0.25) 100%);
+  color: rgba(99, 179, 237, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(99, 179, 237, 0.2),
+              0 0 40px rgba(99, 179, 237, 0.1);
+  border-color: rgba(99, 179, 237, 0.4);
+}
+
+.toc-link-medium-semantic.active {
+  background: linear-gradient(135deg, 
+    rgba(99, 179, 237, 0.25) 0%, 
+    rgba(59, 130, 246, 0.3) 100%);
+  color: rgba(99, 179, 237, 1);
+  box-shadow: 0 6px 20px rgba(99, 179, 237, 0.25),
+              0 0 35px rgba(99, 179, 237, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(99, 179, 237, 0.5);
+}
+
+/* プレミアム Fragment ID最適化 - セクション境界の視覚化 */
+section[id] {
+  position: relative;
+  border-top: 1px solid transparent;
+}
+
+section[id]:target {
+  border-top-color: rgba(255, 255, 255, 0.3);
+  animation: premiumSectionHighlight 2s ease-in-out;
+}
+
+@keyframes premiumSectionHighlight {
+  0% {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.05) 0%, 
+      rgba(255, 255, 255, 0.08) 100%);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.08) 0%, 
+      rgba(255, 255, 255, 0.12) 100%);
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* プレミアムアクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .toc-link,
+  .toc-link-high-semantic,
+  .toc-link-medium-semantic {
+    transition: none;
+  }
+  
+  .toc-link::before,
+  .toc-link-high-semantic::before,
+  .toc-link-medium-semantic::before {
+    display: none;
+  }
+  
+  section[id]:target {
+    animation: none;
+  }
+}
+
+/* モバイル対応 - TOCタブ最適化 */
+@media (max-width: 768px) {
+  .toc-link,
+  .toc-link-high-semantic,
+  .toc-link-medium-semantic {
+    min-width: 140px;
+    max-width: 180px;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+  
+  .toc-nav {
+    gap: 0.5rem;
+    padding: 1rem 0;
+  }
+}
+
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);

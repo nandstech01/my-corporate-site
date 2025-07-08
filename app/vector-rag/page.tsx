@@ -128,15 +128,36 @@ export default async function VectorRagPage() {
       {
         "@type": "Dataset", 
         "name": "トレンドRAGシステム",
-        "description": "リアルタイム技術動向・業界トレンドをベクトル化。最新情報による高関連性検索を提供。",
+        "description": "株式会社エヌアンドエスが開発したリアルタイム技術動向・業界トレンドベクトル化システム。技術トレンド、業界動向、市場分析、競合情報などの最新情報を継続的にベクトル化し、pgvectorによる高速セマンティック検索を提供。OpenAI Embeddingsとの統合により、時系列での関連性分析、トレンド予測、市場動向把握を実現。リアルタイム更新機能で常に最新の技術情報・業界動向にアクセス可能な、次世代トレンド分析専門ベクトル検索データベース。",
         "keywords": ["技術トレンド", "業界動向", "リアルタイム更新", "トレンド分析"],
-        "temporalCoverage": "2024/継続更新"
+        "temporalCoverage": "2024/継続更新",
+        "creator": {
+          "@type": "Organization",
+          "@id": "https://nands.tech/#organization"
+        },
+        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/vectorize-news"
+        }
       },
       {
         "@type": "Dataset",
         "name": "YouTubeRAGシステム", 
-        "description": "動画コンテンツの音声・映像・メタデータをベクトル化。マルチモーダル検索対応。",
-        "keywords": ["動画検索", "マルチモーダル", "音声認識", "映像解析"]
+        "description": "株式会社エヌアンドエスが開発した動画コンテンツマルチモーダルベクトル化システム。YouTube動画の音声認識、映像解析、メタデータ解析、字幕情報、サムネイル解析を統合し、包括的なマルチモーダル検索を実現。OpenAI Embeddingsによる音声・映像・テキストの統合ベクトル化で、動画コンテンツの意味的検索、関連動画発見、コンテンツ分析を提供。pgvectorによる高速検索で、動画内容の深層理解と高精度なセマンティック検索を可能にする、次世代動画コンテンツ検索専門データベース。",
+        "keywords": ["動画検索", "マルチモーダル", "音声認識", "映像解析"],
+        "temporalCoverage": "2024/継続更新",
+        "creator": {
+          "@type": "Organization",
+          "@id": "https://nands.tech/#organization"
+        },
+        "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://nands.tech/api/vectorize-youtube"
+        }
       }
     ],
     "about": [
