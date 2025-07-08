@@ -166,11 +166,11 @@ export default async function HomePage() {
       {
         "@type": ["LocalBusiness", "Organization", "TechnologyCompany"],
         "@id": "https://nands.tech/#organization",
-        "name": "株式会社エヌアンドエス",
+      "name": "株式会社エヌアンドエス",
         "legalName": "株式会社エヌアンドエス", 
         "alternateName": ["NANDS", "エヌアンドエス", "N&S"],
         "description": "滋賀県大津市を拠点とする総合人材支援・生成AIリスキリング研修企業。Mike King理論準拠のレリバンスエンジニアリング実装、Google AI Overviews最適化、LLMO対策の専門企業として関西地方を中心に全国展開。",
-        "url": "https://nands.tech",
+      "url": "https://nands.tech",
         "logo": {
           "@type": "ImageObject",
           "url": "https://nands.tech/images/logo.svg",
@@ -187,11 +187,11 @@ export default async function HomePage() {
         },
         
         // 【LocalBusiness完全最適化】滋賀県大津市地域企業
-        "address": {
-          "@type": "PostalAddress",
+      "address": {
+        "@type": "PostalAddress",
           "streetAddress": "皇子が丘２丁目10-25-3004号",
           "addressLocality": "大津市",
-          "addressRegion": "滋賀県", 
+        "addressRegion": "滋賀県",
           "postalCode": "520-0025",
           "addressCountry": "JP"
         },
@@ -199,12 +199,12 @@ export default async function HomePage() {
           "@type": "GeoCoordinates",
           "latitude": "35.0116",
           "longitude": "135.8681"
-        },
+      },
         "contactPoint": [
           {
-            "@type": "ContactPoint",
-            "telephone": "0120-558-551",
-            "contactType": "customer service",
+        "@type": "ContactPoint",
+        "telephone": "0120-558-551",
+        "contactType": "customer service",
             "email": "contact@nands.tech",
             "availableLanguage": ["Japanese", "English"],
             "areaServed": ["JP", "関西地方", "滋賀県", "大津市", "京都府", "大阪府"],
@@ -219,7 +219,7 @@ export default async function HomePage() {
             "@type": "ContactPoint",
             "email": "contact@nands.tech",
             "contactType": "customer support",
-            "availableLanguage": ["Japanese"],
+        "availableLanguage": ["Japanese"],
             "areaServed": "JP"
           }
         ],
@@ -261,7 +261,7 @@ export default async function HomePage() {
         "industry": ["人材支援", "教育研修", "AI技術コンサルティング", "退職代行"],
         
         // 【LLMO最適化】Google Gemini LLM対応知識領域
-        "knowsAbout": [
+      "knowsAbout": [
           // 核心事業領域
           "生成AI研修", "リスキリング", "キャリアコンサルティング", "退職支援", "退職代行",
           "DX人材育成", "プロンプトエンジニアリング", "ChatGPT活用", "Claude活用", "Gemini活用",
@@ -282,21 +282,21 @@ export default async function HomePage() {
         
         // 【サービス地域】LocalBusiness最適化
         "areaServed": [
-          {
-            "@type": "Country",
-            "name": "日本"
-          },
-          {
+        {
+          "@type": "Country",
+          "name": "日本"
+        },
+        {
             "@type": "State", 
             "name": "滋賀県",
             "description": "本社所在地として地域密着サービス提供"
-          },
-          {
-            "@type": "Place",
+        },
+        {
+          "@type": "Place",
             "name": "関西地方",
             "description": "大阪府・京都府・兵庫県・奈良県・和歌山県への展開"
-          },
-          {
+        },
+        {
             "@type": "City",
             "name": "大津市",
             "description": "本社所在地としてローカル企業支援"
@@ -351,9 +351,9 @@ export default async function HomePage() {
               "description": "Google AI Overviews・ChatGPT・Perplexity対応SEO",
               "category": "デジタルマーケティング",
               "areaServed": "JP"
-            }
-          ]
-        },
+        }
+      ]
+    },
         
         // 【営業時間】LocalBusiness最適化
         "openingHoursSpecification": {
@@ -394,12 +394,12 @@ export default async function HomePage() {
             },
             "query-input": "required name=search_term_string"
           },
-          {
-            "@type": "ReadAction",
+      {
+        "@type": "ReadAction",
             "target": ["https://nands.tech/blog", "https://nands.tech/about"]
-          },
-          {
-            "@type": "ContactAction",
+      },
+      {
+        "@type": "ContactAction",
             "target": "https://nands.tech/contact"
           }
         ],
@@ -430,16 +430,16 @@ export default async function HomePage() {
         "mainEntity": {
           "@id": "https://nands.tech/#organization"
         },
-        "breadcrumb": {
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "ホーム",
-              "item": "https://nands.tech"
-            }
-          ]
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "ホーム",
+          "item": "https://nands.tech"
+        }
+      ]
         },
         "speakable": {
           "@type": "SpeakableSpecification",
@@ -661,7 +661,7 @@ export default async function HomePage() {
       
       {/* メインコンテンツ（AI検索最適化） */}
       <HeroSectionSSR />
-      <ServicesSectionSSR />
+              <ServicesSectionSSR />
       
       {/* 記事セクション（自社RAG活用・AI Overviews最適化） */}
       <section className="py-16 bg-gray-50 blog-section" role="region" aria-labelledby="latest-posts-heading">
@@ -680,7 +680,7 @@ export default async function HomePage() {
         </div>
       </section>
       
-      <AboutSectionSSR />
+              <AboutSectionSSR />
       <SustainabilitySection />
       <FeaturedSection />
       <FAQSection />

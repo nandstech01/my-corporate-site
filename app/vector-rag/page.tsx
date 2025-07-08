@@ -162,14 +162,14 @@ export default async function VectorRagPage() {
     <>
       {/* 統一構造化データ（Mike King理論準拠） */}
       {unifiedData?.structuredData && (
-        <script
-          type="application/ld+json"
+      <script
+        type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(unifiedData.structuredData, null, 2)
           }}
-        />
+      />
       )}
-
+      
       {/* 業界最強ベクトルRAGシステム統合スキーマ（競合優位性の核心） */}
       <script
         type="application/ld+json"
@@ -186,15 +186,15 @@ export default async function VectorRagPage() {
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(unifiedData.geoOptimizedHasPart.jsonLd, null, 2)
           }}
-        />
+      />
       )}
-
+      
       {/* ベクトルRAG専用技術スキーマ */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
-            "@context": "https://schema.org",
+          "@context": "https://schema.org",
             "@type": "SoftwareApplication",
             "name": "ベクトルRAG開発・知識ベース構築サービス",
             "applicationCategory": "DeveloperApplication",
@@ -241,7 +241,7 @@ export default async function VectorRagPage() {
               "Docker",
               "Kubernetes",
               "Supabase"
-            ]
+          ]
           }, null, 2)
         }}
       />
@@ -291,35 +291,35 @@ export default async function VectorRagPage() {
           <meta itemProp="name" content="ベクトルRAG開発・知識ベース構築サービス" />
           <meta itemProp="description" content="OpenAI Embeddings・pgvector・トリプルRAGシステム統合による業界最高レベルのベクトル検索・セマンティック検索・知識ベース構築サービス。Mike King理論準拠のレリバンスエンジニアリング対応。" />
 
-          {/* Hero Section */}
+        {/* Hero Section */}
           <section id="vector-rag-hero" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-            <VectorRagHeroSectionSSR />
-          </section>
+          <VectorRagHeroSectionSSR />
+        </section>
 
           {/* ベクトル検索・RAGシステム体験予定エリア */}
-          <section id="vector-search-preview">
-            <FeaturePreviewSection
-              title="ベクトル検索・RAGシステム体験"
+        <section id="vector-search-preview">
+          <FeaturePreviewSection
+            title="ベクトル検索・RAGシステム体験"
               subtitle="トリプルRAG統合・高精度セマンティック検索"
               description="当社のベクトルRAGシステム（自社RAG・トレンドRAG・YouTubeRAG）を体験。OpenAI Embeddings・pgvectorによる高精度検索で、関連性の高い情報を瞬時に発見できます。"
-              features={[
+            features={[
                 "トリプルRAGシステム統合検索（自社・トレンド・YouTube）",
                 "OpenAI Embeddings・pgvector高速検索",
                 "セマンティック検索・コサイン類似度最適化",
                 "自然言語による意味的検索",
-                "多言語対応・マルチモーダル検索",
-                "リアルタイム学習・更新機能",
-                "API連携・カスタマイズ対応",
+              "多言語対応・マルチモーダル検索",
+              "リアルタイム学習・更新機能",
+              "API連携・カスタマイズ対応",
                 "分析ダッシュボード・レポート生成"
-              ]}
-              featureType="search"
+            ]}
+            featureType="search"
               expectedDate="2025年9月"
-              accentColor="purple"
-            />
-          </section>
+            accentColor="purple"
+          />
+        </section>
 
-          {/* 目次（機能予定エリア直後に配置） */}
+        {/* 目次（機能予定エリア直後に配置） */}
           {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
             <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-indigo-50">
               <div className="container mx-auto px-4">
@@ -372,23 +372,23 @@ export default async function VectorRagPage() {
             </section>
           )}
 
-          {/* サービス内容セクション */}
+        {/* サービス内容セクション */}
           <section id="services-section" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="サービス内容" />
-            <VectorRagServicesSection />
-          </section>
+          <VectorRagServicesSection />
+        </section>
 
-          {/* 技術スタック */}
+        {/* 技術スタック */}
           <section id="tech-stack" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="技術スタック" />
-            <VectorRagTechStack />
-          </section>
+          <VectorRagTechStack />
+        </section>
 
-          {/* 開発実績 */}
+        {/* 開発実績 */}
           <section id="showcase" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="開発実績" />
-            <VectorRagShowcase />
-          </section>
+          <VectorRagShowcase />
+        </section>
 
           {/* トリプルRAGシステム統合の業界最強優位性セクション */}
           <section id="triple-rag-advantage" className="py-16 bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-900 text-white" itemScope itemType="https://schema.org/WebPageElement">
@@ -406,14 +406,14 @@ export default async function VectorRagPage() {
                     <h3 className="text-xl font-bold mb-4 text-purple-300">🏢 自社RAGナレッジベース</h3>
                     <p className="text-purple-100 mb-4">
                       15年間の実績・42専門領域をベクトル化。企業の専門知識とノウハウを最大限活用。
-                    </p>
+                </p>
                     <ul className="text-sm text-purple-200 space-y-1">
                       <li>• 15年間の蓄積実績データ</li>
                       <li>• 42専門領域カバー</li>
                       <li>• 企業固有ナレッジ最適化</li>
                       <li>• プライベートナレッジ統合</li>
                     </ul>
-                  </div>
+              </div>
 
                   {/* トレンドRAGシステム */}
                   <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
@@ -427,7 +427,7 @@ export default async function VectorRagPage() {
                       <li>• 最新情報関連性向上</li>
                       <li>• 継続的データ更新</li>
                     </ul>
-                  </div>
+          </div>
 
                   {/* YouTubeRAGシステム */}
                   <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
@@ -468,17 +468,17 @@ export default async function VectorRagPage() {
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           {/* ベクトルRAGの特徴・強み */}
           <section id="vector-features" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ベクトルRAGの特徴" />
             <div className="max-w-6xl mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-12">
+            <h2 className="text-3xl font-bold text-center mb-12">
                 🎯 エヌアンドエスのベクトルRAGの特徴
-              </h2>
+            </h2>
               
               <div className="grid md:grid-cols-3 gap-8">
                 {/* 高精度検索技術 */}
@@ -493,7 +493,7 @@ export default async function VectorRagPage() {
                     <li>• 自然言語理解</li>
                     <li>• コンテキスト保持</li>
                   </ul>
-                </div>
+              </div>
 
                 {/* マルチモーダル対応 */}
                 <div id="multimodal-support" className="bg-white p-6 rounded-xl shadow-lg">
@@ -507,7 +507,7 @@ export default async function VectorRagPage() {
                     <li>• 動画コンテンツ理解</li>
                     <li>• 統合的情報取得</li>
                   </ul>
-                </div>
+              </div>
 
                 {/* スケーラブル設計 */}
                 <div id="scalable-architecture" className="bg-white p-6 rounded-xl shadow-lg">
@@ -521,16 +521,16 @@ export default async function VectorRagPage() {
                     <li>• 負荷分散処理</li>
                     <li>• パフォーマンス最適化</li>
                   </ul>
-                </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           {/* 料金プランセクション */}
           <section id="pricing-section" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="料金プラン" />
-            <VectorRagPricingSection />
-          </section>
+          <VectorRagPricingSection />
+        </section>
 
           {/* セマンティック関連リンクセクション */}
           {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
@@ -567,8 +567,8 @@ export default async function VectorRagPage() {
           {/* お問い合わせセクション */}
           <section id="contact-section" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="お問い合わせ" />
-            <VectorRagContactSectionSSR />
-          </section>
+          <VectorRagContactSectionSSR />
+        </section>
         </article>
       </main>
     </>

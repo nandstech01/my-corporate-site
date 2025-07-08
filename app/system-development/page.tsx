@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   keywords: [
     'AIシステム開発',
     'RAGシステム',
-    '自動生成システム', 
+    '自動生成システム',
     'フルスタック開発',
     '13法令準拠',
     '30分自動生成',
@@ -161,7 +161,7 @@ const SystemDevelopmentPage = async () => {
     ],
     "featureList": [
       "13法令準拠対応",
-      "30分自動生成機能", 
+      "30分自動生成機能",
       "24時間運用サポート",
       "RAGシステム構築",
       "ベクトル検索実装",
@@ -252,7 +252,7 @@ const SystemDevelopmentPage = async () => {
         "@type": "Thing",
         "name": "RAGシステム開発技術",
         "description": "Retrieval-Augmented Generation システムの設計・実装・運用技術"
-      },
+  },
       {
         "@type": "Thing",
         "name": "ベクトル検索技術",
@@ -285,7 +285,7 @@ const SystemDevelopmentPage = async () => {
           __html: JSON.stringify(vectorRAGSystemSchema, null, 2)
         }}
       />
-
+      
       {/* 自社RAG活用データフィードスキーマ */}
       <script
         type="application/ld+json"
@@ -302,9 +302,9 @@ const SystemDevelopmentPage = async () => {
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(unifiedData.geoOptimizedHasPart.jsonLd, null, 2)
           }}
-        />
+      />
       )}
-
+      
       {/* エンティティ関係性構造化データ */}
       <script
         type="application/ld+json"
@@ -313,15 +313,15 @@ const SystemDevelopmentPage = async () => {
           "@graph": [
             ORGANIZATION_ENTITY,
             vectorRAGSystemSchema,
-            ...SERVICE_ENTITIES.filter(service => 
-              service['@id'].includes('/ai-agents') || 
-              service['@id'].includes('/vector-rag') || 
-              service['@id'].includes('/chatbot-development')
-            )
+                         ...SERVICE_ENTITIES.filter(service => 
+               service['@id'].includes('/ai-agents') || 
+               service['@id'].includes('/vector-rag') || 
+               service['@id'].includes('/chatbot-development')
+             )
           ]
         }) }}
       />
-
+      
       <main className="min-h-screen">
         {/* AI検索流入対応: Click-Recovery Banner */}
         {unifiedData?.aiSearchDetection?.shouldShowBanner && (
@@ -367,12 +367,12 @@ const SystemDevelopmentPage = async () => {
           <meta itemProp="name" content="AIシステム開発サービス" />
           <meta itemProp="description" content="13法令準拠RAGシステム・30分自動生成・24時間運用対応・ベクトル検索統合のAIシステム開発サービス" />
 
-          {/* ヒーローセクション */}
+        {/* ヒーローセクション */}
           <section id="hero-section" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-            <SystemHeroSectionSSR />
-          </section>
-
+          <SystemHeroSectionSSR />
+        </section>
+        
           {/* 目次（AI検索最適化） */}
           {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
             <section id="table-of-contents" className="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
@@ -423,26 +423,26 @@ const SystemDevelopmentPage = async () => {
                   </nav>
                 </div>
               </div>
-            </section>
+        </section>
           )}
-
+        
           {/* プロジェクト実績セクション */}
           <section id="project-showcase" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="プロジェクト実績" />
-            <ProjectShowcase />
-          </section>
-
+          <ProjectShowcase />
+        </section>
+        
           {/* 技術スタックセクション */}
           <section id="tech-stack" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="技術スタック" />
-            <TechStackSection />
-          </section>
-
+          <TechStackSection />
+        </section>
+        
           {/* 開発フローセクション */}
           <section id="development-flow" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="開発フロー" />
-            <DevelopmentFlow />
-          </section>
+          <DevelopmentFlow />
+        </section>
 
           {/* システム開発の特徴（Fragment ID最適化） */}
           <section id="system-features" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
@@ -451,7 +451,7 @@ const SystemDevelopmentPage = async () => {
               <div className="max-w-6xl mx-auto">
                 <h2 className="text-3xl font-bold text-center mb-12">🚀 AIシステム開発の特徴</h2>
                 
-                <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8">
                   {/* 13法令準拠RAGシステム */}
                   <div id="compliance-system" className="bg-white p-6 rounded-xl shadow-lg">
                     <h3 className="text-xl font-bold mb-4 text-indigo-600">⚖️ 13法令準拠RAGシステム</h3>
@@ -464,28 +464,28 @@ const SystemDevelopmentPage = async () => {
                       <li>• AI倫理ガイドライン準拠</li>
                       <li>• セキュリティ監査対応</li>
                     </ul>
-                  </div>
+              </div>
 
                   {/* 30分自動生成システム */}
                   <div id="auto-generation" className="bg-white p-6 rounded-xl shadow-lg">
                     <h3 className="text-xl font-bold mb-4 text-purple-600">⚡ 30分自動生成システム</h3>
                     <p className="text-gray-600 mb-4">
                       業界最速30分でのコンテンツ自動生成システム。ベクトル検索とLLM統合による高精度生成。
-                    </p>
+                </p>
                     <ul className="text-sm text-gray-500 space-y-1">
                       <li>• リアルタイム生成対応</li>
                       <li>• 多形式出力対応</li>
                       <li>• 品質保証システム</li>
                       <li>• バッチ処理対応</li>
                     </ul>
-                  </div>
+              </div>
 
                   {/* 24時間運用対応 */}
                   <div id="operation-support" className="bg-white p-6 rounded-xl shadow-lg">
                     <h3 className="text-xl font-bold mb-4 text-green-600">🔧 24時間運用対応</h3>
                     <p className="text-gray-600 mb-4">
                       24時間365日の安定稼働を保証。監視・アラート・自動復旧システムで無停止運用を実現。
-                    </p>
+                </p>
                     <ul className="text-sm text-gray-500 space-y-1">
                       <li>• 24時間監視体制</li>
                       <li>• 自動スケーリング</li>
@@ -493,10 +493,10 @@ const SystemDevelopmentPage = async () => {
                       <li>• パフォーマンス最適化</li>
                     </ul>
                   </div>
-                </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           {/* セマンティックリンクセクション（ベクトルRAG活用） */}
           {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
@@ -505,29 +505,29 @@ const SystemDevelopmentPage = async () => {
                 <div className="max-w-6xl mx-auto">
                   <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
                     🔗 関連する開発サービス
-                  </h2>
+            </h2>
                   <p className="text-center text-gray-600 mb-8">
                     当社のベクトルRAGシステムが推奨する技術的に関連性の高いサービス
                   </p>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {unifiedData.semanticLinks.map((link, index) => (
-                      <a
+                      <a 
                         key={index}
-                        href={link.url}
+                        href={link.url} 
                         className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 group"
                       >
                         <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2">
-                          {link.title}
-                        </h3>
+                        {link.title}
+                    </h3>
                         <p className="text-gray-600 text-sm">
                           技術関連性: {link.relevanceScore?.toFixed(2)}
                         </p>
                       </a>
                     ))}
                   </div>
-                </div>
-              </div>
-            </section>
+            </div>
+          </div>
+        </section>
           )}
 
           {/* よくある質問セクション */}
@@ -559,25 +559,25 @@ const SystemDevelopmentPage = async () => {
                       <div key={index} className="bg-white p-6 rounded-xl shadow-sm" itemScope itemType="https://schema.org/Question">
                         <h3 className="font-semibold text-gray-900 mb-3" itemProp="name">
                           Q. {faq.question}
-                        </h3>
+                </h3>
                         <div itemScope itemType="https://schema.org/Answer" itemProp="acceptedAnswer">
                           <p className="text-gray-600" itemProp="text">
                             A. {faq.answer}
-                          </p>
-                        </div>
+                </p>
+              </div>
                       </div>
                     ))}
                   </div>
-                </div>
               </div>
             </div>
-          </section>
-
+          </div>
+        </section>
+        
           {/* お問い合わせセクション */}
           <section id="contact-cta" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="お問い合わせ" />
-            <ContactCTASSR />
-          </section>
+          <ContactCTASSR />
+        </section>
         </article>
       </main>
     </>

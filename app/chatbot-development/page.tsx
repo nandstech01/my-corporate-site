@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://nands.tech/chatbot-development'
-  }
+}
 };
 
 // ページコンテキスト定義（レリバンスエンジニアリング最適化）
@@ -200,7 +200,7 @@ export default async function ChatbotDevelopmentPage() {
       }
     ]
   };
-
+  
   return (
     <>
       {/* 統一構造化データ（Mike King理論準拠） */}
@@ -278,7 +278,7 @@ export default async function ChatbotDevelopmentPage() {
               </li>
             </ol>
           </div>
-        </nav>
+          </nav>
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -288,8 +288,8 @@ export default async function ChatbotDevelopmentPage() {
           {/* Hero Section */}
           <section id="chatbot-hero" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-            <ChatbotHeroSectionSSR />
-          </section>
+        <ChatbotHeroSectionSSR />
+      </section>
 
           {/* チャットボット体験予定エリア */}
           <section id="chatbot-demo-preview">
@@ -319,70 +319,70 @@ export default async function ChatbotDevelopmentPage() {
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                   <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center">
+                <h2 className="text-2xl font-bold text-white flex items-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
+                  </svg>
                       チャットボット開発サービス一覧
-                    </h2>
+                </h2>
                     <p className="text-green-100 mt-2">GPT-4・Claude統合・ベクトルRAG活用・24時間自動応答</p>
-                  </div>
-                  <nav className="p-8">
+              </div>
+              <nav className="p-8">
                     <div className="grid md:grid-cols-2 gap-4">
                       {unifiedData.tableOfContents.map((item: any, index: number) => (
-                        <a
+                      <a
                           key={index}
-                          href={`#${item.id}`}
+                        href={`#${item.id}`}
                           className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all duration-300 group"
-                        >
+                      >
                           <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
+                          {index + 1}
+                        </div>
                           <div>
                             <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            {item.children && item.children.length > 0 && (
+                            {item.title}
+                          </h3>
+                       {item.children && item.children.length > 0 && (
                               <ul className="mt-2 space-y-1">
                                 {item.children.map((child: any, childIndex: number) => (
                                   <li key={childIndex}>
                                     <a 
                                       href={`#${child.id}`}
                                       className="text-sm text-gray-600 hover:text-green-600 transition-colors"
-                                    >
+                             >
                                       • {child.title}
-                                    </a>
+                             </a>
                                   </li>
-                                ))}
+                           ))}
                               </ul>
-                            )}
-                          </div>
-                        </a>
-                      ))}
+                       )}
                     </div>
-                  </nav>
+                        </a>
+                  ))}
                 </div>
-              </div>
-            </section>
-          )}
+              </nav>
+            </div>
+          </div>
+        </section>
+      )}
 
           {/* Services Section */}
           <section id="chatbot-services" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="サービス一覧" />
-            <ChatbotServicesSection />
-          </section>
+        <ChatbotServicesSection />
+      </section>
 
           {/* Tech Stack Section */}
           <section id="chatbot-techstack" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="技術スタック" />
-            <ChatbotTechStack />
-          </section>
+        <ChatbotTechStack />
+      </section>
 
           {/* Showcase Section */}
           <section id="chatbot-showcase" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="開発実績" />
-            <ChatbotShowcase />
-          </section>
+        <ChatbotShowcase />
+      </section>
 
           {/* チャットボット×ベクトルRAG統合の優位性セクション */}
           <section id="chatbot-rag-advantage" className="py-16 bg-gray-800" itemScope itemType="https://schema.org/WebPageElement">
@@ -464,7 +464,7 @@ export default async function ChatbotDevelopmentPage() {
                 </div>
               </div>
             </div>
-          </section>
+      </section>
 
           {/* セマンティック関連リンクセクション */}
           {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
@@ -473,7 +473,7 @@ export default async function ChatbotDevelopmentPage() {
                 <div className="max-w-6xl mx-auto">
                   <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
                     🤖 関連するチャットボット・AI開発サービス
-                  </h2>
+            </h2>
                   <p className="text-center text-gray-600 mb-8">
                     当社のトリプルRAGシステムが推奨するチャットボット関連サービス
                   </p>
@@ -485,26 +485,26 @@ export default async function ChatbotDevelopmentPage() {
                         className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all duration-300 group"
                       >
                         <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors mb-2">
-                          {link.title}
-                        </h3>
+                      {link.title}
+                  </h3>
                         <p className="text-gray-600 text-sm">
                           関連性スコア: {link.relevanceScore?.toFixed(2)}
                         </p>
                       </a>
                     ))}
                   </div>
-                </div>
-              </div>
-            </section>
-          )}
+            </div>
+          </div>
+        </section>
+      )}
 
-          {/* お問い合わせセクション */}
+      {/* お問い合わせセクション */}
           <section id="contact" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="お問い合わせ" />
-            <ChatbotContactSectionSSR />
-          </section>
+        <ChatbotContactSectionSSR />
+      </section>
         </article>
-      </main>
+    </main>
     </>
   );
 } 

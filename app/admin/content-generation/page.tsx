@@ -437,8 +437,8 @@ export default function ContentGenerationPage() {
     try {
       // 統合RAGエンドポイントを使用
       const response = await fetch('/api/search-rag', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: blogGenerationForm.query,
           sources: blogGenerationForm.selectedRAGs,
@@ -464,7 +464,7 @@ export default function ContentGenerationPage() {
           metadata: item.metadata
         }));
 
-        setRagSearchResults(allResults);
+      setRagSearchResults(allResults);
         console.log(`✅ RAG検索完了: ${allResults.length}件取得`);
         console.log('📊 検索結果統計:', result.summary);
       } else {
@@ -992,11 +992,11 @@ export default function ContentGenerationPage() {
               {/* 検索設定 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
+                <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-300">
                         🔍 検索クエリ
-                      </label>
+                  </label>
                       
                       {/* 言語切り替えボタン */}
                       <div className="flex items-center space-x-1">
@@ -1026,10 +1026,10 @@ export default function ContentGenerationPage() {
                     </div>
                     
                     {/* 検索クエリ入力欄 */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={blogGenerationForm.query}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={blogGenerationForm.query}
                         onChange={handleQueryChange}
                         placeholder={isEnglishMode ? 
                           "e.g., AI Technology Machine Learning Development" : 
@@ -1038,8 +1038,8 @@ export default function ContentGenerationPage() {
                         className="w-full px-4 py-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         onFocus={() => setShowKeywordSuggestions(keywordSuggestions.length > 0)}
                         onBlur={() => setTimeout(() => setShowKeywordSuggestions(false), 200)}
-                      />
-                      <MagnifyingGlassIcon className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                    />
+                    <MagnifyingGlassIcon className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
                       
                       {/* キーワード候補の表示 */}
                       {showKeywordSuggestions && keywordSuggestions.length > 0 && (
@@ -1054,10 +1054,10 @@ export default function ContentGenerationPage() {
                               {keyword}
                             </button>
                           ))}
-                        </div>
+                  </div>
                       )}
-                    </div>
-                    
+                </div>
+                
                     <p className="text-xs text-gray-400">
                       {isEnglishMode ? 
                         "Enter keywords for global information retrieval" :
@@ -1068,8 +1068,8 @@ export default function ContentGenerationPage() {
                   
                   {/* 選択済みキーワード */}
                   {selectedKeywords.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                         🏷️ 選択済みキーワード
                       </label>
                       <div className="flex flex-wrap gap-2">

@@ -299,37 +299,37 @@ export default async function AIAgentsPage() {
         <article itemScope itemType="https://schema.org/WebPage">
           <meta itemProp="name" content="AIエージェント開発・カスタマイズ" />
           <meta itemProp="description" content="Mastra Framework・ChatGPT・Claude等最新AI技術によるインテリジェントエージェント開発。自然言語処理・RAGシステム・機械学習で24時間365日稼働する高精度自動化システムを構築。" />
-
-          {/* Hero Section */}
+        
+        {/* Hero Section */}
           <section id="agent-hero" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-            <AIAgentHeroSectionSSR />
-          </section>
+          <AIAgentHeroSectionSSR />
+        </section>
 
-          {/* AIエージェント専用チャットbot予定エリア */}
-          <section id="agent-chatbot-preview">
-            <FeaturePreviewSection
-              title="AIエージェント対話システム"
-              subtitle="リアルタイム・インテリジェント対話"
-              description="Mastra Frameworkと最新LLM技術を活用した高度なAIエージェントとの対話システム。Function Calling・Tool Use・RAGシステムを統合した次世代の対話型AIを体験できます。"
-              features={[
-                "OpenAI GPT-4o・Claude 3.5 Sonnet統合による高精度対話",
-                "Function Calling対応による外部API・システム連携",
-                "RAGシステムによる企業固有ナレッジベース活用",
-                "Tool Use機能による複雑なタスクの自動実行",
-                "マルチモーダル対応（テキスト・画像・音声）",
-                "リアルタイム学習・適応機能",
-                "24時間365日稼働対応",
-                "セキュリティ・プライバシー保護"
-              ]}
-              featureType="chatbot"
-              expectedDate="2025年11月"
-              accentColor="blue"
-            />
-          </section>
+        {/* AIエージェント専用チャットbot予定エリア */}
+        <section id="agent-chatbot-preview">
+          <FeaturePreviewSection
+            title="AIエージェント対話システム"
+            subtitle="リアルタイム・インテリジェント対話"
+            description="Mastra Frameworkと最新LLM技術を活用した高度なAIエージェントとの対話システム。Function Calling・Tool Use・RAGシステムを統合した次世代の対話型AIを体験できます。"
+            features={[
+              "OpenAI GPT-4o・Claude 3.5 Sonnet統合による高精度対話",
+              "Function Calling対応による外部API・システム連携",
+              "RAGシステムによる企業固有ナレッジベース活用",
+              "Tool Use機能による複雑なタスクの自動実行",
+              "マルチモーダル対応（テキスト・画像・音声）",
+              "リアルタイム学習・適応機能",
+              "24時間365日稼働対応",
+              "セキュリティ・プライバシー保護"
+            ]}
+            featureType="chatbot"
+            expectedDate="2025年11月"
+            accentColor="blue"
+          />
+        </section>
 
-          {/* 目次（機能予定エリア直後に配置） */}
-          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+        {/* 目次（機能予定エリア直後に配置） */}
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
             <section id="table-of-contents" className="py-16 bg-gradient-to-r from-blue-50 to-cyan-50">
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -379,25 +379,25 @@ export default async function AIAgentsPage() {
                 </div>
               </div>
             </section>
-          )}
+        )}
 
-          {/* Services Section */}
+        {/* Services Section */}
           <section id="agent-services" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="サービス一覧" />
-            <AIAgentServicesSection />
-          </section>
+          <AIAgentServicesSection />
+        </section>
 
-          {/* Tech Stack Section */}
+        {/* Tech Stack Section */}
           <section id="agent-techstack" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="技術スタック" />
-            <AIAgentTechStack />
-          </section>
+          <AIAgentTechStack />
+        </section>
 
-          {/* Showcase Section */}
+        {/* Showcase Section */}
           <section id="agent-showcase" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="開発実績" />
-            <AIAgentShowcase />
-          </section>
+          <AIAgentShowcase />
+        </section>
 
           {/* ベクトルRAG統合の優位性セクション */}
           <section id="vector-rag-advantage" className="py-16 bg-gray-800" itemScope itemType="https://schema.org/WebPageElement">
@@ -453,16 +453,16 @@ export default async function AIAgentsPage() {
             </div>
           </section>
 
-          {/* Pricing Section */}
+        {/* Pricing Section */}
           <section id="agent-pricing" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="料金プラン" />
-            <AIAgentPricingSection />
-          </section>
+          <AIAgentPricingSection />
+        </section>
 
-          {/* セマンティック関連リンクセクション */}
-          {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
+        {/* セマンティック関連リンクセクション */}
+        {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
             <section id="related-services" className="py-16 bg-gray-50">
-              <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4">
                 <div className="max-w-6xl mx-auto">
                   <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
                     🤖 関連するAI開発サービス
@@ -487,14 +487,14 @@ export default async function AIAgentsPage() {
                     ))}
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
-          {/* Contact Section */}
+        {/* Contact Section */}
           <section id="agent-contact" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="お問い合わせ" />
-            <AIAgentContactSectionSSR />
+          <AIAgentContactSectionSSR />
           </section>
         </article>
       </main>

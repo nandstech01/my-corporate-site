@@ -21,15 +21,15 @@ export default function AdminLayout({
         <div className="fixed top-0 bottom-0 left-0 z-40 w-64">
           <AdminSidebar />
         </div>
-        
-        {/* メインコンテンツエリア */}
+          
+          {/* メインコンテンツエリア */}
         <div className="ml-64">
-          {/* メインコンテンツ */}
+            {/* メインコンテンツ */}
           <main className="bg-gray-900 p-6 min-h-screen pt-16">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
-          </main>
+              <div className="max-w-7xl mx-auto">
+                {children}
+              </div>
+            </main>
         </div>
       </div>
     </AuthProvider>

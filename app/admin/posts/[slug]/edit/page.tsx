@@ -574,9 +574,9 @@ export default function EditPostPage({
           <div className="space-y-4">
             <div>
               <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium text-gray-700">
-                  メタディスクリプション
-                </label>
+              <label className="block text-sm font-medium text-gray-700">
+                メタディスクリプション
+              </label>
                 <span className={`text-xs ${metaDescription.length >= 120 && metaDescription.length <= 160 ? 'text-green-600' : 'text-red-600'}`}>
                   {metaDescription.length}/160文字 {metaDescription.length >= 120 && metaDescription.length <= 160 ? '✓ 最適' : metaDescription.length < 120 ? '(短すぎ)' : '(長すぎ)'}
                 </span>
@@ -595,9 +595,9 @@ export default function EditPostPage({
 
             <div>
               <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium text-gray-700">
-                  SEOキーワード
-                </label>
+              <label className="block text-sm font-medium text-gray-700">
+                SEOキーワード
+              </label>
                 <span className={`text-xs ${seoKeywords.length >= 10 && seoKeywords.length <= 15 ? 'text-green-600' : 'text-orange-600'}`}>
                   {seoKeywords.length}/15個 {seoKeywords.length >= 10 && seoKeywords.length <= 15 ? '✓ 最適' : seoKeywords.length < 10 ? '(少なすぎ)' : '(多すぎ)'}
                 </span>

@@ -148,7 +148,7 @@ export default async function PostPage({ params }: PageProps) {
   if (!post) {
     notFound()
   }
-
+  
   // Mike King理論準拠: 統合構造化データシステム初期化
   const structuredDataSystem = new UnifiedStructuredDataSystem('https://nands.tech')
   const autoTOCSystem = new AutoTOCSystem()
@@ -264,7 +264,7 @@ export default async function PostPage({ params }: PageProps) {
     // 著者情報強化（E-E-A-T対策）
     "author": authorSchema,
     "publisher": {
-      "@type": "Organization", 
+      "@type": "Organization",
       "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス",
       "legalName": "株式会社エヌアンドエス",
@@ -438,7 +438,7 @@ export default async function PostPage({ params }: PageProps) {
       "url": `https://nands.tech/posts/${params.slug}#step-${index + 1}`
     }))
   } : null
-
+  
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Mike King理論準拠: 統合構造化データ */}
@@ -505,7 +505,7 @@ export default async function PostPage({ params }: PageProps) {
               unoptimized={true}
               priority={true}
             />
-          </div>
+            </div>
         )}
 
         {/* TOC表示（Fragment ID付き） */}

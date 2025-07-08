@@ -333,26 +333,26 @@ export default async function AIOPage() {
           {/* ヒーローセクション */}
           <section id="hero-section" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-            <AIOHeroSectionSSR />
-          </section>
+          <AIOHeroSectionSSR />
+        </section>
 
           {/* 目次（AI検索最適化） */}
-          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
             <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-pink-50">
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                   <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center">
+                  <h2 className="text-2xl font-bold text-white flex items-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
+                    </svg>
                       レリバンスエンジニアリング・Mike King理論サービス一覧
-                    </h2>
+                  </h2>
                     <p className="text-purple-100 mt-2">業界最高レベルのAI検索最適化・GEO対策・Fragment ID最適化</p>
-                  </div>
-                  <nav className="p-8">
+                </div>
+                <nav className="p-8">
                     <div className="grid md:grid-cols-2 gap-4">
-                      {unifiedData.tableOfContents.map((item, index) => (
+                    {unifiedData.tableOfContents.map((item, index) => (
                         <a
                           key={index}
                           href={`#${item.id}`}
@@ -381,31 +381,31 @@ export default async function AIOPage() {
                             )}
                           </div>
                         </a>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
+                    ))}
+                  </div>
+                </nav>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
           {/* AIOサービスセクション */}
           <section id="aio-services" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="AIOサービス" />
-            <AIOServicesSection />
-          </section>
+          <AIOServicesSection />
+        </section>
 
           {/* ケーススタディセクション */}
           <section id="case-studies" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ケーススタディ" />
-            <AIOCaseStudiesSection />
-          </section>
+          <AIOCaseStudiesSection />
+        </section>
 
           {/* メソドロジーセクション */}
           <section id="methodology" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="メソドロジー" />
             <AIOMethodologySection />
-          </section>
+        </section>
 
           {/* ベクトルRAG統合の優位性セクション */}
           <section id="vector-rag-advantage" className="py-16 bg-gray-50" itemScope itemType="https://schema.org/WebPageElement">
@@ -465,45 +465,45 @@ export default async function AIOPage() {
           <section id="pricing" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="料金プラン" />
             <AIOPricingSection />
-          </section>
+        </section>
 
           {/* セマンティックリンクセクション（ベクトルRAG活用） */}
           {unifiedData?.semanticLinks && unifiedData.semanticLinks.length > 0 && (
             <section id="related-services" className="py-16 bg-white">
-              <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4">
                 <div className="max-w-6xl mx-auto">
                   <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
                     🎯 関連するレリバンスエンジニアリングサービス
-                  </h2>
+              </h2>
                   <p className="text-center text-gray-600 mb-8">
                     当社のベクトルRAGシステムが推奨するMike King理論関連サービス
                   </p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {unifiedData.semanticLinks.map((link, index) => (
-                      <a
+                  <a
                         key={index}
                         href={link.url}
                         className="block p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group"
-                      >
+                  >
                         <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2">
                           {link.title}
                         </h3>
                         <p className="text-gray-600 text-sm">
                           関連性スコア: {link.relevanceScore?.toFixed(2)}
                         </p>
-                      </a>
-                    ))}
+                  </a>
+                ))}
                   </div>
-                </div>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
           {/* お問い合わせセクション */}
           <section id="contact" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="お問い合わせ" />
             <AIOContactSectionSSR />
-          </section>
+        </section>
         </article>
       </main>
     </>

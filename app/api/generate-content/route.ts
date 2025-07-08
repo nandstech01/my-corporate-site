@@ -1029,7 +1029,7 @@ SEOキーワード:
     const descLine = lines.find(line => line.includes('メタディスクリプション:'));
     const description = descLine ? descLine.replace('メタディスクリプション:', '').trim() : 
       `${title}について詳細解説。最新動向、実装方法、FAQ、具体例を専門家が分析。企業のAI導入を成功に導く実践的情報をお届けします。`;
-
+    
     // キーワード抽出
     const keywordStartIndex = lines.findIndex(line => line.includes('SEOキーワード:'));
     const keywordLines = lines.slice(keywordStartIndex + 1)
