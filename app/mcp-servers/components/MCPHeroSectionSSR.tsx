@@ -186,10 +186,34 @@ export default async function MCPHeroSectionSSR() {
             "itemReviewed": {
               "@type": "SoftwareApplication",
               "name": "MCPサーバー開発サービス",
+              "description": "Model Context Protocol最新技術を活用したカスタムサーバー開発サービス。Claude Desktop・Cursor IDE統合、AIワークフロー最適化により開発効率を劇的に向上。カスタムツール拡張開発対応。",
+              "applicationCategory": "DeveloperApplication",
+              "operatingSystem": "Any",
               "provider": {
                 "@type": "Organization",
                 "@id": "https://nands.tech/#organization",
                 "name": "株式会社エヌアンドエス"
+              },
+              "offers": {
+                "@type": "Offer",
+                "priceCurrency": "JPY",
+                "price": "800000",
+                "priceSpecification": {
+                  "@type": "PriceSpecification",
+                  "priceCurrency": "JPY",
+                  "minPrice": "800000",
+                  "maxPrice": "3000000"
+                },
+                "description": "Model Context Protocol統合MCPサーバー開発パッケージ（Claude Desktop・Cursor IDE連携・カスタムツール開発含む）",
+                "availability": "https://schema.org/InStock",
+                "validFrom": "2024-01-01"
+              },
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": displayRating,
+                "bestRating": 5,
+                "worstRating": 1,
+                "ratingCount": displayCount
               }
             },
             "ratingValue": displayRating,
