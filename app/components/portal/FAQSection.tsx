@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Script from 'next/script';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDownIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -48,19 +47,7 @@ const FAQSection: React.FC = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  // FAQ構造化データの作成
-  const faqStructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    'mainEntity': faqs.map(faq => ({
-      '@type': 'Question',
-      'name': faq.question,
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': faq.answer
-      }
-    }))
-  };
+  // FAQ構造化データは各ページで管理（重複防止）
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -70,11 +57,6 @@ const FAQSection: React.FC = () => {
 
   return (
     <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/50 relative overflow-hidden">
-      <Script
-        id="faq-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
-      />
       
       {/* 背景装飾 */}
       <div className="absolute inset-0 overflow-hidden">
