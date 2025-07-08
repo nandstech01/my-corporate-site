@@ -803,7 +803,7 @@ export default async function Home() {
             '@type': 'Dataset',
             '@id': 'https://nands.tech/#ai-search-metadata',
             name: 'AI検索エンジン最適化メタデータ',
-            description: 'ChatGPT、Perplexity、Claude等のAI検索エンジン最適化情報',
+            description: 'ChatGPT、Perplexity、Claude、Gemini、DeepSeek等の主要AI検索エンジンに最適化されたメタデータセット。レリバンスエンジニアリング、knowsAbout詳細化、mentions関連エンティティ明示、Fragment ID連携強化を含む包括的なAI検索最適化情報。Schema.org 16.0+準拠で、日本企業のAI検索可視性向上、助成金活用最適化、地域SEO強化を実現する高度な構造化データシステム。',
             aiSearchOptimization: {
               targetEngines: aiEnhancedData.aiSearchOptimization?.targetEngines,
               readinessScore: aiEnhancedData.aiSearchOptimization?.readinessScore,
