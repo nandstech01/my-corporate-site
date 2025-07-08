@@ -217,7 +217,7 @@ const SystemDevelopmentPage = async () => {
     "dataset": {
       "@type": "Dataset",
       "name": "AI System Development Knowledge Base",
-      "description": "15年間の開発実績と42の専門技術領域をベクトル化したAIシステム開発専門データベース",
+      "description": "株式会社エヌアンドエスが15年間蓄積したAIシステム開発専門データベース。13法令準拠RAGシステム、30分自動生成システム、24時間運用システム、ベクトル検索・セマンティック検索統合技術など42の専門技術領域をベクトル化。OpenAI Embeddings、pgvector、LLM統合によるフルスタック開発ノウハウを集約。Mike King理論準拠のレリバンスエンジニアリング技術、GEO対策、AI検索最適化手法を包括する、業界最先端のAIシステム開発専門知識データベース。",
       "creator": {
         "@type": "Organization",
         "@id": "https://nands.tech/#organization"
@@ -241,6 +241,7 @@ const SystemDevelopmentPage = async () => {
           "addressCountry": "JP"
         }
       },
+      "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
       "distribution": {
         "@type": "DataDownload",
         "encodingFormat": "application/json",
@@ -556,7 +557,7 @@ const SystemDevelopmentPage = async () => {
                         answer: "従来のキーワード検索では不可能なセマンティック（意味的）検索を実現。関連性の高い情報を高精度で取得でき、RAGシステムの回答品質を大幅に向上させます。"
                       }
                     ].map((faq, index) => (
-                      <div key={index} className="bg-white p-6 rounded-xl shadow-sm" itemScope itemType="https://schema.org/Question">
+                      <div key={index} className="bg-white p-6 rounded-xl shadow-sm" itemProp="mainEntity" itemScope itemType="https://schema.org/Question">
                         <h3 className="font-semibold text-gray-900 mb-3" itemProp="name">
                           Q. {faq.question}
                 </h3>

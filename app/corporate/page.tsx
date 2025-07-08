@@ -238,7 +238,7 @@ export default async function CorporatePage() {
     "dataset": {
       "@type": "Dataset",
       "name": "Corporate AI Training Knowledge Base",
-      "description": "15年間の実績と42の専門領域をベクトル化した企業AI研修専門データベース",
+      "description": "株式会社エヌアンドエスが15年間蓄積した企業向けAI研修専門データベース。法人向けAI研修、企業向け生成AI活用、DX推進プログラム、AI業務効率化、組織変革支援など42の専門領域をベクトル化。ChatGPT企業活用、プロンプトエンジニアリング、AI活用コンサルティング技術を集約。300社以上の導入実績をベースにした実践的AI研修カリキュラム、ROI測定手法、組織変革メソッドを包括する、業界最先端の企業AI研修専門知識データベース。",
       "creator": {
         "@type": "Organization",
         "@id": "https://nands.tech/#organization"
@@ -262,6 +262,7 @@ export default async function CorporatePage() {
           "addressCountry": "JP"
         }
       },
+      "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
       "distribution": {
         "@type": "DataDownload",
         "encodingFormat": "application/json",
