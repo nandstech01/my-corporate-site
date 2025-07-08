@@ -469,16 +469,23 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
             '@id': 'https://nands.tech/#founder',
             jobTitle: '代表取締役・AI技術コンサルタント'
           },
-          courseSchedule: {
-            '@type': 'Schedule',
-            duration: 'P5D',
-            repeatFrequency: 'Monthly'
-          },
           location: {
             '@type': 'VirtualLocation',
             name: 'オンライン研修',
             url: 'https://nands.tech/reskilling'
-          }
+          },
+          courseSchedule: {
+            '@type': 'Schedule',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            duration: 'P5D',
+            repeatFrequency: 'Monthly',
+            repeatCount: 12,
+            timeOfDay: '09:00-17:00',
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+          },
+          courseWorkload: 'PT35H',
+          maximumAttendeeCapacity: 20
         }
       ],
       educationalLevel: 'Professional',
@@ -855,7 +862,19 @@ export function generateEnhancedPotentialActions(
                 '@type': 'VirtualLocation',
                 name: 'オンライン研修',
                 url: 'https://nands.tech/reskilling'
-              }
+              },
+              courseSchedule: {
+                '@type': 'Schedule',
+                startDate: '2024-01-01',
+                endDate: '2024-12-31',
+                duration: 'P5D',
+                repeatFrequency: 'Monthly',
+                repeatCount: 12,
+                timeOfDay: '09:00-17:00',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+              },
+              courseWorkload: 'PT35H',
+              maximumAttendeeCapacity: 20
             }
           ]
         };
