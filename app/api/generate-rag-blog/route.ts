@@ -497,9 +497,14 @@ ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、
     console.log('🔢 生成された記事をベクトル化中...');
     
     try {
-      // 記事内容をベクトル化
+      // 記事内容をベクトル化（タイムアウト対応）
       const embeddings = new OpenAIEmbeddings();
-      const contentVector = await embeddings.embedSingle(blogData.content);
+      const contentVector = await Promise.race([
+        embeddings.embedSingle(blogData.content),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('ベクトル化がタイムアウトしました（60秒）')), 60000)
+        )
+      ]) as number[];
       
       console.log(`🔢 ベクトル化完了: 次元=${contentVector.length}`);
 

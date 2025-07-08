@@ -490,8 +490,8 @@ export default async function PostPage({ params }: PageProps) {
             <RefreshCw size={12} />
             <span>最終更新: {new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}</span>
           </div>
-          <div>読了時間: 約{Math.ceil(post.content.split(/\s+/).length / 200)}分</div>
-          <div>文字数: {post.content.split(/\s+/).length.toLocaleString()}文字</div>
+          <div>読了時間: 約{Math.ceil(post.content.replace(/\s+/g, '').length / 400)}分</div>
+          <div>文字数: {post.content.replace(/\s+/g, '').length.toLocaleString()}文字</div>
         </div>
         
         {(post.thumbnail_url || post.featured_image) && (
