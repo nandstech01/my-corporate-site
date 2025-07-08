@@ -452,7 +452,40 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
     },
     instrument: {
       '@type': 'WebApplication',
-      name: '見積もりフォーム'
+      '@id': 'https://nands.tech/quote-form-app',
+      name: '見積もりフォーム',
+      description: 'システム開発・AI開発プロジェクトの見積もり依頼フォーム',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web-based',
+      url: 'https://nands.tech/system-development?action=quote',
+      offers: {
+        '@type': 'Offer',
+        name: '無料見積もりサービス',
+        description: 'システム開発・AI開発の無料見積もり',
+        price: '0',
+        priceCurrency: 'JPY',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2024-01-01'
+      },
+      author: {
+        '@type': 'Organization',
+        '@id': 'https://nands.tech/#organization',
+        name: 'エヌアンドエス株式会社'
+      },
+      publisher: {
+        '@type': 'Organization',
+        '@id': 'https://nands.tech/#organization',
+        name: 'エヌアンドエス株式会社'
+      },
+      inLanguage: 'ja-JP',
+      isAccessibleForFree: true,
+      usageInfo: '24時間365日利用可能',
+      featureList: [
+        'システム開発見積もり',
+        'AI開発見積もり', 
+        'プロジェクト相談',
+        '助成金活用提案'
+      ]
     }
   },
   
