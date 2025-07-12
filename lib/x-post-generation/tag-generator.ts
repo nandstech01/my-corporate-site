@@ -20,19 +20,17 @@ export class TagGenerator {
    * パターンと内容に基づいてタグを自動生成
    */
   generateTags(options: TagGenerationOptions): GeneratedTags {
-    const { patternId, content, ragSources, maxTags = 5 } = options;
+    const { patternId, content, ragSources, maxTags = 3 } = options;
     
     const primary = this.selectPrimaryTags(patternId, content);
     const secondary = this.selectSecondaryTags(content, ragSources);
     const trending = this.selectTrendingTags(content);
     const company = this.selectCompanyTags();
     
-    // 重複除去とタグ数制限
+    // 重複除去とタグ数制限（より厳選）
     const allTags = [
       ...primary.slice(0, 2),
-      ...secondary.slice(0, 2), 
-      ...trending.slice(0, 1),
-      ...company.slice(0, 1)
+      ...secondary.slice(0, 1)
     ].slice(0, maxTags);
     
     return {

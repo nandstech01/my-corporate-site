@@ -253,8 +253,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 1. 新しいpostsテーブルから記事を取得（ベクトルRAG記事等）
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select('slug, updated_at, published_at')
-      .eq('published', true)
+      .select('slug, updated_at, published_at, created_at')
+      .eq('status', 'published') // publishedフィールドではなくstatusフィールドを使用
       .order('updated_at', { ascending: false });
 
     if (postsError) {
@@ -262,7 +262,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     } else if (posts) {
       const newPostPages = posts.map((post) => ({
         url: `${baseUrl}/posts/${post.slug}`,
-        lastModified: new Date(post.updated_at || post.published_at),
+        lastModified: new Date(post.updated_at || post.published_at || post.created_at),
         changeFrequency: 'monthly' as const,
         priority: 0.7, // 新しい記事は高優先度
       }));

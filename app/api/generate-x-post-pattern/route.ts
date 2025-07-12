@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       patternId,
       content: generatedPost,
       ragSources: pattern.dataSources,
-      maxTags: 5
+      maxTags: 3
     });
 
     // 図解の生成（オプション）
@@ -657,20 +657,21 @@ async function generateAdvancedPostContent(
 
 【重要】以下の引用機能を活用してください：
 1. X引用：関連するX投稿のURLを含めて引用
-2. URL引用：高品質なニュースや公式サイトのURLを引用
+2. URL引用：高品質なニュースや公式サイトのURLを1つだけ引用
 
-引用を含む投稿は：
-- より信頼性が高い
-- エンゲージメントが向上
-- 情報の根拠が明確
+【投稿作成ガイドライン】
+- 文字数：350-400文字程度でより詳細に
+- 構成：問題提起 → 具体的事実 → 分析・洞察 → 行動喚起
+- 専門性：業界トレンドと実用的な価値を提供
+- エンゲージメント：読者が共感・議論したくなる内容
 
 必ず以下のJSONフォーマットで回答してください：
 {
-  "content": "投稿内容（280文字以内）",
+  "content": "投稿内容（350-400文字程度）",
   "threadPosts": ["追加投稿1", "追加投稿2"],
   "primaryQuote": {
     "type": "x_post" または "url",
-    "url": "引用URL",
+    "url": "引用URL（1つのみ）",
     "context": "引用理由"
   }
 }`
@@ -693,17 +694,17 @@ ${quoteSources.urlQuotes.map((q, i) => `${i+1}. ${q.title}\n概要: ${q.content.
 分析インサイト: ${analysisInsight}
 
 【要求事項】
-1. 引用を必ず含める（X引用優先、ない場合はURL引用）
-2. 具体的な数値や事実を含める
-3. エンゲージメントが高い文章構成
-4. 280文字以内のメイン投稿
-5. 必要に応じて2-3個の追加投稿でスレッド化
+1. 最も関連性の高い引用を1つだけ選択（X引用優先）
+2. 具体的な数値や事例を含める
+3. 読者が行動を起こしたくなる内容
+4. 350-400文字程度で詳細に展開
+5. 専門知識と実用性のバランス
 
-最高品質の投稿を生成してください。`
+高品質で充実した投稿を生成してください。`
           }
         ],
-        max_tokens: 1000,
-        temperature: 0.8,
+        max_tokens: 1200,
+        temperature: 0.7,
       }),
     });
 
@@ -1526,10 +1527,10 @@ function extractBestQuoteSources(ragData: any[]): {
 
   console.log(`📊 引用ソース取得完了: X投稿=${xQuotes.length}件, URL引用=${urlQuotes.length}件`);
 
-  // X引用は最大2件、URL引用は最大3件に制限
+  // X引用は最大1件、URL引用は最大1件に制限（品質重視）
   return {
-    xQuotes: xQuotes.slice(0, 2),
-    urlQuotes: urlQuotes.slice(0, 3)
+    xQuotes: xQuotes.slice(0, 1),
+    urlQuotes: urlQuotes.slice(0, 1)
   };
 }
 
@@ -1565,3 +1566,34 @@ function isHighQualitySource(url: string): boolean {
 
   return highQualityDomains.some(domain => url.includes(domain));
 } 
+
+/**
+ * 実用性ポイントを抽出
+ */
+function extractPracticalPoints(content: string): string[] {
+  const points = [];
+  
+  if (content.includes('効率') || content.includes('自動化')) {
+    points.push('業務効率化で生産性を30-50%向上');
+  }
+  if (content.includes('コスト') || content.includes('削減')) {
+    points.push('運用コストを大幅に削減可能');
+  }
+  if (content.includes('精度') || content.includes('品質')) {
+    points.push('作業精度と品質の向上を実現');
+  }
+  if (content.includes('時間') || content.includes('短縮')) {
+    points.push('作業時間を従来の1/3に短縮');
+  }
+  if (content.includes('新機能') || content.includes('アップデート')) {
+    points.push('新機能で競争優位性を確保');
+  }
+  if (content.includes('データ') || content.includes('分析')) {
+    points.push('データ活用で意思決定を高速化');
+  }
+  
+  return points.length > 0 ? points.slice(0, 2) : [
+    '企業の競争力強化に直結',
+    '実装コストと効果のバランスが良好'
+  ];
+}

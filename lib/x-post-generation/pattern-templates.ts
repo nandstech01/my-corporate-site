@@ -18,19 +18,24 @@ export const patternTemplates: PatternTemplate[] = [
     id: 'breaking_insight',
     name: '🔥 速報インサイト',
     description: 'X引用を含む最新ニュースの独自分析',
-    template: `🔥 {industry}で衝撃的な動き！
+    template: `🔥速報インサイト：{industry}で重要な動きが発生！
 
-📊 {important_fact}
+📊 注目すべき事実：
+{important_fact}
 
-💡 これが意味することは：
+💡 これが業界に与える影響：
 {analysis}
 
-{url}
+🎯 実務への応用ポイント：
+・{practical_point_1}
+・{practical_point_2}
 
-#AI #最新ニュース #インサイト {hashtags}`,
+引用元：{url}
+
+#AI動向 #最新情報 {hashtags}`,
     category: 'news',
     dataSources: ['trend', 'company', 'x_post'],
-    features: ['引用優先', '分析強化'],
+    features: ['引用優先', '分析強化', '実用性重視'],
     generateDiagram: false
   },
   {
