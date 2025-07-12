@@ -6,6 +6,10 @@ import { DiagramGenerator } from '@/lib/x-post-generation/diagram-generator';
 // OpenAI APIの設定は環境変数から取得
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+// Vercelタイムアウト設定（本番環境対応）
+export const maxDuration = 60; // 60秒でタイムアウト
+export const dynamic = 'force-dynamic';
+
 export interface XPostGenerationRequest {
   patternId: string;
   query?: string;
@@ -160,7 +164,7 @@ async function fetchRAGData(dataSources: string[], query?: string): Promise<any[
   try {
     // 開発環境ではlocalhostを使用、本番環境では適切なURLを設定
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://your-domain.com')
+      ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://nands.tech')
       : 'http://localhost:3000';
     
     console.log(`🌐 RAG検索URL: ${baseUrl}/api/search-rag`);
@@ -226,7 +230,7 @@ async function fetchXPosts(query: string, company?: string): Promise<any[]> {
       console.log(`🔍 検索クエリ: ${searchQuery}`);
       
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/brave-search?q=${encodeURIComponent(searchQuery)}&count=10`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://nands.tech'}/api/brave-search?q=${encodeURIComponent(searchQuery)}&count=10`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

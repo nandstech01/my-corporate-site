@@ -2,20 +2,25 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@/utils/supabase/server';
 
 // サイトマップのキャッシュ処理用の設定
-export const revalidate = 60; // 1分ごとに再検証（一時的に短縮）
+export const revalidate = 0; // キャッシュを完全に無効化（デバッグ用）
+export const dynamic = 'force-dynamic';
 
 // Next.jsのサイトマップAPI用の関数
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://nands.tech';
+  
+  console.log('🗺️ サイトマップ生成開始...');
+  
+  // Supabaseクライアントの初期化
   const supabase = createClient();
   
-  // 静的ページのエントリー（重要度順）
+  // 基本的な静的ページ
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 1.0,
+      priority: 1,
     },
     {
       url: `${baseUrl}/about`,
