@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@/utils/supabase/server';
 
 // サイトマップのキャッシュ処理用の設定
-export const revalidate = 3600; // 1時間ごとに再検証
+export const revalidate = 60; // 1分ごとに再検証（一時的に短縮）
 
 // Next.jsのサイトマップAPI用の関数
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
