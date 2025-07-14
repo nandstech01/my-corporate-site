@@ -19,12 +19,5 @@ export default function PartnerAdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <html lang="ja">
-      <body>
-        {/* ヘッダーを表示せず、直接childrenを表示 */}
-        {children}
-      </body>
-    </html>
-  )
+  return children
 } 

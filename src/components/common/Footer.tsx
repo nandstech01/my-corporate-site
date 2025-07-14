@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
   }, []);
 
   // 管理画面の場合はフッターを表示しない
-  if (pathname && pathname.startsWith('/admin')) {
+  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/partner-admin'))) {
     return null;
   }
 
