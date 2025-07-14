@@ -1,21 +1,20 @@
-import { Metadata } from 'next'
-import PartnerDashboard from '@/components/partner-admin/PartnerDashboard'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'パートナーダッシュボード | NANDS Corporation',
-  description: 'パートナー専用ダッシュボード - 収益状況、紹介実績、コース別データの確認',
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
-  },
-}
+import { useState } from 'react'
+import PartnerLogin from '../../components/partner-admin/PartnerLogin'
+import PartnerDashboard from '../../components/partner-admin/PartnerDashboard'
 
 export default function PartnerAdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <PartnerLogin onLoginSuccess={() => setIsAuthenticated(true)} />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PartnerDashboard />

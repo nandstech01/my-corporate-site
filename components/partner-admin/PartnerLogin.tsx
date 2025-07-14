@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
-export default function PartnerLogin() {
+interface PartnerLoginProps {
+  onLoginSuccess?: () => void
+}
+
+export default function PartnerLogin({ onLoginSuccess }: PartnerLoginProps) {
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
@@ -29,8 +33,13 @@ export default function PartnerLogin() {
     // TODO: 実際の認証ロジック実装
     setTimeout(() => {
       if (loginData.email === 'demo@partner.com' && loginData.password === 'demo123') {
-        // ログイン成功 - ダッシュボードへリダイレクト
-        window.location.href = '/partner-admin/dashboard'
+        // ログイン成功
+        if (onLoginSuccess) {
+          onLoginSuccess()
+        } else {
+          // フォールバック: ダッシュボードへリダイレクト
+          window.location.href = '/partner-admin/dashboard'
+        }
       } else {
         setError('メールアドレスまたはパスワードが間違っています')
       }
