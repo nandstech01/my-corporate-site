@@ -80,64 +80,117 @@ export default function PartnerDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">パートナーダッシュボード</h1>
-              <p className="text-gray-600 mt-1">{partnerInfo.name} ({partnerInfo.partnerType})</p>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 sm:py-6 space-y-3 sm:space-y-0">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+                パートナーダッシュボード
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                {partnerInfo.name} ({partnerInfo.partnerType})
+              </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">パートナーコード</p>
-              <p className="font-mono text-sm font-medium">{partnerInfo.partnerCode}</p>
+            <div className="flex-shrink-0 sm:text-right">
+              <p className="text-xs sm:text-sm text-gray-500">パートナーコード</p>
+              <p className="font-mono text-sm sm:text-base font-medium text-gray-900 break-all sm:break-normal">
+                {partnerInfo.partnerCode}
+              </p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* タブナビゲーション */}
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'overview'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              収益サマリー
-            </button>
-            <button
-              onClick={() => setActiveTab('referrals')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'referrals'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              紹介実績詳細
-            </button>
-            <button
-              onClick={() => setActiveTab('courses')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'courses'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              コース別分析
-            </button>
-            <button
-              onClick={() => setActiveTab('materials')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'materials'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              営業資料・ガイド
-            </button>
+        <div className="border-b border-gray-200 mb-6 sm:mb-8">
+          <nav className="-mb-px">
+            {/* スマホ版：縦2行のグリッド */}
+            <div className="grid grid-cols-2 gap-x-1 sm:hidden">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`py-3 px-2 border-b-2 font-medium text-xs text-center transition-colors duration-200 ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                収益サマリー
+              </button>
+              <button
+                onClick={() => setActiveTab('referrals')}
+                className={`py-3 px-2 border-b-2 font-medium text-xs text-center transition-colors duration-200 ${
+                  activeTab === 'referrals'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                紹介実績詳細
+              </button>
+              <button
+                onClick={() => setActiveTab('courses')}
+                className={`py-3 px-2 border-b-2 font-medium text-xs text-center transition-colors duration-200 ${
+                  activeTab === 'courses'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                コース別分析
+              </button>
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`py-3 px-2 border-b-2 font-medium text-xs text-center transition-colors duration-200 ${
+                  activeTab === 'materials'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                営業資料・ガイド
+              </button>
+            </div>
+            
+            {/* PC版：横並び */}
+            <div className="hidden sm:flex space-x-8">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                収益サマリー
+              </button>
+              <button
+                onClick={() => setActiveTab('referrals')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'referrals'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                紹介実績詳細
+              </button>
+              <button
+                onClick={() => setActiveTab('courses')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'courses'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                コース別分析
+              </button>
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'materials'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                営業資料・ガイド
+              </button>
+            </div>
           </nav>
         </div>
 
@@ -149,22 +202,22 @@ export default function PartnerDashboard() {
             transition={{ duration: 0.6 }}
           >
             {/* 収益概要カード */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow border">
-                <h3 className="text-sm font-medium text-gray-500">今月確定収益</h3>
-                <p className="text-3xl font-bold text-green-600">{formatCurrency(revenueOverview.thisMonth.confirmed)}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+              <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">今月確定収益</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">{formatCurrency(revenueOverview.thisMonth.confirmed)}</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow border">
-                <h3 className="text-sm font-medium text-gray-500">今月予定収益</h3>
-                <p className="text-3xl font-bold text-blue-600">{formatCurrency(revenueOverview.thisMonth.pending)}</p>
+              <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">今月予定収益</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">{formatCurrency(revenueOverview.thisMonth.pending)}</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow border">
-                <h3 className="text-sm font-medium text-gray-500">来月期待収益</h3>
-                <p className="text-3xl font-bold text-purple-600">{formatCurrency(revenueOverview.nextMonth.expected)}</p>
+              <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">来月期待収益</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600">{formatCurrency(revenueOverview.nextMonth.expected)}</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow border">
-                <h3 className="text-sm font-medium text-gray-500">累計収益</h3>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(revenueOverview.totalEarned)}</p>
+              <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">累計収益</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{formatCurrency(revenueOverview.totalEarned)}</p>
               </div>
             </div>
 
@@ -205,19 +258,19 @@ export default function PartnerDashboard() {
             transition={{ duration: 0.6 }}
           >
             <div className="bg-white rounded-lg shadow border">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">紹介企業一覧</h3>
+              <div className="px-3 sm:px-6 py-4 border-b border-gray-200">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">紹介企業一覧</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">企業名</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介日</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受講コース</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受講者数</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">パートナー収益</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">企業名</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">紹介日</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受講コース</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受講者数</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">パートナー収益</th>
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">ステータス</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -226,19 +279,26 @@ export default function PartnerDashboard() {
                         <tr key={`${referral.id}-${courseIndex}`}>
                           {courseIndex === 0 && (
                             <>
-                              <td rowSpan={referral.courses.length} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r">
+                              <td rowSpan={referral.courses.length} className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900 border-r">
+                                <div className="sm:hidden text-gray-500 text-xs mb-1">{referral.referralDate}</div>
                                 {referral.companyName}
                               </td>
-                              <td rowSpan={referral.courses.length} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r">
+                              <td rowSpan={referral.courses.length} className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r hidden sm:table-cell">
                                 {referral.referralDate}
                               </td>
                             </>
                           )}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{course.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{course.participants}名</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">{formatCurrency(course.revenueShare)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{course.name}</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{course.participants}名</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600">{formatCurrency(course.revenueShare)}</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(course.status)}`}>
+                              {course.status}
+                            </span>
+                          </td>
+                          {/* スマホ版のステータス表示 */}
+                          <td className="px-3 py-4 whitespace-nowrap sm:hidden">
+                            <span className={`inline-flex px-1 py-0.5 text-xs font-semibold rounded ${getStatusColor(course.status)}`}>
                               {course.status}
                             </span>
                           </td>
@@ -259,7 +319,7 @@ export default function PartnerDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
               {['AI駆動開発講座', 'AIO・RE実装講座', 'SNSコンサル講座'].map((courseName, index) => {
                 const courseData = referrals.flatMap(r => r.courses).filter(c => c.name === courseName)
                 const totalParticipants = courseData.reduce((sum, c) => sum + c.participants, 0)
@@ -267,23 +327,23 @@ export default function PartnerDashboard() {
                 const avgParticipants = courseData.length > 0 ? Math.round(totalParticipants / courseData.length) : 0
 
                 return (
-                  <div key={courseName} className="bg-white p-6 rounded-lg shadow border">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">{courseName}</h3>
-                    <div className="space-y-3">
+                  <div key={courseName} className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">{courseName}</h3>
+                    <div className="space-y-2 sm:space-y-3">
                       <div>
-                        <p className="text-sm text-gray-500">総受講者数</p>
-                        <p className="text-2xl font-bold text-blue-600">{totalParticipants}名</p>
+                        <p className="text-xs sm:text-sm text-gray-500">総受講者数</p>
+                        <p className="text-xl sm:text-2xl font-bold text-blue-600">{totalParticipants}名</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">総収益</p>
-                        <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">総収益</p>
+                        <p className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">1案件あたり平均受講者数</p>
+                        <p className="text-xs sm:text-sm text-gray-500">1案件あたり平均受講者数</p>
                         <p className="text-lg font-medium text-gray-900">{avgParticipants}名</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">成約案件数</p>
+                        <p className="text-xs sm:text-sm text-gray-500">成約案件数</p>
                         <p className="text-lg font-medium text-gray-900">{courseData.length}件</p>
                       </div>
                     </div>
@@ -382,60 +442,60 @@ export default function PartnerDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* 営業資料セクション */}
               <div className="bg-white rounded-lg shadow border">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">営業資料ダウンロード</h3>
+                <div className="px-3 sm:px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900">営業資料ダウンロード</h3>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">パートナー営業資料（総合版）</h4>
-                        <p className="text-sm text-gray-500">全コースの詳細・助成金情報・実績データ</p>
+                <div className="p-3 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">パートナー営業資料（総合版）</h4>
+                        <p className="text-xs sm:text-sm text-gray-500">全コースの詳細・助成金情報・実績データ</p>
                       </div>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                      <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto">
                         ダウンロード
                       </button>
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">AI駆動開発講座 専用資料</h4>
-                        <p className="text-sm text-gray-500">技術詳細・実装事例・ROI計算シート</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">AI駆動開発講座 専用資料</h4>
+                        <p className="text-xs sm:text-sm text-gray-500">技術詳細・実装事例・ROI計算シート</p>
                       </div>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                      <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto">
                         ダウンロード
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">AIO・RE実装講座 専用資料</h4>
-                        <p className="text-sm text-gray-500">630%改善実績・技術仕様・導入事例</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">AIO・RE実装講座 専用資料</h4>
+                        <p className="text-xs sm:text-sm text-gray-500">630%改善実績・技術仕様・導入事例</p>
                       </div>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                      <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto">
                         ダウンロード
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">SNSコンサル講座 専用資料</h4>
-                        <p className="text-sm text-gray-500">keita実績・フォロワー獲得手法・企業事例</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">SNSコンサル講座 専用資料</h4>
+                        <p className="text-xs sm:text-sm text-gray-500">keita実績・フォロワー獲得手法・企業事例</p>
                       </div>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                      <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto">
                         ダウンロード
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">助成金申請完全ガイド</h4>
-                        <p className="text-sm text-gray-500">申請手順・必要書類・承認率向上のコツ</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">助成金申請完全ガイド</h4>
+                        <p className="text-xs sm:text-sm text-gray-500">申請手順・必要書類・承認率向上のコツ</p>
                       </div>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                      <button className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto">
                         ダウンロード
                       </button>
                     </div>
@@ -445,19 +505,19 @@ export default function PartnerDashboard() {
 
               {/* パートナーガイドセクション */}
               <div className="bg-white rounded-lg shadow border">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">パートナーガイド</h3>
+                <div className="px-3 sm:px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナーガイド</h3>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-6">
+                <div className="p-3 sm:p-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-3">営業プロセス</h4>
-                      <ol className="text-sm text-gray-600 space-y-2">
-                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold mr-3 flex-shrink-0">1</span>ターゲット企業の特定・アプローチ</li>
-                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold mr-3 flex-shrink-0">2</span>初回面談・ニーズヒアリング</li>
-                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold mr-3 flex-shrink-0">3</span>カスタマイズ提案・助成金説明</li>
-                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold mr-3 flex-shrink-0">4</span>契約締結・NANDS引き継ぎ</li>
-                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold mr-3 flex-shrink-0">5</span>コース実施・パートナー報酬確定</li>
+                      <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">営業プロセス</h4>
+                      <ol className="text-xs sm:text-sm text-gray-600 space-y-2">
+                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-semibold mr-2 sm:mr-3 flex-shrink-0">1</span>ターゲット企業の特定・アプローチ</li>
+                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-semibold mr-2 sm:mr-3 flex-shrink-0">2</span>初回面談・ニーズヒアリング</li>
+                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-semibold mr-2 sm:mr-3 flex-shrink-0">3</span>カスタマイズ提案・助成金説明</li>
+                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-semibold mr-2 sm:mr-3 flex-shrink-0">4</span>契約締結・NANDS引き継ぎ</li>
+                        <li className="flex"><span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-semibold mr-2 sm:mr-3 flex-shrink-0">5</span>コース実施・パートナー報酬確定</li>
                       </ol>
                     </div>
 
@@ -473,11 +533,11 @@ export default function PartnerDashboard() {
                     </div>
 
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-3">サポート連絡先</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg text-sm">
-                        <p><strong>営業サポート:</strong> sales-support@nands.tech</p>
-                        <p><strong>技術質問:</strong> tech-support@nands.tech</p>
-                        <p><strong>パートナー専用ホットライン:</strong> 03-XXXX-XXXX</p>
+                      <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">サポート連絡先</h4>
+                      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-xs sm:text-sm">
+                        <p className="mb-1"><strong>営業サポート:</strong> sales-support@nands.tech</p>
+                        <p className="mb-1"><strong>技術質問:</strong> tech-support@nands.tech</p>
+                        <p className="mb-1"><strong>パートナー専用ホットライン:</strong> 03-XXXX-XXXX</p>
                         <p><strong>月次研修会:</strong> 毎月第3金曜日 14:00-16:00</p>
                       </div>
                     </div>
