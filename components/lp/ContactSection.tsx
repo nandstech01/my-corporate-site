@@ -66,20 +66,20 @@ export default function ContactSection() {
           <motion.div variants={itemVariants} className="text-center mb-16">
             <div className="mb-6">
               <span className="inline-block bg-gradient-to-r from-amber-400 to-orange-400 text-gray-900 px-6 py-2 rounded-full text-sm font-semibold mb-4">
-                無料相談受付中
+                keita×NANDS 特別プログラム申込受付中
               </span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              まずは無料相談から
+              総フォロワー20万級の
               <br />
               <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                始めてみませんか？
+                企業変革を体験しませんか？
               </span>
             </h2>
             <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
-              助成金申請から研修実施まで、専門スタッフが完全サポート。
+              インフルエンサー思考 × 実証済み技術力で、助成金最大80%還付。
               <br />
-              <span className="text-amber-400 font-semibold">24時間以内</span>にご返信いたします。
+              <span className="text-amber-400 font-semibold">申請成功率98%</span>の専門サポート付き。
             </p>
           </motion.div>
 
@@ -199,7 +199,7 @@ export default function ContactSection() {
                 <h3 className="text-2xl font-bold text-white mb-6">
                   <svg className="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>無料相談で得られること
+                  </svg>keita×NANDS 特別プログラムの特徴
                 </h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -209,8 +209,8 @@ export default function ContactSection() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">助成金申請の可否判定</h4>
-                      <p className="text-gray-400 text-sm">御社の状況に応じた助成金活用可能性を詳細診断</p>
+                      <h4 className="text-lg font-semibold text-white mb-2">総フォロワー20万のkeitaから直接指導</h4>
+                      <p className="text-gray-400 text-sm">Instagram 10万・TikTok 54.6Kの実績あるインフルエンサー思考を習得</p>
                     </div>
                   </div>
 
@@ -221,8 +221,8 @@ export default function ContactSection() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">カスタム研修プラン設計</h4>
-                      <p className="text-gray-400 text-sm">御社固有の課題に特化した最適な研修内容をご提案</p>
+                      <h4 className="text-lg font-semibold text-white mb-2">日本未上陸AIモード対策</h4>
+                      <p className="text-gray-400 text-sm">Mike King理論準拠のレリバンスエンジニアリング完全実装</p>
                     </div>
                   </div>
 
@@ -233,8 +233,8 @@ export default function ContactSection() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">ROI試算レポート</h4>
-                      <p className="text-gray-400 text-sm">投資対効果の詳細分析と投資回収期間の算出</p>
+                      <h4 className="text-lg font-semibold text-white mb-2">630%精度向上の実証済み技術</h4>
+                      <p className="text-gray-400 text-sm">ベクトル検索・トリプルRAGシステムによる圧倒的性能</p>
                     </div>
                   </div>
                 </div>
@@ -255,12 +255,12 @@ export default function ContactSection() {
                   </p>
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="bg-white/10 p-3 rounded-lg">
-                      <div className="text-lg font-bold text-white">98%</div>
-                      <div className="text-xs text-gray-400">申請成功率</div>
+                      <div className="text-lg font-bold text-white">630%</div>
+                      <div className="text-xs text-gray-400">検索精度向上</div>
                     </div>
                     <div className="bg-white/10 p-3 rounded-lg">
-                      <div className="text-lg font-bold text-white">24h</div>
-                      <div className="text-xs text-gray-400">返信スピード</div>
+                      <div className="text-lg font-bold text-white">20万</div>
+                      <div className="text-xs text-gray-400">keitaフォロワー</div>
                     </div>
                   </div>
                 </div>

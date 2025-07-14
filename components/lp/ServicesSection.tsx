@@ -25,61 +25,67 @@ export default function ServicesSection() {
 
   const services = [
     {
-      title: "システム開発",
+      title: "SNSコンサル講座",
+      duration: "4週間",
+      price: "30万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-50 to-cyan-50",
       borderGradient: "from-blue-200 to-cyan-200",
       features: [
-        "AIO対策・レリバンスエンジニアリング",
-        "AIエージェント開発（Mastra Framework）", 
-        "チャットボット・RAGシステム",
-        "MCPサーバー開発"
+        "インフルエンサー思考法の完全習得",
+        "バズるコンテンツ作成術",
+        "フォロワー獲得の実践的戦略",
+        "企業SNS運用の最新手法"
       ],
-      description: "次世代のAI検索対策とシステム最適化で、御社のデジタル戦略を根本から変革します。",
-      badge: "AI最適化"
+      badge: "総フォロワー20万の実証済み",
+      description: "総フォロワー20万のkeitaから直接学ぶ、インフルエンサーレベルの発信力習得プログラム。"
     },
     {
-      title: "SNS自動化",
+      title: "AIO・RE実装講座",
+      duration: "6週間", 
+      price: "30万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
       ),
       gradient: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-50 to-pink-50",
       borderGradient: "from-purple-200 to-pink-200",
       features: [
-        "AI投稿自動生成・配信",
-        "ブランド認知度向上",
-        "エンゲージメント最適化",
-        "ROI測定・改善"
+        "AI検索対応の最新SEO技術",
+        "AIO対策（実装済みシステムでの実証）",
+        "RE・GEO技術の完全実装",
+        "630%改善を実現するテクニック"
       ],
-      description: "AIによる戦略的なコンテンツ生成で、ブランド価値を最大化し、効率的な顧客獲得を実現します。",
-      badge: "マーケティング革命"
+      badge: "630%改善の実証済み技術",
+      description: "日本で唯一の実装済み企業が直接指導する、次世代検索対策の完全マスタープログラム。"
     },
     {
-      title: "ベクトル化・検索",
+      title: "AI駆動開発講座",
+      duration: "8週間",
+      price: "30万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
         </svg>
       ),
       gradient: "from-green-500 to-teal-500",
       bgGradient: "from-green-50 to-teal-50",
       borderGradient: "from-green-200 to-teal-200",
       features: [
-        "AIモード対策・記事自動生成",
-        "企業内文書検索システム",
-        "13法令準拠RAG検索",
-        "検索精度95%向上実績"
+        "AI駆動開発ツールの完全マスター",
+        "効率10倍向上のワークフロー構築",
+        "最新フレームワークとの統合",
+        "実践的プロジェクト開発"
       ],
-      description: "高精度な文書検索とAIモード対策で、情報活用効率を劇的に向上させます。",
-      badge: "情報革命"
+      badge: "開発効率10倍向上",
+      description: "10時間以上のハンズオン学習で、開発効率10倍向上を実現するAI駆動開発術。"
     }
   ]
 
@@ -94,7 +100,7 @@ export default function ServicesSection() {
         >
           <motion.div variants={itemVariants} className="mb-6">
             <span className="inline-block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full text-sm font-semibold mb-4">
-              3つの核心技術
+              法人リスキリング3コースパッケージ
             </span>
           </motion.div>
           
@@ -102,10 +108,10 @@ export default function ServicesSection() {
             variants={itemVariants}
             className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
           >
-            DX人材育成のための
+            keita×NANDS で実現する
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              実証済み技術スタック
+              次世代人材育成プログラム
             </span>
           </motion.h2>
           
@@ -113,9 +119,9 @@ export default function ServicesSection() {
             variants={itemVariants}
             className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
           >
-            実際に稼働中のシステムで培った技術を、
+            総フォロワー20万のインフルエンサー思考 × 実証済み最先端技術で、
             <br />
-            御社の人材育成プログラムに活用します。
+            企業の競争力を根本から変革する人材育成を実現。
           </motion.p>
         </motion.div>
         

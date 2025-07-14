@@ -18,8 +18,8 @@ export default function ProblemsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "助成金活用の課題",
-      text: "AI研修の必要性は感じているが助成金の申請方法や最適な活用戦略がわからない",
+      title: "本物のインフルエンサー思考を学べない",
+      text: "フォロワー20万級のインフルエンサーから直接学べる機会がなく、表面的なSNS運用に留まってしまう",
       gradient: "from-blue-500 to-cyan-500"
     },
     {
@@ -29,8 +29,8 @@ export default function ProblemsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       ),
-      title: "最適研修の発見",
-      text: "自社の業務フローに最適化されたAIツール研修プログラムを見つけるのが困難",
+      title: "日本未上陸AIモード対策の遅れ",
+      text: "GoogleのAIモード、ChatGPT Search等の新検索に対応できず、競合他社に検索流入で大差をつけられてしまう",
       gradient: "from-purple-500 to-pink-500"
     },
     {
@@ -40,8 +40,8 @@ export default function ProblemsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
         </svg>
       ),
-      title: "予算・ROIの不安",
-      text: "AI研修への投資対効果と、実際の業務改善につながるかの懸念が大きい",
+      title: "bolt.new・AI駆動開発の導入困難",
+              text: "AI駆動開発ツールの習得に時間がかかり、開発効率化が進まず競争力が低下してしまう",
       gradient: "from-green-500 to-teal-500"
     }
   ]
@@ -68,17 +68,17 @@ export default function ProblemsSection() {
               <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
-              <span className="text-blue-700 font-semibold text-sm">AI研修導入における課題</span>
+              <span className="text-blue-700 font-semibold text-sm">法人AI×SNS人材育成の現実的課題</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               多くの企業が抱える
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                AI人材育成の課題
+                次世代スキル習得の壁
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              DX推進が急務な中、AI研修導入には様々な障壁が存在します
+              インフルエンサーレベルのSNS運用と最新AI技術の習得は、従来の研修では実現困難です
             </p>
           </motion.div>
 
@@ -142,10 +142,10 @@ export default function ProblemsSection() {
                 <h3 className="text-2xl font-bold">Solution</h3>
               </div>
               <p className="text-xl mb-4">
-                これらの課題を<span className="font-bold text-yellow-300">人材開発支援助成金75%還付</span>で一挙解決
+                これらの課題を<span className="font-bold text-yellow-300">keita×NANDS 3コースパッケージ</span>で一挙解決
               </p>
               <p className="text-blue-100">
-                実質25%負担でChatGPT・Claude・Gemini研修を実現し、AI人材育成を加速させます
+                総フォロワー20万のインフルエンサー思考 × 日本初実装のAI技術で、圧倒的な競争力を獲得
               </p>
             </div>
           </motion.div>

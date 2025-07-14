@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import LPHeader from '@/components/lp/LPHeader'
 import LPHeroSection from '@/components/lp/LPHeroSection'
 import ProblemsSection from '@/components/lp/ProblemsSection'
 import SubsidySection from '@/components/lp/SubsidySection'
@@ -78,6 +79,7 @@ const jsonLd = {
 export default function LPPage() {
   return (
     <main className="min-h-screen">
+      <LPHeader />
       <LPHeroSection />
       <ProblemsSection />
       <SubsidySection />
