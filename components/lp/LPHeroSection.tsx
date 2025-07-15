@@ -71,7 +71,7 @@ export default function LPHeroSection() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white/30 to-amber-50/20 z-10"></div>
 
       {/* メインコンテンツ */}
-      <div className="relative z-20 container mx-auto px-4 py-12 lg:py-20">
+      <div className="relative z-20 container mx-auto px-4 py-8 lg:py-12">
         <div className="max-w-7xl mx-auto">
           {/* 上部：タイトルと人物画像 */}
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between relative mb-8 lg:mb-12">
@@ -82,7 +82,7 @@ export default function LPHeroSection() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
                 transition={{ duration: 0.6 }}
-                className="inline-block bg-white/20 backdrop-blur-sm text-gray-800 px-3 lg:px-6 py-2 rounded-md text-xs lg:text-base mb-4 lg:mb-6 border border-gray-200/50 shadow-sm"
+                className="inline-block bg-white/20 backdrop-blur-sm text-gray-800 px-3 lg:px-6 py-2 rounded-md text-xs lg:text-base mb-2 lg:mb-3 border border-gray-200/50 shadow-sm"
               >
                 {/* PC版：フルテキスト */}
                 <span className="hidden lg:inline">
@@ -129,21 +129,23 @@ export default function LPHeroSection() {
                   RE<span className="mx-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-black text-2xl lg:text-4xl">×</span>GEO実装
                 </span>
                 <br />
-                <span className="text-gray-800 text-2xl lg:text-5xl">日本初の</span>
-                <span 
-                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-2xl lg:text-5xl"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
-                    backgroundSize: '400% 100%',
-                    animation: 'gradient-shift 5s linear infinite'
-                  }}
-                >
-                  AI検索時代
-                </span>
-                <span className="text-gray-800 text-2xl lg:text-5xl">対策</span>
+                <div className="mt-2 lg:mt-3">
+                  <span className="text-gray-800 text-3xl lg:text-5xl">日本初の</span>
+                  <span 
+                    className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-3xl lg:text-5xl"
+                    style={{
+                      backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
+                      backgroundSize: '400% 100%',
+                      animation: 'gradient-shift 5s linear infinite'
+                    }}
+                  >
+                    AI検索時代
+                  </span>
+                  <span className="text-gray-800 text-3xl lg:text-5xl">対策</span>
+                </div>
                 <br />
                 <span 
-                  className="bg-gradient-to-r bg-clip-text text-transparent text-lg lg:text-2xl font-bold"
+                  className="bg-gradient-to-r bg-clip-text text-transparent text-lg lg:text-2xl font-bold mt-4 lg:mt-6 block"
                   style={{
                     backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
                     backgroundSize: '400% 100%',
@@ -177,33 +179,36 @@ export default function LPHeroSection() {
                 <Image
                   src="/images/lp/person-avatar-mobile.png"
                   alt="人物アバター"
-                  width={250}
-                  height={250}
-                  className="object-contain"
-                  style={{ width: 'auto', height: 'auto' }}
+                  width={350}
+                  height={350}
+                  className="object-contain w-[350px] h-[350px]"
                 />
               </div>
 
               {/* サブタイトル */}
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="text-lg lg:text-xl text-gray-800 mb-6 lg:mb-8 leading-relaxed max-w-4xl lg:mx-auto font-semibold"
+                className="text-center lg:text-left mb-6 lg:mb-8 max-w-4xl lg:mx-auto"
               >
-                AIリスキリングで、あなたの会社の広報社員が
-                <br />
-                <span 
-                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-xl lg:text-2xl"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
-                    backgroundSize: '400% 100%',
-                    animation: 'gradient-shift 5s linear infinite'
-                  }}
-                >
-                  20万フォロワー級インフルエンサーに変身！
-                </span>
-              </motion.p>
+                <div className="bg-white/30 backdrop-blur-md rounded-2xl p-6 lg:p-8 shadow-2xl border border-white/40 hover:shadow-3xl transition-all duration-300">
+                  <p className="text-2xl lg:text-3xl text-gray-800 leading-relaxed font-bold mb-2">
+                    AIリスキリングで社内に
+                  </p>
+                                     <div 
+                     className="bg-gradient-to-r bg-clip-text text-transparent font-black text-2xl lg:text-4xl"
+                    style={{
+                      backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
+                      backgroundSize: '400% 100%',
+                      animation: 'gradient-shift 5s linear infinite',
+                      textShadow: '0 0 20px rgba(147, 51, 234, 0.3)'
+                    }}
+                  >
+                    インフルエンサーを実装！
+                  </div>
+                </div>
+              </motion.div>
             </div>
 
             {/* 人物画像エリア - PC版のみ上部に表示 */}
