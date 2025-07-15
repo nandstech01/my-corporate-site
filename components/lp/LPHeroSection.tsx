@@ -134,7 +134,7 @@ export default function LPHeroSection() {
                   <span 
                     className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-3xl lg:text-5xl"
                     style={{
-                      backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
+                      backgroundImage: 'linear-gradient(90deg, #00FFFF, #40E0D0, #00E5FF, #00CED1, #00FFFF)',
                       backgroundSize: '400% 100%',
                       animation: 'gradient-shift 5s linear infinite'
                     }}
@@ -144,38 +144,75 @@ export default function LPHeroSection() {
                   <span className="text-gray-800 text-3xl lg:text-5xl">対策</span>
                 </div>
                 <br />
-                <span 
-                  className="bg-gradient-to-r bg-clip-text text-transparent text-lg lg:text-2xl font-bold mt-4 lg:mt-6 block"
-                  style={{
-                    backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
-                    backgroundSize: '400% 100%',
-                    animation: 'gradient-shift 5s linear infinite'
-                  }}
-                >
-                  NANDSアンバサダー『keita』
-                  <br />
-                  <span 
-                    className="inline-block transform transition-all duration-1000 hover:scale-105"
+                {/* 3つのスキルカード */}
+                <div className="mt-4 lg:mt-6 grid grid-cols-1 gap-3 lg:gap-4 max-w-2xl mx-auto">
+                  {/* SNS自動化カード */}
+                  <div 
+                    className="group relative p-3 lg:p-4 shadow-xl hover:shadow-2xl transform hover:scale-102 transition-all duration-300"
                     style={{
-                      background: 'linear-gradient(45deg, #FFD700, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7)',
-                      backgroundSize: '400% 400%',
-                      animation: 'rich-simple-gradient 3s ease-in-out infinite, gentle-pulse 2s ease-in-out infinite',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      textShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                      background: 'linear-gradient(135deg, #00FFFF 0%, #40E0D0 25%, #00E5FF 50%, #00CED1 75%, #00FFFF 100%)',
+                      boxShadow: '0 8px 32px rgba(0, 255, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(10px)'
                     }}
                   >
-                    総フォロワー20万
-                  </span>
-                  <br />
-                  コンテンツ術を自動化
-                </span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="text-black font-bold text-lg lg:text-xl drop-shadow-lg">
+                        SNS自動化
+                        <span className="text-gray-600 font-medium text-base lg:text-lg ml-2 drop-shadow-md">
+                          （コンテンツ自動生成）
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* GEOカード */}
+                  <div 
+                    className="group relative p-3 lg:p-4 shadow-xl hover:shadow-2xl transform hover:scale-102 transition-all duration-300"
+                    style={{
+                      background: 'linear-gradient(135deg, #00FFFF 0%, #40E0D0 25%, #00E5FF 50%, #00CED1 75%, #00FFFF 100%)',
+                      boxShadow: '0 8px 32px rgba(0, 255, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="text-black font-bold text-lg lg:text-xl drop-shadow-lg">
+                        GEO
+                        <span className="text-gray-600 font-medium text-base lg:text-lg ml-2 drop-shadow-md">
+                          （AI検索エンジンの表示実装）
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* AI駆動開発カード */}
+                  <div 
+                    className="group relative p-3 lg:p-4 shadow-xl hover:shadow-2xl transform hover:scale-102 transition-all duration-300"
+                    style={{
+                      background: 'linear-gradient(135deg, #00FFFF 0%, #40E0D0 25%, #00E5FF 50%, #00CED1 75%, #00FFFF 100%)',
+                      boxShadow: '0 8px 32px rgba(0, 255, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="text-black font-bold text-lg lg:text-xl drop-shadow-lg">
+                        AI駆動開発
+                        <span className="text-gray-600 font-medium text-base lg:text-lg ml-2 drop-shadow-md">
+                          （WEBアプリ構築）
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </motion.h1>
 
               {/* スマホ版人物画像 - メインタイトルとサブタイトルの間 */}
-              <div className="lg:hidden flex justify-center my-6">
+              <div className="lg:hidden flex flex-col items-center my-2">
                 <Image
                   src="/images/lp/person-avatar-mobile.png"
                   alt="人物アバター"
@@ -183,6 +220,59 @@ export default function LPHeroSection() {
                   height={350}
                   className="object-contain w-[350px] h-[350px]"
                 />
+                
+                {/* バナー形式のアンバサダー情報 */}
+                <div className="mt-2 space-y-2 w-full max-w-sm">
+                  {/* フォロワー数バナー */}
+                  <div 
+                    className="relative px-4 py-3 transform -skew-x-12 overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.5)',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12"></div>
+                    <div className="transform skew-x-12 text-center relative z-10">
+                      <span className="text-white font-bold text-lg drop-shadow-lg">総フォロワー</span>
+                      <span 
+                        className="font-black text-xl mx-2 drop-shadow-lg"
+                        style={{ 
+                          color: '#00FFFF',
+                          textShadow: '0 0 20px rgba(0, 255, 255, 0.7), 0 0 40px rgba(0, 255, 255, 0.4)'
+                        }}
+                      >
+                        20万越え
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* アンバサダー情報バナー */}
+                  <div 
+                    className="relative px-4 py-3 transform -skew-x-12 overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.5)',
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12"></div>
+                    <div className="transform skew-x-12 text-center relative z-10">
+                      <span className="text-white font-bold text-lg drop-shadow-lg">NANDSアンバサダー</span>
+                      <span 
+                        className="font-black text-xl mx-1 drop-shadow-lg"
+                        style={{ 
+                          color: '#00FFFF',
+                          textShadow: '0 0 20px rgba(0, 255, 255, 0.7), 0 0 40px rgba(0, 255, 255, 0.4)'
+                        }}
+                      >
+                        『keita』
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* サブタイトル */}
@@ -190,7 +280,7 @@ export default function LPHeroSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="text-center lg:text-left mb-6 lg:mb-8 max-w-4xl lg:mx-auto"
+                className="text-center lg:text-left mb-6 lg:mb-8 max-w-4xl lg:mx-auto mt-0 lg:mt-2"
               >
                 <div className="bg-white/30 backdrop-blur-md rounded-2xl p-6 lg:p-8 shadow-2xl border border-white/40 hover:shadow-3xl transition-all duration-300">
                   <p className="text-2xl lg:text-3xl text-gray-800 leading-relaxed font-bold mb-2">
@@ -213,13 +303,68 @@ export default function LPHeroSection() {
 
             {/* 人物画像エリア - PC版のみ上部に表示 */}
             <div className="hidden lg:flex flex-shrink-0 justify-end items-start">
-              {/* 人物画像は後で追加 */}
-              <div className="w-80 h-80 bg-gray-200/50 rounded-full flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300/50 backdrop-blur-sm">
-                人物画像
-                <br />
-                (PNG透過)
-                <br />
-                PC: 300-400px
+              <div className="flex flex-col items-center">
+                {/* 人物画像は後で追加 */}
+                <div className="w-80 h-80 bg-gray-200/50 rounded-full flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300/50 backdrop-blur-sm">
+                  人物画像
+                  <br />
+                  (PNG透過)
+                  <br />
+                  PC: 300-400px
+                </div>
+                
+                {/* PC版バナー形式のアンバサダー情報 */}
+                <div className="mt-4 space-y-2 w-full max-w-md">
+                  {/* フォロワー数バナー */}
+                  <div 
+                    className="relative px-6 py-4 transform -skew-x-12 overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%)',
+                      boxShadow: '0 12px 48px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.6)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      backdropFilter: 'blur(15px)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent transform -skew-x-12"></div>
+                    <div className="transform skew-x-12 text-center relative z-10">
+                      <span className="text-white font-bold text-xl drop-shadow-xl">総フォロワー</span>
+                      <span 
+                        className="font-black text-2xl mx-2 drop-shadow-xl"
+                        style={{ 
+                          color: '#00FFFF',
+                          textShadow: '0 0 25px rgba(0, 255, 255, 0.8), 0 0 50px rgba(0, 255, 255, 0.5)'
+                        }}
+                      >
+                        20万越え
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* アンバサダー情報バナー */}
+                  <div 
+                    className="relative px-6 py-4 transform -skew-x-12 overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%)',
+                      boxShadow: '0 12px 48px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.6)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      backdropFilter: 'blur(15px)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent transform -skew-x-12"></div>
+                    <div className="transform skew-x-12 text-center relative z-10">
+                      <span className="text-white font-bold text-xl drop-shadow-xl">NANDSアンバサダー</span>
+                      <span 
+                        className="font-black text-2xl mx-1 drop-shadow-xl"
+                        style={{ 
+                          color: '#00FFFF',
+                          textShadow: '0 0 25px rgba(0, 255, 255, 0.8), 0 0 50px rgba(0, 255, 255, 0.5)'
+                        }}
+                      >
+                        『keita』
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
