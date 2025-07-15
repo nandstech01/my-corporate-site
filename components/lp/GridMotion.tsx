@@ -10,7 +10,7 @@ interface GridMotionProps {
 
 const GridMotion: React.FC<GridMotionProps> = ({ 
   items = [], 
-  gradientColor = 'rgba(59, 130, 246, 0.1)' 
+  gradientColor = 'rgba(59, 130, 246, 0.15)' 
 }) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -36,9 +36,9 @@ const GridMotion: React.FC<GridMotionProps> = ({
     }
 
     const updateMotion = () => {
-      const maxMoveAmount = 200 // 動きを控えめに
-      const baseDuration = 1.2 // より滑らか
-      const inertiaFactors = [0.8, 0.6, 0.4, 0.3]
+      const maxMoveAmount = 250 // 3D効果を向上
+      const baseDuration = 1.0 // より滑らか
+      const inertiaFactors = [0.9, 0.7, 0.5, 0.3]
 
       rowRefs.current.forEach((row, index) => {
         if (row) {
@@ -75,7 +75,7 @@ const GridMotion: React.FC<GridMotionProps> = ({
 
   if (!isClient) {
     return (
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-teal-50 opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-teal-50 opacity-60" />
     )
   }
 
@@ -87,30 +87,30 @@ const GridMotion: React.FC<GridMotionProps> = ({
           background: `radial-gradient(circle at center, ${gradientColor} 0%, transparent 70%)`,
         }}
       >
-        <div className="relative w-[150vw] h-[150vh] grid grid-rows-4 gap-4 -rotate-12 origin-center">
+        <div className="relative w-[130vw] h-[130vh] lg:w-[160vw] lg:h-[160vh] grid grid-rows-4 gap-3 lg:gap-5 -rotate-12 origin-center">
           {[...Array(4)].map((_, rowIndex) => (
             <div
               key={rowIndex}
-              className="grid grid-cols-7 gap-4 will-change-transform"
+              className="grid grid-cols-7 gap-3 lg:gap-5 will-change-transform"
               ref={(el) => { rowRefs.current[rowIndex] = el }}
             >
               {[...Array(7)].map((_, itemIndex) => {
                 const content = combinedItems[rowIndex * 7 + itemIndex]
                 return (
                   <div key={itemIndex} className="relative">
-                    <div className="relative w-full h-full overflow-hidden rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 text-sm font-medium shadow-lg">
+                    <div className="relative w-full aspect-square overflow-hidden rounded-xl lg:rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white/90 text-xs lg:text-sm font-medium shadow-xl hover:shadow-2xl transition-all duration-300">
                       {typeof content === 'string' && content.startsWith('http') ? (
-                                                  <>
-                            <div
-                              className="absolute inset-0 bg-cover bg-center opacity-60"
-                              style={{
-                                backgroundImage: `url(${content})`,
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-white/20" />
-                          </>
-                                              ) : (
-                        <div className="p-4 text-center z-10">{content}</div>
+                        <>
+                          <div
+                            className="absolute inset-0 bg-cover bg-center opacity-80"
+                            style={{
+                              backgroundImage: `url(${content})`,
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-white/10" />
+                        </>
+                      ) : (
+                        <div className="p-2 lg:p-4 text-center z-10 flex items-center justify-center h-full">{content}</div>
                       )}
                     </div>
                   </div>

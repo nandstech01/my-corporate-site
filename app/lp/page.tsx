@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: '人材開発支援助成金75%還付でAIモードも怖くない | 株式会社エヌアンドエス',
   description: '人材開発支援助成金で75%還付！SNS自動運用＆コンサル・システム開発で実証済み。AIモードも怖くない、94%SNS運用効率化実績あり。',
   keywords: '人材開発支援助成金,リスキリング,AI研修,SNS自動運用,コンサル,システム開発,AI対策,75%還付',
+
   openGraph: {
     title: '人材開発支援助成金75%還付でAIモードも怖くない',
     description: '75%還付でSNS自動運用を実現。94%SNS運用効率化の実証済み技術',
@@ -38,11 +39,11 @@ export const metadata: Metadata = {
     images: ['/og-lp.jpg'],
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
     googleBot: {
-      index: true,
-      follow: true,
+      index: false,
+      follow: false,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,

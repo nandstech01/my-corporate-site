@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import GridMotion from './GridMotion'
 
 export default function LPHeroSection() {
@@ -38,208 +39,194 @@ export default function LPHeroSection() {
 
   return (
     <section className="relative min-h-screen bg-white overflow-hidden">
-      {/* GridMotion背景 */}
-      <GridMotion 
-        items={gridItems}
-        gradientColor="rgba(59, 130, 246, 0.08)"
-      />
+      {/* PC版: GridMotion背景 */}
+      <div className="hidden lg:block">
+        <GridMotion 
+          items={gridItems}
+          gradientColor="rgba(59, 130, 246, 0.12)"
+        />
+      </div>
       
-      {/* 文字の視認性向上のための強化オーバーレイ */}
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white/50 to-amber-50/40"></div>
+      {/* スマホ版: 背景画像 */}
+      <div className="block lg:hidden absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-70"
+          style={{
+            backgroundImage: `url('/images/lp/mobile-background.jpg')`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-teal-50/60"></div>
+      </div>
+      
+      {/* スマホ版: GridMotion（背景画像の上に重ねる） */}
+      <div className="block lg:hidden absolute inset-0 z-[5]">
+        <GridMotion 
+          items={gridItems}
+          gradientColor="rgba(59, 130, 246, 0.08)"
+        />
+      </div>
+      
+      {/* 文字の視認性向上のための軽量オーバーレイ */}
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white/30 to-amber-50/20 z-10"></div>
 
       {/* メインコンテンツ */}
-      <div className="relative z-10 container mx-auto px-4 py-20 lg:py-32">
-        <div className="max-w-5xl mx-auto text-center">
-          {/* 助成金バッジ */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 text-white px-8 py-4 rounded-full font-bold text-sm lg:text-base mb-8 shadow-2xl border-2 border-white/20"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            日本初RE・GEO実装 × SNS✖️AI 人材開発支援助成金で最大80%還付
-          </motion.div>
+      <div className="relative z-20 container mx-auto px-4 py-12 lg:py-20">
+        <div className="max-w-7xl mx-auto">
+          {/* 上部：タイトルと人物画像 */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between relative mb-8 lg:mb-12">
+            {/* テキストコンテンツ */}
+            <div className="flex-1 text-left lg:text-left lg:pr-8">
+              {/* 助成金バッジ */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
+                transition={{ duration: 0.6 }}
+                className="inline-block bg-white/20 backdrop-blur-sm text-gray-800 px-3 lg:px-6 py-2 rounded-md text-xs lg:text-base mb-4 lg:mb-6 border border-gray-200/50 shadow-sm"
+              >
+                {/* PC版：フルテキスト */}
+                <span className="hidden lg:inline">
+                  <span className="font-medium">日本初</span>
+                  <span className="mx-2 font-bold text-blue-600">RE × GEO実装</span>
+                  <span className="mx-1 text-gray-400">|</span>
+                  <span className="font-medium">SNS × AI</span>
+                  <span className="mx-2 text-blue-600 font-semibold">最大80%還付</span>
+                </span>
+                {/* スマホ版：短縮テキスト */}
+                <span className="lg:hidden">
+                  <span className="font-bold text-blue-600">RE×GEO実装</span>
+                  <span className="mx-1 text-gray-400">|</span>
+                  <span className="text-blue-600 font-semibold">80%還付</span>
+                </span>
+              </motion.div>
 
-          {/* メインタイトル */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-4xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight"
-          >
-            <span 
-              className="bg-gradient-to-r bg-clip-text text-transparent font-bold"
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
-                backgroundSize: '400% 100%',
-                animation: 'gradient-shift 5s linear infinite'
-              }}
-            >
-              SNS✖️AI
-            </span>
-            <span className="text-2xl lg:text-4xl text-gray-600"> × </span>
-            <span 
-              className="bg-gradient-to-r bg-clip-text text-transparent font-bold"
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
-                backgroundSize: '400% 100%',
-                animation: 'gradient-shift 5s linear infinite'
-              }}
-            >
-              RE・GEO実装
-            </span>
-            <br />
-            <span className="text-gray-800">日本初の</span>
-            <span 
-              className="bg-gradient-to-r bg-clip-text text-transparent font-bold"
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
-                backgroundSize: '400% 100%',
-                animation: 'gradient-shift 5s linear infinite'
-              }}
-            >
-              AI検索時代
-            </span>
-            <span className="text-gray-800">対策</span>
-            <br />
-            <span 
-              className="bg-gradient-to-r bg-clip-text text-transparent text-2xl lg:text-4xl font-bold"
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
-                backgroundSize: '400% 100%',
-                animation: 'gradient-shift 5s linear infinite'
-              }}
-            >
-              630%改善 × keita20万フォロワーの実証済み手法
-            </span>
-          </motion.h1>
+              {/* メインタイトル */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="text-xl lg:text-4xl font-bold text-gray-900 mb-4 lg:mb-6 leading-tight"
+              >
+                <span 
+                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold"
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
+                    backgroundSize: '400% 100%',
+                    animation: 'gradient-shift 5s linear infinite'
+                  }}
+                >
+                  SNS✖️AI
+                </span>
+                <span className="text-lg lg:text-2xl text-gray-600"> × </span>
+                <span 
+                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold"
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
+                    backgroundSize: '400% 100%',
+                    animation: 'gradient-shift 5s linear infinite'
+                  }}
+                >
+                  RE<span className="mx-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-black text-2xl lg:text-4xl">×</span>GEO実装
+                </span>
+                <br />
+                <span className="text-gray-800 text-2xl lg:text-5xl">日本初の</span>
+                <span 
+                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-2xl lg:text-5xl"
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #000000, #00FFFF, #87CEFA, #00FFFF, #000000)',
+                    backgroundSize: '400% 100%',
+                    animation: 'gradient-shift 5s linear infinite'
+                  }}
+                >
+                  AI検索時代
+                </span>
+                <span className="text-gray-800 text-2xl lg:text-5xl">対策</span>
+                <br />
+                <span 
+                  className="bg-gradient-to-r bg-clip-text text-transparent text-lg lg:text-2xl font-bold"
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
+                    backgroundSize: '400% 100%',
+                    animation: 'gradient-shift 5s linear infinite'
+                  }}
+                >
+                  NANDSアンバサダー『keita』
+                  <br />
+                  <span 
+                    className="inline-block transform transition-all duration-1000 hover:scale-105"
+                    style={{
+                      background: 'linear-gradient(45deg, #FFD700, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7)',
+                      backgroundSize: '400% 400%',
+                      animation: 'rich-simple-gradient 3s ease-in-out infinite, gentle-pulse 2s ease-in-out infinite',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      textShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                    }}
+                  >
+                    総フォロワー20万
+                  </span>
+                  <br />
+                  コンテンツ術を自動化
+                </span>
+              </motion.h1>
 
-          {/* サブタイトル */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl lg:text-2xl text-gray-800 mb-8 leading-relaxed max-w-4xl mx-auto font-semibold"
-          >
-            AIリスキリングで、あなたの会社の広報社員が
-            <br />
-            <span 
-              className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-2xl lg:text-3xl"
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
-                backgroundSize: '400% 100%',
-                animation: 'gradient-shift 5s linear infinite'
-              }}
-            >
-              20万フォロワー級インフルエンサーに変身！
-            </span>
-          </motion.p>
-
-          {/* 3つのサービス領域 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8"
-          >
-            {/* AI検索モード対策講座 */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-purple-200/30 hover:shadow-xl hover:border-purple-300/50 transition-all duration-300 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+              {/* スマホ版人物画像 - メインタイトルとサブタイトルの間 */}
+              <div className="lg:hidden flex justify-center my-6">
+                <Image
+                  src="/images/lp/person-avatar-mobile.png"
+                  alt="人物アバター"
+                  width={250}
+                  height={250}
+                  className="object-contain"
+                />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">AI駆動開発講座</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                <span className="font-semibold text-purple-600">日本未上陸対策の先行実装</span><br />
-                <span className="font-semibold text-pink-600">ChatGPT・Perplexity・Claude対応</span><br />
-                <span className="text-xs text-gray-500">30万円×人数（3人以上から）</span>
-              </p>
+
+              {/* サブタイトル */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-lg lg:text-xl text-gray-800 mb-6 lg:mb-8 leading-relaxed max-w-4xl lg:mx-auto font-semibold"
+              >
+                AIリスキリングで、あなたの会社の広報社員が
+                <br />
+                <span 
+                  className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-xl lg:text-2xl"
+                  style={{
+                    backgroundImage: 'linear-gradient(90deg, #9333EA, #3B82F6, #06B6D4, #3B82F6, #9333EA)',
+                    backgroundSize: '400% 100%',
+                    animation: 'gradient-shift 5s linear infinite'
+                  }}
+                >
+                  20万フォロワー級インフルエンサーに変身！
+                </span>
+              </motion.p>
             </div>
 
-            {/* AIO・RE実装講座 */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-200/30 hover:shadow-xl hover:border-blue-300/50 transition-all duration-300 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            {/* 人物画像エリア - PC版のみ上部に表示 */}
+            <div className="hidden lg:flex flex-shrink-0 justify-end items-start">
+              {/* 人物画像は後で追加 */}
+              <div className="w-80 h-80 bg-gray-200/50 rounded-full flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300/50 backdrop-blur-sm">
+                人物画像
+                <br />
+                (PNG透過)
+                <br />
+                PC: 300-400px
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">AIO・RE実装講座</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                <span className="font-semibold text-blue-600">Relevance Engineering完全実装</span><br />
-                <span className="font-semibold text-cyan-600">630%改善の技術移転</span><br />
-                <span className="text-xs text-gray-500">30万円×人数（3人以上から）</span>
-              </p>
             </div>
+          </div>
 
-            {/* SNSコンサル講座 */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-200/30 hover:shadow-xl hover:border-green-300/50 transition-all duration-300 group">
-              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">SNSコンサル講座</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                <span className="font-semibold text-green-600">keita実践手法 × NANDS技術</span><br />
-                <span className="text-xs text-gray-500">総フォロワー20万の実証済み手法</span><br />
-                <span className="text-xs text-gray-500">30万円×人数（3人以上から）</span>
-              </p>
-            </div>
-          </motion.div>
-
-          {/* 特別な強調メッセージ */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="flex items-center justify-center gap-4 mb-10"
-          >
-            <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg">
-              日本初技術実装 × SNS✖️AI = 圧倒的競争優位
-            </div>
-          </motion.div>
-
-          {/* CTA ボタン */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            <button className="group relative px-10 py-5 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-white font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20">
-              <span className="relative z-10 flex items-center gap-2">
-                SNS✖️AI先行者利益・最大80%還付申請
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-            
-            <button className="group px-8 py-4 border-2 border-gray-400 text-gray-700 font-bold text-lg rounded-full backdrop-blur-sm hover:bg-gray-100 hover:border-gray-500 transition-all duration-300 shadow-lg">
-              <span className="flex items-center gap-2">
-                630%改善 × keita実績を見る
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </button>
-          </motion.div>
-
-          {/* 法人リスキリング3コースパッケージ */}
+          {/* 3コースカード - 正方形デザインに戻す */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto"
           >
             {/* コース❶ */}
-            <div className="text-center bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-purple-200/30 hover:shadow-xl hover:border-purple-300/50 transition-all duration-300 group">
+            <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-purple-200/50 hover:shadow-xl hover:border-purple-300/70 transition-all duration-300 group">
               <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
                   ❶
@@ -252,7 +239,7 @@ export default function LPHeroSection() {
             </div>
 
             {/* コース❷ */}
-            <div className="text-center bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-200/30 hover:shadow-xl hover:border-blue-300/50 transition-all duration-300 group">
+            <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-200/50 hover:shadow-xl hover:border-blue-300/70 transition-all duration-300 group">
               <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
                   ❷
@@ -265,28 +252,16 @@ export default function LPHeroSection() {
             </div>
 
             {/* コース❸ */}
-            <div className="text-center bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-200/30 hover:shadow-xl hover:border-green-300/50 transition-all duration-300 group">
+            <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-200/50 hover:shadow-xl hover:border-green-300/70 transition-all duration-300 group">
               <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <div className="w-full h-full bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
                   ❸
                 </div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">SNSコンサル講座</h3>
-              <p className="text-sm text-gray-600 font-medium mb-2">keita手法 × NANDS技術</p>
-              <div className="text-xs text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full mb-2">総フォロワー20万の実証手法</div>
+              <p className="text-sm text-gray-600 font-medium mb-2">keita実践手法 × NANDS技術</p>
+              <div className="text-xs text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full mb-2">総フォロワー20万の実証済み手法</div>
               <div className="text-xs text-gray-500">30万円×人数（3人以上から）</div>
-            </div>
-          </motion.div>
-
-          {/* 追加の強調メッセージ */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 1 }}
-            className="mt-12 text-center"
-          >
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-200 rounded-full px-6 py-3">
-              <span className="text-purple-800 font-semibold text-lg">SNS✖️AI時代の先行者として、技術×影響力の両方を制覇</span>
             </div>
           </motion.div>
         </div>
@@ -297,7 +272,7 @@ export default function LPHeroSection() {
         initial={{ opacity: 0 }}
         animate={{ opacity: isVisible ? 1 : 0 }}
         transition={{ duration: 1, delay: 1.2 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
       >
         <div className="flex flex-col items-center gap-2 text-gray-600">
           <span className="text-sm font-medium">SNS✖️AI × RE・GEO詳細を見る</span>
@@ -308,4 +283,4 @@ export default function LPHeroSection() {
       </motion.div>
     </section>
   )
-} 
+}

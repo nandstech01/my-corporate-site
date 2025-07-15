@@ -7,18 +7,26 @@
 # 全検索エンジン・AIクローラー基本設定
 User-agent: *
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 
 # 主要検索エンジン個別最適化（公式推奨設定）
 User-agent: Googlebot
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 User-agent: Slurp
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 2
 
 # OpenAI公式AI検索エンジン（2025年最新）
@@ -31,23 +39,33 @@ Allow: /aio-seo
 Allow: /ai-agents
 Allow: /vector-rag
 Allow: /chatbot-development
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 User-agent: SearchGPT
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 # Google AI検索エンジン（公式対応）
 User-agent: Google-Extended
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 User-agent: GoogleOther
 Allow: /
+Disallow: /lp
+Disallow: /partner-admin
 Crawl-delay: 1
 
 # Anthropic Claude AI（公式仕様）
