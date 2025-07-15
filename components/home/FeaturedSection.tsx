@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/utils/supabase/client'
+import { getUnifiedSupabaseClient } from '@/lib/supabase/unified-client'
 import PostImage from '@/components/common/PostImage'
 
 type Post = {
@@ -17,10 +17,19 @@ type Post = {
 
 export function FeaturedSection() {
   const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const supabase = createClient()
+  // 統一Supabaseクライアント使用（メモ化）
+  const supabase = useMemo(() => getUnifiedSupabaseClient(), [])
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      console.log('🔍 FeaturedSection: データ取得開始...')
+      
       const { data, error } = await supabase
         .from('chatgpt_posts')
         .select(`
@@ -37,16 +46,65 @@ export function FeaturedSection() {
         .limit(3)
 
       if (error) {
-        console.error('Error fetching posts:', error)
+        console.error('❌ FeaturedSection: データ取得エラー:', error)
+        setError(error.message)
         return
       }
 
-      console.log('Fetched ChatGPT posts:', data)
+      console.log('✅ FeaturedSection: データ取得成功:', data?.length || 0, '件')
       setPosts(data || [])
+    } catch (err) {
+      console.error('❌ FeaturedSection: 予期しないエラー:', err)
+      setError('データの取得に失敗しました')
+    } finally {
+      setLoading(false)
     }
+  }, [supabase])
 
+  useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [fetchPosts])
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-96 mx-auto mb-12"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-red-600">エラー: {error}</p>
+          <button 
+            onClick={fetchPosts}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            再試行
+          </button>
+        </div>
+      </section>
+    )
+  }
 
   if (posts.length === 0) {
     return null

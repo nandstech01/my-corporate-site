@@ -180,6 +180,7 @@ export default function LPHeroSection() {
                   width={250}
                   height={250}
                   className="object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
 
