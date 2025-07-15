@@ -40,7 +40,7 @@ export default function LPHeroSection() {
   return (
     <section className="relative min-h-screen bg-white overflow-hidden">
       {/* PC版: GridMotion背景 */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block absolute inset-0 z-0">
         <GridMotion 
           items={gridItems}
           gradientColor="rgba(59, 130, 246, 0.12)"

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import './GridMotion.css'
 
 interface GridMotionProps {
   items?: (string | React.ReactElement)[];
@@ -10,7 +11,7 @@ interface GridMotionProps {
 
 const GridMotion: React.FC<GridMotionProps> = ({ 
   items = [], 
-  gradientColor = 'rgba(59, 130, 246, 0.15)' 
+  gradientColor = 'rgba(0, 0, 0, 0.3)' 
 }) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -37,70 +38,43 @@ const GridMotion: React.FC<GridMotionProps> = ({
       windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'unknown'
     })
 
-    // 🚨 最適化：アニメーション即座に開始
-    const initializeAnimation = () => {
-      // グリッドアニメーションを即座に開始
-      const rows = rowRefs.current.filter(Boolean)
-      if (rows.length > 0) {
-        console.log('🎬 GridMotion: アニメーション即座開始')
-        
-        rows.forEach((row, rowIndex) => {
-          if (row) {
-            gsap.to(row, {
-              x: (rowIndex % 2 === 0 ? 50 : -50),
-              duration: 10 + rowIndex * 2,
-              repeat: -1,
-              yoyo: true,
-              ease: "none"
-            })
-          }
-        })
-      }
-    }
+    // GSAPのパフォーマンス最適化
+    gsap.ticker.lagSmoothing(0)
 
-    // DOM準備後に即座に開始
-    const timer = setTimeout(() => {
-      initializeAnimation()
-    }, 100) // 100ms後に開始
-
-    // 🚨 異常検知：2秒後にアニメーション確認（5秒から短縮）
-    const startTime = performance.now()
-    let renderCheckInterval: NodeJS.Timeout
-    
-    renderCheckInterval = setTimeout(() => {
-      const currentTime = performance.now()
-      const elapsedTime = currentTime - startTime
-      
-      if (elapsedTime > 2000) { // 2秒に短縮
-        console.warn('⚠️ GridMotion: アニメーション開始遅延検出（2秒経過）')
-        console.log('🔍 GridMotion: デバッグ情報:', {
-          containerExists: !!gridRef.current,
-          rowRefsCount: rowRefs.current.filter(Boolean).length,
-          gsapLoaded: !!gsap,
-          strictModeActive: true,
-          performanceNow: performance.now(),
-          windowDimensions: typeof window !== 'undefined' ? 
-            { width: window.innerWidth, height: window.innerHeight } : 'unknown'
-        })
-        
-        // 強制的にアニメーション開始
-        initializeAnimation()
-      }
-    }, 2100) // 2.1秒後
-
-    // マウス追跡（既存機能）
     const handleMouseMove = (e: MouseEvent) => {
       mouseXRef.current = e.clientX
       console.log('✅ GridMotion: マウス操作を検出、アニメーション開始')
-      initializeAnimation()
     }
 
-    document.addEventListener('mousemove', handleMouseMove)
+    const updateMotion = () => {
+      const maxMoveAmount = 300 // 3D効果を向上
+      const baseDuration = 0.8 // より滑らか
+      const inertiaFactors = [0.6, 0.4, 0.3, 0.2]
+
+      rowRefs.current.forEach((row, index) => {
+        if (row) {
+          const direction = index % 2 === 0 ? 1 : -1
+          const moveAmount = ((mouseXRef.current / window.innerWidth) * maxMoveAmount - maxMoveAmount / 2) * direction
+
+          gsap.to(row, {
+            x: moveAmount,
+            duration: baseDuration + inertiaFactors[index % inertiaFactors.length],
+            ease: 'power3.out',
+            overwrite: 'auto',
+          })
+        }
+      })
+    }
+
+    const removeAnimationLoop = gsap.ticker.add(updateMotion)
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+
+    console.log('🎬 GridMotion: アニメーション即座開始')
 
     return () => {
-      clearTimeout(timer)
-      clearTimeout(renderCheckInterval)
-      document.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mousemove', handleMouseMove)
+      removeAnimationLoop()
     }
   }, [isClient, combinedItems.length])
 
@@ -108,54 +82,45 @@ const GridMotion: React.FC<GridMotionProps> = ({
     return <div className="h-full w-full" />
   }
 
-  const rows = []
-  const itemsPerRow = 7
-  
-  for (let i = 0; i < 4; i++) {
-    const rowItems = []
-    
-    for (let j = 0; j < itemsPerRow; j++) {
-      const itemIndex = i * itemsPerRow + j
-      if (itemIndex < combinedItems.length) {
-        const item = combinedItems[itemIndex]
-        
-        rowItems.push(
-          <div key={j} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center border border-white/20 hover:bg-white/20 transition-colors">
-            {typeof item === 'string' ? (
-              <span className="text-white/70 text-sm">{item}</span>
-            ) : (
-              item
-            )}
-          </div>
-        )
-      }
-    }
-    
-    rows.push(
-      <div
-        key={i}
-        ref={(el) => { rowRefs.current[i] = el }}
-        className="flex gap-4 justify-center mb-4"
+  return (
+    <div className="noscroll loading" ref={gridRef}>
+      <section
+        className="intro"
         style={{
-          transform: `translateX(${i % 2 === 0 ? '20px' : '-20px'})`
+          background: `radial-gradient(circle, ${gradientColor} 0%, transparent 100%)`,
         }}
       >
-        {rowItems}
-      </div>
-    )
-  }
-
-  return (
-    <div 
-      ref={gridRef} 
-      className="relative h-full w-full overflow-hidden"
-      style={{
-        background: `radial-gradient(circle at 50% 50%, ${gradientColor}, transparent 70%)`
-      }}
-    >
-      <div className="absolute inset-0 flex flex-col justify-center items-center p-8">
-        {rows}
-      </div>
+        <div className="gridMotion-container">
+          {[...Array(4)].map((_, rowIndex) => (
+            <div
+              key={rowIndex}
+              className="row"
+              ref={(el) => { rowRefs.current[rowIndex] = el }}
+            >
+              {[...Array(7)].map((_, itemIndex) => {
+                const content = combinedItems[rowIndex * 7 + itemIndex]
+                return (
+                  <div key={itemIndex} className="row__item">
+                    <div className="row__item-inner" style={{ backgroundColor: '#111' }}>
+                      {typeof content === 'string' && content.startsWith('http') ? (
+                        <div
+                          className="row__item-img"
+                          style={{
+                            backgroundImage: `url(${content})`,
+                          }}
+                        />
+                      ) : (
+                        <div className="row__item-content">{content}</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="fullview" />
+      </section>
     </div>
   )
 }
