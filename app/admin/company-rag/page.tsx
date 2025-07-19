@@ -55,7 +55,7 @@ export default function CompanyRagPage() {
       setVectorLoading(true);
       // キャッシュバスターを追加して常に最新データを取得
       const cacheBuster = `_t=${Date.now()}`;
-      const response = await fetch(`/api/vector-stats?${cacheBuster}`, {
+      const response = await fetch(`/api/trend-stats?${cacheBuster}`, {
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache',
