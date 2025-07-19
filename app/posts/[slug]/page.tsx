@@ -547,13 +547,24 @@ export default async function PostPage({ params }: PageProps) {
         <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">{post.title}</h1>
         
         {/* 記事メタ情報 */}
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-600">
+        <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-1">
-            <RefreshCw size={12} />
-            <span>最終更新: {new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}</span>
+            <RefreshCw size={10} className="sm:w-3 sm:h-3" />
+            <span className="hidden sm:inline">最終更新: </span>
+            <span className="sm:hidden">更新: </span>
+            <span className="hidden sm:inline">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}</span>
+            <span className="sm:hidden">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</span>
           </div>
-          <div>読了時間: 約{Math.ceil(post.content.replace(/\s+/g, '').length / 400)}分</div>
-          <div>文字数: {post.content.replace(/\s+/g, '').length.toLocaleString()}文字</div>
+          <div>
+            <span className="hidden sm:inline">読了時間: 約</span>
+            <span className="sm:hidden">読了: 約</span>
+            {Math.ceil(post.content.replace(/\s+/g, '').length / 400)}分
+          </div>
+          <div>
+            <span className="hidden sm:inline">文字数: </span>
+            <span className="sm:hidden">字数: </span>
+            {post.content.replace(/\s+/g, '').length.toLocaleString()}文字
+          </div>
         </div>
         
         {(post.thumbnail_url || post.featured_image) && (
