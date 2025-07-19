@@ -260,6 +260,36 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             strong({ children }) {
               return <span className="font-bold highlight-marker">{children}</span>;
             },
+            img({ src, alt }) {
+              if (!src) return null;
+              
+              // Supabase Storageの画像URLを処理
+              let processedSrc = src;
+              if (!src.startsWith('http')) {
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                if (supabaseUrl) {
+                  processedSrc = `${supabaseUrl}/storage/v1/object/public/${src}`;
+                }
+              }
+              
+              return (
+                <div className="my-6 text-center">
+                  <img
+                    src={processedSrc}
+                    alt={alt || ''}
+                    className="max-w-full h-auto rounded-lg shadow-md mx-auto"
+                    onError={(e) => {
+                      console.log('Image load error:', processedSrc);
+                      // デフォルト画像へのフォールバック
+                      e.currentTarget.src = '/images/default-post.jpg';
+                    }}
+                  />
+                  {alt && (
+                    <p className="text-sm text-gray-500 mt-2 italic">{alt}</p>
+                  )}
+                </div>
+              );
+            },
           }}
           // @ts-ignore - Type issues with remarkGfm
           remarkPlugins={[remarkGfm]}

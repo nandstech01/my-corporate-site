@@ -7,8 +7,6 @@ import {
   DocumentTextIcon, 
   PlusIcon, 
   StarIcon,
-  ChartBarIcon,
-  UserGroupIcon,
   BoltIcon,
   GlobeAltIcon,
   CubeIcon,
@@ -78,18 +76,6 @@ export default function AdminSidebar() {
       href: '/admin/reviews',
       icon: StarIcon,
       current: pathname === '/admin/reviews'
-    },
-    {
-      name: 'アナリティクス',
-      href: '/admin/analytics',
-      icon: ChartBarIcon,
-      current: pathname === '/admin/analytics'
-    },
-    {
-      name: 'ユーザー管理',
-      href: '/admin/users',
-      icon: UserGroupIcon,
-      current: pathname === '/admin/users'
     }
   ];
 

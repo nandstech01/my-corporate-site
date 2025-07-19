@@ -53,39 +53,101 @@ async function getPost(slug: string): Promise<Post | null> {
   
   console.log('検索するslug:', slug)
   
-  // デコードされたslugで検索
-  const decodedSlug = decodeURIComponent(slug)
-  
-  // まずpostsテーブルから検索
-  const { data: newPost, error: newError } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('slug', decodedSlug)
-    .eq('status', 'published')
-    .single()
-  
-  console.log('postsテーブル検索結果:', newPost, newError)
-  
-  if (newPost && !newError) {
-    return newPost
+  // URLデコードを安全に実行
+  let decodedSlug: string;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch (error) {
+    console.error('URL decode error:', error);
+    decodedSlug = slug; // デコードに失敗した場合は元のslugを使用
   }
   
-  // postsテーブルに見つからない場合は、chatgpt_postsテーブルから検索
-  const { data: oldPost, error: oldError } = await supabase
-    .from('chatgpt_posts')
-    .select(`
-      *,
-      categories:category_id(name, slug)
-    `)
-    .eq('slug', decodedSlug)
-    .eq('status', 'published')
-    .single()
+  console.log('デコード後のslug:', decodedSlug);
+  console.log('元のslugの長さ:', slug.length);
+  console.log('デコード後slugの長さ:', decodedSlug.length);
   
-  if (oldPost && !oldError) {
-    return oldPost
+  // 長いslugの場合は部分検索も試行（URL エンコード前後両方チェック）
+  const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
+  console.log('長いslug判定:', isLongSlug);
+  
+  // 長いslugの場合は直接フォールバック検索を実行
+  if (isLongSlug) {
+    console.log('⚠️ 長いslugを検出、直接フォールバック検索を実行');
+    return await performFallbackSearch(supabase, decodedSlug);
+  }
+
+  try {
+    // 通常の長さのslugの場合のみ直接検索を実行
+    // まずpostsテーブルから検索
+    const { data: newPost, error: newError } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('slug', decodedSlug)
+      .eq('status', 'published')
+      .single()
+    
+    console.log('postsテーブル検索結果:', newPost, newError)
+    
+    if (newPost && !newError) {
+      return newPost
+    }
+    
+    // postsテーブルに見つからない場合は、chatgpt_postsテーブルから検索
+    const { data: oldPosts, error: oldError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        *,
+        categories:category_id(name, slug)
+      `)
+      .eq('slug', decodedSlug)
+      .eq('status', 'published');
+    
+    if (oldError) {
+      console.error('chatgpt_posts検索エラー:', oldError);
+      return null;
+    }
+    
+    if (oldPosts && oldPosts.length > 0) {
+      return oldPosts[0];
+    }
+    
+  } catch (queryError) {
+    console.error('Database query error:', queryError);
+    return await performFallbackSearch(supabase, decodedSlug);
   }
   
-  return null
+  return null;
+}
+
+// フォールバック検索関数
+async function performFallbackSearch(supabase: any, decodedSlug: string): Promise<Post | null> {
+  try {
+    console.log('🔄 フォールバック: 全記事検索を実行');
+    const { data: allPosts, error: allError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        *,
+        categories:category_id(name, slug)
+      `)
+      .eq('status', 'published');
+    
+    if (allError) {
+      console.error('全記事取得エラー:', allError);
+      return null;
+    }
+    
+    // JavaScriptで完全一致検索
+    const matchedPost = allPosts?.find((post: any) => post.slug === decodedSlug);
+    if (matchedPost) {
+      console.log('✅ フォールバック検索で記事を発見');
+      return matchedPost;
+    }
+      
+  } catch (fallbackError) {
+    console.error('フォールバック検索エラー:', fallbackError);
+  }
+  
+  return null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

@@ -92,16 +92,29 @@ export default function EditPostPage({
   // 両方のテーブルから記事を検索する関数
   const fetchPost = async (slug: string): Promise<Post | null> => {
     const decodedSlug = decodeURIComponent(slug);
+    console.log('管理画面: 検索するslug:', decodedSlug);
+    console.log('管理画面: slugの長さ:', decodedSlug.length);
     
-    // まずpostsテーブルから検索
-    const { data: newPost, error: newError } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('slug', decodedSlug)
-      .single();
+    // 長いslugの場合は、直接Supabaseクエリを避ける
+    const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
     
-    if (newPost && !newError) {
-      return { ...newPost, table_type: 'posts' };
+    if (!isLongSlug) {
+      // まずpostsテーブルから検索（通常の長さのslugの場合のみ）
+      try {
+        const { data: newPost, error: newError } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('slug', decodedSlug)
+          .single();
+        
+        if (newPost && !newError) {
+          return { ...newPost, table_type: 'posts' };
+        }
+      } catch (error) {
+        console.error('postsテーブル検索エラー:', error);
+      }
+    } else {
+      console.log('管理画面: 長いslugのためpostsテーブル検索をスキップ');
     }
     
     // postsテーブルに見つからない場合は、chatgpt_postsテーブルから検索

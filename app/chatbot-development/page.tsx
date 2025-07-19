@@ -298,7 +298,7 @@ export default async function ChatbotDevelopmentPage() {
               </li>
               <li className="text-gray-500">›</li>
               <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/services" className="text-blue-600 hover:underline" itemProp="item">
+                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
                   <span itemProp="name">サービス</span>
                 </a>
                 <meta itemProp="position" content="2" />

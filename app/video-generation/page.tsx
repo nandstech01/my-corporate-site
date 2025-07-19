@@ -193,7 +193,7 @@ export default function VideoGenerationPage() {
             <ol className="flex items-center space-x-2 text-sm text-white">
               <li><a href="/" className="text-purple-300 hover:text-purple-100 hover:underline">ホーム</a></li>
               <li className="text-purple-400">›</li>
-              <li><a href="/services" className="text-purple-300 hover:text-purple-100 hover:underline">サービス</a></li>
+              <li><a href="/#services" className="text-purple-300 hover:text-purple-100 hover:underline">サービス</a></li>
               <li className="text-purple-400">›</li>
               <li className="text-white">動画生成AI開発</li>
             </ol>

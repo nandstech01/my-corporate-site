@@ -48,7 +48,7 @@ export function MainVisual() {
                 お問い合わせ
               </a>
               <a
-                href="/services"
+                href="/#services"
                 className="rounded-full border border-white/30 px-8 py-3 font-semibold text-white transition-colors hover:bg-white/10"
               >
                 サービス一覧

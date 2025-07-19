@@ -182,8 +182,7 @@ export default function RootLayout({
         {/* Preload Critical Resources - 本番環境でのみ適用 */}
         {!isDev && (
           <>
-            <link rel="preload" href="/images/logo.png" as="image" type="image/png" />
-            <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+            
           </>
         )}
         

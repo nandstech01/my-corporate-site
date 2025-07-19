@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Upload, X } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/lib/database.types';
 
 interface ContentImageManagerProps {
@@ -22,6 +23,7 @@ export default function ContentImageManager({
 }: ContentImageManagerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
   const supabase = createClientComponentClient<Database>();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,18 +34,71 @@ export default function ContentImageManager({
     setError(null);
 
     try {
+      // AuthContextから認証状態を確認
+      console.log('認証チェック結果:', { 
+        user: !!user, 
+        userId: user?.id,
+        email: user?.email 
+      });
+      
+      if (!user) {
+        console.error('No authenticated user found');
+        setError('認証が必要です。管理画面にログインしてください。');
+        return;
+      }
+      
+      // 管理者権限の確認
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (adminError || !adminUser) {
+        console.error('Admin permission check failed:', adminError);
+        setError('管理者権限がありません。');
+        return;
+      }
+      
+      console.log('認証・権限確認完了:', { 
+        userId: user.id, 
+        email: user.email,
+        isAdmin: true
+      });
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${postId}/${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = type === 'thumbnail' ? `blog/thumbnails/${fileName}` : `blog/post-images/${fileName}`;
+      const filePath = type === 'thumbnail' ? `thumbnails/${fileName}` : `post-images/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('アップロード開始:', { 
+        bucket: 'blog', 
+        filePath, 
+        fileSize: file.size,
+        fileName: file.name 
+      });
+
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('blog')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Upload error details:', uploadError);
-        throw uploadError;
+        console.error('Upload error message:', uploadError.message);
+        
+        if (uploadError.message?.includes('row-level security') || uploadError.message?.includes('Unauthorized')) {
+          setError('アップロード権限がありません。管理者権限を確認してください。');
+        } else if (uploadError.message?.includes('already exists') || uploadError.message?.includes('duplicate')) {
+          setError('同名のファイルが既に存在します。');
+        } else {
+          setError(`アップロードエラー: ${uploadError.message}`);
+        }
+        return;
       }
+
+      console.log('アップロード成功:', uploadData);
 
       const { data: { publicUrl } } = supabase.storage
         .from('blog')
@@ -55,7 +110,8 @@ export default function ContentImageManager({
         // テキストエリアに画像のMarkdownを挿入
         const textarea = document.getElementById('content') as HTMLTextAreaElement;
         if (textarea) {
-          const imageMarkdown = `![](${publicUrl})`;
+          // Supabase Storageの相対パスを使用（重複を避ける）
+          const imageMarkdown = `![](${filePath})`;
           const { selectionStart, selectionEnd } = textarea;
           const currentContent = textarea.value;
           const newContent = 

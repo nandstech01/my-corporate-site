@@ -95,7 +95,7 @@ export default async function HRSolutionsPage() {
             <ol className="flex items-center space-x-2 text-sm text-white">
               <li><a href="/" className="text-blue-300 hover:text-blue-100 hover:underline">ホーム</a></li>
               <li className="text-blue-400">›</li>
-              <li><a href="/services" className="text-blue-300 hover:text-blue-100 hover:underline">サービス</a></li>
+              <li><a href="/#services" className="text-blue-300 hover:text-blue-100 hover:underline">サービス</a></li>
               <li className="text-blue-400">›</li>
               <li className="text-white">HR支援・人事DX</li>
             </ol>
