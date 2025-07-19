@@ -1,10 +1,24 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 
+// MDX設定の追加
+const withMDX = require('@next/mdx')({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    // MDXファイル内でJSXを使用可能にする
+    providerImportSource: "@mdx-js/react",
+  },
+})
+
 const nextConfig = {
   // 基本設定
   reactStrictMode: true,
   swcMinify: true,
+
+  // MDXページルートの設定
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
 
   // 実験的機能でパフォーマンス向上（レリバンスエンジニアリング対応）
   experimental: {
@@ -16,6 +30,8 @@ const nextConfig = {
       'three',
       'postprocessing'
     ],
+    // MDXサポートを有効化
+    mdxRs: false, // 安定性のためfalseに設定
   },
 
   // Webpackの設定
@@ -156,4 +172,5 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// MDX設定を適用してエクスポート
+module.exports = withMDX(nextConfig);
