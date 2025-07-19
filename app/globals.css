@@ -8,6 +8,32 @@ html {
   scroll-padding-top: 80px; /* ヘッダー固定時の調整 */
 }
 
+/* 長いURL・テキストのレスポンシブ対応 */
+.prose a,
+.markdown-content a,
+article a {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+  max-width: 100% !important;
+}
+
+/* 記事コンテンツ全体の文字溢れ防止 */
+.prose,
+.markdown-content,
+article {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* 長いコードブロック対応 */
+.prose pre,
+.prose code {
+  overflow-x: auto;
+  word-break: break-all;
+}
+
 /* Fragment ID アンカーリンク最適化 */
 .scroll-mt-20 {
   scroll-margin-top: 5rem; /* 80px */

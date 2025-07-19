@@ -260,6 +260,31 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             strong({ children }) {
               return <span className="font-bold highlight-marker">{children}</span>;
             },
+            a({ href, children }) {
+              const isLongUrl = typeof children === 'string' && children.length > 60;
+              const displayText = isLongUrl && typeof children === 'string' 
+                ? children.substring(0, 50) + '...' 
+                : children;
+              
+              return (
+                <a 
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="not-prose text-blue-600 hover:text-blue-800 underline transition-colors duration-200 break-words hyphens-auto"
+                  style={{ 
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    lineBreak: 'anywhere',
+                    maxWidth: '100%',
+                    display: 'inline-block'
+                  }}
+                  title={href}
+                >
+                  {displayText}
+                </a>
+              );
+            },
             img({ src, alt }) {
               if (!src) return null;
               
