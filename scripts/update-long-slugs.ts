@@ -1,8 +1,20 @@
+import * as dotenv from 'dotenv'
 import { createClient } from '@supabase/supabase-js'
-import { generateSlug } from '../utils/slug'
+
+// 環境変数を読み込み
+dotenv.config({ path: '.env.local' })
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+console.log('🔑 環境変数確認:')
+console.log(`  Supabase URL: ${supabaseUrl ? '✅ 設定済み' : '❌ 未設定'}`)
+console.log(`  Service Role Key: ${supabaseKey ? '✅ 設定済み' : '❌ 未設定'}\n`)
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ 環境変数が設定されていません。.env.localファイルを確認してください。')
+  process.exit(1)
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
