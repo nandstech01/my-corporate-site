@@ -30,21 +30,49 @@ export default function PartnerLogin({ onLoginSuccess }: PartnerLoginProps) {
     setIsLoading(true)
     setError('')
 
-    // TODO: 実際の認証ロジック実装
-    setTimeout(() => {
-      if (loginData.email === 'demo@partner.com' && loginData.password === 'demo123') {
+    try {
+      console.log('🔐 ログイン試行開始:', { email: loginData.email })
+      
+      const response = await fetch('/api/partner-auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        console.log('✅ ログイン成功:', {
+          partner: data.partner.name,
+          requiresPasswordChange: data.requiresPasswordChange
+        })
+
         // ログイン成功
         if (onLoginSuccess) {
           onLoginSuccess()
         } else {
-          // フォールバック: ダッシュボードへリダイレクト
-          window.location.href = '/partner-admin/dashboard'
+          // パスワード変更が必要かチェック
+          if (data.requiresPasswordChange) {
+            window.location.href = '/partner-admin/change-password'
+          } else {
+            window.location.href = '/partner-admin'
+          }
         }
       } else {
-        setError('メールアドレスまたはパスワードが間違っています')
+        console.log('❌ ログイン失敗:', data.error)
+        setError(data.error || 'ログインに失敗しました')
       }
+    } catch (error) {
+      console.error('❌ ログインエラー:', error)
+      setError('ネットワークエラーが発生しました。しばらくしてから再度お試しください。')
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -136,15 +164,17 @@ export default function PartnerLogin({ onLoginSuccess }: PartnerLoginProps) {
             </button>
           </form>
 
-          {/* デモログイン情報 */}
-          <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-200">
-            <h3 className="text-sm font-bold text-gray-700 mb-3">🔍 デモアカウント</h3>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">Email:</span> demo@partner.com</p>
-              <p><span className="font-medium">Password:</span> demo123</p>
+          {/* ログイン情報 */}
+          <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200">
+            <h3 className="text-sm font-bold text-gray-700 mb-3">🔐 ログイン方法</h3>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p><span className="font-medium">✅ 承認済みパートナーの方:</span></p>
+              <p>承認メールに記載された仮パスワードでログインしてください</p>
+              <p><span className="font-medium">🔄 初回ログイン後:</span></p>
+              <p>セキュリティのため、パスワード変更を行ってください</p>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              ※ 本実装時は実際の認証システムに置き換えられます
+              ※ 承認済みパートナーのみログイン可能です
             </p>
           </div>
 

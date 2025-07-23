@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
+import { emailService } from '../../../../../lib/email/email-service'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -65,15 +67,16 @@ export async function POST(request: Request) {
 // パートナー承認処理
 async function approvePartner(partner: any) {
   try {
-    // 1. 仮パスワード生成
+    // 1. 仮パスワード生成とハッシュ化
     const tempPassword = generateTempPassword()
-    const passwordHash = tempPassword // 簡易版：プレーンテキスト（開発用）
+    const passwordHash = await bcrypt.hash(tempPassword, 12) // 強力なハッシュ化
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7) // 7日後に期限切れ
     
-    console.log('仮パスワード生成完了:', {
+    console.log('仮パスワード生成・ハッシュ化完了:', {
       partnerId: partner.id,
-      password: tempPassword,
+      passwordLength: tempPassword.length,
+      hashLength: passwordHash.length,
       expiresAt
     })
     
@@ -82,7 +85,8 @@ async function approvePartner(partner: any) {
       .from('partners')
       .update({
         status: 'approved',
-        temp_password: tempPassword, // 仮パスワード（開発用）
+        password_hash: passwordHash, // ハッシュ化されたパスワード
+        temp_password: tempPassword, // メール送信用（一時的）
         is_active: true,
         updated_at: new Date().toISOString()
       })
@@ -218,88 +222,67 @@ async function sendApprovalEmail(partner: any, tempPassword: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nands.tech'
     const loginUrl = `${baseUrl}/partner-admin`
-    const referralUrl = `${baseUrl}/partners?ref=${partner.referral_code}`
     
-    // TODO: 実際のメール送信サービス（SendGrid、Resend等）を使用
-    // 現在はログ出力のみ
-    const emailContent = {
-      to: partner.email,
-      subject: '【NANDS】パートナー申請承認のお知らせ',
-      html: `
-        <h2>パートナー申請承認のお知らせ</h2>
-        <p>${partner.representative_name} 様</p>
-        <p>この度は、NANDS パートナープログラムにお申し込みいただき、ありがとうございます。</p>
-        <p>審査の結果、<strong>承認</strong>させていただきました。</p>
-        
-        <h3>📋 ログイン情報</h3>
-        <ul>
-          <li><strong>メールアドレス:</strong> ${partner.email}</li>
-          <li><strong>仮パスワード:</strong> ${tempPassword}</li>
-          <li><strong>ログインURL:</strong> <a href="${loginUrl}">${loginUrl}</a></li>
-        </ul>
-        
-        <h3>🔗 あなた専用のリファーラルURL</h3>
-        <p><a href="${referralUrl}">${referralUrl}</a></p>
-        
-        <h3>⚠️ 重要なお知らせ</h3>
-        <ul>
-          <li>仮パスワードは7日間有効です</li>
-          <li>初回ログイン後、パスワードを変更してください</li>
-          <li>リファーラルURLを使って新規パートナーを紹介できます</li>
-        </ul>
-        
-        <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
-        <p>今後ともよろしくお願いいたします。</p>
-        
-        <hr>
-        <p>株式会社エヌアンドエス (NANDS)<br>
-        Email: contact@nands.tech<br>
-        URL: https://nands.tech</p>
-      `
+    console.log('📧 実際の承認メール送信開始:', {
+      partner: partner.representative_name,
+      email: partner.email,
+      tempPassword
+    })
+    
+    // 🔥 実際のメール送信サービスを使用
+    const emailResult = await emailService.sendApprovalEmail({
+      partnerName: partner.representative_name,
+      partnerEmail: partner.email,
+      companyName: partner.company_name,
+      tempPassword: tempPassword,
+      referralCode: partner.referral_code,
+      loginUrl: loginUrl
+    })
+    
+    if (emailResult.success) {
+      console.log('✅ 承認メール送信完了:', partner.email)
+    } else {
+      console.error('❌ 承認メール送信失敗:', emailResult.error)
     }
     
-    console.log('承認メール送信（ログのみ）:', emailContent)
-    
-    // 実際のメール送信はここで実装
-    // await sendEmailService(emailContent)
-    
-    return { success: true, emailContent }
+    return emailResult
     
   } catch (error) {
-    console.error('承認メール送信エラー:', error)
-    return { success: false, error }
+    console.error('❌ 承認メール送信エラー:', error)
+    return { success: false, error: error instanceof Error ? error.message : '不明なエラー' }
   }
 }
 
 // 却下メール送信
 async function sendRejectionEmail(partner: any, reason?: string) {
   try {
-    const emailContent = {
-      to: partner.email,
-      subject: '【NANDS】パートナー申請結果のお知らせ',
-      html: `
-        <h2>パートナー申請結果のお知らせ</h2>
-        <p>${partner.representative_name} 様</p>
-        <p>この度は、NANDS パートナープログラムにお申し込みいただき、ありがとうございます。</p>
-        <p>誠に申し訳ございませんが、今回の申請は<strong>見送り</strong>とさせていただきました。</p>
-        
-        ${reason ? `<h3>理由</h3><p>${reason}</p>` : ''}
-        
-        <p>今後、条件が整いましたら、再度お申し込みいただけますと幸いです。</p>
-        
-        <hr>
-        <p>株式会社エヌアンドエス (NANDS)<br>
-        Email: contact@nands.tech<br>
-        URL: https://nands.tech</p>
-      `
+    console.log('📧 実際の却下メール送信開始:', {
+      partner: partner.representative_name,
+      email: partner.email,
+      reason: reason || '申請内容が基準を満たしていません'
+    })
+    
+    // 🔥 実際のメール送信サービスを使用
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://my-corporate-site-r4h.vercel.app'
+    const loginUrl = `${baseUrl}/partners`
+    
+    const emailResult = await emailService.sendRejectionEmail({
+      partnerName: partner.representative_name,
+      partnerEmail: partner.email,
+      companyName: partner.company_name,
+      loginUrl: loginUrl
+    }, reason)
+    
+    if (emailResult.success) {
+      console.log('✅ 却下メール送信完了:', partner.email)
+    } else {
+      console.error('❌ 却下メール送信失敗:', emailResult.error)
     }
     
-    console.log('却下メール送信（ログのみ）:', emailContent)
-    
-    return { success: true, emailContent }
+    return emailResult
     
   } catch (error) {
-    console.error('却下メール送信エラー:', error)
-    return { success: false, error }
+    console.error('❌ 却下メール送信エラー:', error)
+    return { success: false, error: error instanceof Error ? error.message : '不明なエラー' }
   }
 } 
