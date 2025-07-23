@@ -174,6 +174,23 @@ export default function PartnerApplicationsPage() {
     return filter === 'all' || app.status === filter
   })
 
+  // 詳細デバッグ情報
+  const debugStats = {
+    totalApplications: applications.length,
+    currentFilter: filter,
+    filteredCount: filteredApplications.length,
+    statusBreakdown: applications.reduce((acc, app) => {
+      acc[app.status] = (acc[app.status] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
+    sampleApplications: applications.slice(0, 3).map(app => ({
+      id: app.id.substring(0, 8),
+      status: app.status,
+      company: app.company_name,
+      name: app.representative_name
+    }))
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -234,8 +251,17 @@ export default function PartnerApplicationsPage() {
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <pre className="text-sm text-gray-700 whitespace-pre-wrap">{debugInfo}</pre>
           </div>
+          
+          {/* 詳細デバッグ統計 */}
+          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+            <h3 className="font-bold text-blue-800 mb-2">📊 詳細統計</h3>
+            <pre className="text-sm text-blue-700 whitespace-pre-wrap">
+              {JSON.stringify(debugStats, null, 2)}
+            </pre>
+          </div>
+          
           <div className="text-sm text-gray-600">
-            読み込み済み申請件数: {applications.length}件
+            読み込み済み申請件数: {applications.length}件 | フィルター後: {filteredApplications.length}件
           </div>
         </div>
 
@@ -288,8 +314,19 @@ export default function PartnerApplicationsPage() {
           {/* 申請一覧 */}
           <div className="overflow-x-auto">
             {filteredApplications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                {filter === 'all' ? '申請がありません' : `${filter}の申請がありません`}
+              <div className="p-8 text-center">
+                <div className="text-gray-500 mb-4">
+                  {filter === 'all' ? '申請がありません' : `${filter}の申請がありません`}
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg text-left">
+                  <h4 className="font-bold text-yellow-800 mb-2">🔍 フィルター詳細</h4>
+                  <p className="text-sm text-yellow-700">
+                    現在のフィルター: <strong>{filter}</strong><br/>
+                    総申請数: <strong>{applications.length}件</strong><br/>
+                    フィルター後: <strong>{filteredApplications.length}件</strong><br/>
+                    ステータス内訳: {JSON.stringify(debugStats.statusBreakdown)}
+                  </p>
+                </div>
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200">
