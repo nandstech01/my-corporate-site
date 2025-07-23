@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
 // WebSocket ハンドラー（Next.js App Router用）
 export const dynamic = 'force-dynamic';
 
-// WebSocketサーバーのセットアップ
+// WebSocketサーバーのセットアップ（内部関数）
 let wss: WebSocket.Server | null = null;
 
-export function setupWebSocketServer() {
+function setupWebSocketServer() {
   if (wss) return wss;
   
   wss = new WebSocket.Server({ 
