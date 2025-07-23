@@ -128,12 +128,12 @@ async function approvePartner(partner: any) {
 // パートナー却下処理
 async function rejectPartner(partner: any, reason?: string) {
   try {
+    // 🔥 修正: 存在するカラムのみ更新
     const { data: updatedPartner, error: updateError } = await supabase
       .from('partners')
       .update({
         status: 'rejected',
-        rejection_reason: reason || '申請内容が基準を満たしていません',
-        rejected_at: new Date().toISOString(),
+        // rejection_reason と rejected_at カラムは存在しないため除外
         updated_at: new Date().toISOString()
       })
       .eq('id', partner.id)
@@ -146,12 +146,13 @@ async function rejectPartner(partner: any, reason?: string) {
     }
     
     // 却下通知メール送信
-    await sendRejectionEmail(partner, reason)
+    await sendRejectionEmail(partner, reason || '申請内容が基準を満たしていません')
     
     console.log('却下処理完了:', {
       partnerId: partner.id,
       email: partner.email,
-      reason
+      reason: reason || '申請内容が基準を満たしていません',
+      rejectedAt: new Date().toISOString()
     })
     
     return NextResponse.json({
