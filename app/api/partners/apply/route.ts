@@ -8,6 +8,12 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 export async function POST(request: NextRequest) {
   try {
     console.log('パートナー申請受信開始')
+    console.log('環境変数チェック:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      supabaseUrlLength: supabaseUrl?.length,
+      serviceKeyLength: supabaseServiceKey?.length
+    })
     
     const body = await request.json()
     const {
@@ -74,6 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('保存データ:', partnerData)
+    console.log('Supabase保存開始 - テーブル:partners')
 
     const { data: savedPartner, error: saveError } = await supabase
       .from('partners')
@@ -81,8 +88,19 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
+    console.log('Supabase保存結果:', {
+      success: !saveError,
+      data: savedPartner,
+      error: saveError
+    })
+
     if (saveError) {
-      console.error('申請保存エラー:', saveError)
+      console.error('申請保存エラー詳細:', {
+        message: saveError.message,
+        details: saveError.details,
+        hint: saveError.hint,
+        code: saveError.code
+      })
       return NextResponse.json(
         { error: '申請の保存に失敗しました', details: saveError.message },
         { status: 500 }
