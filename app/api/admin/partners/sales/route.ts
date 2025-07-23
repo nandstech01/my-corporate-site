@@ -9,29 +9,86 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: Request) {
   try {
-    const salesData = await request.json()
+    const inputData = await request.json()
     
-    console.log('売上データ受信:', salesData)
+    console.log('売上データ受信:', inputData)
     
-    // 1. partner_salesテーブルに売上データを挿入
+    // 1. パートナー情報取得（tierを確認）
+    const { data: partner, error: partnerError } = await supabase
+      .from('partners')
+      .select('id, name, tier, referrer_id')
+      .eq('id', inputData.partnerId)
+      .single()
+    
+    if (partnerError || !partner) {
+      console.error('パートナー情報取得エラー:', partnerError)
+      return NextResponse.json(
+        { error: 'パートナー情報が見つかりません', details: partnerError },
+        { status: 404 }
+      )
+    }
+    
+    console.log('パートナー情報:', partner)
+    
+    // 2. 正確な報酬計算
+    const totalAmount = inputData.totalAmount
+    let partnerCommission = 0
+    let partnerCommissionRate = 0
+    let referrerCommission = 0
+    let referrerCommissionRate = 0
+    let referrerId = null
+    
+    if (partner.tier === 1) {
+      // 1段目パートナー（直接営業）
+      partnerCommissionRate = 50
+      partnerCommission = Math.floor(totalAmount * 0.50)
+      console.log('1段目パートナー直接営業: 50%報酬')
+      
+    } else if (partner.tier === 2) {
+      // 2段目パートナー（紹介者）
+      partnerCommissionRate = 35
+      partnerCommission = Math.floor(totalAmount * 0.35)
+      
+      // 1段目の紹介者がいる場合、15%を支払う
+      if (partner.referrer_id) {
+        referrerId = partner.referrer_id
+        referrerCommissionRate = 15
+        referrerCommission = Math.floor(totalAmount * 0.15)
+        console.log('2段目パートナー営業: 35%報酬 + 1段目紹介者15%報酬')
+      } else {
+        console.log('2段目パートナー営業: 35%報酬のみ（紹介者なし）')
+      }
+    } else {
+      return NextResponse.json(
+        { error: '無効なパートナー段階です', details: `tier: ${partner.tier}` },
+        { status: 400 }
+      )
+    }
+    
+    // 3. 売上レコード作成
+    const salesRecord = {
+      partner_id: partner.id,
+      referrer_id: referrerId,
+      client_company: inputData.clientCompany,
+      course_type: inputData.courseType,
+      course_name: getCourseNameFromType(inputData.courseType),
+      participants: inputData.participants,
+      unit_price: inputData.unitPrice,
+      total_amount: totalAmount,
+      partner_commission_rate: partnerCommissionRate,
+      partner_commission: partnerCommission,
+      referrer_commission_rate: referrerCommissionRate || null,
+      referrer_commission: referrerCommission || null,
+      status: 'confirmed', // 管理者入力なので即座に確定
+      sale_date: inputData.saleDate
+    }
+    
+    console.log('計算された売上データ:', salesRecord)
+    
+    // 4. データベース保存
     const { data: saleRecord, error: saleError } = await supabase
       .from('partner_sales')
-      .insert({
-        partner_id: salesData.partnerId,
-        referrer_id: salesData.referrerId || null,
-        client_company: salesData.clientCompany,
-        course_type: salesData.courseType,
-        course_name: getCourseNameFromType(salesData.courseType),
-        participants: salesData.participants,
-        unit_price: salesData.unitPrice,
-        total_amount: salesData.totalAmount,
-        partner_commission_rate: salesData.partnerCommissionRate,
-        partner_commission: salesData.partnerCommission,
-        referrer_commission_rate: salesData.referrerCommissionRate || null,
-        referrer_commission: salesData.referrerCommission || null,
-        status: 'confirmed', // 管理者入力なので即座に確定
-        sale_date: salesData.saleDate
-      })
+      .insert(salesRecord)
       .select()
       .single()
     
@@ -45,23 +102,46 @@ export async function POST(request: Request) {
     
     console.log('売上データ挿入成功:', saleRecord)
     
-    // 2. パートナー統計の更新（トリガーで自動実行されるが、確認のため手動でも更新）
-    await updatePartnerStats(salesData.partnerId)
-    if (salesData.referrerId) {
-      await updatePartnerStats(salesData.referrerId)
+    // 5. パートナー統計の更新
+    await updatePartnerStats(partner.id)
+    if (referrerId) {
+      await updatePartnerStats(referrerId)
     }
     
-    return NextResponse.json({
+    // 6. レスポンス作成
+    const response = {
       success: true,
       message: '売上入力が完了しました',
       saleRecord,
-      partnerDashboardUpdate: 'パートナーダッシュボードに反映されました'
-    })
+      calculation: {
+        totalAmount,
+        partnerInfo: {
+          id: partner.id,
+          name: partner.name,
+          tier: partner.tier,
+          commission: partnerCommission,
+          rate: `${partnerCommissionRate}%`
+        },
+        referrerInfo: referrerId ? {
+          id: referrerId,
+          commission: referrerCommission,
+          rate: `${referrerCommissionRate}%`
+        } : null,
+        systemDescription: partner.tier === 1 
+          ? '1段目パートナー直接営業（50%報酬）'
+          : referrerId 
+            ? '2段目パートナー営業（35%報酬）+ 1段目紹介者（15%報酬）'
+            : '2段目パートナー営業（35%報酬のみ）'
+      }
+    }
+    
+    console.log('売上処理完了:', response.calculation)
+    return NextResponse.json(response)
     
   } catch (error) {
     console.error('売上入力API エラー:', error)
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました', details: error },
+      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 export default function PartnerApplication() {
@@ -16,8 +16,24 @@ export default function PartnerApplication() {
     experience: '',
     expectedMonthlyDeals: '',
     motivation: '',
-    agreedToTerms: false
+    agreedToTerms: false,
+    referrerCode: '' // リファーラーコード追加
   })
+
+  // URLパラメータからリファーラーコード取得
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const ref = urlParams.get('ref')
+      if (ref) {
+        setFormData(prev => ({
+          ...prev,
+          referrerCode: ref
+        }))
+        console.log('リファーラーコード取得:', ref)
+      }
+    }
+  }, [])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -34,11 +50,29 @@ export default function PartnerApplication() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // TODO: DB連携実装時に実際のAPI呼び出しを追加
-    setTimeout(() => {
+    try {
+      // パートナー申請API呼び出し
+      const response = await fetch('/api/partners/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        console.log('申請送信成功:', formData)
+        setIsSubmitted(true)
+      } else {
+        console.error('申請送信失敗:', response.statusText)
+        alert('申請の送信に失敗しました。もう一度お試しください。')
+      }
+    } catch (error) {
+      console.error('申請送信エラー:', error)
+      alert('エラーが発生しました。もう一度お試しください。')
+    } finally {
       setIsSubmitting(false)
-      setIsSubmitted(true)
-    }, 2000)
+    }
   }
 
   if (isSubmitted) {
@@ -113,6 +147,21 @@ export default function PartnerApplication() {
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8">
             <h3 className="text-2xl lg:text-3xl font-bold mb-2">パートナー申請フォーム</h3>
             <p className="text-purple-100">必要事項をご記入ください（審査後、3営業日以内にご連絡いたします）</p>
+            
+            {/* リファーラー情報表示 */}
+            {formData.referrerCode && (
+              <div className="mt-4 bg-white/10 rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🔗</span>
+                  <div>
+                    <p className="font-semibold">パートナー紹介での申請</p>
+                    <p className="text-sm text-purple-100">
+                      紹介コード: <span className="font-mono bg-white/20 px-2 py-1 rounded">{formData.referrerCode}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* フォーム */}
