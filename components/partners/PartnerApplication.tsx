@@ -51,6 +51,9 @@ export default function PartnerApplication() {
     setIsSubmitting(true)
     
     try {
+      console.log('🚀 申請送信開始:', formData)
+      console.log('📤 送信データJSON:', JSON.stringify(formData, null, 2))
+      
       // パートナー申請API呼び出し
       const response = await fetch('/api/partners/apply', {
         method: 'POST',
@@ -60,16 +63,30 @@ export default function PartnerApplication() {
         body: JSON.stringify(formData)
       })
 
+      console.log('📨 レスポンス受信:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      })
+
+      const responseData = await response.text()
+      console.log('📄 レスポンスデータ:', responseData)
+
       if (response.ok) {
-        console.log('申請送信成功:', formData)
+        console.log('✅ 申請送信成功')
         setIsSubmitted(true)
       } else {
-        console.error('申請送信失敗:', response.statusText)
-        alert('申請の送信に失敗しました。もう一度お試しください。')
+        console.error('❌ 申請送信失敗:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData
+        })
+        alert(`申請の送信に失敗しました。\nエラー: ${response.status} ${response.statusText}\n詳細: ${responseData}`)
       }
     } catch (error) {
-      console.error('申請送信エラー:', error)
-      alert('エラーが発生しました。もう一度お試しください。')
+      console.error('🚨 申請送信エラー:', error)
+      alert(`エラーが発生しました: ${error}`)
     } finally {
       setIsSubmitting(false)
     }

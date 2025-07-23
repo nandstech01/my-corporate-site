@@ -7,15 +7,19 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('パートナー申請受信開始')
-    console.log('環境変数チェック:', {
+    console.log('🚀 パートナー申請受信開始')
+    console.log('🔧 環境変数チェック:', {
       hasSupabaseUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
       supabaseUrlLength: supabaseUrl?.length,
       serviceKeyLength: supabaseServiceKey?.length
     })
     
+    console.log('📨 リクエストヘッダー:', Object.fromEntries(request.headers.entries()))
+    
     const body = await request.json()
+    console.log('📦 受信したraw body:', body)
+    
     const {
       partnerType,
       companyName,
@@ -31,7 +35,7 @@ export async function POST(request: NextRequest) {
       referrerCode
     } = body
 
-    console.log('申請データ:', {
+    console.log('🔍 パースされた申請データ:', {
       partnerType,
       companyName,
       email,
@@ -126,10 +130,22 @@ export async function POST(request: NextRequest) {
     console.log('申請完了:', response)
     return NextResponse.json(response)
 
-  } catch (error) {
-    console.error('申請処理エラー:', error)
+  } catch (error: any) {
+    console.error('🚨 申請処理エラー詳細:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      cause: error?.cause,
+      fullError: error
+    })
+    
     return NextResponse.json(
-      { error: '申請処理中にエラーが発生しました', details: error instanceof Error ? error.message : String(error) },
+      { 
+        error: '申請処理中にエラーが発生しました',
+        details: error?.message || 'Unknown error',
+        errorType: error?.name || 'UnknownError',
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     )
   }
