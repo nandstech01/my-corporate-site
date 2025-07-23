@@ -82,7 +82,18 @@ export default function PartnerApplication() {
           statusText: response.statusText,
           data: responseData
         })
-        alert(`申請の送信に失敗しました。\nエラー: ${response.status} ${response.statusText}\n詳細: ${responseData}`)
+
+        // 重複エラーの場合は専用メッセージ
+        if (response.status === 409) {
+          try {
+            const errorData = JSON.parse(responseData)
+            alert(`申請エラー: ${errorData.message}\n\n${errorData.suggestion}`)
+          } catch {
+            alert('このメールアドレスは既に申請済みです。\n別のメールアドレスをご利用ください。')
+          }
+        } else {
+          alert(`申請の送信に失敗しました。\nエラー: ${response.status} ${response.statusText}\n詳細: ${responseData}`)
+        }
       }
     } catch (error) {
       console.error('🚨 申請送信エラー:', error)

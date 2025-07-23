@@ -42,6 +42,35 @@ export async function POST(request: NextRequest) {
       referrerCode
     })
 
+    // メールアドレス重複チェック
+    console.log('📧 メール重複チェック開始:', email)
+    const { data: existingPartner, error: checkError } = await supabase
+      .from('partners')
+      .select('id, email, status, company_name, created_at')
+      .eq('email', email)
+      .single()
+
+    if (existingPartner) {
+      console.log('⚠️ 既存申請発見:', existingPartner)
+      return NextResponse.json(
+        { 
+          error: 'メールアドレス重複',
+          message: `このメールアドレス（${email}）は既に申請済みです`,
+          existingApplication: {
+            status: existingPartner.status,
+            companyName: existingPartner.company_name,
+            appliedAt: existingPartner.created_at
+          },
+          suggestion: existingPartner.status === 'pending' 
+            ? '申請は審査中です。3営業日以内にご連絡いたします。' 
+            : '既にパートナー登録済みです。別のメールアドレスをご利用ください。'
+        },
+        { status: 409 } // Conflict
+      )
+    }
+
+    console.log('✅ メール重複チェック完了 - 新規申請可能')
+
     // リファーラーが存在する場合、存在確認
     let referrerId = null
     if (referrerCode) {
