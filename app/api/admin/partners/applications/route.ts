@@ -4,8 +4,17 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// Service Role Keyを使用してRLSをバイパス
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+// Service Role Keyを使用してRLSをバイパス（強制更新 v2.0）
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    persistSession: false
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+})
 
 export async function GET(request: Request) {
   try {
@@ -86,12 +95,20 @@ export async function GET(request: Request) {
       latestApps
     })
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       applications: applications || [],
       stats,
       lastUpdated: new Date().toISOString()
     })
+    
+    // 🔥 キャッシュ無効化：本番環境での古いデータ問題を解決
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    response.headers.set('Surrogate-Control', 'no-store')
+    
+    return response
     
   } catch (error) {
     console.error('申請一覧API エラー:', error)

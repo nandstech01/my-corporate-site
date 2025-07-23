@@ -59,7 +59,16 @@ export default function PartnerApplicationsPage() {
       console.log('📡 API URL:', apiUrl)
       setDebugInfo(prev => prev + `\n📡 API URL: ${apiUrl}`)
       
-      const response = await fetch(apiUrl)
+      // 🔥 キャッシュ無効化：本番環境での古いデータ問題を解決
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      })
       console.log('📨 レスポンス受信:', response.status, response.statusText)
       setDebugInfo(prev => prev + `\n📨 レスポンス受信: ${response.status} ${response.statusText}`)
       
