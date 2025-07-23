@@ -47,6 +47,9 @@ export async function GET(request: Request) {
       query = query.eq('partner_type', partnerType)
     }
     
+    // 🔥 最新申請を確実に上部表示: created_at降順ソート
+    query = query.order('created_at', { ascending: false })
+    
     const { data: applications, error } = await query
     
     if (error) {

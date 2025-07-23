@@ -70,9 +70,13 @@ export default function PartnerApplicationsPage() {
         setDebugInfo(prev => prev + `\n📊 統計: ${JSON.stringify(data.stats, null, 2)}`)
         
         if (data.applications && Array.isArray(data.applications)) {
-          setApplications(data.applications)
-          console.log('✅ 申請データ設定完了:', data.applications.length, '件')
-          setDebugInfo(prev => prev + `\n✅ 申請データ設定完了: ${data.applications.length}件`)
+          // 🔥 強制更新：一度クリアしてから設定
+          setApplications([])
+          setTimeout(() => {
+            setApplications(data.applications)
+            console.log('✅ 申請データ設定完了:', data.applications.length, '件')
+            setDebugInfo(prev => prev + `\n✅ 申請データ設定完了: ${data.applications.length}件`)
+          }, 100)
         } else {
           console.error('❌ 申請データが配列ではありません:', data.applications)
           setDebugInfo(prev => prev + `\n❌ 申請データが配列ではありません`)
