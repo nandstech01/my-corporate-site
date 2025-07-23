@@ -30,39 +30,77 @@ export default function PartnerApplicationsPage() {
   const [selectedApp, setSelectedApp] = useState<PartnerApplication | null>(null)
 
   useEffect(() => {
-    console.log('useEffect実行開始')
-    setDebugInfo('useEffect実行開始')
+    console.log('🚀 useEffect実行開始 - 本番環境デバッグ')
+    setDebugInfo('🚀 useEffect実行開始 - 本番環境デバッグ')
+    
+    // 即座にデータ取得開始
     fetchApplications()
+    
+    // 10秒後に強制リトライ（本番環境での保険）
+    const retryTimer = setTimeout(() => {
+      console.log('⏰ 10秒後リトライ実行')
+      setDebugInfo(prev => prev + '\n⏰ 10秒後リトライ実行')
+      fetchApplications()
+    }, 10000)
+    
+    return () => clearTimeout(retryTimer)
   }, [])
 
   const fetchApplications = async () => {
     try {
-      console.log('申請データ取得開始...')
-      setDebugInfo('申請データ取得開始...')
+      console.log('🔄 申請データ取得開始...')
+      setDebugInfo('🔄 申請データ取得開始...')
       
-      const response = await fetch('/api/admin/partners/applications')
-      console.log('レスポンス受信:', response.status, response.statusText)
-      setDebugInfo(`レスポンス受信: ${response.status} ${response.statusText}`)
+      // 本番環境では絶対URLを使用
+      const apiUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+        ? 'https://nands.tech/api/admin/partners/applications'
+        : '/api/admin/partners/applications'
+      
+      console.log('📡 API URL:', apiUrl)
+      setDebugInfo(prev => prev + `\n📡 API URL: ${apiUrl}`)
+      
+      const response = await fetch(apiUrl)
+      console.log('📨 レスポンス受信:', response.status, response.statusText)
+      setDebugInfo(prev => prev + `\n📨 レスポンス受信: ${response.status} ${response.statusText}`)
       
       if (response.ok) {
         const data = await response.json()
-        console.log('取得したデータ:', data)
-        setDebugInfo(`取得したデータ: ${JSON.stringify(data, null, 2)}`)
-        setApplications(data.applications || [])
-        console.log('申請データ設定完了:', data.applications?.length || 0, '件')
+        console.log('✅ 取得したデータ:', data)
+        setDebugInfo(prev => prev + `\n✅ 取得したデータ件数: ${data.applications?.length || 0}件`)
+        setDebugInfo(prev => prev + `\n📊 統計: ${JSON.stringify(data.stats, null, 2)}`)
+        
+        if (data.applications && Array.isArray(data.applications)) {
+          setApplications(data.applications)
+          console.log('✅ 申請データ設定完了:', data.applications.length, '件')
+          setDebugInfo(prev => prev + `\n✅ 申請データ設定完了: ${data.applications.length}件`)
+        } else {
+          console.error('❌ 申請データが配列ではありません:', data.applications)
+          setDebugInfo(prev => prev + `\n❌ 申請データが配列ではありません`)
+        }
       } else {
-        console.error('API呼び出し失敗:', response.status, response.statusText)
+        console.error('❌ API呼び出し失敗:', response.status, response.statusText)
         const errorData = await response.text()
-        console.error('エラー詳細:', errorData)
-        setDebugInfo(`API呼び出し失敗: ${response.status} ${errorData}`)
+        console.error('❌ エラー詳細:', errorData)
+        setDebugInfo(prev => prev + `\n❌ API呼び出し失敗: ${response.status} ${errorData}`)
       }
     } catch (error) {
-      console.error('申請取得エラー:', error)
-      setDebugInfo(`申請取得エラー: ${error}`)
+      console.error('🚨 申請取得エラー:', error)
+      setDebugInfo(prev => prev + `\n🚨 エラー: ${error}`)
+      
+      // ネットワークエラーの場合は詳細情報を追加
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('🌐 ネットワークエラーまたはCORS問題の可能性')
+        setDebugInfo(prev => prev + `\n🌐 ネットワークエラーまたはCORS問題の可能性`)
+      }
     } finally {
-      console.log('ローディング状態解除')
-      setDebugInfo(prev => prev + '\nローディング状態解除')
+      console.log('🔄 ローディング状態解除')
+      setDebugInfo(prev => prev + '\n🔄 ローディング状態解除')
       setIsLoading(false)
+      
+      // 最終的な状態をログ出力
+      setTimeout(() => {
+        console.log('📋 最終状態 - applications.length:', applications.length)
+      }, 100)
     }
   }
 
@@ -160,7 +198,19 @@ export default function PartnerApplicationsPage() {
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">🔍 デバッグ情報</h1>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">🔍 デバッグ情報</h1>
+              <button
+                onClick={() => {
+                  console.log('🔄 手動リロード実行（ローディング中）')
+                  setDebugInfo(prev => prev + '\n🔄 手動リロード実行（ローディング中）')
+                  fetchApplications()
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                📡 強制再取得
+              </button>
+            </div>
             <div className="bg-gray-100 p-4 rounded-lg">
               <pre className="text-sm text-gray-700 whitespace-pre-wrap">{debugInfo}</pre>
             </div>
