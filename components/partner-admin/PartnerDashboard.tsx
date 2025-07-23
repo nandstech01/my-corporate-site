@@ -60,7 +60,12 @@ const mockPartnerData = {
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [copySuccess, setCopySuccess] = useState('')
   const { partnerInfo, revenueOverview, referrals } = mockPartnerData
+
+  // リファーラルコードとURL（実際は API から取得）
+  const referralCode = 'NANDS-2024-001'
+  const referralURL = `https://nands.tech/partners?ref=${referralCode}`
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ja-JP').format(amount) + '円'
@@ -74,6 +79,21 @@ export default function PartnerDashboard() {
       case 'アクティブ': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopySuccess('コピーしました！')
+      setTimeout(() => setCopySuccess(''), 3000)
+    } catch (err) {
+      setCopySuccess('コピーに失敗しました')
+      setTimeout(() => setCopySuccess(''), 3000)
+    }
+  }
+
+  const generateQRCodeURL = (text: string) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`
   }
 
   return (
@@ -104,7 +124,7 @@ export default function PartnerDashboard() {
         {/* タブナビゲーション */}
         <div className="border-b border-gray-200 mb-6 sm:mb-8">
           <nav className="-mb-px">
-            {/* スマホ版：縦2行のグリッド */}
+            {/* スマホ版：3行のグリッド */}
             <div className="grid grid-cols-2 gap-x-1 sm:hidden">
               <button
                 onClick={() => setActiveTab('overview')}
@@ -125,6 +145,16 @@ export default function PartnerDashboard() {
                 }`}
               >
                 紹介実績詳細
+              </button>
+              <button
+                onClick={() => setActiveTab('referral-links')}
+                className={`py-3 px-2 border-b-2 font-medium text-xs text-center transition-colors duration-200 ${
+                  activeTab === 'referral-links'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500'
+                }`}
+              >
+                🔗 リファーラルURL
               </button>
               <button
                 onClick={() => setActiveTab('courses')}
@@ -169,6 +199,16 @@ export default function PartnerDashboard() {
                 }`}
               >
                 紹介実績詳細
+              </button>
+              <button
+                onClick={() => setActiveTab('referral-links')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                  activeTab === 'referral-links'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                🔗 リファーラルURL
               </button>
               <button
                 onClick={() => setActiveTab('courses')}
@@ -540,6 +580,187 @@ export default function PartnerDashboard() {
                         <p className="mb-1"><strong>パートナー専用ホットライン:</strong> 03-XXXX-XXXX</p>
                         <p><strong>月次研修会:</strong> 毎月第3金曜日 14:00-16:00</p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* リファーラルURLタブ */}
+        {activeTab === 'referral-links' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="space-y-6">
+              {/* リファーラルURL発行セクション */}
+              <div className="bg-white rounded-lg shadow border">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <span className="text-2xl mr-3">🔗</span>
+                    パートナー紹介専用URL
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    このURLから申請された方は<strong>2段目パートナー（35%報酬）</strong>として登録され、あなたに<strong>15%の継続報酬</strong>が支払われます
+                  </p>
+                </div>
+                <div className="p-6">
+                  {/* リファーラルコード表示 */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">あなたのリファーラルコード</label>
+                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg p-3">
+                      <code className="flex-1 text-lg font-mono text-gray-900 bg-transparent">{referralCode}</code>
+                      <button
+                        onClick={() => copyToClipboard(referralCode)}
+                        className="ml-3 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                      >
+                        📋 コピー
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* リファーラルURL表示 */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">専用紹介URL</label>
+                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg p-3">
+                      <code className="flex-1 text-sm font-mono text-gray-900 bg-transparent break-all">{referralURL}</code>
+                      <button
+                        onClick={() => copyToClipboard(referralURL)}
+                        className="ml-3 px-4 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+                      >
+                        📋 URL コピー
+                      </button>
+                    </div>
+                    {copySuccess && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-green-600 text-sm mt-2 font-medium"
+                      >
+                        ✅ {copySuccess}
+                      </motion.p>
+                    )}
+                  </div>
+
+                  {/* QRコード表示 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">QRコード</label>
+                      <div className="bg-white border-2 border-gray-200 rounded-lg p-4 text-center">
+                        <img
+                          src={generateQRCodeURL(referralURL)}
+                          alt="リファーラルURL QRコード"
+                          className="mx-auto mb-3"
+                          width={200}
+                          height={200}
+                        />
+                        <p className="text-xs text-gray-500">スマートフォンで読み取り可能</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">使用方法・注意事項</label>
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-amber-800 mb-3">📝 使用ガイド</h4>
+                        <ul className="text-sm text-amber-700 space-y-2">
+                          <li className="flex items-start">
+                            <span className="text-amber-500 mr-2 mt-0.5">•</span>
+                            このURLを見込み客に共有してください
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-amber-500 mr-2 mt-0.5">•</span>
+                            申請者は自動的に2段目パートナーとして登録
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-amber-500 mr-2 mt-0.5">•</span>
+                            彼らの成約時、あなたに15%の継続報酬
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-amber-500 mr-2 mt-0.5">•</span>
+                            QRコードを名刺や資料に印刷可能
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 報酬体系説明 */}
+              <div className="bg-white rounded-lg shadow border">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">💰 2段階アフィリエイト報酬体系</h3>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">👤 あなた（1段目パートナー）</h4>
+                      <div className="space-y-3">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <p className="font-semibold text-green-800">直接営業の場合</p>
+                          <p className="text-2xl font-bold text-green-600">50% 報酬</p>
+                          <p className="text-sm text-green-700">100万円 → 50万円</p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="font-semibold text-blue-800">2段目経由の場合</p>
+                          <p className="text-2xl font-bold text-blue-600">15% 継続報酬</p>
+                          <p className="text-sm text-blue-700">100万円 → 15万円</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">👥 紹介者（2段目パートナー）</h4>
+                      <div className="space-y-3">
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                          <p className="font-semibold text-orange-800">直接営業のみ</p>
+                          <p className="text-2xl font-bold text-orange-600">35% 報酬</p>
+                          <p className="text-sm text-orange-700">100万円 → 35万円</p>
+                        </div>
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <p className="font-semibold text-gray-600">さらなる紹介</p>
+                          <p className="text-lg font-bold text-gray-500">不可</p>
+                          <p className="text-sm text-gray-600">3段目以降は制限</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-purple-800 mb-2">🎯 月収450万円の実現例</h4>
+                    <div className="text-sm text-purple-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-medium">あなたの直接営業</p>
+                        <p>月3件 × 150万円 × 50% = 225万円</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">2段目パートナー5名の営業</p>
+                        <p>月10件 × 150万円 × 15% = 225万円</p>
+                      </div>
+                    </div>
+                    <p className="text-purple-800 font-bold mt-2">合計月収: 450万円</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 紹介先管理 */}
+              <div className="bg-white rounded-lg shadow border">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">📊 あなたが紹介した2段目パートナー</h3>
+                </div>
+                <div className="p-6">
+                  {/* TODO: 実際のAPIから取得した紹介データを表示 */}
+                  <div className="text-center py-8">
+                    <span className="text-6xl mb-4 block">👥</span>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">まだ紹介実績がありません</h4>
+                    <p className="text-gray-600 mb-4">上記のリファーラルURLを共有して、2段目パートナーを紹介しましょう！</p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+                      <p className="text-blue-800 font-medium">紹介成功時の特典</p>
+                      <p className="text-sm text-blue-700">• 紹介者の売上から15%の継続報酬</p>
+                      <p className="text-sm text-blue-700">• 紹介ボーナス: 初回成約時+5万円</p>
                     </div>
                   </div>
                 </div>

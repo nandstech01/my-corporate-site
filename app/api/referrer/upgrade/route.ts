@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import jwt from 'jsonwebtoken'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,32 +10,63 @@ export async function POST(request: NextRequest) {
   try {
     console.log('昇格申請処理開始')
     
-    // TODO: 認証機能実装後、実際のユーザーIDを取得
-    // 現在はテスト用：tier=2のパートナーを取得
-    const { data: referrers, error: referrerError } = await supabase
+    // JWT認証
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.split(' ')[1]
+    let decodedToken: any
+
+    try {
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret')
+    } catch (tokenError) {
+      console.log('トークン検証エラー:', tokenError)
+      return NextResponse.json(
+        { error: '無効なトークンです' },
+        { status: 401 }
+      )
+    }
+
+    if (decodedToken.tier !== 2) {
+      return NextResponse.json(
+        { error: '2段目パートナーのみアクセス可能です' },
+        { status: 403 }
+      )
+    }
+
+    const partnerId = decodedToken.partnerId
+    console.log('認証成功 - 昇格申請パートナーID:', partnerId)
+    
+    // 認証されたパートナーの情報を取得
+    const { data: partner, error: partnerError } = await supabase
       .from('partners')
       .select(`
         id,
-        name,
+        company_name,
+        individual_name,
         email,
         tier,
         status,
-        company_name,
         phone
       `)
+      .eq('id', partnerId)
       .eq('tier', 2)
-      .eq('status', 'active')
-      .limit(1)
+      .single()
 
-    if (referrerError) {
-      console.error('2段目パートナー取得エラー:', referrerError)
+    if (partnerError) {
+      console.error('2段目パートナー取得エラー:', partnerError)
       return NextResponse.json(
         { error: '申請者情報の取得に失敗しました' },
         { status: 500 }
       )
     }
 
-    if (!referrers || referrers.length === 0) {
+    if (!partner) {
       console.log('2段目パートナーが見つかりません')
       return NextResponse.json(
         { error: '2段目パートナーとして登録されていません' },
@@ -42,7 +74,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const referrer = referrers[0]
+    const referrer = partner
     console.log('昇格申請者確認:', referrer)
 
     // 既存の昇格申請があるかチェック
@@ -65,7 +97,7 @@ export async function POST(request: NextRequest) {
     // 昇格申請データを作成
     const upgradeRequestData = {
       partner_id: referrer.id,
-      partner_name: referrer.name,
+      partner_name: referrer.company_name || referrer.individual_name,
       partner_email: referrer.email,
       current_tier: referrer.tier,
       requested_tier: 1,
@@ -103,7 +135,7 @@ export async function POST(request: NextRequest) {
         
         <h3>📋 申請者情報</h3>
         <ul>
-          <li><strong>名前:</strong> ${referrer.name}</li>
+          <li><strong>名前:</strong> ${referrer.company_name || referrer.individual_name}</li>
           <li><strong>メールアドレス:</strong> ${referrer.email}</li>
           <li><strong>会社名:</strong> ${referrer.company_name || 'なし'}</li>
           <li><strong>電話番号:</strong> ${referrer.phone || 'なし'}</li>

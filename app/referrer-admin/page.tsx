@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import ReferrerLogin from '../../components/partner-admin/ReferrerLogin'
 
 interface ReferrerData {
   id: string
@@ -26,10 +27,32 @@ interface SalesRecord {
 }
 
 export default function ReferrerAdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [referrerData, setReferrerData] = useState<ReferrerData | null>(null)
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showUpgradeForm, setShowUpgradeForm] = useState(false)
+
+  // 認証状態チェック
+  useEffect(() => {
+    const token = localStorage.getItem('referrer_token')
+    const userData = localStorage.getItem('referrer_data')
+    
+    if (token && userData) {
+      setIsAuthenticated(true)
+      try {
+        const parsedData = JSON.parse(userData)
+        setReferrerData(parsedData)
+      } catch (error) {
+        console.error('ユーザーデータの解析エラー:', error)
+        localStorage.removeItem('referrer_token')
+        localStorage.removeItem('referrer_data')
+      }
+    } else {
+      setIsAuthenticated(false)
+      setIsLoading(false)
+    }
+  }, [])
 
   // 2段目ユーザーデータ取得
   useEffect(() => {
@@ -40,13 +63,23 @@ export default function ReferrerAdminPage() {
     try {
       setIsLoading(true)
       
-      // TODO: 認証機能実装後に実際のユーザーIDを取得
-      // 現在はテスト用
-      const response = await fetch('/api/referrer/dashboard')
+      const token = localStorage.getItem('referrer_token')
+      const response = await fetch('/api/referrer/dashboard', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      
       if (response.ok) {
         const data = await response.json()
         setReferrerData(data.referrer)
         setSalesRecords(data.sales)
+      } else if (response.status === 401) {
+        // 認証エラー
+        localStorage.removeItem('referrer_token')
+        localStorage.removeItem('referrer_data')
+        setIsAuthenticated(false)
       }
     } catch (error) {
       console.error('データ取得エラー:', error)
@@ -57,10 +90,12 @@ export default function ReferrerAdminPage() {
 
   const handleUpgradeRequest = async () => {
     try {
+      const token = localStorage.getItem('referrer_token')
       const response = await fetch('/api/referrer/upgrade', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       })
 
@@ -74,6 +109,11 @@ export default function ReferrerAdminPage() {
       console.error('昇格申請エラー:', error)
       alert('エラーが発生しました。')
     }
+  }
+
+  // 未認証の場合はログインページを表示
+  if (!isAuthenticated) {
+    return <ReferrerLogin onLoginSuccess={() => setIsAuthenticated(true)} />
   }
 
   if (isLoading) {
@@ -106,6 +146,16 @@ export default function ReferrerAdminPage() {
                 className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300"
               >
                 1段目に昇格申請
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('referrer_token')
+                  localStorage.removeItem('referrer_data')
+                  setIsAuthenticated(false)
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                ログアウト
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import jwt from 'jsonwebtoken'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,13 +10,45 @@ export async function GET(request: NextRequest) {
   try {
     console.log('2段目ダッシュボードデータ取得開始')
     
-    // TODO: 認証機能実装後、実際のユーザーIDを取得
-    // 現在はテスト用：tier=2のパートナーを取得
-    const { data: referrers, error: referrerError } = await supabase
+    // JWT認証
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.split(' ')[1]
+    let decodedToken: any
+
+    try {
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret')
+    } catch (tokenError) {
+      console.log('トークン検証エラー:', tokenError)
+      return NextResponse.json(
+        { error: '無効なトークンです' },
+        { status: 401 }
+      )
+    }
+
+    if (decodedToken.tier !== 2) {
+      return NextResponse.json(
+        { error: '2段目パートナーのみアクセス可能です' },
+        { status: 403 }
+      )
+    }
+
+    const partnerId = decodedToken.partnerId
+    console.log('認証成功 - パートナーID:', partnerId)
+    
+    // 認証されたパートナーの情報を取得
+    const { data: partner, error: partnerError } = await supabase
       .from('partners')
       .select(`
         id,
-        name,
+        company_name,
+        individual_name,
         email,
         tier,
         total_sales,
@@ -24,19 +57,19 @@ export async function GET(request: NextRequest) {
         created_at,
         referrer_id
       `)
+      .eq('id', partnerId)
       .eq('tier', 2)
-      .eq('status', 'active')
-      .limit(1)
+      .single()
 
-    if (referrerError) {
-      console.error('2段目パートナー取得エラー:', referrerError)
+    if (partnerError) {
+      console.error('2段目パートナー取得エラー:', partnerError)
       return NextResponse.json(
         { error: '2段目パートナー情報の取得に失敗しました' },
         { status: 500 }
       )
     }
 
-    if (!referrers || referrers.length === 0) {
+    if (!partner) {
       console.log('2段目パートナーが見つかりません')
       return NextResponse.json({
         referrer: null,
@@ -45,7 +78,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const referrer = referrers[0]
+    const referrer = partner
     console.log('2段目パートナー取得成功:', referrer)
 
     // 売上履歴取得（2段目は referrer_id として記録される）
@@ -82,16 +115,17 @@ export async function GET(request: NextRequest) {
     if (referrer.referrer_id) {
       const { data: referrerInfo } = await supabase
         .from('partners')
-        .select('name')
+        .select('company_name, individual_name')
         .eq('id', referrer.referrer_id)
         .single()
       
-      referrerName = referrerInfo?.name || null
+      referrerName = referrerInfo?.company_name || referrerInfo?.individual_name || null
     }
 
     const response = {
       referrer: {
         ...referrer,
+        name: referrer.company_name || referrer.individual_name,
         referrer_name: referrerName
       },
       sales: salesData || [],
