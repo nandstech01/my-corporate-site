@@ -210,12 +210,21 @@ export default function PartnerApplicationsPage() {
 
   // 🚨 本番環境専用: レンダリング時デバッグ
   useEffect(() => {
+    const statusCounts = {
+      pending: applications.filter(app => app.status === 'pending').length,
+      approved: applications.filter(app => app.status === 'approved').length,
+      rejected: applications.filter(app => app.status === 'rejected').length,
+      total: applications.length
+    }
+    
     console.log('🔍 レンダリング時デバッグ:', {
       applicationsLength: applications.length,
       filteredLength: filteredApplications.length,
       filter: filter,
+      statusCounts: statusCounts,
       firstApp: applications[0],
-      firstFiltered: filteredApplications[0]
+      firstFiltered: filteredApplications[0],
+      allStatuses: applications.map(app => ({ id: app.id.substring(0, 8), status: app.status }))
     })
   }, [applications, filteredApplications, filter])
 
