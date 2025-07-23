@@ -13,8 +13,8 @@ const withMDX = require('@next/mdx')({
 })
 
 const nextConfig = {
-  // 基本設定
-  reactStrictMode: true,
+  // 基本設定（音声AI開発中のみStrictMode無効化）
+  reactStrictMode: false, // 開発中は無効化（音声接続の重複防止）
   swcMinify: true,
 
   // MDXページルートの設定

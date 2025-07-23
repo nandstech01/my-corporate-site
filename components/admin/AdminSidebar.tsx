@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { 
   HomeIcon, 
   DocumentTextIcon, 
@@ -11,11 +12,16 @@ import {
   GlobeAltIcon,
   CubeIcon,
   PlayIcon,
-  TrashIcon
+  TrashIcon,
+  UserGroupIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
+import VoiceAgentButton from './VoiceAgent/VoiceAgentButton';
+import VoiceAgentModalV2 from './VoiceAgent/VoiceAgentModalV2';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
 
   const navigation = [
     {
@@ -76,6 +82,32 @@ export default function AdminSidebar() {
       href: '/admin/reviews',
       icon: StarIcon,
       current: pathname === '/admin/reviews'
+    },
+    {
+      name: 'パートナー管理',
+      icon: UserGroupIcon,
+      children: [
+        {
+          name: 'パートナー一覧',
+          href: '/admin/partners',
+          current: pathname === '/admin/partners'
+        },
+        {
+          name: '申請承認',
+          href: '/admin/partners/applications',
+          current: pathname === '/admin/partners/applications'
+        },
+        {
+          name: '売上入力',
+          href: '/admin/partners/sales',
+          current: pathname === '/admin/partners/sales'
+        },
+        {
+          name: 'レポート',
+          href: '/admin/partners/reports',
+          current: pathname === '/admin/partners/reports'
+        }
+      ]
     }
   ];
 
@@ -92,6 +124,13 @@ export default function AdminSidebar() {
             <span>NANDS Admin</span>
           </span>
         </Link>
+      </div>
+
+      {/* 音声AIエージェント */}
+      <div className="px-4 py-4 border-b border-gray-800">
+        <VoiceAgentButton 
+          onActivate={() => setIsVoiceAgentOpen(true)}
+        />
       </div>
 
       {/* ナビゲーション */}
@@ -146,6 +185,12 @@ export default function AdminSidebar() {
           <p className="mt-1 text-gray-400">Triple RAG v2.0.0</p>
         </div>
       </div>
+
+      {/* 音声AIエージェントモーダル */}
+      <VoiceAgentModalV2 
+        isOpen={isVoiceAgentOpen}
+        onClose={() => setIsVoiceAgentOpen(false)}
+      />
     </div>
   );
 }
