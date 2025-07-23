@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
     if (referrerCode) {
       const { data: referrer, error: referrerError } = await supabase
         .from('partners')
-        .select('id, name, partner_type')
+        .select('id, representative_name, partner_type')
         .eq('referral_code', referrerCode)
-        .eq('status', 'active')
+        .eq('status', 'approved')
         .single()
 
       if (referrerError) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         referrerId = referrer.id
         console.log('リファーラー確認成功:', {
           referrerId,
-          referrerName: referrer.name,
+          referrerName: referrer.representative_name,
           referrerType: referrer.partner_type
         })
       }
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
 
     // パートナー申請データを保存
     const partnerData = {
-      name: representativeName,
+      referral_code: `TEMP_${Date.now()}`, // 一時的なリファーラルコード（承認時に正式なものに変更）
+      representative_name: representativeName,
       email: email,
       company_name: companyName,
       phone: phone,
@@ -68,12 +69,8 @@ export async function POST(request: NextRequest) {
       experience: experience,
       expected_monthly_deals: parseInt(expectedMonthlyDeals) || 1,
       motivation: motivation,
-      referrer_id: referrerId, // リファーラーID保存
-      referrer_code_used: referrerCode || null, // 使用されたリファーラーコード保存
-      status: 'pending', // 承認待ち状態
-      tier: referrerId ? 2 : 1, // リファーラーがいる場合は2段目、いない場合は1段目申請
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      parent_partner_id: referrerId, // リファーラーID保存
+      status: 'pending' // 承認待ち状態
     }
 
     console.log('保存データ:', partnerData)
@@ -98,7 +95,7 @@ export async function POST(request: NextRequest) {
     const response = {
       success: true,
       partnerId: savedPartner.id,
-      tier: savedPartner.tier,
+      tier: referrerId ? 2 : 1, // 紹介者がいれば2段目、いなければ1段目
       referrerInfo: referrerId ? {
         referrerId,
         referrerCode
