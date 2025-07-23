@@ -171,7 +171,20 @@ export default function PartnerApplicationsPage() {
   }
 
   const filteredApplications = applications.filter(app => {
-    return filter === 'all' || app.status === filter
+    const matchesFilter = filter === 'all' || app.status === filter
+    // 🚨 本番環境専用: フィルター条件詳細ログ
+    if (applications.length > 0 && !matchesFilter) {
+      console.log('🔍 フィルター除外:', {
+        appId: app.id.substring(0, 8),
+        appStatus: app.status,
+        appStatusType: typeof app.status,
+        filterCondition: filter,
+        filterType: typeof filter,
+        strictEqual: app.status === filter,
+        comparison: `"${app.status}" === "${filter}"`
+      })
+    }
+    return matchesFilter
   })
 
   // 詳細デバッグ情報
@@ -190,6 +203,17 @@ export default function PartnerApplicationsPage() {
       name: app.representative_name
     }))
   }
+
+  // 🚨 本番環境専用: レンダリング時デバッグ
+  useEffect(() => {
+    console.log('🔍 レンダリング時デバッグ:', {
+      applicationsLength: applications.length,
+      filteredLength: filteredApplications.length,
+      filter: filter,
+      firstApp: applications[0],
+      firstFiltered: filteredApplications[0]
+    })
+  }, [applications, filteredApplications, filter])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -318,7 +342,7 @@ export default function PartnerApplicationsPage() {
                 <div className="text-gray-500 mb-4">
                   {filter === 'all' ? '申請がありません' : `${filter}の申請がありません`}
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-left">
+                <div className="bg-yellow-50 p-4 rounded-lg text-left mb-4">
                   <h4 className="font-bold text-yellow-800 mb-2">🔍 フィルター詳細</h4>
                   <p className="text-sm text-yellow-700">
                     現在のフィルター: <strong>{filter}</strong><br/>
@@ -326,6 +350,23 @@ export default function PartnerApplicationsPage() {
                     フィルター後: <strong>{filteredApplications.length}件</strong><br/>
                     ステータス内訳: {JSON.stringify(debugStats.statusBreakdown)}
                   </p>
+                </div>
+                
+                {/* 🚨 本番環境専用: 強制表示テスト */}
+                <div className="bg-red-50 p-4 rounded-lg text-left">
+                  <h4 className="font-bold text-red-800 mb-2">🚨 強制表示テスト</h4>
+                  <button 
+                    onClick={() => {
+                      console.log('🔍 強制表示テスト:', {
+                        applications: applications.slice(0, 2),
+                        filteredApplications: filteredApplications.slice(0, 2)
+                      })
+                      alert(`データ確認:\n総件数: ${applications.length}\nフィルター後: ${filteredApplications.length}\nコンソールを確認してください`)
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    データ構造確認
+                  </button>
                 </div>
               </div>
             ) : (
@@ -353,6 +394,15 @@ export default function PartnerApplicationsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
+                  {/* 🚨 本番環境専用: 強制表示行 */}
+                  {applications.length > 0 && (
+                    <tr className="bg-red-50">
+                      <td colSpan={6} className="px-6 py-2 text-center text-sm text-red-700">
+                        🚨 強制表示テスト: 総データ{applications.length}件 | フィルター後{filteredApplications.length}件 | 条件:{filter}
+                      </td>
+                    </tr>
+                  )}
+                  
                   {filteredApplications.map((app) => (
                     <motion.tr
                       key={app.id}
