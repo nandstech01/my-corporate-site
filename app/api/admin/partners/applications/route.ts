@@ -13,7 +13,8 @@ export async function GET(request: Request) {
     const status = searchParams.get('status') // pending, approved, rejected, all
     const partnerType = searchParams.get('type') // kol, corporate, all
     
-    console.log('申請一覧取得開始 - status:', status, 'type:', partnerType)
+    const timestamp = new Date().toISOString()
+    console.log(`🚀 申請一覧取得開始 [${timestamp}] - status:`, status, 'type:', partnerType)
     
     // 基本クエリ
     let query = supabase
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
       query = query.eq('partner_type', partnerType)
     }
     
-    // 🔥 最新申請を確実に上部表示: created_at降順ソート
+    // 🔥 最新申請を確実に上部表示: created_at降順ソート（強制更新）
     query = query.order('created_at', { ascending: false })
     
     const { data: applications, error } = await query
@@ -70,9 +71,19 @@ export async function GET(request: Request) {
       corporateCount: applications?.filter(app => app.partner_type === 'corporate').length || 0
     }
     
-    console.log('申請一覧取得成功:', {
+    // 🔍 デバッグ: 最新5件の申請情報
+    const latestApps = applications?.slice(0, 5).map(app => ({
+      id: app.id.substring(0, 8),
+      company: app.company_name,
+      name: app.representative_name,
+      status: app.status,
+      created: app.created_at
+    })) || []
+    
+    console.log(`✅ 申請一覧取得成功 [${timestamp}]:`, {
       count: applications?.length || 0,
-      stats
+      stats,
+      latestApps
     })
     
     return NextResponse.json({
