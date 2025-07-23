@@ -24,24 +24,44 @@ interface PartnerApplication {
 export default function PartnerApplicationsPage() {
   const [applications, setApplications] = useState<PartnerApplication[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [debugInfo, setDebugInfo] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
   const [selectedApp, setSelectedApp] = useState<PartnerApplication | null>(null)
 
   useEffect(() => {
+    console.log('useEffect実行開始')
+    setDebugInfo('useEffect実行開始')
     fetchApplications()
   }, [])
 
   const fetchApplications = async () => {
     try {
+      console.log('申請データ取得開始...')
+      setDebugInfo('申請データ取得開始...')
+      
       const response = await fetch('/api/admin/partners/applications')
+      console.log('レスポンス受信:', response.status, response.statusText)
+      setDebugInfo(`レスポンス受信: ${response.status} ${response.statusText}`)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('取得したデータ:', data)
+        setDebugInfo(`取得したデータ: ${JSON.stringify(data, null, 2)}`)
         setApplications(data.applications || [])
+        console.log('申請データ設定完了:', data.applications?.length || 0, '件')
+      } else {
+        console.error('API呼び出し失敗:', response.status, response.statusText)
+        const errorData = await response.text()
+        console.error('エラー詳細:', errorData)
+        setDebugInfo(`API呼び出し失敗: ${response.status} ${errorData}`)
       }
     } catch (error) {
       console.error('申請取得エラー:', error)
+      setDebugInfo(`申請取得エラー: ${error}`)
     } finally {
+      console.log('ローディング状態解除')
+      setDebugInfo(prev => prev + '\nローディング状態解除')
       setIsLoading(false)
     }
   }
@@ -137,10 +157,20 @@ export default function PartnerApplicationsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">申請データを読み込み中...</p>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">🔍 デバッグ情報</h1>
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap">{debugInfo}</pre>
+            </div>
+          </div>
+          <div className="min-h-64 bg-white rounded-lg shadow flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">申請データを読み込み中...</p>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -148,176 +178,163 @@ export default function PartnerApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* ヘッダー */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            パートナー申請承認
-            {pendingCount > 0 && (
-              <span className="ml-3 px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
-                {pendingCount}件 審査待ち
-              </span>
-            )}
-          </h1>
-          <p className="text-gray-600">申請の承認・却下と自動アカウント作成</p>
-        </div>
-
-        {/* フィルター */}
-        <div className="bg-white p-6 rounded-lg shadow border mb-8">
-          <div className="flex gap-4">
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'pending' 
-                  ? 'bg-yellow-100 text-yellow-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              審査中 ({applications.filter(app => app.status === 'pending').length})
-            </button>
-            <button
-              onClick={() => setFilter('approved')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'approved' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              承認済み ({applications.filter(app => app.status === 'approved').length})
-            </button>
-            <button
-              onClick={() => setFilter('rejected')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'rejected' 
-                  ? 'bg-red-100 text-red-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              却下 ({applications.filter(app => app.status === 'rejected').length})
-            </button>
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              全て ({applications.length})
-            </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">🔍 デバッグ情報</h1>
+          <div className="bg-gray-100 p-4 rounded-lg mb-4">
+            <pre className="text-sm text-gray-700 whitespace-pre-wrap">{debugInfo}</pre>
+          </div>
+          <div className="text-sm text-gray-600">
+            読み込み済み申請件数: {applications.length}件
           </div>
         </div>
 
-        {/* 申請リスト */}
-        <div className="space-y-6">
-          {filteredApplications.map((app) => (
-            <motion.div
-              key={app.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-lg shadow border overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                  {/* 基本情報 */}
-                  <div className="flex-1">
-                    <div className="flex items-center mb-3">
-                      <span className="text-2xl mr-3">{getTypeIcon(app.partner_type)}</span>
-                      <h3 className="text-xl font-bold text-gray-900">{app.company_name}</h3>
-                      <div className="ml-3">{getStatusBadge(app.status)}</div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <div className="text-sm text-gray-500">代表者</div>
-                        <div className="font-medium">{app.representative_name}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">メールアドレス</div>
-                        <div className="font-medium">{app.email}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">電話番号</div>
-                        <div className="font-medium">{app.phone}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">パートナータイプ</div>
-                        <div className="font-medium">
-                          {app.partner_type === 'kol' ? 'KOL（インフルエンサー）' : '法人'}
-                        </div>
-                      </div>
-                    </div>
+        {/* 既存のパートナー申請一覧表示 */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                パートナー申請管理
+                {pendingCount > 0 && (
+                  <span className="ml-2 px-2 py-1 text-sm bg-red-100 text-red-800 rounded-full">
+                    {pendingCount}件 承認待ち
+                  </span>
+                )}
+              </h1>
+              <button
+                onClick={fetchApplications}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isLoading ? '読み込み中...' : '更新'}
+              </button>
+            </div>
 
-                    {/* 詳細情報 */}
-                    <div className="space-y-3">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">事業内容</div>
-                        <div className="text-sm">{app.business_description}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">経験・実績</div>
-                        <div className="text-sm">{app.experience}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">動機</div>
-                        <div className="text-sm">{app.motivation}</div>
-                      </div>
-                      <div className="flex gap-4">
+            {/* フィルター */}
+            <div className="mt-4 flex space-x-2">
+              {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    filter === status
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {status === 'all' ? 'すべて' : 
+                   status === 'pending' ? '審査中' :
+                   status === 'approved' ? '承認済み' : '却下'}
+                  {status !== 'all' && (
+                    <span className="ml-1">
+                      ({applications.filter(app => app.status === status).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 申請一覧 */}
+          <div className="overflow-x-auto">
+            {filteredApplications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                {filter === 'all' ? '申請がありません' : `${filter}の申請がありません`}
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      申請者
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      種別
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      想定成約数
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ステータス
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      申請日
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredApplications.map((app) => (
+                    <motion.tr
+                      key={app.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm text-gray-500">予想月間成約数</div>
-                          <div className="font-medium">{app.expected_monthly_deals}件</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">申請日</div>
-                          <div className="font-medium">
-                            {new Date(app.created_at).toLocaleDateString('ja-JP')}
+                          <div className="text-sm font-medium text-gray-900">
+                            {app.representative_name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {app.company_name}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {app.email}
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* アクションボタン */}
-                  {app.status === 'pending' && (
-                    <div className="mt-6 lg:mt-0 lg:ml-6 flex flex-col gap-3 lg:w-48">
-                      <button
-                        onClick={() => handleApprove(app.id)}
-                        disabled={processingIds.has(app.id)}
-                        className="w-full px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {processingIds.has(app.id) ? '承認中...' : '✅ 承認・アカウント作成'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          const reason = prompt('却下理由を入力してください（任意）：')
-                          if (reason !== null) {
-                            handleReject(app.id, reason)
-                          }
-                        }}
-                        disabled={processingIds.has(app.id)}
-                        className="w-full px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {processingIds.has(app.id) ? '処理中...' : '❌ 却下'}
-                      </button>
-                      <button
-                        onClick={() => setSelectedApp(app)}
-                        className="w-full px-4 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700"
-                      >
-                        📋 詳細確認
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-
-          {filteredApplications.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">📋</div>
-              <p className="text-gray-500">該当する申請がありません</p>
-            </div>
-          )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="text-lg mr-2">{getTypeIcon(app.partner_type)}</span>
+                          <span className="text-sm text-gray-900">
+                            {app.partner_type === 'kol' ? 'インフルエンサー' : '法人'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        月{app.expected_monthly_deals}件
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(app.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(app.created_at).toLocaleDateString('ja-JP')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button
+                          onClick={() => setSelectedApp(app)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          詳細
+                        </button>
+                        {app.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(app.id)}
+                              disabled={processingIds.has(app.id)}
+                              className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                            >
+                              {processingIds.has(app.id) ? '処理中...' : '承認'}
+                            </button>
+                            <button
+                              onClick={() => handleReject(app.id)}
+                              disabled={processingIds.has(app.id)}
+                              className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                            >
+                              {processingIds.has(app.id) ? '処理中...' : '却下'}
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
 
