@@ -70,13 +70,13 @@ export default function PartnerApplicationsPage() {
         setDebugInfo(prev => prev + `\n📊 統計: ${JSON.stringify(data.stats, null, 2)}`)
         
         if (data.applications && Array.isArray(data.applications)) {
-          // 🔥 強制更新：一度クリアしてから設定
-          setApplications([])
-          setTimeout(() => {
-            setApplications(data.applications)
-            console.log('✅ 申請データ設定完了:', data.applications.length, '件')
-            setDebugInfo(prev => prev + `\n✅ 申請データ設定完了: ${data.applications.length}件`)
-          }, 100)
+          // 🔥 最新申請が上部に表示されるよう並び順を保証
+          const sortedApplications = data.applications.sort((a: PartnerApplication, b: PartnerApplication) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+          setApplications(sortedApplications)
+          console.log('✅ 申請データ設定完了:', sortedApplications.length, '件')
+          setDebugInfo(prev => prev + `\n✅ 申請データ設定完了: ${sortedApplications.length}件`)
         } else {
           console.error('❌ 申請データが配列ではありません:', data.applications)
           setDebugInfo(prev => prev + `\n❌ 申請データが配列ではありません`)
@@ -123,17 +123,33 @@ export default function PartnerApplicationsPage() {
       
       if (response.ok) {
         const result = await response.json()
-        await fetchApplications() // リフレッシュ
+        console.log('✅ 承認処理成功:', result)
+        
+        // 🔥 処理中状態を即座にクリア
+        setProcessingIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(applicationId)
+          return newSet
+        })
+        
+        // 🔥 データ再取得で最新状態に更新
+        await fetchApplications()
+        
+        // 🎯 承認済みタブに自動切り替え
+        setFilter('approved')
         
         // 成功通知
         alert(`承認完了！\n仮パスワードメールを送信しました：\nEmail: ${result.email}\nPassword: ${result.tempPassword}`)
       } else {
+        const errorData = await response.text()
+        console.error('❌ 承認API失敗:', response.status, errorData)
         alert('承認に失敗しました')
       }
     } catch (error) {
       console.error('承認エラー:', error)
       alert('承認中にエラーが発生しました')
     } finally {
+      // 🔥 確実にクリア（二重実行でも安全）
       setProcessingIds(prev => {
         const newSet = new Set(prev)
         newSet.delete(applicationId)
@@ -143,6 +159,7 @@ export default function PartnerApplicationsPage() {
   }
 
   const handleReject = async (applicationId: string, reason?: string) => {
+    console.log('🚨 却下処理開始:', { applicationId, reason })
     setProcessingIds(prev => new Set(prev).add(applicationId))
     
     try {
@@ -157,15 +174,33 @@ export default function PartnerApplicationsPage() {
       })
       
       if (response.ok) {
+        const result = await response.json()
+        console.log('✅ 却下処理成功:', result)
+        
+        // 🔥 処理中状態を即座にクリア
+        setProcessingIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(applicationId)
+          return newSet
+        })
+        
+        // 🔥 データ再取得で最新状態に更新
         await fetchApplications()
+        
+        // 🎯 却下タブに自動切り替え
+        setFilter('rejected')
+        
         alert('申請を却下しました')
       } else {
+        const errorData = await response.text()
+        console.error('❌ 却下API失敗:', response.status, errorData)
         alert('却下処理に失敗しました')
       }
     } catch (error) {
       console.error('却下エラー:', error)
       alert('却下処理中にエラーが発生しました')
     } finally {
+      // 🔥 確実にクリア（二重実行でも安全）
       setProcessingIds(prev => {
         const newSet = new Set(prev)
         newSet.delete(applicationId)
@@ -314,13 +349,27 @@ export default function PartnerApplicationsPage() {
                   </span>
                 )}
               </h1>
-              <button
-                onClick={fetchApplications}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isLoading ? '読み込み中...' : '更新'}
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={fetchApplications}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isLoading ? '読み込み中...' : '更新'}
+                </button>
+                
+                {/* 🔥 処理中状態強制クリア */}
+                <button
+                  onClick={() => {
+                    setProcessingIds(new Set())
+                    console.log('🔥 処理中状態を強制クリアしました')
+                  }}
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                  title="「処理中...」が残った場合のリセット"
+                >
+                  状態リセット
+                </button>
+              </div>
             </div>
 
             {/* フィルター */}
