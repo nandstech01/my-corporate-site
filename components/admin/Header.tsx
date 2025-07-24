@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 export default function AdminHeader() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="h-16 bg-gray-800 border-b border-gray-700 shadow-lg">
@@ -29,7 +29,7 @@ export default function AdminHeader() {
               <UserCircleIcon className="w-8 h-8 text-gray-400" />
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-white">管理者</p>
-                <p className="text-xs text-gray-400">admin@nands.tech</p>
+                <p className="text-xs text-gray-400">{user?.email || 'admin@nands.tech'}</p>
               </div>
             </div>
             

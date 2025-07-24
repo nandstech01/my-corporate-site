@@ -140,7 +140,22 @@ export default function NewPostPage() {
     }
 
     console.log('Current user:', user);
-    console.log('User authentication status:', await supabase.auth.getSession());
+    console.log('User ID:', user?.id);
+    console.log('User email:', user?.email);
+    
+    const { data: session } = await supabase.auth.getSession();
+    console.log('User authentication status:', session);
+    console.log('Session user ID:', session.session?.user?.id);
+
+    // Admin users check
+    const { data: adminCheck, error: adminError } = await supabase
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', user?.id)
+      .single();
+    
+    console.log('Admin user check:', adminCheck);
+    console.log('Admin user error:', adminError);
 
     // バリデーション
     if (isChatGPTSpecial) {
