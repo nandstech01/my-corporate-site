@@ -18,30 +18,77 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log('📁 File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
     setIsUploading(true);
     setError(null);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `blog/images/${fileName}`;
+      // ファイル検証
+      if (file.size > 10 * 1024 * 1024) { // 10MB制限
+        throw new Error('ファイルサイズが大きすぎます（10MB以下にしてください）');
+      }
 
-      const { error: uploadError } = await supabase.storage
+      if (!file.type.startsWith('image/')) {
+        throw new Error('画像ファイルを選択してください');
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      if (!fileExt || !['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
+        throw new Error('サポートされていない画像形式です');
+      }
+
+      // ファイル名生成（より安全な方法）
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const fileName = `${timestamp}-${randomString}.${fileExt}`;
+      const filePath = `images/${fileName}`;
+
+      console.log('🚀 Uploading to Storage:', {
+        bucket: 'blog',
+        filePath: filePath,
+        fullUrl: `blog/${filePath}`
+      });
+
+      // 認証状態を確認
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔐 Auth session:', {
+        hasSession: !!session,
+        userId: session?.user?.id
+      });
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('blog')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
-        console.error('Upload error details:', uploadError);
-        throw uploadError;
+        console.error('❌ Upload error details:', {
+          message: uploadError.message,
+          name: uploadError.name,
+          cause: uploadError.cause,
+          stack: uploadError.stack
+        });
+        throw new Error(`アップロードエラー: ${uploadError.message}`);
       }
+
+      console.log('✅ Upload successful:', uploadData);
 
       const { data: { publicUrl } } = supabase.storage
         .from('blog')
         .getPublicUrl(filePath);
 
+      console.log('🔗 Public URL generated:', publicUrl);
+
       onImageUploaded(publicUrl);
     } catch (err: any) {
-      console.error('Error uploading:', err);
+      console.error('❌ Error uploading:', err);
       setError(err.message || 'アップロードに失敗しました');
     } finally {
       setIsUploading(false);
@@ -58,7 +105,7 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
           <input
             type="file"
             className="sr-only"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
             onChange={handleFileChange}
             disabled={isUploading}
           />
@@ -72,7 +119,15 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
         )}
       </div>
       {error && (
-        <p className="text-red-600 text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-red-600 text-sm font-medium">エラー</p>
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+      {isUploading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-600 text-sm">画像をアップロード中です...</p>
+        </div>
       )}
     </div>
   );

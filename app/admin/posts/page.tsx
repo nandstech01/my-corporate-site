@@ -71,9 +71,9 @@ export default function PostsPage() {
 
       if (oldError) throw oldError;
 
-      // データを適切な型に変換
+      // データを適切な型に変換（重複を防ぐためにテーブル名をプレフィックスとして追加）
       const formattedNewPosts: Post[] = (newPosts || []).map(post => ({
-        id: post.id,
+        id: `posts-${post.id}`, // テーブル名をプレフィックスとして追加
         slug: post.slug,
         title: post.title,
         content: post.content,
@@ -88,7 +88,7 @@ export default function PostsPage() {
       }));
 
       const formattedOldPosts: Post[] = (oldPosts || []).map(post => ({
-        id: post.id,
+        id: `chatgpt_posts-${post.id}`, // テーブル名をプレフィックスとして追加
         slug: post.slug,
         title: post.title,
         content: post.content,
@@ -126,13 +126,16 @@ export default function PostsPage() {
 
     setIsDeleting(true);
     try {
-      console.log('Deleting post with id:', post.id, 'from table:', post.table_type);
+      // IDからテーブル名のプレフィックスを除去して元のIDを取得
+      const originalId = post.id.toString().replace(/^(posts|chatgpt_posts)-/, '');
+      
+      console.log('Deleting post with id:', originalId, 'from table:', post.table_type);
       
       // 適切なテーブルから記事を削除
       const { error: deleteError } = await supabase
         .from(post.table_type)
         .delete()
-        .eq('id', post.id);
+        .eq('id', originalId);
 
       if (deleteError) {
         console.error('Error details:', deleteError);
@@ -204,7 +207,7 @@ export default function PostsPage() {
         <div className="bg-gray-800 shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-600">
             {posts.map((post) => (
-              <li key={`${post.table_type}-${post.slug}`} className="hover:bg-gray-700">
+              <li key={post.id} className="hover:bg-gray-700">
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -230,7 +233,7 @@ export default function PostsPage() {
                            post.is_chatgpt_special ? 'ChatGPT特集記事' : '旧システム記事'}
                         </span>
                         <span className="text-xs text-gray-300">
-                          ID: {post.id}
+                          ID: {post.id.toString().replace(/^(posts|chatgpt_posts)-/, '')}
                         </span>
                         <div className="flex space-x-2">
                           <Link
