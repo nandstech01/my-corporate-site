@@ -195,82 +195,20 @@ const ProjectShowcase = () => {
 
         <div className="space-y-16">
           {PROJECTS.map((project, index) => (
-            <div
-              key={project.id}
-              className={`flex flex-col ${
-                index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
-              } items-center gap-12`}
-            >
-              {/* プロジェクト画像 */}
-              <div className="w-full lg:w-1/2">
-                <div className="relative overflow-hidden shadow-2xl border border-gray-200">
-                  <div className="aspect-video bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="text-6xl mb-4">
-                        {project.id === 'relevance-engineering-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        )}
-                        {project.id === 'hr-support-ai-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'legal-rag-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'auto-content-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'job-matching-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'chatbot-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'webapp-python-system' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                        {project.id === 'enterprise-entity-db' && (
-                          <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                          </svg>
-                        )}
-                      </div>
-                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{project.title}</h3>
-                      <p className="text-blue-100 mt-2">{project.subtitle}</p>
-                    </div>
-                  </div>
-                  {project.status && (
-                    <div className="absolute top-4 right-4">
-                      <span className="px-3 py-1 bg-green-600 text-white text-sm font-medium border border-green-700">
-                        {project.status}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* プロジェクト詳細 */}
-              <div className="w-full lg:w-1/2">
+            <div key={project.id} className="w-full">
+              {/* プロジェクト詳細（全幅表示） */}
+              <div className="w-full">
                 <div className="mb-6">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                    {project.title}
-                  </h3>
-                  <p className="text-xl text-blue-600 font-semibold mb-4">
-                    {project.subtitle}
-                  </p>
+                  {/* 美しい背景バー付きタイトル */}
+                  <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg p-6 mb-6 shadow-lg border border-blue-300">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">
+                      {project.title}
+                    </h3>
+                    <p className="text-blue-100 text-lg font-semibold">
+                      {project.subtitle}
+                    </p>
+                  </div>
+                  
                   <p className="text-gray-600 leading-relaxed">
                     {project.description}
                   </p>

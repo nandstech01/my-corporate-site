@@ -338,31 +338,7 @@ const SystemDevelopmentPage = async () => {
           </section>
         )}
 
-        {/* パンくずナビ（構造化データ対応） */}
-        <nav className="bg-gray-50 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">AIシステム開発</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
-          </div>
-        </nav>
+
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
