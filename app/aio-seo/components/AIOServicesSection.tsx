@@ -71,7 +71,17 @@ const AIOServicesSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            AIO対策・GEO・レリバンスエンジニアリング
+            {/* スマホ版：2行分割 */}
+            <span className="sm:hidden block">
+              <span className="block text-2xl">AIO対策・GEO</span>
+              <span className="block text-xl">レリバンスエンジニアリング</span>
+            </span>
+            
+            {/* デスクトップ版：1行表示 */}
+            <span className="hidden sm:block">
+              AIO対策・GEO・レリバンスエンジニアリング
+            </span>
+            
             <span className="block text-blue-600">サービス一覧</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">

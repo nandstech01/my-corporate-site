@@ -105,7 +105,7 @@ export default function AIOHeroSectionSSR() {
 
       <section 
         id="aio-seo-hero"
-        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-32"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 md:pt-28 md:pb-24"
       >
         {/* 背景グラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
@@ -133,12 +133,19 @@ export default function AIOHeroSectionSSR() {
 
           {/* メインタイトル（GEO対策: Explain-Then-List構造） */}
           <header>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-10 leading-tight text-center">
+              {/* スマホ版：2行分割 */}
+              <span className="sm:hidden bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500 bg-clip-text text-transparent block mb-4">
+                <span className="block text-2xl">AIO対策</span>
+                <span className="block text-xl">レリバンスエンジニアリング</span>
+              </span>
+              
+              {/* デスクトップ版：1行表示 */}
+              <span className="hidden sm:block bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500 bg-clip-text text-transparent mb-4">
                 AIO対策・レリバンスエンジニアリング
               </span>
-              <br />
-              <span className="text-white">
+              
+              <span className="text-white block">
                 AI検索時代の最適化手法
               </span>
             </h1>
@@ -210,7 +217,7 @@ export default function AIOHeroSectionSSR() {
               無料相談を申し込む
             </a>
             <a
-              href="#services"
+              href="#aio-services"
               className="px-8 py-4 border border-white/30 text-white font-bold hover:bg-white/10 transition-all duration-300 rounded-lg"
               role="button"
               aria-label="AIO対策のサービス詳細を見る"

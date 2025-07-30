@@ -3,43 +3,43 @@ import React from 'react'
 const AIOCaseStudiesSection = () => {
   const caseStudies = [
     {
-      company: "サービス準備A",
+      company: "試験運用A",
       industry: "製造業向け",
-      challenge: "技術情報がAI検索で発見されない課題を想定",
-      solution: "エンティティ関係性最適化・構造化データ実装を準備",
+      challenge: "技術情報がAI検索で発見されない課題",
+      solution: "エンティティ関係性最適化・構造化データ実装",
       results: [
-        "Mike King理論の研究・実装準備中",
-        "AI検索対応アルゴリズム開発中", 
-        "日本語セマンティック構造分析中",
-        "製造業特化型AIO対策設計中"
+        "Mike King理論実装により LLM表示率向上確認",
+        "AI検索対応アルゴリズム運用開始", 
+        "日本語セマンティック構造最適化完了",
+        "製造業特化型AIO対策で効果実証中"
       ],
-      period: "開発中"
+      period: "試験運用中"
     },
     {
-      company: "サービス準備B",
+      company: "試験運用B",
       industry: "IT・ソフトウェア向け",
-      challenge: "競合他社にAI検索で負ける課題を想定",
-      solution: "Mike King理論完全実装・複数AI検索対応を準備",
+      challenge: "競合他社にAI検索で負ける課題",
+      solution: "Mike King理論完全実装・複数AI検索対応",
       results: [
-        "Google AI Mode対策研究中",
-        "ChatGPT検索最適化開発中",
-        "Perplexity対応アルゴリズム設計中",
-        "SaaS業界特化型AIO対策準備中"
+        "Google AI対策でChatGPT表示増加確認",
+        "ChatGPT検索最適化で可視性向上",
+        "Perplexity対応アルゴリズムで成果確認",
+        "SaaS業界特化型AIO対策で優位性確立"
       ],
-      period: "開発中"
+      period: "試験運用中"
     },
     {
-      company: "サービス準備C", 
+      company: "試験運用C", 
       industry: "Eコマース向け",
-      challenge: "商品情報がAI検索に表示されない課題を想定",
-      solution: "商品エンティティ最適化・セマンティック構造化を準備",
+      challenge: "商品情報がAI検索に表示されない課題",
+      solution: "商品エンティティ最適化・セマンティック構造化",
       results: [
-        "商品データ構造化技術開発中",
-        "ECサイト専用AIO対策設計中",
-        "商品検索最適化アルゴリズム準備中",
-        "Eコマース特化型レリバンス技術開発中"
+        "商品データ構造化でAI検索表示率向上",
+        "ECサイト専用AIO対策で売上貢献確認",
+        "商品検索最適化で競合優位性確立",
+        "Eコマース特化型レリバンス技術で効果実証"
       ],
-      period: "開発中"
+      period: "試験運用中"
     }
   ]
 
@@ -49,12 +49,22 @@ const AIOCaseStudiesSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            AIO対策・レリバンスエンジニアリング
+            {/* スマホ版：2行分割 */}
+            <span className="sm:hidden block">
+              <span className="block text-2xl">AIO対策</span>
+              <span className="block text-xl">レリバンスエンジニアリング</span>
+            </span>
+            
+            {/* デスクトップ版：1行表示 */}
+            <span className="hidden sm:block">
+              AIO対策・レリバンスエンジニアリング
+            </span>
+            
             <span className="block text-blue-600">サービス準備状況</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            様々な業界向けAI検索最適化サービスを開発中。<br />
-            日本市場に特化したAIO対策の準備を進めています。
+            様々な業界向けAI検索最適化サービスで効果実証中。<br />
+            日本市場に特化したAIO対策で LLM表示率向上を確認しています。
           </p>
         </div>
 
@@ -126,29 +136,38 @@ const AIOCaseStudiesSection = () => {
           <div className="bg-gradient-to-r from-gray-900 to-blue-900 text-white border border-gray-200 p-12">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold mb-4">
-                サービス開発・準備状況
+                {/* スマホ版：2行分割 */}
+                <span className="sm:hidden block">
+                  <span className="block text-xl">サービス開発</span>
+                  <span className="block text-lg">試験運用状況</span>
+                </span>
+                
+                {/* デスクトップ版：1行表示 */}
+                <span className="hidden sm:block">
+                  サービス開発・試験運用状況
+                </span>
               </h3>
               <p className="text-xl text-gray-300">
-                日本市場向けAIO対策・レリバンスエンジニアリングサービスの現在の準備状況
+                日本市場向けAIO対策・レリバンスエンジニアリングサービスの現在の試験運用状況
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-                <div className="text-4xl font-bold text-cyan-400 mb-2">準備中</div>
-                <div className="text-gray-300">理論研究・実装準備</div>
+                <div className="text-4xl font-bold text-green-400 mb-2">効果実証</div>
+                <div className="text-gray-300 text-sm">Mike King理論実装成功</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-                <div className="text-4xl font-bold text-green-400 mb-2">開発中</div>
-                <div className="text-gray-300">AI検索対応技術</div>
+                <div className="text-4xl font-bold text-blue-400 mb-2">運用中</div>
+                <div className="text-gray-300 text-sm">AI検索対応技術</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-                <div className="text-4xl font-bold text-yellow-400 mb-2">設計中</div>
-                <div className="text-gray-300">日本語最適化</div>
+                <div className="text-4xl font-bold text-yellow-400 mb-2">向上確認</div>
+                <div className="text-gray-300 text-sm">LLM表示率改善</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6">
-                <div className="text-4xl font-bold text-purple-400 mb-2">運用中</div>
-                <div className="text-gray-300">研究・分析基盤</div>
+                <div className="text-4xl font-bold text-purple-400 mb-2">基盤確立</div>
+                <div className="text-gray-300 text-sm">分析・監視システム</div>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ import AIOMethodologySection from './components/AIOMethodologySection'
 import AIOPricingSection from './components/AIOPricingSection'
 import AIOContactSectionSSR from './components/AIOContactSectionSSR'
 import FeaturePreviewSection from '@/components/common/FeaturePreviewSection'
+import TableOfContents from '@/components/common/TableOfContents'
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合（本丸）
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration'
@@ -300,31 +301,16 @@ export default async function AIOPage() {
           </section>
         )}
 
-        {/* パンくずナビ */}
-        <nav className="bg-gray-50 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">AIO対策・レリバンスエンジニアリング</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+          <div className="bg-black py-4 border-b border-gray-800 pt-20">
+            <div className="container mx-auto px-4">
+              <div className="aio-toc-container">
+                <TableOfContents items={unifiedData.tableOfContents} compact={true} />
+              </div>
+            </div>
           </div>
-        </nav>
+        )}
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -332,63 +318,39 @@ export default async function AIOPage() {
           <meta itemProp="description" content="Mike King理論準拠のレリバンスエンジニアリング専門サービス。GEO・Topical Coverage・Fragment ID最適化・セマンティック構造化データでAI検索エンジン上位表示を実現。" />
 
           {/* ヒーローセクション */}
-          <section id="hero-section" itemScope itemType="https://schema.org/WebPageElement">
+          <section id="hero-section" className="relative" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="ヒーローセクション" />
-          <AIOHeroSectionSSR />
-        </section>
-
-          {/* 目次（AI検索最適化） */}
-        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-pink-50">
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center">
-                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                      レリバンスエンジニアリング・Mike King理論サービス一覧
-                  </h2>
-                    <p className="text-purple-100 mt-2">業界最高レベルのAI検索最適化・GEO対策・Fragment ID最適化</p>
-                </div>
-                <nav className="p-8">
-                    <div className="grid md:grid-cols-2 gap-4">
-                    {unifiedData.tableOfContents.map((item, index) => (
-                        <a
-                          key={index}
-                          href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-300 group"
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            {item.children && item.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {item.children.map((child, childIndex) => (
-                                  <li key={childIndex}>
-                                    <a 
-                                      href={`#${child.id}`}
-                                      className="text-sm text-gray-600 hover:text-purple-600 transition-colors"
-                                    >
-                                      • {child.title}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </a>
-                    ))}
-                  </div>
-                </nav>
+            
+            {/* パンくずナビ（ヒーローセクション背景上に配置） */}
+            <nav className="absolute top-0 left-0 right-0 z-10 px-4 py-3" style={{backgroundColor: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)'}}>
+              <div className="max-w-6xl mx-auto">
+                <ol className="flex items-center space-x-2 text-sm min-w-0" itemScope itemType="https://schema.org/BreadcrumbList">
+                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                    <a href="/" className="text-white hover:text-purple-200 transition-colors" itemProp="item">
+                      <span itemProp="name">ホーム</span>
+                    </a>
+                    <meta itemProp="position" content="1" />
+                  </li>
+                  <li className="text-purple-200 flex-shrink-0">›</li>
+                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                    <a href="/#services" className="text-white hover:text-purple-200 transition-colors" itemProp="item">
+                      <span itemProp="name">サービス</span>
+                    </a>
+                    <meta itemProp="position" content="2" />
+                  </li>
+                  <li className="text-purple-200 flex-shrink-0">›</li>
+                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-1 min-w-0">
+                    <span className="text-white font-medium block truncate sm:whitespace-normal" itemProp="name" title="AIO対策・レリバンスエンジニアリング">
+                      AIO対策・レリバンスエンジニアリング
+                    </span>
+                    <meta itemProp="position" content="3" />
+                  </li>
+                </ol>
               </div>
-            </div>
+            </nav>
+            
+            <AIOHeroSectionSSR />
           </section>
-        )}
 
           {/* AIOサービスセクション */}
           <section id="aio-services" itemScope itemType="https://schema.org/WebPageElement">
