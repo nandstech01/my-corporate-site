@@ -6,6 +6,7 @@ import HRPricingSection from './components/HRPricingSection';
 import HRContactSection from './components/HRContactSection';
 import { Metadata } from 'next';
 import Script from 'next/script';
+import TableOfContents from '@/components/common/TableOfContents';
 
 // SSR Components Import
 import HRHeroSectionSSR from './components/HRHeroSectionSSR';
@@ -73,6 +74,52 @@ export default async function HRSolutionsPage() {
   // 統合レリバンスエンジニアリングデータを取得
   const unifiedData = await getUnifiedData();
 
+  // 手動目次データ（RE維持・Fragment ID対応）
+  const tableOfContents = [
+    {
+      id: 'hr-services',
+      title: 'HR支援サービス一覧',
+      level: 2,
+      anchor: '#hr-services'
+    },
+    {
+      id: 'hr-techstack',
+      title: '技術スタック・システム構成',
+      level: 2,
+      anchor: '#hr-techstack'  
+    },
+    {
+      id: 'hr-showcase',
+      title: '導入実績・事例紹介',
+      level: 2,
+      anchor: '#hr-showcase'
+    },
+    {
+      id: 'hr-pricing',
+      title: '料金プラン・サービス比較',
+      level: 2,
+      anchor: '#hr-pricing'
+    },
+    {
+      id: 'hr-diagnostic-preview',
+      title: 'HR診断ツール体験',
+      level: 2,
+      anchor: '#hr-diagnostic-preview'
+    },
+    {
+      id: 'related-services-section',
+      title: '関連HR支援サービス',
+      level: 2,
+      anchor: '#related-services-section'
+    },
+    {
+      id: 'hr-contact',
+      title: 'お問い合わせ・相談',
+      level: 2,
+      anchor: '#hr-contact'
+    }
+  ];
+
   return (
     <>
       {/* 統一構造化データ（JSON-LD） */}
@@ -89,112 +136,23 @@ export default async function HRSolutionsPage() {
       {/* Fragment IDとTOCに対応したメインコンテンツ */}
       <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         
-        {/* パンくずナビ */}
-        <nav className="bg-black bg-opacity-30 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm text-white">
-              <li><a href="/" className="text-blue-300 hover:text-blue-100 hover:underline">ホーム</a></li>
-              <li className="text-blue-400">›</li>
-              <li><a href="/#services" className="text-blue-300 hover:text-blue-100 hover:underline">サービス</a></li>
-              <li className="text-blue-400">›</li>
-              <li className="text-white">HR支援・人事DX</li>
-            </ol>
+
+
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        <div className="bg-black py-4 border-b border-gray-800 pt-20">
+          <div className="container mx-auto px-4">
+            <div className="hr-solutions-toc-container">
+              <TableOfContents items={tableOfContents} compact={true} />
+            </div>
           </div>
-        </nav>
+        </div>
 
         {/* Hero Section */}
         <section id="hr-hero">
           <HRHeroSectionSSR />
         </section>
 
-        {/* 目次（ヒーロー直後に配置） */}
-        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-          <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center">
-                    <svg 
-                      className="w-6 h-6 mr-3" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-                      />
-                    </svg>
-                    目次
-                  </h2>
-                  <p className="text-blue-100 mt-2">
-                    このページの内容に素早くアクセス
-                  </p>
-                </div>
-                
-                <nav className="p-8">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {unifiedData.tableOfContents.map((item, index) => (
-                      <div key={index} className="group">
-                        <a
-                          href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 
-                                   hover:border-blue-300 hover:bg-blue-50 transition-all duration-300
-                                   group-hover:shadow-md"
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 
-                                         rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 
-                                         transition-colors mb-2 leading-tight">
-                              {item.title}
-                            </h3>
-                          </div>
-                          <svg 
-                            className="w-5 h-5 text-gray-400 group-hover:text-blue-500 
-                                     transition-colors flex-shrink-0 mt-1" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M9 5l7 7-7 7" 
-                            />
-                          </svg>
-                        </a>
-                        
-                        {/* Subsections */}
-                        {item.children && item.children.length > 0 && (
-                          <div className="mt-3 ml-12 space-y-1">
-                            {item.children.map((subsection, subIndex) => (
-                              <a
-                                key={subIndex}
-                                href={`#${subsection.id}`}
-                                className="block text-sm text-gray-600 hover:text-blue-600 
-                                         transition-colors hover:underline pl-2 border-l-2 
-                                         border-gray-200 hover:border-blue-300
-                                         py-1 hover:bg-blue-50 rounded"
-                              >
-                                {subsection.title}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </nav>
-              </div>
-            </div>
-          </section>
-        )}
+
 
         {/* Services Section */}
         <section id="hr-services">

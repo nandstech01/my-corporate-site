@@ -102,6 +102,84 @@ export default async function VectorRagPage() {
   // 統合レリバンスエンジニアリングデータを取得
   const unifiedData = await getUnifiedData();
 
+  // 手動目次データ（RE維持・Fragment ID対応）
+  const tableOfContents = [
+    {
+      id: 'vector-search-preview',
+      title: 'ベクトル検索・RAGシステム体験',
+      level: 2,
+      anchor: '#vector-search-preview'
+    },
+    {
+      id: 'services-section',
+      title: 'サービス内容',
+      level: 2,
+      anchor: '#services-section'
+    },
+    {
+      id: 'tech-stack',
+      title: '技術スタック',
+      level: 2,
+      anchor: '#tech-stack'
+    },
+    {
+      id: 'showcase',
+      title: '導入事例・実績',
+      level: 2,
+      anchor: '#showcase'
+    },
+    {
+      id: 'triple-rag-advantage',
+      title: 'トリプルRAGシステム優位性',
+      level: 2,
+      anchor: '#triple-rag-advantage'
+    },
+    {
+      id: 'vector-features',
+      title: 'ベクトルRAGの特徴・強み',
+      level: 2,
+      anchor: '#vector-features',
+      children: [
+        {
+          id: 'high-precision-search',
+          title: '高精度検索技術',
+          level: 3,
+          anchor: '#high-precision-search'
+        },
+        {
+          id: 'multimodal-support',
+          title: 'マルチモーダル対応',
+          level: 3,
+          anchor: '#multimodal-support'
+        },
+        {
+          id: 'scalable-architecture',
+          title: 'スケーラブル設計',
+          level: 3,
+          anchor: '#scalable-architecture'
+        }
+      ]
+    },
+    {
+      id: 'pricing-section',
+      title: '料金プラン',
+      level: 2,
+      anchor: '#pricing-section'
+    },
+    {
+      id: 'related-services',
+      title: '関連サービス',
+      level: 2,
+      anchor: '#related-services'
+    },
+    {
+      id: 'contact-section',
+      title: 'お問い合わせ',
+      level: 2,
+      anchor: '#contact-section'
+    }
+  ];
+
   // 業界最強ベクトルRAGシステム統合スキーマ（競合優位性の核心）
   const vectorRAGAdvantageSchema = {
     "@context": "https://schema.org",
@@ -281,31 +359,16 @@ export default async function VectorRagPage() {
           </section>
         )}
 
-        {/* パンくずナビ（構造化データ対応） */}
-        <nav className="bg-gray-50 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">ベクトルRAG開発</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
+
+
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        <div className="bg-black py-4 border-b border-gray-800 pt-20">
+          <div className="container mx-auto px-4">
+            <div className="vector-rag-toc-container">
+              <TableOfContents items={tableOfContents} compact={true} />
+            </div>
           </div>
-        </nav>
+        </div>
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -340,58 +403,7 @@ export default async function VectorRagPage() {
           />
         </section>
 
-        {/* 目次（機能予定エリア直後に配置） */}
-          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-purple-50 to-indigo-50">
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center">
-                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      ベクトルRAG・知識ベース構築サービス一覧
-                    </h2>
-                    <p className="text-purple-100 mt-2">トリプルRAGシステム・OpenAI Embeddings・pgvector統合</p>
-                  </div>
-                  <nav className="p-8">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {unifiedData.tableOfContents.map((item, index) => (
-                        <a
-                          key={index}
-                          href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-300 group"
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            {item.children && item.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {item.children.map((child, childIndex) => (
-                                  <li key={childIndex}>
-                                    <a 
-                                      href={`#${child.id}`}
-                                      className="text-sm text-gray-600 hover:text-purple-600 transition-colors"
-                                    >
-                                      • {child.title}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </div>
-            </section>
-          )}
+        
 
         {/* サービス内容セクション */}
           <section id="services-section" itemScope itemType="https://schema.org/WebPageElement">

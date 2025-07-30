@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Script from 'next/script';
+import TableOfContents from '@/components/common/TableOfContents';
 import AIAgentHeroSection from './components/AIAgentHeroSection';
 import AIAgentHeroSectionSSR from './components/AIAgentHeroSectionSSR';
 import AIAgentServicesSection from './components/AIAgentServicesSection';
@@ -98,6 +99,58 @@ async function getUnifiedData() {
 export default async function AIAgentsPage() {
   // 統合レリバンスエンジニアリングデータを取得
   const unifiedData = await getUnifiedData();
+
+  // 手動目次データ（RE維持・Fragment ID対応）
+  const tableOfContents = [
+    {
+      id: 'agent-chatbot-preview',
+      title: 'AIエージェント体験プレビュー',
+      level: 2,
+      anchor: '#agent-chatbot-preview'
+    },
+    {
+      id: 'agent-services',
+      title: 'サービス一覧',
+      level: 2,
+      anchor: '#agent-services'
+    },
+    {
+      id: 'agent-techstack',
+      title: '技術スタック',
+      level: 2,
+      anchor: '#agent-techstack'
+    },
+    {
+      id: 'agent-showcase',
+      title: '導入事例・実績',
+      level: 2,
+      anchor: '#agent-showcase'
+    },
+    {
+      id: 'vector-rag-advantage',
+      title: 'ベクトルRAG統合優位性',
+      level: 2,
+      anchor: '#vector-rag-advantage'
+    },
+    {
+      id: 'agent-pricing',
+      title: '料金プラン',
+      level: 2,
+      anchor: '#agent-pricing'
+    },
+    {
+      id: 'related-services',
+      title: '関連サービス',
+      level: 2,
+      anchor: '#related-services'
+    },
+    {
+      id: 'agent-contact',
+      title: 'お問い合わせ',
+      level: 2,
+      anchor: '#agent-contact'
+    }
+  ];
 
   // ベクトルRAGシステム統合スキーマ（AIエージェント専門）
   const vectorRAGAgentSchema = {
@@ -269,31 +322,16 @@ export default async function AIAgentsPage() {
           </section>
         )}
 
-        {/* パンくずナビ（構造化データ対応） */}
-        <nav className="bg-gray-50 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">AIエージェント開発</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
+
+
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        <div className="bg-black py-4 border-b border-gray-800 pt-20">
+          <div className="container mx-auto px-4">
+            <div className="ai-agents-toc-container">
+              <TableOfContents items={tableOfContents} compact={true} />
+            </div>
           </div>
-        </nav>
+        </div>
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -328,58 +366,7 @@ export default async function AIAgentsPage() {
           />
         </section>
 
-        {/* 目次（機能予定エリア直後に配置） */}
-        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-blue-50 to-cyan-50">
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center">
-                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      AIエージェント開発サービス一覧
-                    </h2>
-                    <p className="text-blue-100 mt-2">Mastra Framework・Function Calling・Tool Use・ベクトルRAG統合</p>
-                  </div>
-                  <nav className="p-8">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {unifiedData.tableOfContents.map((item, index) => (
-                        <a
-                          key={index}
-                          href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 group"
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            {item.children && item.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {item.children.map((child, childIndex) => (
-                                  <li key={childIndex}>
-                                    <a 
-                                      href={`#${child.id}`}
-                                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
-                                    >
-                                      • {child.title}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </div>
-            </section>
-        )}
+
 
         {/* Services Section */}
           <section id="agent-services" itemScope itemType="https://schema.org/WebPageElement">

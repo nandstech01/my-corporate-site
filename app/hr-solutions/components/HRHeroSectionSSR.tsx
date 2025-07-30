@@ -102,8 +102,37 @@ export default function HRHeroSectionSSR() {
 
       <section 
         id="hr-hero"
-        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-32"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 md:pt-28 md:pb-24"
       >
+        {/* パンくずナビ（ヒーローセクション背景上に配置） */}
+        <nav className="absolute top-0 left-0 right-0 z-10 px-4 py-3" 
+             style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)'}}>
+          <div className="max-w-6xl mx-auto">
+            <ol className="flex items-center space-x-2 text-sm min-w-0" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                <a href="/" className="text-white hover:text-blue-200 transition-colors" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
+              <li className="text-blue-200 flex-shrink-0">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                <a href="/#services" className="text-white hover:text-blue-200 transition-colors" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
+              <li className="text-blue-200 flex-shrink-0">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-1 min-w-0">
+                <span className="text-white font-medium block truncate sm:whitespace-normal" itemProp="name" title="HR支援・人事DX">
+                  HR支援・人事DX...
+                </span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
+          </div>
+        </nav>
+
         {/* 背景グラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900" />
         

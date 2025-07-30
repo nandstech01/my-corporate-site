@@ -2,6 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { generateUnifiedPageData, type PageContext } from '@/lib/structured-data/unified-integration';
 import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
+import TableOfContents from '@/components/common/TableOfContents';
 import ChatbotHeroSectionSSR from './components/ChatbotHeroSectionSSR';
 import ChatbotServicesSection from './components/ChatbotServicesSection';
 import ChatbotTechStack from './components/ChatbotTechStack';
@@ -286,31 +287,18 @@ export default async function ChatbotDevelopmentPage() {
           </section>
         )}
 
-        {/* パンくずナビ（構造化データ対応） */}
-        <nav className="bg-gray-50 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">チャットボット開発</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
+
+
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
+          <div className="bg-black py-4 border-b border-gray-800 pt-20">
+            <div className="container mx-auto px-4">
+              <div className="chatbot-toc-container">
+                <TableOfContents items={unifiedData.tableOfContents} compact={true} />
+              </div>
+            </div>
           </div>
-          </nav>
+        )}
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -345,58 +333,7 @@ export default async function ChatbotDevelopmentPage() {
             />
           </section>
 
-          {/* 目次（機能予定エリア直後に配置） */}
-          {unifiedData?.tableOfContents && unifiedData.tableOfContents.length > 0 && (
-            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
-                <h2 className="text-2xl font-bold text-white flex items-center">
-                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                      チャットボット開発サービス一覧
-                </h2>
-                    <p className="text-green-100 mt-2">GPT-4・Claude統合・ベクトルRAG活用・24時間自動応答</p>
-              </div>
-              <nav className="p-8">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {unifiedData.tableOfContents.map((item: any, index: number) => (
-                      <a
-                          key={index}
-                        href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all duration-300 group"
-                      >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                          {index + 1}
-                        </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                            {item.title}
-                          </h3>
-                       {item.children && item.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {item.children.map((child: any, childIndex: number) => (
-                                  <li key={childIndex}>
-                                    <a 
-                                      href={`#${child.id}`}
-                                      className="text-sm text-gray-600 hover:text-green-600 transition-colors"
-                             >
-                                      • {child.title}
-                             </a>
-                                  </li>
-                           ))}
-                              </ul>
-                       )}
-                    </div>
-                        </a>
-                  ))}
-                </div>
-              </nav>
-            </div>
-          </div>
-        </section>
-      )}
+          
 
           {/* Services Section */}
           <section id="chatbot-services" itemScope itemType="https://schema.org/WebPageElement">

@@ -201,8 +201,37 @@ export default function HeroSectionSSR() {
           </Suspense>
         </div>
 
+        {/* パンくずナビ（ヒーローセクション背景上に配置） */}
+        <nav className="absolute top-0 left-0 right-0 z-10 px-4 py-3" 
+             style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)'}}>
+          <div className="max-w-6xl mx-auto">
+            <ol className="flex items-center space-x-2 text-sm min-w-0" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                <a href="/" className="text-white hover:text-blue-200 transition-colors" itemProp="item">
+                  <span itemProp="name">ホーム</span>
+                </a>
+                <meta itemProp="position" content="1" />
+              </li>
+              <li className="text-blue-200 flex-shrink-0">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-shrink-0">
+                <a href="/#services" className="text-white hover:text-blue-200 transition-colors" itemProp="item">
+                  <span itemProp="name">サービス</span>
+                </a>
+                <meta itemProp="position" content="2" />
+              </li>
+              <li className="text-blue-200 flex-shrink-0">›</li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex-1 min-w-0">
+                <span className="text-white font-medium block truncate sm:whitespace-normal" itemProp="name" title="法人向けAI研修">
+                  法人向けAI研修...
+                </span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
+          </div>
+        </nav>
+
         {/* SEO最重要部分（SSR完全対応） */}
-        <header className="relative z-10 container mx-auto px-4 text-center pt-32 md:pt-40">
+        <header className="relative z-10 container mx-auto px-4 text-center pt-24 md:pt-28">
           {/* Mike King理論準拠: Fragment ID対応 */}
           <div id="corporate-hero">
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">

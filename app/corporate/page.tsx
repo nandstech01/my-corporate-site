@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration';
 import ROICalculator from '@/components/corporate/ROICalculator';
+import TableOfContents from '@/components/common/TableOfContents';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import ClientSideAnchorEnhancer from '@/components/ai-search/ClientSideAnchorEnhancer';
@@ -525,31 +526,16 @@ export default async function CorporatePage() {
           </section>
         )}
 
-        {/* パンくずナビ（構造化データ対応） */}
-        <nav className="bg-gray-50 px-4 py-3 border-b">
-          <div className="container mx-auto">
-            <ol className="flex items-center space-x-2 text-sm" itemScope itemType="https://schema.org/BreadcrumbList">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">ホーム</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/#services" className="text-blue-600 hover:underline" itemProp="item">
-                  <span itemProp="name">サービス</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
-              <li className="text-gray-500">›</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span className="text-gray-900" itemProp="name">法人向けAI研修</span>
-                <meta itemProp="position" content="3" />
-              </li>
-            </ol>
+        {/* Table of Contents（Fragment ID ナビゲーション） - ヘッダー直下配置 */}
+        {pageData?.tableOfContents && pageData.tableOfContents.length > 0 && (
+          <div className="bg-black py-4 border-b border-gray-800 pt-20">
+            <div className="container mx-auto px-4">
+              <div className="corporate-toc-container">
+                <TableOfContents items={pageData.tableOfContents} compact={true} />
+              </div>
+            </div>
           </div>
-        </nav>
+        )}
 
         {/* Fragment ID対応セクション構造 */}
         <article itemScope itemType="https://schema.org/WebPage">
@@ -561,59 +547,6 @@ export default async function CorporatePage() {
             <meta itemProp="name" content="ヒーローセクション" />
             <HeroSectionSSR />
           </section>
-
-          {/* 目次（AI検索最適化） */}
-          {pageData?.tableOfContents && pageData.tableOfContents.length > 0 && (
-            <section id="table-of-contents" className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center">
-                      <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      法人向けAI研修サービス一覧
-                    </h2>
-                    <p className="text-blue-100 mt-2">15年の実績と42の専門領域で企業の AI 活用を支援</p>
-                  </div>
-                  <nav className="p-8">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {pageData.tableOfContents.map((item, index) => (
-                        <a
-                          key={index}
-                          href={`#${item.id}`}
-                          className="flex items-start p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 group"
-                        >
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            {item.children && item.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {item.children.map((child, childIndex) => (
-                                  <li key={childIndex}>
-                                    <a 
-                                      href={`#${child.id}`}
-                                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
-                                    >
-                                      • {child.title}
-                                    </a>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </div>
-            </section>
-          )}
 
           {/* サービス概要セクション */}
           <section id="services-overview" itemScope itemType="https://schema.org/WebPageElement">
