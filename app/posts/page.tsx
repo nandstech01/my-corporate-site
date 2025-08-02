@@ -46,38 +46,129 @@ type Post = {
 
 export default async function PostsPage() {
   const supabase = createClient();
-  const { data: posts, error } = await supabase
-    .from('chatgpt_posts')
-    .select(`
-      id,
-      title,
-      slug,
-      excerpt,
-      thumbnail_url,
-      featured_image,
-      is_chatgpt_special,
-      categories (
-        name,
-        slug
-      )
-    `)
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
+  
+  // 両テーブルから記事を取得して統合
+  let posts: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    thumbnail_url: string | null;
+    featured_image?: string | null;
+    category?: {
+      name: string;
+      slug: string;
+    };
+  }> = [];
 
-  if (error) {
+  try {
+    // 1. 新しいpostsテーブルから記事を取得
+    const { data: newPostsData, error: newPostsError } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        meta_description,
+        thumbnail_url,
+        category:categories(name, slug)
+      `)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (newPostsError) {
+      console.error('Error fetching posts from posts table:', newPostsError);
+    }
+
+    // 2. 従来のchatgpt_postsテーブルから記事を取得
+    const { data: chatgptPostsData, error: chatgptPostsError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        id,
+        title,
+        slug,
+        excerpt,
+        thumbnail_url,
+        featured_image,
+        is_chatgpt_special,
+        categories (
+          name,
+          slug
+        )
+      `)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (chatgptPostsError) {
+      console.error('Error fetching posts from chatgpt_posts table:', chatgptPostsError);
+    }
+
+    // 3. 両テーブルのデータを統合・重複排除
+    const combinedPostsData = [];
+    
+    // 新しいpostsテーブルの記事を追加
+    if (newPostsData) {
+      combinedPostsData.push(...newPostsData.map((post: any) => ({
+        ...post,
+        excerpt: post.meta_description, // meta_descriptionをexcerptとして使用
+        featured_image: null, // postsテーブルにはfeatured_imageがない
+        source_table: 'posts'
+      })));
+    }
+
+    // chatgpt_postsテーブルの記事を追加（重複チェック）
+    if (chatgptPostsData) {
+      const existingSlugs = new Set(combinedPostsData.map(post => post.slug));
+      const uniqueChatgptPosts = chatgptPostsData.filter((post: any) => !existingSlugs.has(post.slug));
+      
+      combinedPostsData.push(...uniqueChatgptPosts.map((post: any) => ({
+        ...post,
+        source_table: 'chatgpt_posts'
+      })));
+    }
+
+    // 4. 画像URLの処理とデータ整形
+    posts = combinedPostsData.map((post: any) => {
+      const imageUrl = post.thumbnail_url || post.featured_image;
+      const finalImageUrl = imageUrl 
+        ? imageUrl.startsWith('http') 
+          ? imageUrl 
+          : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
+        : null;
+
+      return {
+        id: `${post.source_table}_${post.id}`, // React key用のユニークID
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt || '', // excerptがnullの場合は空文字
+        thumbnail_url: finalImageUrl,
+        featured_image: finalImageUrl,
+        category: post.category?.[0] || post.categories?.[0]
+      };
+    });
+
+    // 作成日時順でソート（最新順）
+    // postsテーブルの記事を先頭に、その後chatgpt_postsテーブルの記事を表示
+    posts.sort((a, b) => {
+      const aSource = a.id.split('_')[0];
+      const bSource = b.id.split('_')[0];
+      
+      // postsテーブルの記事を優先表示
+      if (aSource === 'posts' && bSource === 'chatgpt') return -1;
+      if (aSource === 'chatgpt' && bSource === 'posts') return 1;
+      
+      // 同じテーブル内ではID降順（新しい記事が上）
+      const aId = parseInt(a.id.split('_')[1]);
+      const bId = parseInt(b.id.split('_')[1]);
+      return bId - aId;
+    });
+
+  } catch (error) {
     console.error('Error fetching posts:', error);
     return <div>記事の取得中にエラーが発生しました。</div>;
   }
 
-  const formattedPosts: Post[] = (posts || []).map(post => ({
-    id: post.id,
-    title: post.title,
-    slug: post.slug,
-    excerpt: post.excerpt || '',
-    thumbnail_url: post.thumbnail_url,
-    featured_image: post.featured_image,
-    category: post.categories?.[0]
-  }));
+  const formattedPosts: Post[] = posts;
 
   // 記事一覧ページの構造化データを作成
   const structuredData = {

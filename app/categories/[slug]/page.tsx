@@ -156,50 +156,117 @@ export default async function CategoryPage({
     notFound();
   }
 
-  // カテゴリーに属する記事の取得
-  const { data: postsData, error: postsError } = await supabase
-    .from('chatgpt_posts')
-    .select(`
-      id,
-      title,
-      slug,
-      excerpt,
-      thumbnail_url,
-      featured_image,
-      is_chatgpt_special,
-      category:categories(name, slug)
-    `)
-    .eq('category_id', category.id)
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
-
-  if (postsError) {
-    console.error('Error fetching posts:', postsError);
-    return null;
-  }
-
-  // 画像URLの処理
-  const posts = (postsData || []).map((post: any) => {
-    const imageUrl = post.thumbnail_url || post.featured_image;
-    const finalImageUrl = imageUrl 
-      ? imageUrl.startsWith('http') 
-        ? imageUrl 
-        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
-      : null;
-
-    return {
-      id: post.id,
-      title: post.title,
-      slug: post.slug,
-      excerpt: post.excerpt,
-      thumbnail_url: finalImageUrl,
-      featured_image: finalImageUrl,
-      category: post.category?.[0] ? {
-        name: post.category[0].name,
-        slug: post.category[0].slug
-      } : undefined
+  // カテゴリーに属する記事の取得（両テーブル統合対応）
+  let posts: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    thumbnail_url: string | null;
+    featured_image?: string | null;
+    category?: {
+      name: string;
+      slug: string;
     };
-  });
+  }> = [];
+  
+  try {
+    // 1. 新しいpostsテーブルから記事を取得
+    const { data: newPostsData, error: newPostsError } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        title,
+        slug,
+        meta_description,
+        thumbnail_url,
+        category:categories(name, slug)
+      `)
+      .eq('category_id', category.id)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (newPostsError) {
+      console.error('Error fetching posts from posts table:', newPostsError);
+    }
+
+    // 2. 従来のchatgpt_postsテーブルから記事を取得
+    const { data: chatgptPostsData, error: chatgptPostsError } = await supabase
+      .from('chatgpt_posts')
+      .select(`
+        id,
+        title,
+        slug,
+        excerpt,
+        thumbnail_url,
+        featured_image,
+        is_chatgpt_special,
+        category:categories(name, slug)
+      `)
+      .eq('category_id', category.id)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (chatgptPostsError) {
+      console.error('Error fetching posts from chatgpt_posts table:', chatgptPostsError);
+    }
+
+    // 3. 両テーブルのデータを統合・重複排除
+    const combinedPostsData = [];
+    
+                  // 新しいpostsテーブルの記事を追加
+        if (newPostsData) {
+          combinedPostsData.push(...newPostsData.map((post: any) => ({
+            ...post,
+            excerpt: post.meta_description, // meta_descriptionをexcerptとして使用
+            featured_image: null, // postsテーブルにはfeatured_imageがない
+            source_table: 'posts'
+          })));
+        }
+
+        // chatgpt_postsテーブルの記事を追加（重複チェック）
+        if (chatgptPostsData) {
+          const existingSlugs = new Set(combinedPostsData.map(post => post.slug));
+          const uniqueChatgptPosts = chatgptPostsData.filter((post: any) => !existingSlugs.has(post.slug));
+
+          combinedPostsData.push(...uniqueChatgptPosts.map((post: any) => ({
+            ...post,
+            source_table: 'chatgpt_posts'
+          })));
+        }
+
+    
+
+        // 4. 画像URLの処理（既存ロジック維持）
+        posts = combinedPostsData.map((post: any) => {
+          const imageUrl = post.thumbnail_url || post.featured_image;
+          const finalImageUrl = imageUrl 
+            ? imageUrl.startsWith('http') 
+              ? imageUrl 
+              : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
+            : null;
+
+          return {
+            id: `${post.source_table}_${post.id}`, // React key用のユニークID
+            original_id: String(post.id), // 元のIDを保持
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt || '', // excerptがnullの場合は空文字
+            thumbnail_url: finalImageUrl,
+            featured_image: finalImageUrl,
+            category: post.category?.[0] ? {
+              name: post.category[0].name,
+              slug: post.category[0].slug
+            } : undefined
+          };
+        });
+
+
+
+  } catch (error) {
+    console.error('Error fetching posts for category:', error);
+    posts = []; // エラー時は空配列
+  }
 
   const config = categoryConfig[slug] || categoryConfig.default;
   const postsCount = posts.length;

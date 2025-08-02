@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 
 type Post = {
   id: string;
+  original_id?: string;
   title: string;
   slug: string;
   excerpt: string;
