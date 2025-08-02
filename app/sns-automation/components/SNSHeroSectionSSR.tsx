@@ -109,8 +109,43 @@ export default function SNSHeroSectionSSR() {
 
       <section 
         id="sns-hero"
-        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-20 md:pt-40 md:pb-32"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 md:pt-28 md:pb-24"
       >
+        {/* パンくずリスト */}
+        <nav className="absolute top-0 left-0 right-0 z-10 px-4 py-3" 
+             style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)'}}>
+          <div className="max-w-7xl mx-auto">
+            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+              <li className="inline-flex items-center">
+                <a href="/" className="inline-flex items-center text-sm font-medium text-gray-300 hover:text-blue-400">
+                  ホーム
+                </a>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <a href="/#services" className="ml-1 text-sm font-medium text-gray-300 hover:text-blue-400 md:ml-2">
+                    サービス
+                  </a>
+                </div>
+              </li>
+              <li aria-current="page">
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="ml-1 text-sm font-medium text-gray-400 md:ml-2 block truncate sm:whitespace-normal" 
+                        title="SNS自動化システム開発">
+                    <span className="hidden sm:inline">SNS自動化システム開発</span>
+                    <span className="sm:hidden">SNS自動化...</span>
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </nav>
         {/* 背景グラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_50%)]" />
