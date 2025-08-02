@@ -1,21 +1,20 @@
-/* 動画生成ページ用のヘッダースタイル */
-body.video-generation-page header {
-  background-color: white !important;
-  border-bottom: 1px solid #e5e7eb !important;
+/* 動画生成ページ用のヘッダースタイル - 真っ白版 */
+body:has(.video-generation-content) header {
+  background: rgba(255, 255, 255, 1) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
-body.video-generation-page header .container nav a,
-body.video-generation-page header .container nav button {
+body:has(.video-generation-content) header .container nav a,
+body:has(.video-generation-content) header .container nav button {
   color: #1f2937 !important;
 }
 
-body.video-generation-page header .container nav a:hover,
-body.video-generation-page header .container nav button:hover {
+body:has(.video-generation-content) header .container nav a:hover,
+body:has(.video-generation-content) header .container nav button:hover {
   color: #3b82f6 !important;
 }
 
-body.video-generation-page header .container nav button:hover {
+body:has(.video-generation-content) header .container nav button:hover {
   background-color: rgba(59, 130, 246, 0.1) !important;
-}
-
-/* 元のスタイルを上書き */ 
+} 

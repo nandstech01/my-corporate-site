@@ -105,8 +105,44 @@ export default function VideoHeroSectionSSR() {
 
       <section 
         id="video-hero"
-        className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 md:pt-28 md:pb-24"
       >
+        {/* パンくずリスト */}
+        <nav className="absolute top-0 left-0 right-0 z-10 px-4 py-3" 
+             style={{backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)'}}>
+          <div className="max-w-7xl mx-auto">
+            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+              <li className="inline-flex items-center">
+                <a href="/" className="inline-flex items-center text-sm font-medium text-gray-300 hover:text-purple-400">
+                  ホーム
+                </a>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <a href="/#services" className="ml-1 text-sm font-medium text-gray-300 hover:text-purple-400 md:ml-2">
+                    サービス
+                  </a>
+                </div>
+              </li>
+              <li aria-current="page">
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="ml-1 text-sm font-medium text-gray-400 md:ml-2 block truncate sm:whitespace-normal" 
+                        title="動画生成AI開発">
+                    <span className="hidden sm:inline">動画生成AI開発</span>
+                    <span className="sm:hidden">動画生成...</span>
+                  </span>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </nav>
+
         {/* 背景エフェクト（動画生成特化デザイン） */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-pink-900/30 to-indigo-900/20" />
@@ -120,8 +156,8 @@ export default function VideoHeroSectionSSR() {
           <div className="absolute bottom-1/3 left-1/3 w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
         </div>
 
-        <div className="relative container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
+        <div className="relative container mx-auto px-4" style={{background: 'transparent !important'}}>
+          <div className="max-w-4xl mx-auto text-center" style={{background: 'transparent !important'}}>
             {/* AI動画生成バッジ */}
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 backdrop-blur-sm mb-8">
               <svg className="w-4 h-4 mr-2 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -131,7 +167,7 @@ export default function VideoHeroSectionSSR() {
             </div>
 
             {/* メインタイトル（GEO対策: Explain-Then-List構造） */}
-            <header>
+            <header style={{background: 'transparent !important'}}>
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
                 <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
                   AI動画生成・API連携
@@ -141,16 +177,16 @@ export default function VideoHeroSectionSSR() {
               </h1>
 
               {/* Topical Coverage: 動画生成業界特化説明（LLMO対応） */}
-              <div className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                <p className="mb-4">
+              <div className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed" style={{background: 'transparent !important'}}>
+                <p className="mb-4" style={{background: 'transparent !important'}}>
                   Midjourney、Veo 3、Runway MLなどの最新AI動画生成APIを活用し、
                   <br className="hidden md:block" />
                   コンテンツ制作を革新的に効率化するシステムを構築します
                 </p>
                 
                 {/* 詳細説明（Mike King理論: 網羅的コンテンツ） */}
-                <div className="text-base text-gray-400 max-w-3xl mx-auto mb-8">
-                  <p>
+                <div className="text-base text-gray-400 max-w-3xl mx-auto mb-8" style={{background: 'transparent !important'}}>
+                  <p style={{background: 'transparent !important'}}>
                     株式会社エヌアンドエスのAI動画生成システムは、OpenAI、Google、Meta、Adobe等の
                     最新AI技術を統合し、テキストから動画・画像を自動生成。従来の制作工程を90%短縮し、
                     企業のコンテンツマーケティングを次世代レベルに押し上げます。

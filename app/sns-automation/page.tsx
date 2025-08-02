@@ -108,7 +108,7 @@ export default async function SNSAutomationPage() {
   ];
   
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+    <main className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       {/* AI検索流入クリック回復バナー */}
       <ClickRecoveryBanner />
       

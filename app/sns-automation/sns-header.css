@@ -1,20 +1,17 @@
-/* SNS自動化ページ用のヘッダースタイル - 修正版 */
-body.sns-automation-page header {
-  background: linear-gradient(135deg, 
-    rgba(0, 0, 0, 0.95) 0%, 
-    rgba(15, 15, 15, 0.95) 50%, 
-    rgba(0, 0, 0, 0.95) 100%) !important;
+/* SNS自動化ページ用のヘッダースタイル - 真っ白版 */
+body:has(.sns-automation-content) header {
+  background: rgba(255, 255, 255, 1) !important;
   backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
-body.sns-automation-page header .container nav a,
-body.sns-automation-page header .container nav button {
-  color: #ffffff !important;
+body:has(.sns-automation-content) header .container nav a,
+body:has(.sns-automation-content) header .container nav button {
+  color: #1f2937 !important;
 }
 
-body.sns-automation-page header .container nav a:hover,
-body.sns-automation-page header .container nav button:hover {
+body:has(.sns-automation-content) header .container nav a:hover,
+body:has(.sns-automation-content) header .container nav button:hover {
   color: #3b82f6 !important;
 }
 

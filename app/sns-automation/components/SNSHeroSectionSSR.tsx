@@ -147,8 +147,8 @@ export default function SNSHeroSectionSSR() {
           </div>
         </nav>
         {/* 背景グラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.2),transparent_50%)]" />
         
         {/* 装飾的な背景要素（SNS特化デザイン） */}
         <div className="absolute inset-0">
@@ -162,9 +162,9 @@ export default function SNSHeroSectionSSR() {
           <div className="absolute bottom-1/3 left-1/6 w-4 h-4 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center" style={{background: 'transparent !important'}}>
           {/* メインタイトル（GEO対策: Explain-Then-List構造） */}
-          <header>
+          <header style={{background: 'transparent !important'}}>
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
                 SNS自動化システム
@@ -174,16 +174,16 @@ export default function SNSHeroSectionSSR() {
             </h1>
 
             {/* Topical Coverage: SNS業界特化説明（LLMO対応） */}
-            <div className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-              <p className="mb-4">
+            <div className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed" style={{background: 'transparent !important'}}>
+              <p className="mb-4" style={{background: 'transparent !important'}}>
                 X（Twitter）、Instagram、FacebookなどのSNS投稿を自動化し、
                 <br className="hidden md:block" />
                 マーケティング効果を最大化するシステムを開発します
               </p>
               
               {/* 詳細説明（Mike King理論: 網羅的コンテンツ） */}
-              <div className="text-base text-gray-400 max-w-3xl mx-auto mb-8">
-                <p>
+              <div className="text-base text-gray-400 max-w-3xl mx-auto mb-8" style={{background: 'transparent !important'}}>
+                <p style={{background: 'transparent !important'}}>
                   株式会社エヌアンドエスのSNS自動化システムは、現代のデジタルマーケティングに
                   不可欠な複数のSNSプラットフォームを統合管理。AI技術を活用した投稿最適化、
                   エンゲージメント分析、自動スケジューリングにより、企業のSNSマーケティング
@@ -231,7 +231,7 @@ export default function SNSHeroSectionSSR() {
 
           {/* 主要機能ハイライト（GEO強化） */}
           <div id="sns-features" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-            <div className="flex flex-col items-center p-6 rounded-2xl bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 hover:border-blue-500/30 transition-all group">
+            <div className="flex flex-col items-center p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:border-blue-500/30 transition-all group">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-8 h-8 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h2.94l.56-2.243a1 1 0 111.94.486L14.53 6H17a1 1 0 110 2h-2.97l-1 4H15a1 1 0 110 2h-2.47l-.56 2.242a1 1 0 11-1.94-.485L10.47 14H7.53l-.56 2.242a1 1 0 11-1.94-.485L5.47 14H3a1 1 0 110-2h2.97l1-4H5a1 1 0 110-2h2.47l.56-2.243a1 1 0 011.213-.727zM9.03 8l-1 4h2.94l1-4H9.03z" clipRule="evenodd" />
@@ -241,7 +241,7 @@ export default function SNSHeroSectionSSR() {
               <p className="text-gray-300 text-center text-sm">X、Instagram、Facebook、LinkedIn等主要SNSに対応</p>
             </div>
 
-            <div className="flex flex-col items-center p-6 rounded-2xl bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 hover:border-cyan-500/30 transition-all group">
+            <div className="flex flex-col items-center p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:border-cyan-500/30 transition-all group">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-8 h-8 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
@@ -252,7 +252,7 @@ export default function SNSHeroSectionSSR() {
               <p className="text-gray-300 text-center text-sm">エンゲージメント分析とパフォーマンス最適化</p>
             </div>
 
-            <div className="flex flex-col items-center p-6 rounded-2xl bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 hover:border-purple-500/30 transition-all group">
+            <div className="flex flex-col items-center p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:border-purple-500/30 transition-all group">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-8 h-8 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />

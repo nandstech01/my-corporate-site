@@ -26,18 +26,8 @@ export default function VideoGenerationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.body.classList.add('video-generation-page');
-            window.addEventListener('beforeunload', function() {
-              document.body.classList.remove('video-generation-page');
-            });
-          `,
-        }}
-      />
+    <div className="video-generation-content">
       {children}
-    </>
+    </div>
   );
 } 

@@ -6,18 +6,8 @@ export default function SNSAutomationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.body.classList.add('sns-automation-page');
-            window.addEventListener('beforeunload', function() {
-              document.body.classList.remove('sns-automation-page');
-            });
-          `,
-        }}
-      />
+    <div className="sns-automation-content">
       {children}
-    </>
+    </div>
   );
 }

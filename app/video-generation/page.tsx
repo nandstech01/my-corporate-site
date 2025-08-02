@@ -4,6 +4,7 @@ import { ORGANIZATION_ENTITY, SERVICE_ENTITIES } from '@/lib/structured-data/ent
 import { SemanticLinksSystem } from '@/lib/structured-data/semantic-links';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
 import TableOfContents from '@/components/common/TableOfContents';
+import ClickRecoveryBanner from '@/components/ai-search/ClickRecoveryBanner';
 import VideoHeroSectionSSR from './components/VideoHeroSectionSSR';
 import VideoServicesSection from './components/VideoServicesSection';
 import VideoTechStack from './components/VideoTechStack';
@@ -126,20 +127,12 @@ const semanticLinks = semanticLinksSystem.generateSemanticLinks({
 
 // TOC生成（動画生成AI特化）
 const tableOfContents = [
-  { id: 'hero-section', title: '動画生成AI開発サービス', level: 2 },
-  { id: 'services-section', title: 'サービス内容', level: 2 },
-  { id: 'tech-stack', title: '技術スタック', level: 2 },
-  { id: 'showcase', title: '開発実績', level: 2 },
-  { id: 'video-ai-features', title: '動画生成AIの特徴', level: 2,
-    subsections: [
-      { id: 'auto-generation', title: '自動動画生成技術', level: 3 },
-      { id: 'ai-creative', title: 'AIクリエイティブ制作', level: 3 },
-      { id: 'marketing-automation', title: '動画マーケティング自動化', level: 3 }
-    ]
-  },
-  { id: 'pricing-section', title: '料金プラン', level: 2 },
-  { id: 'faq-section', title: 'よくある質問', level: 2 },
-  { id: 'contact-section', title: 'お問い合わせ', level: 2 }
+  { id: 'video-hero', title: '動画生成AI開発サービス概要', level: 2, anchor: '#video-hero' },
+  { id: 'services-section', title: 'サービス内容', level: 2, anchor: '#services-section' },
+  { id: 'tech-stack', title: '技術スタック', level: 2, anchor: '#tech-stack' },
+  { id: 'showcase', title: '開発実績', level: 2, anchor: '#showcase' },
+  { id: 'pricing-section', title: '料金プラン', level: 2, anchor: '#pricing-section' },
+  { id: 'contact', title: 'お問い合わせ', level: 2, anchor: '#contact' }
 ];
 
 export default function VideoGenerationPage() {
@@ -186,19 +179,18 @@ export default function VideoGenerationPage() {
         }) }}
       />
 
-      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        {/* パンくずナビ */}
-        <nav className="bg-black bg-opacity-30 px-4 py-2">
-          <div className="max-w-6xl mx-auto">
-            <ol className="flex items-center space-x-2 text-sm text-white">
-              <li><a href="/" className="text-purple-300 hover:text-purple-100 hover:underline">ホーム</a></li>
-              <li className="text-purple-400">›</li>
-              <li><a href="/#services" className="text-purple-300 hover:text-purple-100 hover:underline">サービス</a></li>
-              <li className="text-purple-400">›</li>
-              <li className="text-white">動画生成AI開発</li>
-            </ol>
+      <main className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900">
+        {/* AI検索流入クリック回復バナー */}
+        <ClickRecoveryBanner />
+        
+        {/* 統一目次機能（ヘッダー直下） */}
+        <div className="bg-black py-4 border-b border-gray-800 pt-20">
+          <div className="container mx-auto px-4">
+            <div className="video-generation-toc-container">
+              <TableOfContents items={tableOfContents} compact={true} />
+            </div>
           </div>
-        </nav>
+        </div>
 
         {/* ヒーローセクション */}
         <section id="hero-section">
@@ -226,11 +218,6 @@ export default function VideoGenerationPage() {
             accentColor="pink"
           />
         </section>
-
-        {/* 目次（ヒーロー直後に配置、背景色を調整） */}
-        <div className="bg-gray-50">
-          <TableOfContents items={tableOfContents} />
-        </div>
 
         {/* サービス内容セクション */}
         <section id="services-section">
