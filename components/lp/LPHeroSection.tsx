@@ -83,7 +83,7 @@ export default function LPHeroSection() {
               </div>
               {/* 2段目: AI習得DX研修 */}
               <div>
-                <span className="text-white font-bold text-lg lg:text-3xl tracking-wider opacity-90">AI習得DX研修</span>
+                <span className="text-white font-bold text-lg lg:text-3xl tracking-wider opacity-90">AI × SNS習得DX研修</span>
               </div>
             </div>
 
@@ -260,7 +260,7 @@ export default function LPHeroSection() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
                   <TextType
-                    text="ChatGPT Googleに引用されたい"
+                    text="ChatGPT GoogleにAI引用されたい"
                     className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
                     typingSpeed={75}
                     showCursor={false}
@@ -278,37 +278,55 @@ export default function LPHeroSection() {
                     <h3 className="text-white font-bold text-xl mb-3">レリバンスエンジニアリング講座</h3>
                     <div className="space-y-2 mb-4">
                       <p className="text-cyan-300 font-semibold text-sm">AIO・GEO対策完全実装</p>
+                      <p className="text-cyan-300 font-semibold text-sm">日本未上陸AIモード対策</p>
                       <p className="text-white text-sm">日本初RE・GEO実装企業が指導</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
                       <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
                     </div>
                     
-                    {/* AI プラットフォームロゴ */}
-                    <div className="flex flex-wrap justify-center lg:justify-start gap-3 items-center">
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">C</span>
-                        </div>
-                        <span className="text-white text-xs font-medium">ChatGPT</span>
+                    {/* AI プラットフォーム */}
+                    <div className="flex flex-col gap-3">
+                      {/* PC版: 1行に5つ */}
+                      <div className="hidden lg:flex justify-start gap-4 items-center">
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          ChatGPT
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          Google
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          Claude
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          Perplexity
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          Genspark
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">G</span>
+                      
+                      {/* スマホ版: 上段3つ、下段2つ */}
+                      <div className="lg:hidden space-y-3">
+                        <div className="flex justify-center gap-3 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            ChatGPT
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            Google
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            Claude
+                          </span>
                         </div>
-                        <span className="text-white text-xs font-medium">Google</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-orange-500 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">C</span>
+                        <div className="flex justify-center gap-3 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            Perplexity
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            Genspark
+                          </span>
                         </div>
-                        <span className="text-white text-xs font-medium">Claude</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-cyan-500 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">P</span>
-                        </div>
-                        <span className="text-white text-xs font-medium">Perplexity</span>
                       </div>
                     </div>
                   </div>
@@ -408,29 +426,83 @@ export default function LPHeroSection() {
                 <div className="flex flex-col lg:flex-row gap-6 items-center lg:items-start">
                   {/* 左側：講座詳細 */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-white font-bold text-xl mb-3">インフルエンサー実践講座</h3>
+                    <h3 className="text-white font-bold text-xl mb-3">SNS自動化講座</h3>
                     <div className="space-y-2 mb-4">
                       <p className="text-cyan-300 font-semibold text-sm">総フォロワー20万の実証済み手法</p>
-                      <p className="text-white text-sm">SNS集客ノウハウ・keitaアンバサダー直接指導</p>
+                                              <p className="text-white text-sm">SNS集客ノウハウ・SNS自動化</p>
+                        <p className="text-white text-sm">NANDS公式アンバサダー</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
-                      <p className="text-cyan-300 font-bold text-lg">25万円×人数（5人以上から）</p>
+                      <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
                     </div>
                     
-                    {/* BuzzLabリンクボタン */}
-                    <div className="flex justify-center lg:justify-start">
-                      <button className="group relative bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-white/20">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">B</span>
-                          </div>
-                          <span className="text-sm font-medium">BuzzLab</span>
-                          <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
-                            <span className="text-white text-xs">→</span>
-                          </div>
+                    {/* SNS プラットフォーム */}
+                    <div className="flex flex-col gap-3 mb-4">
+                      {/* PC版: BuzzLab + 4つのSNS */}
+                      <div className="hidden lg:flex justify-start gap-4 items-center">
+                        <a
+                          href="https://buzzlab8.jp/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-sm rounded-lg border border-purple-400/60 shadow-lg hover:shadow-purple-400/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
+                        >
+                          <span className="flex items-center gap-2">
+                            BuzzLabを見る
+                            <span className="opacity-60 group-hover:opacity-100 group-hover:translate-x-1 group-active:translate-x-1 transition-all duration-300 text-xs">
+                              &gt;
+                            </span>
+                          </span>
+                        </a>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          Instagram
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          YouTube
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          TikTok
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          X
+                        </span>
+                      </div>
+                      
+                      {/* スマホ版: 上段2つ、下段2つ */}
+                      <div className="lg:hidden space-y-3">
+                        <div className="flex justify-center gap-3 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            Instagram
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            YouTube
+                          </span>
                         </div>
-                        <div className="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </button>
+                        <div className="flex justify-center gap-3 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            TikTok
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            X
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* BuzzLabリンクボタン（スマホ版のみ） */}
+                    <div className="lg:hidden flex justify-center">
+                      <a
+                        href="https://buzzlab8.jp/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group text-white font-semibold text-sm tracking-wide px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-sm rounded-lg border border-purple-400/60 shadow-lg hover:shadow-purple-400/40 hover:shadow-xl transition-all duration-300 cursor-pointer"
+                      >
+                        <span className="flex items-center gap-2">
+                          BuzzLabを見る
+                          <span className="opacity-60 group-hover:opacity-100 group-hover:translate-x-1 group-active:translate-x-1 transition-all duration-300 text-xs">
+                            &gt;
+                          </span>
+                        </span>
+                      </a>
                     </div>
                   </div>
                   {/* 右側：講師カード（keita） */}
@@ -481,7 +553,7 @@ export default function LPHeroSection() {
                           }}
                         >
                           <div className="text-white text-xs font-medium">SNS専門講師</div>
-                          <div className="text-white font-bold text-sm">NANDSアンバサダー</div>
+                          <div className="text-white font-bold text-sm">NANDS公式アンバサダー</div>
                           <div 
                             className="font-black text-base"
                             style={{ 
@@ -514,7 +586,7 @@ export default function LPHeroSection() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
                   <TextType
-                    text="社内を内製化したい"
+                    text="社内をAIで内製化したい"
                     className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
                     typingSpeed={75}
                     showCursor={false}
@@ -535,28 +607,51 @@ export default function LPHeroSection() {
                       <p className="text-white text-sm">爆速で社内の内製化可能・NANDS CEO原田賢治が直接指導</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
-                      <p className="text-cyan-300 font-bold text-lg">35万円×人数（5人以上から）</p>
+                      <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
                     </div>
                     
-                    {/* AI開発ツールアイコン */}
-                    <div className="flex flex-wrap justify-center lg:justify-start gap-3 items-center">
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-blue-600 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">C</span>
-                        </div>
-                        <span className="text-white text-xs font-medium">cursor</span>
+                    {/* AI開発ツール */}
+                    <div className="flex flex-col gap-3">
+                      {/* PC版: 1行に5つ */}
+                      <div className="hidden lg:flex justify-start gap-3 items-center flex-wrap">
+                        <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          cursor
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          bolt.new
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          GitHub
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          VERCEL
+                        </span>
+                        <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          NEXT.JS
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-yellow-500 rounded-sm flex items-center justify-center">
-                          <span className="text-black text-xs font-bold">⚡</span>
+                      
+                      {/* スマホ版: 上段3つ、下段2つ */}
+                      <div className="lg:hidden space-y-3">
+                        <div className="flex justify-center gap-2 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            cursor
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            bolt.new
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            GitHub
+                          </span>
                         </div>
-                        <span className="text-white text-xs font-medium">bolt.new</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                        <div className="w-4 h-4 bg-gray-800 rounded-sm flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">G</span>
+                        <div className="flex justify-center gap-2 items-center">
+                          <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            VERCEL
+                          </span>
+                          <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            NEXT.JS
+                          </span>
                         </div>
-                        <span className="text-white text-xs font-medium">GitHub</span>
                       </div>
                     </div>
                   </div>
@@ -595,7 +690,7 @@ export default function LPHeroSection() {
                               textShadow: '0 0 8px rgba(0, 255, 255, 0.5)'
                             }}
                           >
-                            レリバンスエンジニアリング専門家
+                            AI駆動開発エンジニア
                           </span>
                         </div>
                         
@@ -607,7 +702,7 @@ export default function LPHeroSection() {
                             border: '1px solid rgba(255,255,255,0.1)'
                           }}
                         >
-                          <div className="text-white text-xs font-medium">RE専門講師</div>
+                          <div className="text-white text-xs font-medium">AI駆動開発講師</div>
                           <div className="text-white font-bold text-sm">NANDS CEO</div>
                           <div 
                             className="font-black text-base"
