@@ -48,7 +48,7 @@ export default function ContactSection() {
   }
 
   return (
-    <section ref={ref} className="py-20 bg-gradient-to-br from-slate-800 via-blue-800 to-indigo-800 relative overflow-hidden">
+    <section id="keita-nands-program" ref={ref} className="py-20 bg-gradient-to-br from-slate-800 via-blue-800 to-indigo-800 relative overflow-hidden">
       {/* 動的背景 */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-teal-600/10"></div>
