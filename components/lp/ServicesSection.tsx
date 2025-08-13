@@ -143,7 +143,7 @@ export default function ServicesSection() {
               <TextType
                 text="次世代人材育成プログラム"
                 className=""
-                contentClassName="text-gray-900"
+                contentClassName="text-cyan-600"
                 typingSpeed={70}
                 showCursor={false}
                 startOnVisible={true}

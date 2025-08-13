@@ -122,7 +122,7 @@ export default function TechResultsSection() {
               <TextType
                 text="最先端技術力の融合"
                 className=""
-                contentClassName="text-white"
+                contentClassName="text-cyan-300"
                 typingSpeed={70}
                 showCursor={false}
                 startOnVisible={true}
@@ -133,7 +133,7 @@ export default function TechResultsSection() {
               <div className="my-1">×</div>
               <TextType
                 text="総フォロワー20万の"
-                className="text-white"
+                className="text-cyan-300"
                 typingSpeed={70}
                 showCursor={false}
                 startOnVisible={true}
@@ -144,7 +144,7 @@ export default function TechResultsSection() {
               <br />
               <TextType
                 text="インフルエンサー"
-                className="text-white"
+                className="text-cyan-300"
                 typingSpeed={70}
                 showCursor={false}
                 startOnVisible={true}

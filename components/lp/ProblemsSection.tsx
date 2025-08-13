@@ -117,7 +117,7 @@ export default function ProblemsSection() {
                 <TextType
                   text="次世代スキル習得の壁"
                   className=""
-                  contentClassName="text-white"
+                  contentClassName="text-red-500"
                   typingSpeed={75}
                   showCursor={false}
                   startOnVisible={true}
