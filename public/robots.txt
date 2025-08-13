@@ -7,7 +7,7 @@
 # 全検索エンジン・AIクローラー基本設定
 User-agent: *
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -16,7 +16,7 @@ Disallow: /admin/partners/
 # 主要検索エンジン個別最適化（公式推奨設定）
 User-agent: Googlebot
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -25,7 +25,7 @@ Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -34,7 +34,7 @@ Crawl-delay: 1
 
 User-agent: Slurp
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -51,7 +51,7 @@ Allow: /aio-seo
 Allow: /ai-agents
 Allow: /vector-rag
 Allow: /chatbot-development
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -60,7 +60,7 @@ Crawl-delay: 1
 
 User-agent: ChatGPT-User
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -69,7 +69,7 @@ Crawl-delay: 1
 
 User-agent: SearchGPT
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -79,7 +79,7 @@ Crawl-delay: 1
 # Google AI検索エンジン（公式対応）
 User-agent: Google-Extended
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
@@ -88,7 +88,7 @@ Crawl-delay: 1
 
 User-agent: GoogleOther
 Allow: /
-Disallow: /lp
+Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
 Disallow: /partners
