@@ -125,10 +125,25 @@ export default function ServicesSection() {
               as="span"
             />
             <br />
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            {/* PC: グラデーション、SP: 濃色テキスト */}
+            <span className="hidden lg:inline">
               <TextType
                 text="次世代人材育成プログラム"
                 className=""
+                contentClassName="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={300}
+                as="span"
+              />
+            </span>
+            <span className="lg:hidden">
+              <TextType
+                text="次世代人材育成プログラム"
+                className=""
+                contentClassName="text-gray-900"
                 typingSpeed={70}
                 showCursor={false}
                 startOnVisible={true}

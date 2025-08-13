@@ -15,6 +15,15 @@ export default function LPHeroSection() {
     setIsVisible(true)
   }, [])
 
+  const scrollToContact = () => {
+    const byId = document.getElementById('contact')
+    const byData = document.querySelector('[data-section="keita-nands-program"]') as HTMLElement | null
+    const target = byId || byData
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
       {/* Galaxy 3D背景 */}
@@ -134,12 +143,7 @@ export default function LPHeroSection() {
             {/* PC版無料相談ボタン */}
             <div className="hidden lg:flex justify-center mt-8">
               <button
-                onClick={() => {
-                  const targetSection = document.querySelector('#keita-nands-program');
-                  if (targetSection) {
-                    targetSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
+                onClick={scrollToContact}
                 className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 p-1 shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 transform hover:scale-105"
               >
                 <div className="relative bg-gradient-to-r from-gray-900 via-slate-900 to-black rounded-lg px-12 py-6 group-hover:from-gray-800 group-hover:via-slate-800 group-hover:to-gray-900 transition-all duration-300">
@@ -205,12 +209,7 @@ export default function LPHeroSection() {
             {/* スマホ版無料相談ボタン */}
             <div className="lg:hidden flex justify-center mt-8">
               <button
-                onClick={() => {
-                  const targetSection = document.querySelector('#keita-nands-program');
-                  if (targetSection) {
-                    targetSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
+                onClick={scrollToContact}
                 className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 p-1 shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 transform hover:scale-105"
               >
                 <div className="relative bg-gradient-to-r from-gray-900 via-slate-900 to-black rounded-lg px-8 py-4 group-hover:from-gray-800 group-hover:via-slate-800 group-hover:to-gray-900 transition-all duration-300">

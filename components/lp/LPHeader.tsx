@@ -57,7 +57,7 @@ export default function LPHeader() {
 
             {/* パートナーボタン - ミニマル＆プレミアム */}
             <Link 
-              href="/partners"
+              href="/partner-admin"
               aria-label="パートナー"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-cyan-500 to-cyan-600 shadow-md hover:shadow-lg ring-1 ring-cyan-200 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
             >
@@ -72,7 +72,7 @@ export default function LPHeader() {
           <div className="md:hidden flex items-center gap-3">
             {/* パートナーボタン - モバイル（ミニマル） */}
             <Link 
-              href="/partners"
+              href="/partner-admin"
               aria-label="パートナー"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white font-semibold text-xs bg-gradient-to-r from-cyan-500 to-cyan-600 shadow-md ring-1 ring-cyan-200 transition-colors duration-200 active:opacity-90"
             >

@@ -94,17 +94,30 @@ export default function ProblemsSection() {
                 as="span"
               />
               <br />
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage: 'linear-gradient(90deg, #00FFFF, #40E0D0, #00E5FF, #00CED1, #00FFFF)',
-                  backgroundSize: '400% 100%',
-                  animation: 'gradient-shift 5s linear infinite'
-                }}
-              >
+              {/* PC: グラデーションを文字要素自体に適用 */}
+              <span className="hidden lg:inline">
                 <TextType
                   text="次世代スキル習得の壁"
                   className=""
+                  contentClassName="bg-clip-text text-transparent"
+                  contentStyle={{
+                    backgroundImage: 'linear-gradient(90deg, #00FFFF, #40E0D0, #00E5FF, #00CED1, #00FFFF)',
+                    backgroundSize: '400% 100%'
+                  }}
+                  typingSpeed={75}
+                  showCursor={false}
+                  startOnVisible={true}
+                  loop={false}
+                  initialDelay={400}
+                  as="span"
+                />
+              </span>
+              {/* モバイル: 白文字 */}
+              <span className="lg:hidden">
+                <TextType
+                  text="次世代スキル習得の壁"
+                  className=""
+                  contentClassName="text-white"
                   typingSpeed={75}
                   showCursor={false}
                   startOnVisible={true}

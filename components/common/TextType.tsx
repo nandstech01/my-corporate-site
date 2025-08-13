@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, createElement } from "react";
+import { useEffect, useRef, useState, createElement, CSSProperties } from "react";
 import { gsap } from "gsap";
 import "./TextType.css";
 
@@ -23,6 +23,8 @@ interface TextTypeProps {
   onSentenceComplete?: (sentence: string, index: number) => void;
   startOnVisible?: boolean;
   reverseMode?: boolean;
+  contentClassName?: string;
+  contentStyle?: CSSProperties;
   [key: string]: any;
 }
 
@@ -45,6 +47,8 @@ const TextType = ({
   onSentenceComplete,
   startOnVisible = false,
   reverseMode = false,
+  contentClassName = "",
+  contentStyle,
   ...props
 }: TextTypeProps) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -184,8 +188,8 @@ const TextType = ({
       ...props,
     },
     <span
-      className="text-type__content"
-      style={getCurrentTextColor() ? { color: getCurrentTextColor()! } : {}}
+      className={`text-type__content ${contentClassName}`}
+      style={getCurrentTextColor() ? { color: getCurrentTextColor()! , ...(contentStyle || {}) } : (contentStyle || {})}
     >
       {displayedText}
     </span>,

@@ -91,10 +91,11 @@ export default function TechResultsSection() {
           >
             {/* PC レイアウト */}
             <div className="hidden lg:block text-center">
-              <span className="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent">
+              <span className="">
                 <TextType
                   text="最先端技術力の融合"
                   className=""
+                  contentClassName="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent"
                   typingSpeed={70}
                   showCursor={false}
                   startOnVisible={true}
@@ -118,18 +119,17 @@ export default function TechResultsSection() {
 
             {/* モバイル レイアウト（中央揃えで3行） */}
             <div className="lg:hidden text-center">
-              <span className="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent">
-                <TextType
-                  text="最先端技術力の融合"
-                  className=""
-                  typingSpeed={70}
-                  showCursor={false}
-                  startOnVisible={true}
-                  loop={false}
-                  initialDelay={0}
-                  as="span"
-                />
-              </span>
+              <TextType
+                text="最先端技術力の融合"
+                className=""
+                contentClassName="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={0}
+                as="span"
+              />
               <div className="my-1">×</div>
               <TextType
                 text="総フォロワー20万の"
