@@ -49,7 +49,7 @@ export default function ContactSection() {
   }
 
   return (
-    <section id="keita-nands-program" ref={ref} className="py-20 bg-gradient-to-br from-cyan-900 via-slate-900 to-black relative overflow-hidden">
+    <section id="contact" aria-label="contact-section" data-section="keita-nands-program" ref={ref} className="py-20 bg-gradient-to-br from-cyan-900 via-slate-900 to-black relative overflow-hidden">
       {/* 動的背景 */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-600/10 to-cyan-500/10"></div>

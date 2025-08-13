@@ -3,12 +3,12 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import LPHeader from '@/components/lp/LPHeader'
-import LPHeroSection from '@/components/lp/LPHeroSection'
-import ProblemsSection from '@/components/lp/ProblemsSection'
-import SubsidySection from '@/components/lp/SubsidySection'
-import TechResultsSection from '@/components/lp/TechResultsSection'
-import ServicesSection from '@/components/lp/ServicesSection'
-import ContactSection from '@/components/lp/ContactSection'
+import LPHeroSectionSSR from '@/components/lp/LPHeroSectionSSR'
+import ProblemsSectionSSR from '@/components/lp/ProblemsSectionSSR'
+import SubsidySectionSSR from '@/components/lp/SubsidySectionSSR'
+import TechResultsSectionSSR from '@/components/lp/TechResultsSectionSSR'
+import ServicesSectionSSR from '@/components/lp/ServicesSectionSSR'
+import ContactSectionSSR from '@/components/lp/ContactSectionSSR'
 // LP専用フッターは共通フッターと重複するため削除
 import PostsGridSSR from '@/components/common/PostsGridSSR'
 import PostsGridAnimations from '@/components/common/PostsGridAnimations'
@@ -166,11 +166,11 @@ export default async function LPPage() {
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-10" />
       </div>
       <LPHeader />
-      <LPHeroSection />
-      <ProblemsSection />
-      <SubsidySection />
-      <TechResultsSection />
-      <ServicesSection />
+      <LPHeroSectionSSR />
+      <ProblemsSectionSSR />
+      <SubsidySectionSSR />
+      <TechResultsSectionSSR />
+      <ServicesSectionSSR />
       {/* ROI計算ツール（ブログセクションの直前に配置） */}
       <section id="roi-calculator" className="py-20 bg-gradient-to-b from-gray-900 via-slate-900 to-black">
         <div className="container mx-auto px-4">
@@ -209,7 +209,7 @@ export default async function LPPage() {
           </div>
         </div>
        </section>
-      <ContactSection />
+      <ContactSectionSSR />
     </main>
   )
 } 

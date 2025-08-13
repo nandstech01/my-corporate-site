@@ -65,7 +65,7 @@ export default function TechResultsSection() {
   ]
 
   return (
-    <section ref={ref} className="py-20 bg-gradient-to-br from-gray-900 to-slate-800 relative overflow-hidden">
+    <section id="results" ref={ref} className="py-20 bg-gradient-to-br from-gray-900 to-slate-800 relative overflow-hidden">
       {/* 背景エフェクト */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/10 rounded-full filter blur-3xl"></div>
