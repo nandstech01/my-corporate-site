@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import TextType from '../common/TextType'
 import Image from 'next/image'
 import Galaxy from './Galaxy'
 import CountUp from '../common/CountUp'
-import TextType from '../common/TextType'
 
 export default function LPHeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -274,7 +274,7 @@ export default function LPHeroSection() {
               </div>
               {/* 詳細情報 + 講師カード統合 */}
               <div className="bg-gradient-to-br from-gray-900 via-slate-800 to-black p-6 border-2 border-cyan-500/20">
-                <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-start items-center">
+                <div className="flex flex-col lg:flex-row gap-6 items-center lg:items-start">
                   {/* 左側：講座詳細 */}
                   <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-white font-bold text-xl mb-3">レリバンスエンジニアリング講座</h3>
@@ -333,7 +333,7 @@ export default function LPHeroSection() {
                     </div>
                   </div>
                   {/* 右側：講師カード（原田賢治） */}
-                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden min-w-[200px]">
+                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden w-[320px] h-[320px]">
                     {/* 宇宙背景エフェクト */}
                     <div className="absolute top-1 left-1 w-0.5 h-0.5 bg-yellow-300 rounded-full animate-pulse"></div>
                     <div className="absolute top-3 right-2 w-1 h-1 bg-white rounded-full animate-pulse"></div>
@@ -342,12 +342,14 @@ export default function LPHeroSection() {
                     
                     <div className="relative z-10 text-center">
                       {/* プロフィール画像 */}
-                      <div className="mx-auto w-16 h-16 bg-gray-600 rounded-full mb-3 flex items-center justify-center border-2 border-cyan-500/30">
-                        <div className="text-gray-400 text-xs text-center leading-tight">
-                          人物画像<br />
-                          (PNG透過)<br />
-                          80px
-                        </div>
+                      <div className="mx-auto w-40 h-40 rounded-xl mb-3 overflow-hidden border-2 border-cyan-500/30 shadow-lg">
+                        <Image
+                          src="/images/lp/profile/harada-kenji-profile.png"
+                          alt="原田賢治"
+                          width={160}
+                          height={160}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       
                       {/* 講師情報 */}
@@ -510,7 +512,7 @@ export default function LPHeroSection() {
                     </div>
                   </div>
                   {/* 右側：講師カード（keita） */}
-                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden min-w-[200px]">
+                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden w-[320px] h-[320px]">
                     {/* 宇宙背景エフェクト */}
                     <div className="absolute top-2 left-2 w-1 h-1 bg-yellow-300 rounded-full animate-pulse"></div>
                     <div className="absolute top-1 right-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
@@ -519,12 +521,14 @@ export default function LPHeroSection() {
                     
                     <div className="relative z-10 text-center">
                       {/* プロフィール画像 */}
-                      <div className="mx-auto w-16 h-16 bg-gray-600 rounded-full mb-3 flex items-center justify-center border-2 border-cyan-500/30">
-                        <div className="text-gray-400 text-xs text-center leading-tight">
-                          人物画像<br />
-                          (PNG透過)<br />
-                          80px
-                        </div>
+                      <div className="mx-auto w-40 h-40 rounded-xl mb-3 overflow-hidden border-2 border-cyan-500/30 shadow-lg">
+                        <Image
+                          src="/images/lp/profile/keita-profile.png"
+                          alt="keita"
+                          width={160}
+                          height={160}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       
                       {/* 講師情報 */}
@@ -619,7 +623,7 @@ export default function LPHeroSection() {
                     {/* AI開発ツール */}
                     <div className="flex flex-col gap-3">
                       {/* PC版: 1行に5つ */}
-                      <div className="hidden lg:flex justify-start gap-3 items-center flex-wrap">
+                      <div className="hidden lg:flex justify-start gap-3 items-center">
                         <span className="text-white font-semibold text-sm tracking-wide px-3 py-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-lg border border-cyan-400/30 shadow-lg hover:border-cyan-400/60 hover:shadow-cyan-400/20 hover:shadow-xl transition-all duration-300 cursor-pointer">
                           cursor
                         </span>
@@ -662,7 +666,7 @@ export default function LPHeroSection() {
                     </div>
                   </div>
                   {/* 右側：講師カード（原田賢治） */}
-                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden min-w-[200px]">
+                  <div className="relative bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-black/50 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm overflow-hidden w-[320px] h-[320px]">
                     {/* 宇宙背景エフェクト */}
                     <div className="absolute top-3 right-3 w-1 h-1 bg-yellow-300 rounded-full animate-pulse"></div>
                     <div className="absolute top-1 left-2 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
@@ -671,12 +675,14 @@ export default function LPHeroSection() {
                     
                     <div className="relative z-10 text-center">
                       {/* プロフィール画像 */}
-                      <div className="mx-auto w-16 h-16 bg-gray-600 rounded-full mb-3 flex items-center justify-center border-2 border-cyan-500/30">
-                        <div className="text-gray-400 text-xs text-center leading-tight">
-                          人物画像<br />
-                          (PNG透過)<br />
-                          80px
-                        </div>
+                      <div className="mx-auto w-40 h-40 rounded-xl mb-3 overflow-hidden border-2 border-cyan-500/30 shadow-lg">
+                        <Image
+                          src="/images/lp/profile/harada-kenji-profile.png"
+                          alt="原田賢治"
+                          width={160}
+                          height={160}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       
                       {/* 講師情報 */}
@@ -708,7 +714,7 @@ export default function LPHeroSection() {
                             border: '1px solid rgba(255,255,255,0.1)'
                           }}
                         >
-                          <div className="text-white text-xs font-medium">AI駆動開発講師</div>
+                          <div className="text-white text-xs font-medium">AI駆動開践講師</div>
                           <div className="text-white font-bold text-sm">NANDS CEO</div>
                           <div 
                             className="font-black text-base"

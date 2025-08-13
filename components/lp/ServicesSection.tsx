@@ -26,6 +26,32 @@ export default function ServicesSection() {
 
   const services = [
     {
+      title: (
+        <div className="text-center">
+          レリバンス<br />
+          エンジニアリング講座
+        </div>
+      ),
+      duration: "6週間", 
+      price: "30万円×人数（3人以上から）",
+      icon: (
+        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      ),
+      gradient: "from-purple-500 to-pink-500",
+      bgGradient: "from-purple-50 to-pink-50",
+      borderGradient: "from-purple-200 to-pink-200",
+      features: [
+        "GoogleのAIモード完全対策",
+        "630%向上のベクトル検索技術",
+        "ChatGPT Search対応手法",
+        "AI検索時代の生存戦略"
+      ],
+      badge: "日本初の実装技術",
+      description: "AI検索時代に生き残るための、レリバンスエンジニアリング完全習得プログラム。"
+    },
+    {
       title: "SNS自動化講座",
       duration: "4週間",
       price: "30万円×人数（3人以上から）",
@@ -45,27 +71,6 @@ export default function ServicesSection() {
       ],
       badge: "総フォロワー20万の実証済み",
       description: "総フォロワー20万のkeitaから直接学ぶ、インフルエンサーレベルの発信力習得プログラム。"
-    },
-    {
-      title: "レリバンスエンジニアリング講座",
-      duration: "6週間", 
-      price: "30万円×人数（3人以上から）",
-      icon: (
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-        </svg>
-      ),
-      gradient: "from-purple-500 to-pink-500",
-      bgGradient: "from-purple-50 to-pink-50",
-      borderGradient: "from-purple-200 to-pink-200",
-      features: [
-        "AI検索対応の最新SEO技術",
-        "AIO対策（実装済みシステムでの実証）",
-        "RE・GEO技術の完全実装",
-        "630%改善を実現するテクニック"
-      ],
-      badge: "630%改善の実証済み技術",
-      description: "日本で唯一の実装済み企業が直接指導する、次世代検索対策の完全マスタープログラム。"
     },
     {
       title: "AI駆動開発講座",
@@ -171,11 +176,8 @@ export default function ServicesSection() {
                   </div>
 
                   <div className="pt-4">
-                    {/* アイコンとタイトル */}
+                    {/* タイトル */}
                     <div className="text-center mb-8">
-                      <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                        {service.icon}
-                      </div>
                       <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
                         {service.title}
                       </h3>

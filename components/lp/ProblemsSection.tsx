@@ -15,13 +15,17 @@ export default function ProblemsSection() {
 
   const challenges = [
     {
-      id: 2,
+      id: 0,
       icon: (
         <svg className="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "日本未上陸AIモード対策の遅れ",
+      title: (
+        <>
+          日本未上陸<span className="text-red-500">AIモード</span>対策の遅れ
+        </>
+      ),
       text: "GoogleのAIモード、ChatGPT Search等の新検索に対応できず、競合他社に検索流入で大差をつけられてしまう",
       gradient: "from-purple-500 to-pink-500"
     },
@@ -32,7 +36,11 @@ export default function ProblemsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "本物のインフルエンサー思考を学べない",
+      title: (
+        <>
+          <span className="text-red-500">本物インフルエンサー</span>思考を学べない
+        </>
+      ),
       text: "フォロワー20万級のインフルエンサーから直接学べる機会がなく、表面的なSNS運用に留まってしまう",
       gradient: "from-blue-500 to-cyan-500"
     },
@@ -43,7 +51,11 @@ export default function ProblemsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
         </svg>
       ),
-      title: "bolt.new・AI駆動開発の導入困難",
+      title: (
+        <>
+          bolt.new・AI駆動開発の<span className="text-red-500">導入困難</span>
+        </>
+      ),
       text: "AI駆動開発ツールの習得に時間がかかり、開発効率化が進まず競争力が低下してしまう",
       gradient: "from-green-500 to-teal-500"
     }
@@ -137,21 +149,8 @@ export default function ProblemsSection() {
                     </div>
 
                     <div className="relative z-10">
-                      {/* 1枚目カードだけ右上にアイコン画像 */}
-                      {index === 0 && (
-                        <div className="absolute top-4 right-4 w-12 h-12 rounded-xl overflow-hidden ring-1 ring-white/20">
-                          <Image
-                            src="/images/lp/problems/icon-1.png"
-                            alt="AIモード対策アイコン"
-                            width={48}
-                            height={48}
-                            className="object-cover opacity-90"
-                            priority
-                          />
-                        </div>
-                      )}
                       {/* タイトル */}
-                      <h3 className="text-xl font-bold text-white mb-4">
+                      <h3 className="text-lg font-bold text-white mb-4">
                         {challenge.title}
                       </h3>
 
@@ -159,6 +158,54 @@ export default function ProblemsSection() {
                       <p className="text-slate-300 leading-relaxed">
                         {challenge.text}
                       </p>
+                      
+                      {/* 1枚目カードだけ文章の下に中央揃えでアイコン画像 */}
+                      {index === 0 && (
+                        <div className="mt-6 flex justify-center">
+                          <div className="w-40 h-40 rounded-xl overflow-hidden shadow-lg">
+                            <Image
+                              src="/images/lp/problems/icon-1.png"
+                              alt="AIモード対策アイコン"
+                              width={160}
+                              height={160}
+                              className="object-cover opacity-95"
+                              priority
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 2枚目カード：インフルエンサー思考 */}
+                      {index === 1 && (
+                        <div className="mt-6 flex justify-center">
+                          <div className="w-40 h-40 rounded-xl overflow-hidden shadow-lg">
+                            <Image
+                              src="/images/lp/problems/icon-2.png"
+                              alt="インフルエンサー思考アイコン"
+                              width={160}
+                              height={160}
+                              className="object-cover opacity-95"
+                              priority
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 3枚目カード：AI駆動開発 */}
+                      {index === 2 && (
+                        <div className="mt-6 flex justify-center">
+                          <div className="w-40 h-40 rounded-xl overflow-hidden shadow-lg">
+                            <Image
+                              src="/images/lp/problems/icon-3.png"
+                              alt="AI駆動開発アイコン"
+                              width={160}
+                              height={160}
+                              className="object-cover opacity-95"
+                              priority
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -210,19 +257,28 @@ export default function ProblemsSection() {
               >
                 <div className="bg-gradient-to-br from-gray-900 via-slate-800 to-black rounded-3xl p-8 border border-blue-500/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
                   {/* カード上部のアイコンエリア */}
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center"></div>
+                  <div className="mb-6 flex justify-center">
+                    <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300">
+                      <Image
+                        src="/images/lp/courses/course-1.png"
+                        alt="AIモード対策コースアイコン"
+                        width={96}
+                        height={96}
+                        className="object-cover opacity-95"
+                        priority
+                      />
+                    </div>
                   </div>
                   
                   {/* タイトル */}
-                  <h4 className="text-2xl font-bold text-white mb-4">
-                    AIに引用されれば<br />
+                  <h4 className="text-2xl font-bold text-white mb-4 text-center">
+                    <span className="text-cyan-300">AIに引用されれば</span><br />
                     <span className="text-blue-300">24時間365日の営業マン</span>
                   </h4>
                   
                   {/* 説明文 */}
-                  <p className="text-slate-300 leading-relaxed mb-6 text-sm">
-                    GoogleのAIモード、ChatGPT Search、Claude、Perplexityなど主要AI検索で引用されることで、睡眠中でも自動で見込み客を獲得
+                  <p className="text-slate-200 leading-relaxed mb-6 text-sm text-center">
+                    <span className="text-cyan-200">GoogleのAIモード、ChatGPT Search、Claude、Perplexity</span>など主要AI検索で引用されることで、<span className="text-blue-200 font-medium">睡眠中でも自動で見込み客を獲得</span>
                   </p>
                   
                   {/* 効果指標 */}
@@ -246,19 +302,28 @@ export default function ProblemsSection() {
               >
                 <div className="bg-gradient-to-br from-gray-900 via-slate-800 to-black rounded-3xl p-8 border border-purple-500/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
                   {/* カード上部のアイコンエリア */}
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center"></div>
+                  <div className="mb-6 flex justify-center">
+                    <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300">
+                      <Image
+                        src="/images/lp/courses/course-2.png"
+                        alt="SNS自動化コースアイコン"
+                        width={96}
+                        height={96}
+                        className="object-cover opacity-95"
+                        priority
+                      />
+                    </div>
                   </div>
                   
                   {/* タイトル */}
-                  <h4 className="text-2xl font-bold text-white mb-4">
-                    <span className="text-purple-300">SNS自動化で</span><br />
+                  <h4 className="text-2xl font-bold text-white mb-4 text-center">
+                    <span className="text-cyan-300">SNS自動化で</span><br />
                     <span className="text-purple-300">バズコンテンツが自動配信</span>
                   </h4>
                   
                   {/* 説明文 */}
-                  <p className="text-slate-300 leading-relaxed mb-6 text-sm">
-                    Instagram、YouTube、TikTok、Xで20万フォロワー級のバズコンテンツを自動生成・配信。手動投稿は過去のもの
+                  <p className="text-slate-200 leading-relaxed mb-6 text-sm text-center">
+                    <span className="text-cyan-200">Instagram、YouTube、TikTok、X</span>で<span className="text-purple-200 font-medium">20万フォロワー級のバズコンテンツ</span>を自動生成・配信。<span className="text-blue-200">手動投稿は過去のもの</span>
                   </p>
                   
                   {/* 効果指標 */}
@@ -282,19 +347,28 @@ export default function ProblemsSection() {
               >
                 <div className="bg-gradient-to-br from-gray-900 via-slate-800 to-black rounded-3xl p-8 border border-emerald-500/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
                   {/* カード上部のアイコンエリア */}
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center"></div>
+                  <div className="mb-6 flex justify-center">
+                    <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300">
+                      <Image
+                        src="/images/lp/courses/course-3.png"
+                        alt="AI駆動開発コースアイコン"
+                        width={96}
+                        height={96}
+                        className="object-cover opacity-95"
+                        priority
+                      />
+                    </div>
                   </div>
                   
                   {/* タイトル */}
-                  <h4 className="text-2xl font-bold text-white mb-4">
-                    <span className="text-emerald-300">AI駆動開発で</span><br />
+                  <h4 className="text-2xl font-bold text-white mb-4 text-center">
+                    <span className="text-cyan-300">AI駆動開発で</span><br />
                     <span className="text-emerald-300">同業他社と差別化</span>
                   </h4>
                   
                   {/* 説明文 */}
-                  <p className="text-slate-300 leading-relaxed mb-6 text-sm">
-                    cursor、bolt.new、VERCEL、NEXT.JSを駆使した最先端AI駆動開発で、競合が追いつけない圧倒的な開発スピードを実現
+                  <p className="text-slate-200 leading-relaxed mb-6 text-sm text-center">
+                    <span className="text-cyan-200">cursor、bolt.new、VERCEL、NEXT.JS</span>を駆使した<span className="text-emerald-200 font-medium">最先端AI駆動開発</span>で、<span className="text-blue-200">競合が追いつけない圧倒的な開発スピード</span>を実現
                   </p>
                   
                   {/* 効果指標 */}

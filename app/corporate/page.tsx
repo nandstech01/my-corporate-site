@@ -589,7 +589,7 @@ export default async function CorporatePage() {
             <meta itemProp="name" content="ROI計算ツール" />
             <div className="container mx-auto px-4">
               <div className="max-w-4xl mx-auto">
-                <h2 className="text-3xl font-bold text-center mb-12">AI研修導入効果計算ツール</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold text-center mb-12">AI研修導入効果計算ツール</h2>
                 <ROICalculator />
               </div>
             </div>
@@ -632,7 +632,15 @@ export default async function CorporatePage() {
             <meta itemProp="name" content="最新ブログ記事" />
             <div className="container mx-auto px-4">
               <h2 id="latest-posts-heading" className="text-3xl font-bold text-center mb-12">
-                最新の記事 - 生成AI・企業研修・技術情報
+                {/* PC版：1行表示 */}
+                <span className="hidden lg:inline">
+                  最新の記事 - 生成AI・企業研修・技術情報
+                </span>
+                {/* スマホ版：2段表示 */}
+                <span className="lg:hidden">
+                  最新の記事<br />
+                  <span className="text-xl font-medium">生成AI・企業研修・技術情報</span>
+                </span>
               </h2>
               <p className="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
                 AI活用事例、企業研修の実績、最新技術情報など、法人のAI導入に役立つ情報をお届けします。

@@ -1,0 +1,16 @@
+原田賢治用のプロフィール画像配置場所
+
+ファイル名: harada-kenji-profile.png
+配置場所: /Users/nands/my-corporate-site/public/images/lp/profile/harada-kenji-profile.png
+
+仕様:
+- サイズ: 200px x 200px 推奨（カードいっぱいに表示する場合）
+- 形式: PNG（透過背景）
+- 用途: AI内製化講座の原田賢治講師プロフィール画像
+- 表示サイズ: 64px x 64px（現在）→ カードいっぱい（約180px x 180px）に変更予定
+
+カード内寸法:
+- カード幅: 約200px（min-w-[200px]）
+- カード内パディング: 16px (p-4)
+- 利用可能エリア: 約168px x 168px
+- 推奨画像サイズ: 200px x 200px（余裕を持って）

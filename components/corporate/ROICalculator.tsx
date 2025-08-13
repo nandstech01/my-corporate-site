@@ -49,7 +49,7 @@ export default function ROICalculator({ hideCTA = false }: Props) {
 
   return (
     <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
-      <h3 className="text-2xl font-bold mb-6 text-center">
+      <h3 className="text-lg lg:text-2xl font-bold mb-6 text-center">
         <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
           AI導入投資対効果シミュレーター
         </span>

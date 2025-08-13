@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import TextType from '../common/TextType'
+import Image from 'next/image'
 
 export default function TechResultsSection() {
   const [ref, inView] = useInView({
@@ -29,49 +30,37 @@ export default function TechResultsSection() {
       number: "630%",
       label: "ベクトル検索精度向上",
       description: "トリプルRAGシステムで類似度0.13→0.82の驚異的向上",
-      gradient: "from-blue-500 to-blue-600",
-      bgGradient: "from-blue-50 to-blue-100",
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-        </svg>
-      )
+      gradient: "from-cyan-400 to-blue-500",
+      bgGradient: "from-cyan-50 to-blue-100",
+      iconSrc: "/images/lp/results/result-vector-search.png",
+      iconAlt: "ベクトル検索精度向上アイコン"
     },
     {
       number: "20万",
       label: "keitaの総フォロワー",
       description: "Instagram 10万 + TikTok 54.6K の実績あるインフルエンサー",
-      gradient: "from-green-500 to-green-600",
-      bgGradient: "from-green-50 to-green-100",
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" clipRule="evenodd" />
-        </svg>
-      )
+      gradient: "from-cyan-300 to-teal-500",
+      bgGradient: "from-cyan-50 to-teal-100",
+      iconSrc: "/images/lp/results/result-influencer-follower.png",
+      iconAlt: "インフルエンサーフォロワーアイコン"
     },
     {
       number: "100%",
       label: "日本初実装",
       description: "Mike King理論レリバンスエンジニアリング完全実装企業",
-      gradient: "from-purple-500 to-purple-600",
-      bgGradient: "from-purple-50 to-purple-100",
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
-        </svg>
-      )
+      gradient: "from-cyan-500 to-sky-600",
+      bgGradient: "from-cyan-50 to-sky-100",
+      iconSrc: "/images/lp/results/result-japan-first.png",
+      iconAlt: "日本初実装アイコン"
     },
     {
       number: "98%",
       label: "助成金申請成功率",
-      description: "人材開発支援助成金最大80%還付の実績あるサポート",
-      gradient: "from-orange-500 to-orange-600",
-      bgGradient: "from-orange-50 to-orange-100",
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-        </svg>
-      )
+      description: "人材開発支援助成金最大75%還付の実績あるサポート",
+      gradient: "from-cyan-600 to-indigo-600",
+      bgGradient: "from-cyan-50 to-indigo-100",
+      iconSrc: "/images/lp/results/result-subsidy-success.png",
+      iconAlt: "助成金申請成功率アイコン"
     }
   ]
 
@@ -101,18 +90,7 @@ export default function TechResultsSection() {
             className="text-3xl lg:text-4xl font-bold text-white mb-6 leading-snug text-center"
           >
             {/* PC レイアウト */}
-            <div className="hidden lg:block">
-              <TextType
-                text="総フォロワー20万のインフルエンサー ×"
-                className="text-white"
-                typingSpeed={70}
-                showCursor={false}
-                startOnVisible={true}
-                loop={false}
-                initialDelay={0}
-                as="span"
-              />
-              <br />
+            <div className="hidden lg:block text-center">
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 <TextType
                   text="最先端技術力の融合"
@@ -121,14 +99,38 @@ export default function TechResultsSection() {
                   showCursor={false}
                   startOnVisible={true}
                   loop={false}
-                  initialDelay={400}
+                  initialDelay={0}
                   as="span"
                 />
               </span>
+              <br />
+              <TextType
+                text="× 総フォロワー20万のインフルエンサー"
+                className="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={400}
+                as="span"
+              />
             </div>
 
             {/* モバイル レイアウト（中央揃えで3行） */}
-            <div className="lg:hidden">
+            <div className="lg:hidden text-center">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <TextType
+                  text="最先端技術力の融合"
+                  className=""
+                  typingSpeed={70}
+                  showCursor={false}
+                  startOnVisible={true}
+                  loop={false}
+                  initialDelay={0}
+                  as="span"
+                />
+              </span>
+              <div className="my-1">×</div>
               <TextType
                 text="総フォロワー20万の"
                 className="text-white"
@@ -136,7 +138,7 @@ export default function TechResultsSection() {
                 showCursor={false}
                 startOnVisible={true}
                 loop={false}
-                initialDelay={0}
+                initialDelay={300}
                 as="span"
               />
               <br />
@@ -147,22 +149,9 @@ export default function TechResultsSection() {
                 showCursor={false}
                 startOnVisible={true}
                 loop={false}
-                initialDelay={300}
+                initialDelay={600}
                 as="span"
               />
-              <div className="my-1">×</div>
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                <TextType
-                  text="最先端技術力の融合"
-                  className=""
-                  typingSpeed={70}
-                  showCursor={false}
-                  startOnVisible={true}
-                  loop={false}
-                  initialDelay={700}
-                  as="span"
-                />
-              </span>
             </div>
           </motion.h2>
           
@@ -180,7 +169,7 @@ export default function TechResultsSection() {
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
           variants={containerVariants}
-          className="grid lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
+          className="grid lg:grid-cols-4 gap-8 max-w-7xl mx-auto"
         >
           {results.map((result, index) => (
             <motion.div
@@ -188,34 +177,67 @@ export default function TechResultsSection() {
               variants={itemVariants}
               className="group relative"
             >
-              {/* 背面のほのかなグラデ影 */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${result.gradient} opacity-20 group-hover:opacity-40 rounded-2xl blur-xl transition-all duration-500`}></div>
+              {/* 背景グロー効果 */}
+              <div className={`absolute -inset-1 bg-gradient-to-br ${result.gradient} opacity-25 group-hover:opacity-50 rounded-3xl blur-2xl transition-all duration-700`}></div>
 
-              {/* 外枠グラデボーダー */}
-              <div className="relative rounded-[20px] p-[2px] bg-gradient-to-r from-cyan-400/30 via-blue-400/30 to-cyan-400/30 group-hover:from-cyan-400/60 group-hover:via-blue-400/60 group-hover:to-cyan-400/60 transition-colors duration-500">
-                {/* 内側ガラス調カード */}
-                <div className="relative bg-white/8 backdrop-blur-md p-8 rounded-[18px] border border-white/15 hover:border-white/30 transition-all duration-300 text-center shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
-                  <div className="mb-6">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${result.gradient} rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <div className="text-white">
-                        {result.icon}
+              {/* プレミアムカードコンテナ */}
+              <div className="relative rounded-3xl p-[2px] bg-gradient-to-br from-cyan-400/40 via-blue-400/30 to-cyan-500/40 group-hover:from-cyan-400/70 group-hover:via-blue-400/50 group-hover:to-cyan-500/70 transition-all duration-500">
+                {/* メインカード */}
+                <div className="relative bg-gradient-to-br from-gray-900/95 via-slate-800/95 to-gray-900/95 backdrop-blur-xl p-8 rounded-[22px] border border-cyan-400/20 group-hover:border-cyan-400/40 transition-all duration-500 text-center shadow-2xl">
+                  
+                  {/* トップグラデーション装飾 */}
+                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent"></div>
+                  
+                  {/* アイコン部分 */}
+                  <div className="mb-6 flex justify-center">
+                    <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-2xl group-hover:scale-110 transition-all duration-500">
+                      {/* アイコン画像 */}
+                      <div className="relative z-10 w-full h-full flex items-center justify-center p-6">
+                        <Image
+                          src={result.iconSrc}
+                          alt={result.iconAlt}
+                          width={160}
+                          height={160}
+                          className="w-full h-full object-contain drop-shadow-lg"
+                          priority
+                        />
                       </div>
                     </div>
-                    <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
+                  </div>
+
+                  {/* 数値部分 */}
+                  <div className="mb-6">
+                    <div className={`text-5xl lg:text-6xl font-black mb-3 bg-gradient-to-br ${result.gradient} bg-clip-text text-transparent drop-shadow-2xl`}>
                       {result.number}
                     </div>
-                    <div className="text-lg font-semibold text-gray-200 mb-3">
+                    <div className="text-xl font-bold text-cyan-100 mb-4 tracking-wide">
                       {result.label}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 leading-relaxed">
-                    {result.description}
+
+                  {/* 説明文 */}
+                  <p className="text-sm text-cyan-200/90 leading-relaxed px-2 font-medium">
+                    <span className="text-cyan-100 font-semibold">{result.description.split('で')[0]}で</span>
+                    <span className="text-slate-200">{result.description.split('で').slice(1).join('で')}</span>
                   </p>
+
+                  {/* 底面グラデーション装飾 */}
+                  <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent"></div>
+                  
+                  {/* 特別なグロー効果（各カード固有） */}
+                  {index === 0 && (
+                    <div className="pointer-events-none absolute -inset-4 rounded-[26px] bg-cyan-400/10 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  )}
+                  {index === 1 && (
+                    <div className="pointer-events-none absolute -inset-4 rounded-[26px] bg-teal-400/10 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  )}
+                  {index === 2 && (
+                    <div className="pointer-events-none absolute -inset-4 rounded-[26px] bg-sky-400/10 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  )}
+                  {index === 3 && (
+                    <div className="pointer-events-none absolute -inset-4 rounded-[26px] bg-indigo-400/10 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  )}
                 </div>
-                {/* 中央カードだけ柔らかいグローを追加 */}
-                {index === 1 && (
-                  <div className="pointer-events-none absolute -inset-3 rounded-[22px] bg-green-400/15 blur-2xl opacity-90 group-hover:opacity-100 transition-opacity"></div>
-                )}
               </div>
             </motion.div>
           ))}
