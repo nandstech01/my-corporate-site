@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import TextType from '../common/TextType'
 import Image from 'next/image'
-import Galaxy from './Galaxy'
+import dynamic from 'next/dynamic'
+const Galaxy = dynamic(() => import('./Galaxy'), { ssr: false })
 import CountUp from '../common/CountUp'
 
 export default function LPHeroSection() {
@@ -28,6 +29,7 @@ export default function LPHeroSection() {
           twinkleIntensity={0.2}
           rotationSpeed={0.03}
           transparent={true}
+          loading="lazy"
         />
       </div>
 

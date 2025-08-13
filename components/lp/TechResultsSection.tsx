@@ -199,7 +199,7 @@ export default function TechResultsSection() {
                           width={160}
                           height={160}
                           className="w-full h-full object-contain drop-shadow-lg"
-                          priority
+                          loading="lazy"
                         />
                       </div>
                     </div>

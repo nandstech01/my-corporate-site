@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import TextType from '../common/TextType'
-import LightRays from './LightRays'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
+
+const LightRays = dynamic(() => import('./LightRays'), { ssr: false })
 
 export default function ProblemsSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -169,7 +171,7 @@ export default function ProblemsSection() {
                               width={160}
                               height={160}
                               className="object-cover opacity-95"
-                              priority
+                              loading="lazy"
                             />
                           </div>
                         </div>
@@ -185,7 +187,7 @@ export default function ProblemsSection() {
                               width={160}
                               height={160}
                               className="object-cover opacity-95"
-                              priority
+                              loading="lazy"
                             />
                           </div>
                         </div>
@@ -201,7 +203,7 @@ export default function ProblemsSection() {
                               width={160}
                               height={160}
                               className="object-cover opacity-95"
-                              priority
+                              loading="lazy"
                             />
                           </div>
                         </div>
@@ -265,7 +267,7 @@ export default function ProblemsSection() {
                         width={96}
                         height={96}
                         className="object-cover opacity-95"
-                        priority
+                        loading="lazy"
                       />
                     </div>
                   </div>
@@ -310,7 +312,7 @@ export default function ProblemsSection() {
                         width={96}
                         height={96}
                         className="object-cover opacity-95"
-                        priority
+                        loading="lazy"
                       />
                     </div>
                   </div>
@@ -355,7 +357,7 @@ export default function ProblemsSection() {
                         width={96}
                         height={96}
                         className="object-cover opacity-95"
-                        priority
+                        loading="lazy"
                       />
                     </div>
                   </div>
