@@ -27,17 +27,17 @@ export default function TechResultsSection() {
 
   const results = [
     {
-      number: "630%",
-      label: "ベクトル検索精度向上",
-      description: "トリプルRAGシステムで類似度0.13→0.82の驚異的向上",
+      number: "400%",
+      label: "AI検索表示率向上",
+      description: "海外事例では主要AI検索エンジンでの可視性が最大400%向上",
       gradient: "from-cyan-400 to-blue-500",
       bgGradient: "from-cyan-50 to-blue-100",
       iconSrc: "/images/lp/results/result-vector-search.png",
-      iconAlt: "ベクトル検索精度向上アイコン"
+      iconAlt: "AI検索表示率向上アイコン"
     },
     {
       number: "20万",
-      label: "keitaの総フォロワー",
+      label: "総フォロワー",
       description: "Instagram 10万 + TikTok 54.6K の実績あるインフルエンサー",
       gradient: "from-cyan-300 to-teal-500",
       bgGradient: "from-cyan-50 to-teal-100",
@@ -80,7 +80,7 @@ export default function TechResultsSection() {
           className="text-center mb-16"
         >
           <motion.div variants={itemVariants} className="mb-6">
-            <span className="inline-block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full text-sm font-semibold mb-4">
+            <span className="inline-block bg-gray-800 text-white px-6 py-2 rounded-full text-sm font-semibold mb-4">
               keita×NANDS 実証済み実績
             </span>
           </motion.div>
@@ -91,7 +91,7 @@ export default function TechResultsSection() {
           >
             {/* PC レイアウト */}
             <div className="hidden lg:block text-center">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent">
                 <TextType
                   text="最先端技術力の融合"
                   className=""
@@ -118,7 +118,7 @@ export default function TechResultsSection() {
 
             {/* モバイル レイアウト（中央揃えで3行） */}
             <div className="lg:hidden text-center">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent">
                 <TextType
                   text="最先端技術力の融合"
                   className=""
@@ -159,7 +159,7 @@ export default function TechResultsSection() {
             variants={itemVariants}
             className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
           >
-            Instagram 10万・TikTok 54.6Kの実績 × ベクトル検索630%向上の技術力。
+            Instagram 10万・TikTok 54.6Kの実績 × AI引用立最大400%向上の技術力。
             <br />
             理論ではなく、実証済みの圧倒的成果をお見せします。
           </motion.p>
@@ -178,21 +178,21 @@ export default function TechResultsSection() {
               className="group relative"
             >
               {/* 背景グロー効果 */}
-              <div className={`absolute -inset-1 bg-gradient-to-br ${result.gradient} opacity-25 group-hover:opacity-50 rounded-3xl blur-2xl transition-all duration-700`}></div>
+              <div className={`absolute -inset-1 bg-gradient-to-br ${result.gradient} opacity-0 rounded-3xl blur-2xl transition-all duration-700`}></div>
 
               {/* プレミアムカードコンテナ */}
-              <div className="relative rounded-3xl p-[2px] bg-gradient-to-br from-cyan-400/40 via-blue-400/30 to-cyan-500/40 group-hover:from-cyan-400/70 group-hover:via-blue-400/50 group-hover:to-cyan-500/70 transition-all duration-500">
+              <div className="relative rounded-3xl p-6 border border-white/10 bg-gradient-to-br from-[#101826] via-[#0d1722] to-[#0a131f] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
                 {/* メインカード */}
-                <div className="relative bg-gradient-to-br from-gray-900/95 via-slate-800/95 to-gray-900/95 backdrop-blur-xl p-8 rounded-[22px] border border-cyan-400/20 group-hover:border-cyan-400/40 transition-all duration-500 text-center shadow-2xl">
+                                 <div className="relative bg-gradient-to-br from-[#0d1420]/80 via-[#0a121d]/80 to-[#0b1320]/80 backdrop-blur-xl p-8 rounded-2xl border border-white/10 text-center">
                   
                   {/* トップグラデーション装飾 */}
                   <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent"></div>
                   
                   {/* アイコン部分 */}
                   <div className="mb-6 flex justify-center">
-                    <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-2xl group-hover:scale-110 transition-all duration-500">
+                    <div className="relative w-28 h-28 rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(34,211,238,0.35)] ring-1 ring-cyan-300/20 group-hover:scale-110 transition-all duration-500">
                       {/* アイコン画像 */}
-                      <div className="relative z-10 w-full h-full flex items-center justify-center p-6">
+                                              <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
                         <Image
                           src={result.iconSrc}
                           alt={result.iconAlt}
@@ -207,16 +207,16 @@ export default function TechResultsSection() {
 
                   {/* 数値部分 */}
                   <div className="mb-6">
-                    <div className={`text-5xl lg:text-6xl font-black mb-3 bg-gradient-to-br ${result.gradient} bg-clip-text text-transparent drop-shadow-2xl`}>
+                    <div className={`text-4xl lg:text-5xl font-extrabold mb-2 tracking-tight bg-gradient-to-br from-cyan-300 to-teal-500 bg-clip-text text-transparent`}>
                       {result.number}
                     </div>
-                    <div className="text-xl font-bold text-cyan-100 mb-4 tracking-wide">
+                    <div className="text-lg font-semibold text-cyan-100/90 mb-3">
                       {result.label}
                     </div>
                   </div>
 
                   {/* 説明文 */}
-                  <p className="text-sm text-cyan-200/90 leading-relaxed px-2 font-medium">
+                                     <p className="text-sm text-slate-300/90 leading-relaxed px-2">
                     <span className="text-cyan-100 font-semibold">{result.description.split('で')[0]}で</span>
                     <span className="text-slate-200">{result.description.split('で').slice(1).join('で')}</span>
                   </p>
@@ -279,8 +279,8 @@ export default function TechResultsSection() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">ベクトル検索システム</h4>
-                    <p className="text-gray-400 text-sm">Supabase Vector、Pinecone を使用したRAG検索システム</p>
+                    <h4 className="text-lg font-semibold text-white mb-2">レリバンスエンジニアリング</h4>
+                    <p className="text-gray-400 text-sm">AI検索での可視性を大幅改善、表示率が平均4倍に向上</p>
                   </div>
                 </div>
               </div>

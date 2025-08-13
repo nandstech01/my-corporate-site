@@ -44,7 +44,7 @@ export default function ServicesSection() {
       borderGradient: "from-purple-200 to-pink-200",
       features: [
         "GoogleのAIモード完全対策",
-        "630%向上のベクトル検索技術",
+        "GEO最適化で表示率が平均4倍に向上",
         "ChatGPT Search対応手法",
         "AI検索時代の生存戦略"
       ],

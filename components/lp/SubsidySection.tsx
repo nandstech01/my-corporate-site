@@ -28,8 +28,9 @@ export default function SubsidySection() {
         >
           {/* 背景Threads */}
           <Threads color={[0.0, 0.85, 1.0]} amplitude={1} distance={0.0} enableMouseInteraction={true} />
-          <div className="relative bg-white/90 backdrop-blur-sm p-8 lg:p-10 rounded-2xl shadow-xl border border-cyan-100 overflow-hidden">
-            <div className="text-center mb-8">
+          <div className="relative bg-white/75 backdrop-blur-xl p-8 lg:p-10 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-white/30 ring-1 ring-white/50 overflow-hidden">
+            <div className="text-center mb-8 relative">
+              <div className="pointer-events-none absolute -inset-x-10 -top-10 h-24 bg-gradient-to-b from-white/60 to-transparent blur-xl"></div>
               <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
                 <TextType
                   text="keita×NANDS 実績データ"
@@ -55,17 +56,19 @@ export default function SubsidySection() {
                 </h4>
                 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-cyan-50/60 rounded-lg">
-                    <span className="text-gray-700">Instagram</span>
-                    <span className="font-bold text-gray-900">10万フォロワー</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/70 rounded-xl p-3 border border-gray-200/50">
+                      <div className="text-xs text-gray-500">Instagram</div>
+                      <div className="text-lg font-bold text-gray-900">10万フォロワー</div>
+                    </div>
+                    <div className="bg-white/70 rounded-xl p-3 border border-gray-200/50">
+                      <div className="text-xs text-gray-500">TikTok</div>
+                      <div className="text-lg font-bold text-cyan-700">54.6K</div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-cyan-50/60 rounded-lg">
-                    <span className="text-gray-700">TikTok</span>
-                    <span className="font-bold text-cyan-700">54.6K</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-cyan-50/60 rounded-lg">
-                    <span className="text-gray-700">総フォロワー</span>
-                    <span className="font-bold text-cyan-700">20万</span>
+                  <div className="bg-white/70 rounded-xl p-3 border border-gray-200/50">
+                    <div className="text-xs text-gray-500">総フォロワー</div>
+                    <div className="text-lg font-bold text-cyan-700">20万</div>
                   </div>
                 </div>
               </div>
@@ -79,24 +82,26 @@ export default function SubsidySection() {
                 </h4>
                 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50/70 rounded-lg">
-                    <span className="text-gray-700">ベクトル検索精度</span>
-                    <span className="font-bold text-green-600">630%向上</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-green-50/80 rounded-xl p-3 border border-green-200/50">
+                      <div className="text-xs text-gray-500">AI引用率</div>
+                      <div className="text-lg font-bold text-green-600">最大400%向上</div>
+                    </div>
+                    <div className="bg-green-50/80 rounded-xl p-3 border border-green-200/50">
+                      <div className="text-xs text-gray-500">コスト削減</div>
+                      <div className="text-lg font-bold text-green-600">94%削減</div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50/70 rounded-lg">
-                    <span className="text-gray-700">コスト削減</span>
-                    <span className="font-bold text-green-600">94%削減</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50/70 rounded-lg">
-                    <span className="text-gray-700">助成金成功率</span>
-                    <span className="font-bold text-green-600">98%</span>
+                  <div className="bg-green-50/80 rounded-xl p-3 border border-green-200/50">
+                    <div className="text-xs text-gray-500">助成金成功率</div>
+                    <div className="text-lg font-bold text-green-600">98%</div>
                   </div>
                 </div>
               </div>
             </div>
             
             <div className="mt-8 text-center">
-              <div className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg">
+              <div className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold shadow-[0_10px_30px_rgba(59,130,246,0.35)] ring-1 ring-white/40">
                 <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

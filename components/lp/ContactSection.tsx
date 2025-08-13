@@ -99,7 +99,7 @@ export default function ContactSection() {
               {/* PC版 */}
               <div className="hidden lg:block">
                 <p className="mb-3">
-                  ベクトル検索630%向上を実現したNANDSの技術力と、<br />
+                  AI引用率最大400%向上を実現したNANDSの技術力と、<br />
                   Instagram 10万・TikTok 54.6Kのインフルエンサーkeitaの<br />
                   SNSスキルを融合
                 </p>
@@ -111,7 +111,7 @@ export default function ContactSection() {
               {/* スマホ版 */}
               <div className="lg:hidden text-center">
                 <p className="mb-3">
-                  ベクトル検索630%向上を実現した<br />
+                  AI引用率最大400%向上を実現した<br />
                   NANDSの技術力と、<br />
                   Instagram 10万・TikTok 54.6Kの<br />
                   インフルエンサーkeitaの<br />
@@ -276,7 +276,7 @@ export default function ContactSection() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">630%精度向上の実証済み技術</h4>
+                      <h4 className="text-lg font-semibold text-white mb-2">最大400%AI引用率向上の実証済み技術</h4>
                       <p className="text-gray-400 text-sm">ベクトル検索・トリプルRAGシステムによる圧倒的性能</p>
                     </div>
                   </div>
@@ -298,8 +298,8 @@ export default function ContactSection() {
                   </p>
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="bg-white/10 p-3 rounded-lg">
-                      <div className="text-lg font-bold text-white">630%</div>
-                      <div className="text-xs text-gray-400">検索精度向上</div>
+                      <div className="text-lg font-bold text-white">400%</div>
+                      <div className="text-xs text-gray-400">AI引用精度向上</div>
                     </div>
                     <div className="bg-white/10 p-3 rounded-lg">
                       <div className="text-lg font-bold text-white">20万</div>
