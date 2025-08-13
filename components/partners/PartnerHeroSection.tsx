@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function PartnerHeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -12,9 +13,9 @@ export default function PartnerHeroSection() {
   }, [])
 
   return (
-    <section className="relative bg-gradient-to-br from-purple-900 via-blue-900 to-cyan-900 text-white overflow-hidden">
+    <section className="relative bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white overflow-hidden">
       {/* 背景エフェクト */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-cyan-500/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-cyan-500/10"></div>
       <div className="absolute inset-0 opacity-10">
         <div className="w-full h-full" style={{
           backgroundImage: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px)',
@@ -29,10 +30,10 @@ export default function PartnerHeroSection() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-full font-bold text-sm lg:text-base mb-8 shadow-2xl border-2 border-white/20"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-full font-bold text-sm lg:text-base mb-8 shadow-2xl border border-white/10"
           >
             <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-            🔥 限定募集中！パートナー大募集 🔥
+            限定募集中！パートナー大募集
           </motion.div>
 
           {/* メインタイトル */}
@@ -42,7 +43,7 @@ export default function PartnerHeroSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-4xl lg:text-6xl font-bold mb-6 leading-tight"
           >
-            <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-300 to-teal-500 bg-clip-text text-transparent">
               AIリスキリング×SNS
             </span>
             <br />
@@ -54,12 +55,12 @@ export default function PartnerHeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl lg:text-2xl text-gray-200 mb-8 leading-relaxed max-w-3xl mx-auto"
+            className="text-xl lg:text-2xl text-slate-200 mb-8 leading-relaxed max-w-3xl mx-auto"
           >
-            <span className="font-semibold text-yellow-300">月額10万円</span>で
-            <span className="font-semibold text-cyan-300">AI検索時代の最先端技術パッケージ</span>の販売権を獲得
+            <span className="font-semibold text-cyan-300">月額10万円</span>で
+            <span className="font-semibold text-cyan-200">AI検索時代の最先端技術パッケージ</span>の販売権を獲得
             <br />
-            <span className="font-bold text-pink-300 text-2xl lg:text-3xl">高額パートナー報酬</span>の収益パートナーシップ
+            <span className="font-bold text-cyan-300 text-2xl lg:text-3xl">高額パートナー報酬</span>の収益パートナーシップ
           </motion.p>
 
           {/* 3つの特徴 */}
@@ -69,32 +70,20 @@ export default function PartnerHeroSection() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12"
           >
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-lg font-bold mb-2">高収益体系</h3>
-              <p className="text-gray-300 text-sm">
-                成約1件あたり
-                <br />
-                <span className="text-yellow-300 font-bold">高額報酬をご提供</span>
-              </p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
+              <div className="mb-2 relative w-40 h-40">
+                <Image src="/images/partners/icons/high-revenue.png" alt="高収益体系" fill sizes="112px" className="object-contain drop-shadow-lg" />
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-lg font-bold mb-2">先行者利益</h3>
-              <p className="text-gray-300 text-sm">
-                日本初RE・GEO実装
-                <br />
-                <span className="text-cyan-300 font-bold">AI検索時代のパイオニア</span>
-              </p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
+              <div className="mb-2 relative w-40 h-40">
+                <Image src="/images/partners/icons/first-mover.png" alt="先行者利益" fill sizes="112px" className="object-contain drop-shadow-lg" />
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-lg font-bold mb-2">完全サポート</h3>
-              <p className="text-gray-300 text-sm">
-                営業ツール・研修完備
-                <br />
-                <span className="text-pink-300 font-bold">専属サポート付き</span>
-              </p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
+              <div className="mb-2 relative w-40 h-40">
+                <Image src="/images/partners/icons/full-support.png" alt="完全サポート" fill sizes="112px" className="object-contain drop-shadow-lg" />
+              </div>
             </div>
           </motion.div>
 
@@ -105,13 +94,19 @@ export default function PartnerHeroSection() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10"
           >
-            <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-300/30 rounded-full px-6 py-3">
-              <span className="font-bold text-purple-300">🎯 法人様</span>
-              <span className="text-gray-300 ml-2">× 自社導入 + 他社紹介</span>
+            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-300/20 rounded-full px-6 py-3">
+              <span className="inline-flex items-center gap-2 font-bold text-cyan-300">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M7 17h10" /></svg>
+                法人様
+              </span>
+              <span className="text-slate-300 ml-2">× 自社導入 + 他社紹介</span>
             </div>
-            <div className="bg-gradient-to-r from-pink-500/20 to-cyan-500/20 border border-pink-300/30 rounded-full px-6 py-3">
-              <span className="font-bold text-pink-300">✨ インフルエンサー様</span>
-              <span className="text-gray-300 ml-2">× コンテンツ + 紹介</span>
+            <div className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-300/20 rounded-full px-6 py-3">
+              <span className="inline-flex items-center gap-2 font-bold text-cyan-300">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" /></svg>
+                インフルエンサー様
+              </span>
+              <span className="text-slate-300 ml-2">× コンテンツ + 紹介</span>
             </div>
           </motion.div>
 
@@ -124,71 +119,35 @@ export default function PartnerHeroSection() {
           >
             <a
               href="#application"
-              className="group relative px-10 py-5 bg-gradient-to-r from-yellow-400 via-pink-500 to-red-500 text-white font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20"
+              className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border border-white/10"
             >
               <span className="relative z-10 flex items-center gap-2">
-                🚀 今すぐパートナー申請
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-pink-600 to-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
+                 今すぐパートナー申請
+                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                 </svg>
+               </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </a>
             
             <a
               href="#benefits"
-              className="group px-8 py-4 border-2 border-white/30 text-white font-bold text-lg rounded-full backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transition-all duration-300 shadow-lg"
+              className="group px-8 py-4 border border-white/20 text-white font-bold text-lg rounded-full backdrop-blur-sm hover:bg-white/10 hover:border-white/40 transition-all duration-300 shadow-lg"
             >
               <span className="flex items-center gap-2">
-                📋 詳細メリットを見る
-                <svg className="w-5 h-5 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </span>
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" /></svg>
+                 詳細メリットを見る
+                 <svg className="w-5 h-5 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                 </svg>
+               </span>
             </a>
           </motion.div>
-
-          {/* 実績表示 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-          >
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-yellow-300 mb-2">630%</div>
-              <div className="text-gray-300 text-sm">技術改善実績</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-cyan-300 mb-2">20万</div>
-              <div className="text-gray-300 text-sm">keitaフォロワー</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-pink-300 mb-2">80%</div>
-              <div className="text-gray-300 text-sm">助成金還付率</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-purple-300 mb-2">日本初</div>
-              <div className="text-gray-300 text-sm">RE・GEO実装</div>
-            </div>
-          </motion.div>
+          
         </div>
       </div>
-
-      {/* スクロールインジケーター */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 1 : 0 }}
-        transition={{ duration: 1, delay: 1.4 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-      >
-        <div className="flex flex-col items-center gap-2 text-white/80">
-          <span className="text-sm font-medium">パートナーメリット詳細</span>
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-gradient-to-b from-yellow-300 to-pink-300 rounded-full mt-2 animate-bounce"></div>
-          </div>
-        </div>
-      </motion.div>
+      
     </section>
   )
 } 
