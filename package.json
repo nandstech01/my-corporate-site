@@ -15,7 +15,7 @@
     "validate-phase2": "npx ts-node scripts/validate-phase2-llmo.ts"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",

@@ -10,3 +10,4 @@ declare module 'd3-timer';
 declare module 'lodash';
 declare module 'parse-json';
 declare module 'prop-types';
+declare module 'ogl';

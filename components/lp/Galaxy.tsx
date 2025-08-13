@@ -234,7 +234,7 @@ export default function Galaxy({
       gl.clearColor(0, 0, 0, 1)
     }
 
-    let program: Program
+    let program: any
 
     function resize() {
       const scale = 1
