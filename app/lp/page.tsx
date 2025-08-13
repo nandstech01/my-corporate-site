@@ -14,6 +14,7 @@ import PostsGridSSR from '@/components/common/PostsGridSSR'
 import PostsGridAnimations from '@/components/common/PostsGridAnimations'
 import { createClient } from '@/utils/supabase/server'
 import dynamic from 'next/dynamic'
+import ROICalculator from '@/components/corporate/ROICalculator'
 
 // タイプライター（クライアント）
 const TextType = dynamic(() => import('@/components/common/TextType'), { ssr: false })
@@ -170,6 +171,15 @@ export default async function LPPage() {
       <SubsidySection />
       <TechResultsSection />
       <ServicesSection />
+      {/* ROI計算ツール（ブログセクションの直前に配置） */}
+      <section id="roi-calculator" className="py-20 bg-gradient-to-b from-gray-900 via-slate-900 to-black">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-white">AI研修導入効果計算ツール</h2>
+            <ROICalculator hideCTA />
+          </div>
+        </div>
+      </section>
       {/* ブログ記事セクション（問い合わせ直前に配置） */}
       <section id="latest-blog-posts" className="relative py-20 bg-gradient-to-b from-gray-900 via-slate-900 to-black blog-section" role="region" aria-labelledby="latest-posts-heading">
         <div className="container mx-auto px-4">

@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 
-export default function ROICalculator() {
+type Props = {
+  hideCTA?: boolean
+}
+
+export default function ROICalculator({ hideCTA = false }: Props) {
   const [employees, setEmployees] = useState(100)
   const [avgSalary, setAvgSalary] = useState(500) // 万円
   const [efficiencyGain, setEfficiencyGain] = useState(30) // %
@@ -181,18 +185,20 @@ export default function ROICalculator() {
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="mt-8 text-center">
-        <p className="text-gray-300 mb-4">
-          より詳細な試算や、御社に最適化されたプランをご希望の場合は
-        </p>
-        <a
-          href="/corporate#contact"
-          className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300"
-        >
-          無料相談で詳細試算を依頼
-        </a>
-      </div>
+      {/* CTA（LPでは非表示可） */}
+      {!hideCTA && (
+        <div className="mt-8 text-center">
+          <p className="text-gray-300 mb-4">
+            より詳細な試算や、御社に最適化されたプランをご希望の場合は
+          </p>
+          <a
+            href="/corporate#contact"
+            className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300"
+          >
+            無料相談で詳細試算を依頼
+          </a>
+        </div>
+      )}
     </div>
   )
 } 

@@ -243,7 +243,7 @@ export default function ServicesSection() {
  
               <div className="grid lg:grid-cols-3 gap-6 mt-10">
                 <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-white/60 shadow-lg">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">1週間</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">12週間</div>
                   <div className="text-sm text-gray-700">システム構築期間</div>
                 </div>
                 <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-white/60 shadow-lg">

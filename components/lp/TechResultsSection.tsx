@@ -245,8 +245,8 @@ export default function TechResultsSection() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">AI エージェント開発</h4>
-                    <p className="text-gray-400 text-sm">Mastra Framework、OpenAI API、Claude API を活用した高度な自動化システム</p>
+                    <h4 className="text-lg font-semibold text-white mb-2">AI駆動開発</h4>
+                    <p className="text-gray-400 text-sm">cursor・bolt.new を使った開発</p>
                   </div>
                 </div>
 
