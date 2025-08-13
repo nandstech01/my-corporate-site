@@ -105,6 +105,12 @@ const Footer: React.FC = () => {
     return null;
   }
 
+  // LPページのみCTAの配色をダーク/シアン系に変更（他ページへは影響なし）
+  const isLP = pathname?.startsWith('/lp');
+  const ctaClass = isLP
+    ? 'bg-gradient-to-b from-gray-900/70 via-slate-900/60 to-black/70 backdrop-blur-md rounded-2xl p-8 mb-12 border border-cyan-500/20'
+    : 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-blue-500/20';
+
   return (
     <footer className="relative font-sans text-white bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">
       {/* 背景エフェクト */}
@@ -226,7 +232,7 @@ const Footer: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-blue-500/20"
+          className={ctaClass}
         >
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4 text-white">

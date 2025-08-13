@@ -259,15 +259,17 @@ export default function LPHeroSection() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
-                  <TextType
-                    text="ChatGPT GoogleにAI引用されたい"
-                    className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
-                    typingSpeed={75}
-                    showCursor={false}
-                    startOnVisible={true}
-                    loop={false}
-                    initialDelay={500}
-                  />
+                  <h2 className="m-0">
+                    <TextType
+                      text="ChatGPT GoogleにAI引用されたい"
+                      className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
+                      typingSpeed={75}
+                      showCursor={false}
+                      startOnVisible={true}
+                      loop={false}
+                      initialDelay={500}
+                    />
+                  </h2>
                 </div>
               </div>
               {/* 詳細情報 + 講師カード統合 */}
@@ -410,15 +412,17 @@ export default function LPHeroSection() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
-                  <TextType
-                    text="SNSを自動化したい"
-                    className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
-                    typingSpeed={75}
-                    showCursor={false}
-                    startOnVisible={true}
-                    loop={false}
-                    initialDelay={1000}
-                  />
+                  <h2 className="m-0">
+                    <TextType
+                      text="SNSを自動化したい"
+                      className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
+                      typingSpeed={75}
+                      showCursor={false}
+                      startOnVisible={true}
+                      loop={false}
+                      initialDelay={1000}
+                    />
+                  </h2>
                 </div>
               </div>
               {/* 詳細情報 + 講師カード統合 */}
@@ -585,15 +589,17 @@ export default function LPHeroSection() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-black opacity-80 flex-shrink-0 group-hover:opacity-100 transition-opacity"></div>
-                  <TextType
-                    text="社内をAIで内製化したい"
-                    className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
-                    typingSpeed={75}
-                    showCursor={false}
-                    startOnVisible={true}
-                    loop={false}
-                    initialDelay={1500}
-                  />
+                  <h2 className="m-0">
+                    <TextType
+                      text="社内をAIで内製化したい"
+                      className="text-black font-bold text-lg lg:text-xl drop-shadow-lg"
+                      typingSpeed={75}
+                      showCursor={false}
+                      startOnVisible={true}
+                      loop={false}
+                      initialDelay={1500}
+                    />
+                  </h2>
                 </div>
               </div>
               {/* 詳細情報 + 講師カード統合 */}

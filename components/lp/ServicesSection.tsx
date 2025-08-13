@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import TextType from '../common/TextType'
 
 export default function ServicesSection() {
   const [ref, inView] = useInView({
@@ -25,7 +26,7 @@ export default function ServicesSection() {
 
   const services = [
     {
-      title: "SNSコンサル講座",
+      title: "SNS自動化講座",
       duration: "4週間",
       price: "30万円×人数（3人以上から）",
       icon: (
@@ -46,7 +47,7 @@ export default function ServicesSection() {
       description: "総フォロワー20万のkeitaから直接学ぶ、インフルエンサーレベルの発信力習得プログラム。"
     },
     {
-      title: "AIO・RE実装講座",
+      title: "レリバンスエンジニアリング講座",
       duration: "6週間", 
       price: "30万円×人数（3人以上から）",
       icon: (
@@ -106,12 +107,30 @@ export default function ServicesSection() {
           
           <motion.h2 
             variants={itemVariants}
-            className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-6"
           >
-            keita×NANDS で実現する
+            <TextType
+              text="keita×NANDS で実現する"
+              className="text-gray-900"
+              typingSpeed={70}
+              showCursor={false}
+              startOnVisible={true}
+              loop={false}
+              initialDelay={0}
+              as="span"
+            />
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              次世代人材育成プログラム
+              <TextType
+                text="次世代人材育成プログラム"
+                className=""
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={300}
+                as="span"
+              />
             </span>
           </motion.h2>
           
@@ -137,55 +156,56 @@ export default function ServicesSection() {
               variants={itemVariants}
               className="group relative"
             >
-              {/* グロー効果 */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-20 rounded-3xl blur-xl transition-all duration-500`}></div>
-              
-              <div className={`relative bg-white p-8 rounded-2xl border-2 border-gray-100 hover:border-transparent hover:bg-gradient-to-br ${service.bgGradient} transition-all duration-300 h-full`}>
-                {/* バッジ */}
-                <div className="absolute -top-3 left-6">
-                  <span className={`inline-block bg-gradient-to-r ${service.gradient} text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg`}>
-                    {service.badge}
-                  </span>
-                </div>
+              {/* 背面グロー */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-25 rounded-3xl blur-2xl transition-all duration-500`}></div>
 
-                <div className="pt-4">
-                  {/* アイコンとタイトル */}
-                  <div className="text-center mb-8">
-                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
-                      {service.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      {service.description}
-                    </p>
+              {/* 外枠のグラデボーダー */}
+              <div className={`relative rounded-2xl p-[2px] bg-gradient-to-r ${service.gradient} transition-all duration-300 h-full`}> 
+                {/* 内側カード（ガラス調） */}
+                <div className={`relative bg-white/95 backdrop-blur-sm p-8 rounded-[14px] border border-transparent hover:bg-gradient-to-br ${service.bgGradient} hover:bg-opacity-90 transition-all duration-300 h-full`}>
+                  {/* バッジ */}
+                  <div className="absolute -top-3 left-6">
+                    <span className={`inline-block bg-gradient-to-r ${service.gradient} text-white px-4 py-1 rounded-full text-xs font-semibold shadow-lg`}>
+                      {service.badge}
+                    </span>
                   </div>
 
-                  {/* 機能リスト */}
-                  <div className="space-y-3">
-                    {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-start gap-3">
-                        <div className={`w-6 h-6 bg-gradient-to-br ${service.gradient} rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-gray-700 text-sm leading-relaxed">
-                          {feature}
-                        </span>
+                  <div className="pt-4">
+                    {/* アイコンとタイトル */}
+                    <div className="text-center mb-8">
+                      <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                        {service.icon}
                       </div>
-                    ))}
-                  </div>
+                      <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                        {service.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed text-sm">
+                        {service.description}
+                      </p>
+                    </div>
 
-                  {/* 詳細ボタン */}
-                  <div className="mt-8 text-center">
-                    <button className={`group/btn inline-flex items-center gap-2 bg-gradient-to-r ${service.gradient} text-white px-6 py-3 rounded-lg font-semibold text-sm hover:shadow-lg transform hover:scale-105 transition-all duration-300`}>
-                      詳細を見る
-                      <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </button>
+                    {/* 機能リスト */}
+                    <div className="space-y-3">
+                      {service.features.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex items-start gap-3">
+                          <div className={`w-6 h-6 bg-gradient-to-br ${service.gradient} rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-gray-700 text-sm leading-relaxed">
+                            {feature}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 受講形式（LP専用表示） */}
+                    <div className="mt-8 text-center space-y-1">
+                      <p className="text-sm text-gray-700">Eラーニング6時間</p>
+                      <p className="text-sm text-gray-700">ZOOM4時間</p>
+                      <p className="text-sm text-gray-700">LMS搭載</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -206,32 +226,33 @@ export default function ServicesSection() {
               <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-500/20 rounded-full filter blur-2xl"></div>
               <div className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-purple-500/20 rounded-full filter blur-2xl"></div>
             </div>
-
+ 
             <div className="relative z-10">
               <div className="mb-8">
-                <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                  統合技術プラットフォーム
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 leading-snug">
+                  <span className="hidden lg:inline">統合技術プラットフォーム</span>
+                  <span className="lg:hidden">統合技術<br />プラットフォーム</span>
                 </h3>
-                <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
+                <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
                   3つの技術を組み合わせることで、
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-semibold">従来の10倍の効率性</span>
                   を実現します
                 </p>
               </div>
-
+ 
               <div className="grid lg:grid-cols-3 gap-6 mt-10">
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">1週間</div>
-                  <div className="text-sm text-gray-300">システム構築期間</div>
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-white/60 shadow-lg">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">1週間</div>
+                  <div className="text-sm text-gray-700">システム構築期間</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20">
-                  <div className="text-3xl font-bold text-green-400 mb-2">80%</div>
-                  <div className="text-sm text-gray-300">運用コスト削減</div>
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-white/60 shadow-lg">
+                  <div className="text-3xl font-bold text-green-600 mb-2">75%</div>
+                  <div className="text-sm text-gray-700">運用コスト削減</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">300%</div>
-                  <div className="text-sm text-gray-300">生産性向上</div>
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-white/60 shadow-lg">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">300%</div>
+                  <div className="text-sm text-gray-700">生産性向上</div>
                 </div>
               </div>
             </div>

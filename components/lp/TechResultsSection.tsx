@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import TextType from '../common/TextType'
 
 export default function TechResultsSection() {
   const [ref, inView] = useInView({
@@ -97,13 +98,72 @@ export default function TechResultsSection() {
           
           <motion.h2 
             variants={itemVariants}
-            className="text-4xl lg:text-5xl font-bold text-white mb-6"
+            className="text-3xl lg:text-4xl font-bold text-white mb-6 leading-snug text-center"
           >
-            総フォロワー20万のインフルエンサー × 
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              最先端技術力の融合
-            </span>
+            {/* PC レイアウト */}
+            <div className="hidden lg:block">
+              <TextType
+                text="総フォロワー20万のインフルエンサー ×"
+                className="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={0}
+                as="span"
+              />
+              <br />
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <TextType
+                  text="最先端技術力の融合"
+                  className=""
+                  typingSpeed={70}
+                  showCursor={false}
+                  startOnVisible={true}
+                  loop={false}
+                  initialDelay={400}
+                  as="span"
+                />
+              </span>
+            </div>
+
+            {/* モバイル レイアウト（中央揃えで3行） */}
+            <div className="lg:hidden">
+              <TextType
+                text="総フォロワー20万の"
+                className="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={0}
+                as="span"
+              />
+              <br />
+              <TextType
+                text="インフルエンサー"
+                className="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={300}
+                as="span"
+              />
+              <div className="my-1">×</div>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <TextType
+                  text="最先端技術力の融合"
+                  className=""
+                  typingSpeed={70}
+                  showCursor={false}
+                  startOnVisible={true}
+                  loop={false}
+                  initialDelay={700}
+                  as="span"
+                />
+              </span>
+            </div>
           </motion.h2>
           
           <motion.p 
@@ -128,24 +188,34 @@ export default function TechResultsSection() {
               variants={itemVariants}
               className="group relative"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${result.gradient} opacity-0 group-hover:opacity-100 rounded-2xl blur transition-all duration-500`}></div>
-              <div className="relative bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 hover:border-white/40 transition-all duration-300 text-center">
-                <div className="mb-6">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${result.gradient} rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <div className="text-white">
-                      {result.icon}
+              {/* 背面のほのかなグラデ影 */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${result.gradient} opacity-20 group-hover:opacity-40 rounded-2xl blur-xl transition-all duration-500`}></div>
+
+              {/* 外枠グラデボーダー */}
+              <div className="relative rounded-[20px] p-[2px] bg-gradient-to-r from-cyan-400/30 via-blue-400/30 to-cyan-400/30 group-hover:from-cyan-400/60 group-hover:via-blue-400/60 group-hover:to-cyan-400/60 transition-colors duration-500">
+                {/* 内側ガラス調カード */}
+                <div className="relative bg-white/8 backdrop-blur-md p-8 rounded-[18px] border border-white/15 hover:border-white/30 transition-all duration-300 text-center shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
+                  <div className="mb-6">
+                    <div className={`w-16 h-16 bg-gradient-to-br ${result.gradient} rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <div className="text-white">
+                        {result.icon}
+                      </div>
+                    </div>
+                    <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
+                      {result.number}
+                    </div>
+                    <div className="text-lg font-semibold text-gray-200 mb-3">
+                      {result.label}
                     </div>
                   </div>
-                  <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
-                    {result.number}
-                  </div>
-                  <div className="text-lg font-semibold text-gray-200 mb-3">
-                    {result.label}
-                  </div>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    {result.description}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {result.description}
-                </p>
+                {/* 中央カードだけ柔らかいグローを追加 */}
+                {index === 1 && (
+                  <div className="pointer-events-none absolute -inset-3 rounded-[22px] bg-green-400/15 blur-2xl opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                )}
               </div>
             </motion.div>
           ))}

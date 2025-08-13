@@ -3,6 +3,7 @@
 "use client";
 
 import { motion } from 'framer-motion'
+import TextType from '../common/TextType'
 import { useInView } from 'react-intersection-observer'
 import { useState } from 'react'
 
@@ -48,12 +49,12 @@ export default function ContactSection() {
   }
 
   return (
-    <section id="keita-nands-program" ref={ref} className="py-20 bg-gradient-to-br from-slate-800 via-blue-800 to-indigo-800 relative overflow-hidden">
+    <section id="keita-nands-program" ref={ref} className="py-20 bg-gradient-to-br from-cyan-900 via-slate-900 to-black relative overflow-hidden">
       {/* 動的背景 */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-teal-600/10"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-600/10 to-cyan-500/10"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-400/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -69,18 +70,60 @@ export default function ContactSection() {
                 keita×NANDS 特別プログラム申込受付中
               </span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              総フォロワー20万級の
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-6 leading-snug">
+              <TextType
+                text="実証済み技術力 × keita"
+                className="text-white"
+                typingSpeed={70}
+                showCursor={false}
+                startOnVisible={true}
+                loop={false}
+                initialDelay={0}
+                as="span"
+              />
               <br />
               <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                企業変革を体験しませんか？
+                <TextType
+                  text="企業変革を体験しませんか？"
+                  className=""
+                  typingSpeed={70}
+                  showCursor={false}
+                  startOnVisible={true}
+                  loop={false}
+                  initialDelay={300}
+                  as="span"
+                />
               </span>
             </h2>
-            <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
-              インフルエンサー思考 × 実証済み技術力で、助成金最大80%還付。
-              <br />
-              <span className="text-amber-400 font-semibold">申請成功率98%</span>の専門サポート付き。
-            </p>
+            <div className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
+              {/* PC版 */}
+              <div className="hidden lg:block">
+                <p className="mb-3">
+                  ベクトル検索630%向上を実現したNANDSの技術力と、<br />
+                  Instagram 10万・TikTok 54.6Kのインフルエンサーkeitaの<br />
+                  SNSスキルを融合
+                </p>
+                <p>
+                  助成金活用で最大<span className="text-amber-400 font-semibold">75%還付対象</span>の革新的プログラム。
+                </p>
+              </div>
+              
+              {/* スマホ版 */}
+              <div className="lg:hidden text-center">
+                <p className="mb-3">
+                  ベクトル検索630%向上を実現した<br />
+                  NANDSの技術力と、<br />
+                  Instagram 10万・TikTok 54.6Kの<br />
+                  インフルエンサーkeitaの<br />
+                  SNSスキルを融合
+                </p>
+                <p>
+                  助成金活用で最大<br />
+                  <span className="text-amber-400 font-semibold">75%還付対象</span>の<br />
+                  革新的プログラム。
+                </p>
+              </div>
+            </div>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-start">
@@ -209,7 +252,7 @@ export default function ContactSection() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">総フォロワー20万のkeitaから直接指導</h4>
+                      <h4 className="text-lg font-semibold text-white mb-2">実証済み技術力 × keitaから直接指導</h4>
                       <p className="text-gray-400 text-sm">Instagram 10万・TikTok 54.6Kの実績あるインフルエンサー思考を習得</p>
                     </div>
                   </div>
