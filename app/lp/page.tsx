@@ -15,11 +15,13 @@ import PostsGridAnimations from '@/components/common/PostsGridAnimations'
 import { createClient } from '@/utils/supabase/server'
 import dynamic from 'next/dynamic'
 import ROICalculator from '@/components/corporate/ROICalculator'
+import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration'
 
 // タイプライター（クライアント）
 const TextType = dynamic(() => import('@/components/common/TextType'), { ssr: false })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://nands.tech'),
   title: '人材開発支援助成金75%還付でAIモードも怖くない | 株式会社エヌアンドエス',
   description: '人材開発支援助成金で75%還付！SNS自動運用＆コンサル・システム開発で実証済み。AIモードも怖くない、94%SNS運用効率化実績あり。',
   keywords: '人材開発支援助成金,リスキリング,AI研修,SNS自動運用,コンサル,システム開発,AI対策,75%還付',
@@ -45,6 +47,12 @@ export const metadata: Metadata = {
     title: '人材開発支援助成金75%還付でAIモードも怖くない',
     description: '75%還付でSNS自動運用を実現。94%SNS運用効率化の実証済み技術',
     images: ['/og-lp.jpg'],
+  },
+  alternates: {
+    canonical: 'https://nands.tech/lp',
+    languages: {
+      'ja-JP': 'https://nands.tech/lp'
+    }
   },
   robots: {
     index: true,
@@ -158,8 +166,74 @@ async function getLatestPosts(): Promise<Post[]> {
 
 export default async function LPPage() {
   const posts = await getLatestPosts();
+
+  // 統一構造化データ（Mike King理論準拠）
+  const pageData = await generateUnifiedPageData({
+    pageSlug: 'lp',
+    pageTitle: '人材開発支援助成金75%還付でAIモードも怖くない',
+    keywords: [
+      '人材開発支援助成金',
+      'AI研修',
+      'リスキリング',
+      'SNS自動運用',
+      'レリバンスエンジニアリング',
+      'GEO最適化',
+      'AI検索表示率向上',
+    ],
+    category: '法人向けAI研修',
+    enableAISearchDetection: true,
+    enableTrustSignals: true,
+  });
+
+  // LP固有の教育プログラムスキーマ（表示は変えず、検索向けに情報付与）
+  const lpProgramSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOccupationalProgram',
+    name: 'keita×NANDS 法人リスキリング3コースパッケージ',
+    description: 'AI検索時代に最適化されたレリバンスエンジニアリング、SNS自動化、AI駆動開発の3コースを統合した法人向けプログラム。人材開発支援助成金で最大75%還付に対応。',
+    provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
+    educationalProgramMode: ['オンライン研修', '対面研修', 'ハイブリッド研修'],
+    timeToComplete: 'P6W',
+    occupationalCategory: ['AI活用推進担当者', 'DX推進リーダー', 'SNS運用責任者'],
+    hasCourse: [
+      { '@type': 'Course', name: 'レリバンスエンジニアリング講座' },
+      { '@type': 'Course', name: 'SNS自動化講座' },
+      { '@type': 'Course', name: 'AI駆動開発講座' },
+    ],
+  };
+
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <>
+      {/* Organization スキーマ（既存 jsonLd を出力） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd, null, 2) }}
+      />
+
+      {/* 統一構造化データ */}
+      {pageData?.structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.structuredData, null, 2) }}
+        />
+      )}
+
+      {/* GEO最適化 hasPart（AI検索対策） */}
+      {pageData?.geoOptimizedHasPart && (
+        <script
+          id="geo-optimized-haspart-lp"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.geoOptimizedHasPart.jsonLd, null, 2) }}
+        />
+      )}
+
+      {/* LP固有の教育プログラム スキーマ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(lpProgramSchema, null, 2) }}
+      />
+
+      <main className="relative min-h-screen overflow-hidden">
       {/* LPページ専用 背景グリッド（他ページへ影響なし） */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0b1f3b] via-[#0a1b33] to-[#08152a]" />
@@ -211,5 +285,6 @@ export default async function LPPage() {
        </section>
       <ContactSectionSSR />
     </main>
+    </>
   )
 } 
