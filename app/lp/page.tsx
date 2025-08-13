@@ -12,10 +12,14 @@ import ContactSectionSSR from '@/components/lp/ContactSectionSSR'
 // LP専用フッターは共通フッターと重複するため削除
 import PostsGridSSR from '@/components/common/PostsGridSSR'
 import PostsGridAnimations from '@/components/common/PostsGridAnimations'
-import { createClient } from '@/utils/supabase/server'
+// import { createClient } from '@/utils/supabase/server'
 import dynamic from 'next/dynamic'
 import ROICalculator from '@/components/corporate/ROICalculator'
 import { generateUnifiedPageData } from '@/lib/structured-data/unified-integration'
+import { getUnifiedSupabaseClient } from '@/lib/supabase/unified-client'
+
+// ISR 設定（5分ごとに再検証）
+export const revalidate = 300
 
 // タイプライター（クライアント）
 const TextType = dynamic(() => import('@/components/common/TextType'), { ssr: false })
@@ -109,7 +113,7 @@ type Post = {
 };
 
 async function getLatestPosts(): Promise<Post[]> {
-  const supabase = createClient();
+  const supabase = getUnifiedSupabaseClient();
   try {
     const { data: newPosts } = await supabase
       .from('posts')
