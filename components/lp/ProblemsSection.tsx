@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import TextType from '../common/TextType'
 import LightRays from './LightRays'
+import Image from 'next/image'
 
 export default function ProblemsSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -136,6 +137,19 @@ export default function ProblemsSection() {
                     </div>
 
                     <div className="relative z-10">
+                      {/* 1枚目カードだけ右上にアイコン画像 */}
+                      {index === 0 && (
+                        <div className="absolute top-4 right-4 w-12 h-12 rounded-xl overflow-hidden ring-1 ring-white/20">
+                          <Image
+                            src="/images/lp/problems/icon-1.png"
+                            alt="AIモード対策アイコン"
+                            width={48}
+                            height={48}
+                            className="object-cover opacity-90"
+                            priority
+                          />
+                        </div>
+                      )}
                       {/* タイトル */}
                       <h3 className="text-xl font-bold text-white mb-4">
                         {challenge.title}
