@@ -24,13 +24,15 @@ export default function PartnerHeroSection() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-20 lg:py-32">
+        {/* モバイルでヘッダーとバッジの間隔を少し広げる */}
+        <div className="md:hidden h-4"></div>
         <div className="max-w-4xl mx-auto text-center">
           {/* 募集中バッジ */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-full font-bold text-sm lg:text-base mb-8 shadow-2xl border border-white/10"
+            className="inline-flex items-center gap-2 bg-cyan-600 text-white px-6 py-3 rounded-full font-bold text-sm lg:text-base mb-8 shadow-2xl border border-cyan-300/20"
           >
             <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
             限定募集中！パートナー大募集
@@ -47,7 +49,7 @@ export default function PartnerHeroSection() {
               AIリスキリング×SNS
             </span>
             <br />
-            <span className="text-white">パートナープログラム</span>
+            <span className="text-white inline-block mt-2 text-3xl lg:text-5xl">パートナープログラム</span>
           </motion.h1>
 
           {/* サブタイトル */}
@@ -58,9 +60,13 @@ export default function PartnerHeroSection() {
             className="text-xl lg:text-2xl text-slate-200 mb-8 leading-relaxed max-w-3xl mx-auto"
           >
             <span className="font-semibold text-cyan-300">月額10万円</span>で
-            <span className="font-semibold text-cyan-200">AI検索時代の最先端技術パッケージ</span>の販売権を獲得
-            <br />
-            <span className="font-bold text-cyan-300 text-2xl lg:text-3xl">高額パートナー報酬</span>の収益パートナーシップ
+            <span className="font-semibold text-cyan-200">AI検索時代の最先端技術</span>
+            <br className="md:hidden" />
+            <span className="font-semibold text-cyan-200">パッケージ</span>の販売権を獲得
+            <br className="md:hidden" />
+            <span className="font-bold text-cyan-300 text-2xl lg:text-3xl">高額パートナー報酬</span>の
+            <br className="md:hidden" />
+            収益パートナーシップ
           </motion.p>
 
           {/* 3つの特徴 */}
@@ -70,19 +76,19 @@ export default function PartnerHeroSection() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12"
           >
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
-              <div className="mb-2 relative w-40 h-40">
-                <Image src="/images/partners/icons/high-revenue.png" alt="高収益体系" fill sizes="112px" className="object-contain drop-shadow-lg" />
+            <div className="rounded-2xl p-4 md:p-6 flex items-center justify-center">
+              <div className="mb-2 relative w-56 h-56 md:w-72 md:h-72">
+                <Image src="/images/partners/icons/high-revenue.png" alt="高収益体系" fill sizes="(min-width: 768px) 288px, 224px" className="object-contain drop-shadow-lg" />
               </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
-              <div className="mb-2 relative w-40 h-40">
-                <Image src="/images/partners/icons/first-mover.png" alt="先行者利益" fill sizes="112px" className="object-contain drop-shadow-lg" />
+            <div className="rounded-2xl p-4 md:p-6 flex items-center justify-center">
+              <div className="mb-2 relative w-56 h-56 md:w-72 md:h-72">
+                <Image src="/images/partners/icons/first-mover.png" alt="先行者利益" fill sizes="(min-width: 768px) 288px, 224px" className="object-contain drop-shadow-lg" />
               </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 flex flex-col items-center justify-center">
-              <div className="mb-2 relative w-40 h-40">
-                <Image src="/images/partners/icons/full-support.png" alt="完全サポート" fill sizes="112px" className="object-contain drop-shadow-lg" />
+            <div className="rounded-2xl p-4 md:p-6 flex items-center justify-center">
+              <div className="mb-2 relative w-56 h-56 md:w-72 md:h-72">
+                <Image src="/images/partners/icons/full-support.png" alt="完全サポート" fill sizes="(min-width: 768px) 288px, 224px" className="object-contain drop-shadow-lg" />
               </div>
             </div>
           </motion.div>
@@ -94,19 +100,13 @@ export default function PartnerHeroSection() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10"
           >
-            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-300/20 rounded-full px-6 py-3">
-              <span className="inline-flex items-center gap-2 font-bold text-cyan-300">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M7 17h10" /></svg>
-                法人様
-              </span>
-              <span className="text-slate-300 ml-2">× 自社導入 + 他社紹介</span>
+            <div className="rounded-full px-5 py-2 border border-cyan-400/40 bg-transparent">
+              <span className="font-semibold text-cyan-300 text-sm md:text-base whitespace-nowrap">法人様</span>
+              <span className="text-slate-300 ml-2 text-sm md:text-base whitespace-nowrap">× 自社導入 + 他社紹介</span>
             </div>
-            <div className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-300/20 rounded-full px-6 py-3">
-              <span className="inline-flex items-center gap-2 font-bold text-cyan-300">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" /></svg>
-                インフルエンサー様
-              </span>
-              <span className="text-slate-300 ml-2">× コンテンツ + 紹介</span>
+            <div className="rounded-full px-5 py-2 border border-cyan-400/40 bg-transparent">
+              <span className="font-semibold text-cyan-300 text-sm md:text-base whitespace-nowrap">インフルエンサー様</span>
+              <span className="text-slate-300 ml-2 text-sm md:text-base whitespace-nowrap">× コンテンツ + 紹介</span>
             </div>
           </motion.div>
 
@@ -119,7 +119,7 @@ export default function PartnerHeroSection() {
           >
             <a
               href="#application"
-              className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border border-white/10"
+              className="group relative px-10 py-5 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 border border-cyan-300/30"
             >
               <span className="relative z-10 flex items-center gap-2">
                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -128,7 +128,6 @@ export default function PartnerHeroSection() {
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                  </svg>
                </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </a>
             
             <a

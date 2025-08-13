@@ -57,7 +57,7 @@ export default function PartnerTypes() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
+            className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6"
           >
             <span className="bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text text-transparent">
               2つのパートナータイプ
@@ -145,25 +145,43 @@ export default function PartnerTypes() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-4xl mb-4">📚</div>
+              <div className="mb-4 flex items-center justify-center">
+                <svg className="w-12 h-12 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" strokeWidth="2" />
+                  <path d="M12 4v16" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </div>
               <h4 className="font-bold text-gray-900 mb-2">専用研修</h4>
               <p className="text-gray-600 text-sm">月1回のパートナー限定研修でスキルアップ</p>
             </div>
             
             <div className="text-center">
-              <div className="text-4xl mb-4">📊</div>
+              <div className="mb-4 flex items-center justify-center">
+                <svg className="w-12 h-12 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M3 7h6l2 2h10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
               <h4 className="font-bold text-gray-900 mb-2">営業ツール</h4>
               <p className="text-gray-600 text-sm">プレゼン資料・動画素材を完全提供</p>
             </div>
             
             <div className="text-center">
-              <div className="text-4xl mb-4">📞</div>
+              <div className="mb-4 flex items-center justify-center">
+                <svg className="w-12 h-12 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 8a6 6 0 10-12 0v5H4a2 2 0 00-2 2v1h20v-1a2 2 0 00-2-2h-2V8z" />
+                </svg>
+              </div>
               <h4 className="font-bold text-gray-900 mb-2">専属サポート</h4>
               <p className="text-gray-600 text-sm">専属担当者による営業サポート</p>
             </div>
             
             <div className="text-center">
-              <div className="text-4xl mb-4">📈</div>
+              <div className="mb-4 flex items-center justify-center">
+                <svg className="w-12 h-12 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18h18M7 13l3 3 7-7" />
+                </svg>
+              </div>
               <h4 className="font-bold text-gray-900 mb-2">成果管理</h4>
               <p className="text-gray-600 text-sm">専用ダッシュボードで成果を可視化</p>
             </div>

@@ -78,6 +78,7 @@ export default function PartnerBenefits() {
             className="text-4xl lg:text-5xl font-bold text-white mb-6"
           >
             パートナーになる
+            <br className="md:hidden" />
             <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
               メリット
             </span>
@@ -107,10 +108,8 @@ export default function PartnerBenefits() {
             >
               {/* アイコンとタイトル */}
               <div className="flex items-start gap-4 mb-6">
-                <div className={`p-4 rounded-2xl bg-gradient-to-r ${benefit.color} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <div className="flex items-center justify-center w-24 h-24">
-                    {benefit.icon}
-                  </div>
+                <div className="flex items-center justify-center w-24 h-24">
+                  {benefit.icon}
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-2">{benefit.title}</h3>
@@ -122,14 +121,13 @@ export default function PartnerBenefits() {
               <ul className="space-y-3">
                 {benefit.details.map((detail, detailIndex) => (
                   <li key={detailIndex} className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${benefit.color}`}></div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
                     <span className="text-slate-200 font-medium">{detail}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* ホバーエフェクト */}
-              <div className={`absolute inset-0 bg-gradient-to-r ${benefit.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}></div>
+              {/* ホバーエフェクト削除（アイコン背景統一のため） */}
             </motion.div>
           ))}
         </div>
@@ -141,7 +139,7 @@ export default function PartnerBenefits() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-20 bg-white/5 rounded-3xl p-8 lg:p-12 border border-white/10"
         >
-          <h3 className="text-3xl font-bold text-center text-white mb-8">
+          <h3 className="text-2xl lg:text-3xl font-bold text-center text-white mb-8">
             収益シミュレーション
           </h3>
           
