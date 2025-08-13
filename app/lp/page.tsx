@@ -196,9 +196,66 @@ export default async function LPPage() {
     timeToComplete: 'P6W',
     occupationalCategory: ['AI活用推進担当者', 'DX推進リーダー', 'SNS運用責任者'],
     hasCourse: [
-      { '@type': 'Course', name: 'レリバンスエンジニアリング講座' },
-      { '@type': 'Course', name: 'SNS自動化講座' },
-      { '@type': 'Course', name: 'AI駆動開発講座' },
+      {
+        '@type': 'Course',
+        name: 'レリバンスエンジニアリング講座',
+        description: 'AI検索時代に適合するためのプロンプト戦略と文書最適化（レリバンスエンジニアリング）を体系的に学ぶ講座。検索可視性と引用率の最大化に直結する実践的手法を習得します。',
+        provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
+        offers: {
+          '@type': 'Offer',
+          price: 300000,
+          priceCurrency: 'JPY',
+          availability: 'https://schema.org/InStock',
+          url: 'https://nands.tech/lp'
+        },
+        hasCourseInstance: [
+          {
+            '@type': 'CourseInstance',
+            courseMode: 'online',
+            location: { '@type': 'VirtualLocation', url: 'https://nands.tech/lp' }
+          }
+        ]
+      },
+      {
+        '@type': 'Course',
+        name: 'SNS自動化講座',
+        description: '最新のAIとオートメーションでSNS運用を半自動化。戦略設計から運用テンプレート、ワークフローまで、成果に直結する運用基盤を構築します。',
+        provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
+        offers: {
+          '@type': 'Offer',
+          price: 300000,
+          priceCurrency: 'JPY',
+          availability: 'https://schema.org/InStock',
+          url: 'https://nands.tech/lp'
+        },
+        hasCourseInstance: [
+          {
+            '@type': 'CourseInstance',
+            courseMode: 'online',
+            location: { '@type': 'VirtualLocation', url: 'https://nands.tech/lp' }
+          }
+        ]
+      },
+      {
+        '@type': 'Course',
+        name: 'AI駆動開発講座',
+        description: 'bolt.new をはじめとしたAI駆動開発の導入・実践。要件定義からプロトタイピング、運用まで、開発生産性を大幅に引き上げる手法を身につけます。',
+        provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
+        offers: {
+          '@type': 'Offer',
+          price: 300000,
+          priceCurrency: 'JPY',
+          availability: 'https://schema.org/InStock',
+          url: 'https://nands.tech/lp'
+        },
+        hasCourseInstance: [
+          {
+            '@type': 'CourseInstance',
+            courseMode: 'online',
+            location: { '@type': 'VirtualLocation', url: 'https://nands.tech/lp' }
+          }
+        ]
+      },
     ],
   };
 
