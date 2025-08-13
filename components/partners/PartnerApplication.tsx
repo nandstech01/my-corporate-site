@@ -138,7 +138,7 @@ export default function PartnerApplication() {
   }
 
   return (
-    <section id="application" className="py-20 bg-gradient-to-br from-purple-50 to-blue-50">
+    <section id="application" className="py-20 bg-gradient-to-br from-cyan-50 to-blue-50">
       <div className="container mx-auto px-4">
         {/* セクションヘッダー */}
         <div className="text-center mb-16">
@@ -148,7 +148,7 @@ export default function PartnerApplication() {
             transition={{ duration: 0.8 }}
             className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
           >
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 bg-clip-text text-transparent">
               パートナー申請
             </span>
           </motion.h2>
@@ -160,7 +160,7 @@ export default function PartnerApplication() {
           >
             高収益パートナーシップへの第一歩
             <br />
-            <span className="font-semibold text-purple-600">今すぐ申請</span>して、AI検索時代の先行者利益を獲得しましょう
+            <span className="font-semibold text-cyan-600">今すぐ申請</span>して、AI検索時代の先行者利益を獲得しましょう
           </motion.p>
         </div>
 
@@ -172,18 +172,17 @@ export default function PartnerApplication() {
           className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden"
         >
           {/* フォームヘッダー */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8">
+          <div className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white p-8">
             <h3 className="text-2xl lg:text-3xl font-bold mb-2">パートナー申請フォーム</h3>
-            <p className="text-purple-100">必要事項をご記入ください（審査後、3営業日以内にご連絡いたします）</p>
+            <p className="text-cyan-100">必要事項をご記入ください（審査後、3営業日以内にご連絡いたします）</p>
             
             {/* リファーラー情報表示 */}
             {formData.referrerCode && (
               <div className="mt-4 bg-white/10 rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">🔗</span>
                   <div>
                     <p className="font-semibold">パートナー紹介での申請</p>
-                    <p className="text-sm text-purple-100">
+                    <p className="text-sm text-cyan-100">
                       紹介コード: <span className="font-mono bg-white/20 px-2 py-1 rounded">{formData.referrerCode}</span>
                     </p>
                   </div>
@@ -202,8 +201,8 @@ export default function PartnerApplication() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className={`relative p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
                   formData.partnerType === 'corporate' 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-blue-300'
+                    ? 'border-cyan-500 bg-cyan-50' 
+                    : 'border-gray-200 hover:border-cyan-300'
                 }`}>
                   <input
                     type="radio"
@@ -214,7 +213,6 @@ export default function PartnerApplication() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-3xl mb-2">🏢</div>
                     <div className="font-bold text-gray-900">法人パートナー</div>
                     <div className="text-sm text-gray-600 mt-1">自社導入 + 他社紹介</div>
                   </div>
@@ -222,8 +220,8 @@ export default function PartnerApplication() {
                 
                 <label className={`relative p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
                   formData.partnerType === 'influencer' 
-                    ? 'border-pink-500 bg-pink-50' 
-                    : 'border-gray-200 hover:border-pink-300'
+                    ? 'border-cyan-500 bg-cyan-50' 
+                    : 'border-gray-200 hover:border-cyan-300'
                 }`}>
                   <input
                     type="radio"
@@ -234,7 +232,6 @@ export default function PartnerApplication() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-3xl mb-2">✨</div>
                     <div className="font-bold text-gray-900">インフルエンサーパートナー</div>
                     <div className="text-sm text-gray-600 mt-1">コンテンツ + 法人紹介</div>
                   </div>
@@ -253,7 +250,7 @@ export default function PartnerApplication() {
                   name="companyName"
                   value={formData.companyName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder={formData.partnerType === 'corporate' ? '株式会社○○' : '@username または 株式会社○○'}
                   required
                 />
@@ -268,7 +265,7 @@ export default function PartnerApplication() {
                   name="representativeName"
                   value={formData.representativeName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder="山田太郎"
                   required
                 />
@@ -286,7 +283,7 @@ export default function PartnerApplication() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder="contact@example.com"
                   required
                 />
@@ -301,7 +298,7 @@ export default function PartnerApplication() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder="090-1234-5678"
                   required
                 />
@@ -319,7 +316,7 @@ export default function PartnerApplication() {
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder="https://example.com"
                 />
               </div>
@@ -333,7 +330,7 @@ export default function PartnerApplication() {
                   name="socialMedia"
                   value={formData.socialMedia}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                   placeholder="@username または URL"
                 />
               </div>
@@ -349,7 +346,7 @@ export default function PartnerApplication() {
                 value={formData.businessDescription}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                 placeholder="主な事業内容、対象業界、顧客層などを具体的に記述してください"
                 required
               />
@@ -365,7 +362,7 @@ export default function PartnerApplication() {
                 value={formData.experience}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                 placeholder={formData.partnerType === 'corporate' 
                   ? '法人営業の経験、取引実績、得意分野などを記述してください' 
                   : 'フォロワー数、主要実績、得意コンテンツなどを記述してください'
@@ -383,7 +380,7 @@ export default function PartnerApplication() {
                 name="expectedMonthlyDeals"
                 value={formData.expectedMonthlyDeals}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                 required
               >
                 <option value="">選択してください</option>
@@ -403,7 +400,7 @@ export default function PartnerApplication() {
                 value={formData.motivation}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
                 placeholder="なぜパートナーになりたいか、どのような価値を提供できるかを記述してください"
                 required
               />
@@ -417,14 +414,14 @@ export default function PartnerApplication() {
                   name="agreedToTerms"
                   checked={formData.agreedToTerms}
                   onChange={handleInputChange}
-                  className="mt-1 w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  className="mt-1 w-5 h-5 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
                   required
                 />
                 <span className="text-gray-700">
                   <span className="font-semibold text-red-500">*</span> 
-                  <a href="/terms" className="text-purple-600 hover:underline font-medium">利用規約</a>
+                  <a href="/terms" className="text-cyan-600 hover:underline font-medium">利用規約</a>
                   および
-                  <a href="/privacy" className="text-purple-600 hover:underline font-medium">プライバシーポリシー</a>
+                  <a href="/privacy" className="text-cyan-600 hover:underline font-medium">プライバシーポリシー</a>
                   に同意します
                 </span>
               </label>
@@ -435,7 +432,7 @@ export default function PartnerApplication() {
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.agreedToTerms}
-                className="group relative px-12 py-5 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="group relative px-12 py-5 bg-gradient-to-r from-cyan-500 via-cyan-600 to-cyan-700 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <span className="relative z-10 flex items-center gap-3">
                   {isSubmitting ? (
@@ -445,14 +442,14 @@ export default function PartnerApplication() {
                     </>
                   ) : (
                     <>
-                      🚀 パートナー申請を送信
+                      パートナー申請を送信
                       <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </>
                   )}
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-red-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
           </form>

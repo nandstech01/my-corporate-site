@@ -146,21 +146,21 @@ export default function PartnerBenefits() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center bg-white/90 rounded-2xl p-6 shadow-lg">
               <h4 className="text-xl font-bold text-gray-900 mb-2">ベーシック</h4>
-              <div className="text-2xl font-bold text-purple-600 mb-2">月1件成約</div>
+              <div className="text-2xl font-bold text-cyan-600 mb-2">月1件成約</div>
               <div className="text-lg text-gray-600">月収: 150万円</div>
               <div className="text-sm text-gray-500">年収: 1,800万円</div>
             </div>
             
-            <div className="text-center bg-white/90 rounded-2xl p-6 shadow-lg border-2 border-blue-200">
+            <div className="text-center bg-white/90 rounded-2xl p-6 shadow-lg border-2 border-cyan-200">
               <h4 className="text-xl font-bold text-gray-900 mb-2">スタンダード</h4>
-              <div className="text-2xl font-bold text-blue-600 mb-2">月2件成約</div>
+              <div className="text-2xl font-bold text-cyan-600 mb-2">月2件成約</div>
               <div className="text-lg text-gray-600">月収: 300万円</div>
               <div className="text-sm text-gray-500">年収: 3,600万円</div>
             </div>
             
-            <div className="text-center bg-white/90 rounded-2xl p-6 shadow-lg border-2 border-yellow-300">
+            <div className="text-center bg-white/90 rounded-2xl p-6 shadow-lg border-2 border-cyan-300">
               <h4 className="text-xl font-bold text-gray-900 mb-2">プレミアム</h4>
-              <div className="text-2xl font-bold text-red-600 mb-2">月3件成約</div>
+              <div className="text-2xl font-bold text-cyan-600 mb-2">月3件成約</div>
               <div className="text-lg text-gray-600">月収: 450万円</div>
               <div className="text-sm text-gray-500">年収: 5,400万円</div>
             </div>

@@ -9,7 +9,7 @@ export default function PartnerFAQ() {
   const faqs = [
     {
       category: '申請・審査について',
-      icon: '📋',
+      icon: '',
       questions: [
         {
           q: '審査にはどのくらい時間がかかりますか？',
@@ -27,7 +27,7 @@ export default function PartnerFAQ() {
     },
     {
       category: '料金・契約について',
-      icon: '💰',
+      icon: '',
       questions: [
         {
           q: '月額10万円以外に費用はかかりますか？',
@@ -49,7 +49,7 @@ export default function PartnerFAQ() {
     },
     {
       category: '紹介・営業について',
-      icon: '🤝',
+      icon: '',
       questions: [
         {
           q: '営業経験がなくても大丈夫ですか？',
@@ -71,7 +71,7 @@ export default function PartnerFAQ() {
     },
     {
       category: 'サポート・研修について',
-      icon: '📚',
+      icon: '',
       questions: [
         {
           q: 'どのようなサポートを受けられますか？',
@@ -89,7 +89,7 @@ export default function PartnerFAQ() {
     },
     {
       category: '技術・サービスについて',
-      icon: '🚀',
+      icon: '',
       questions: [
         {
           q: 'RE・GEO実装とは何ですか？',
@@ -128,7 +128,7 @@ export default function PartnerFAQ() {
             className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
           >
             よくある
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 bg-clip-text text-transparent">
               質問
             </span>
           </motion.h2>
@@ -152,11 +152,10 @@ export default function PartnerFAQ() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: categoryIndex * 0.1 }}
-              className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-3xl p-8 border border-gray-200"
+              className="bg-gradient-to-r from-gray-50 to-cyan-50 rounded-3xl p-8 border border-gray-200"
             >
               {/* カテゴリヘッダー */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="text-4xl">{category.icon}</div>
+              <div className="mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">{category.category}</h3>
               </div>
 
@@ -223,7 +222,7 @@ export default function PartnerFAQ() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 text-center bg-gradient-to-r from-purple-50 to-blue-50 rounded-3xl p-12 border border-purple-200"
+          className="mt-16 text-center bg-gradient-to-r from-cyan-50 to-blue-50 rounded-3xl p-12 border border-cyan-200"
         >
           <h3 className="text-3xl font-bold text-gray-900 mb-4">
             他にご質問はございますか？
@@ -234,10 +233,10 @@ export default function PartnerFAQ() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#application"
-              className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              className="group px-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
             >
               <span className="flex items-center gap-2">
-                🚀 まずはパートナー申請
+                まずはパートナー申請
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -246,10 +245,10 @@ export default function PartnerFAQ() {
             
             <a
               href="/contact"
-              className="group px-8 py-4 border-2 border-purple-600 text-purple-600 font-bold rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300"
+              className="group px-8 py-4 border-2 border-cyan-600 text-cyan-600 font-bold rounded-full hover:bg-cyan-600 hover:text-white transition-all duration-300"
             >
               <span className="flex items-center gap-2">
-                📞 個別にお問い合わせ
+                個別にお問い合わせ
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

@@ -8,7 +8,7 @@ export default function PartnerTypes() {
       type: 'corporate',
       title: '法人パートナー',
       subtitle: '自社導入 + 他社紹介で高収益',
-      icon: '🏢',
+      icon: null,
       image: '/images/corporate-partner.jpg',
       benefits: [
         '自社でAIリスキリング導入（助成金80%活用）',
@@ -22,14 +22,14 @@ export default function PartnerTypes() {
         'IT企業: 既存顧客への追加提案',
         '士業事務所: 顧客企業への紹介'
       ],
-      color: 'from-blue-500 to-purple-600',
-      bgColor: 'from-blue-50 to-purple-50'
+      color: 'from-cyan-500 to-cyan-600',
+      bgColor: 'from-cyan-50 to-blue-50'
     },
     {
       type: 'influencer',
       title: 'インフルエンサーパートナー',
       subtitle: 'コンテンツ制作 + 法人紹介で収益化',
-      icon: '✨',
+      icon: null,
       image: '/images/influencer-partner.jpg',
       benefits: [
         'SNS×AI×RE・GEOのコンテンツ制作',
@@ -43,8 +43,8 @@ export default function PartnerTypes() {
         'SNSマーケティング専門家',
         '企業研修・コンサル系インフルエンサー'
       ],
-      color: 'from-pink-500 to-red-500',
-      bgColor: 'from-pink-50 to-red-50'
+      color: 'from-cyan-500 to-cyan-600',
+      bgColor: 'from-cyan-50 to-blue-50'
     }
   ]
 
@@ -59,7 +59,7 @@ export default function PartnerTypes() {
             transition={{ duration: 0.8 }}
             className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6"
           >
-            <span className="bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 bg-clip-text text-transparent">
               2つのパートナータイプ
             </span>
           </motion.h2>
@@ -87,9 +87,7 @@ export default function PartnerTypes() {
             >
               {/* ヘッダー */}
               <div className="text-center mb-8">
-                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r ${partner.color} text-white text-4xl shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  {partner.icon}
-                </div>
+                {/* アイコン削除 */}
                 <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{partner.title}</h3>
                 <p className="text-lg text-gray-600">{partner.subtitle}</p>
               </div>
@@ -139,9 +137,7 @@ export default function PartnerTypes() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-16 bg-white rounded-3xl p-8 lg:p-12 shadow-lg border border-gray-200"
         >
-          <h3 className="text-3xl font-bold text-center text-gray-900 mb-8">
-            🤝 共通のパートナー特典
-          </h3>
+          <h3 className="text-3xl font-bold text-center text-gray-900 mb-8">共通のパートナー特典</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
@@ -195,31 +191,29 @@ export default function PartnerTypes() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-16"
         >
-          <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            💰 収益化フロー
-          </h3>
+          <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">収益化フロー</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">1</div>
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">1</div>
               <h4 className="font-bold text-gray-900 mb-2">パートナー登録</h4>
               <p className="text-gray-600 text-sm">月額10万円でパートナー契約</p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">2</div>
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">2</div>
               <h4 className="font-bold text-gray-900 mb-2">研修・準備</h4>
               <p className="text-gray-600 text-sm">営業ツール習得・準備完了</p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">3</div>
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">3</div>
               <h4 className="font-bold text-gray-900 mb-2">営業・紹介</h4>
               <p className="text-gray-600 text-sm">法人への提案・成約獲得</p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">4</div>
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">4</div>
               <h4 className="font-bold text-gray-900 mb-2">報酬受取</h4>
               <p className="text-gray-600 text-sm">成約時に高額報酬をお支払い</p>
             </div>
