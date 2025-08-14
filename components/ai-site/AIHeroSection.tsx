@@ -23,7 +23,7 @@ export default function AIHeroSection() {
 			</div>
 			<div className="absolute inset-0 bg-black/10 backdrop-blur-[0.3px] z-10"></div>
 
-			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start min-h-screen px-4 lg:px-8 pt-12 pb-14 lg:pt-24 lg:pb-12">
+			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start min-h-screen px-4 lg:px-8 pt-12 pb-10 sm:pb-14 lg:pt-24 lg:pb-12">
 				<div className="text-center max-w-5xl">
 					<div className="mb-4 lg:mb-6">
 						<span className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm lg:text-base text-white font-medium">
@@ -84,7 +84,7 @@ export default function AIHeroSection() {
 					</div>
 
 					{/* Chat inline opener */}
-					<div className="mt-24 sm:mt-24 lg:mt-36 flex justify-center px-4">
+					<div className="mt-20 sm:mt-24 lg:mt-36 flex justify-center px-4">
 						<button onClick={() => setIsChatOpen(true)} aria-label="AIチャットを開く" className="group w-full max-w-3xl relative overflow-hidden rounded-full p-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-teal-400 shadow-[0_14px_50px_rgba(34,211,238,0.35)] hover:shadow-[0_24px_90px_rgba(34,211,238,0.5)] transition-all">
 							{/* 外側ネオンオーラ */}
 							<span aria-hidden className="absolute -inset-4 rounded-full bg-cyan-400/25 blur-3xl opacity-50 group-hover:opacity-70 transition" />
