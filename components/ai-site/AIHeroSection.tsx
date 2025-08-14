@@ -68,7 +68,7 @@ export default function AIHeroSection() {
 					</p>
 
 					{/* CTA: 無料相談申込み（デザインは相談チャットのまま、スクロール動作に変更） */}
-					<div className="mt-5 lg:mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+					<div className="mt-14 sm:mt-16 lg:mt-24 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
 						<button
 							onClick={scrollToContact}
 							className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-teal-400 via-cyan-500 to-sky-500 p-[1px] shadow-[0_18px_50px_rgba(34,211,238,0.28)] hover:shadow-[0_28px_80px_rgba(34,211,238,0.38)] transition-all duration-300 transform hover:scale-[1.02]">
