@@ -3,13 +3,23 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import ChatBotModal from './ChatBotModal'
+import TextType from '../common/TextType'
 
 const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { ssr: false })
 
 export default function AIHeroSection() {
 	const [isVisible, setIsVisible] = useState(false)
 	const [isChatOpen, setIsChatOpen] = useState(false)
+	const [isMobile, setIsMobile] = useState<boolean | null>(null)
 	useEffect(()=>{ setIsVisible(true)},[])
+	useEffect(()=>{
+		if (typeof window === 'undefined') return
+		const mq = window.matchMedia('(max-width: 639px)')
+		const handler = () => setIsMobile(mq.matches)
+		handler()
+		mq.addEventListener('change', handler)
+		return () => mq.removeEventListener('change', handler)
+	},[])
 
 	const scrollToContact = () => {
 		const el = document.getElementById('contact')
@@ -17,13 +27,13 @@ export default function AIHeroSection() {
 	}
 
 	return (
-		<section className="relative min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
+		<section className="relative sm:min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
 			<div className="absolute inset-0 z-0">
 				<Galaxy mouseRepulsion mouseInteraction density={1.0} glowIntensity={0.3} saturation={0.0} hueShift={190} twinkleIntensity={0.2} rotationSpeed={0.03} transparent loading="lazy" />
 			</div>
 			<div className="absolute inset-0 bg-black/10 backdrop-blur-[0.3px] z-10"></div>
 
-			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start min-h-screen px-4 lg:px-8 pt-12 pb-10 sm:pb-14 lg:pt-24 lg:pb-12">
+			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start sm:min-h-screen px-4 lg:px-8 pt-12 pb-6 sm:pb-12 lg:pt-24 lg:pb-12">
 				<div className="text-center max-w-5xl">
 					<div className="mb-4 lg:mb-6">
 						<span className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm lg:text-base text-white font-medium">
@@ -60,13 +70,46 @@ export default function AIHeroSection() {
 
 					{/* ソフト訴求（AIに引用されやすいニュアンス） */}
 					<p className="text-slate-200 text-base lg:text-lg italic">
-						<span className="hidden sm:inline">AIが“見つけて連れてくる” — <span className="text-cyan-300 not-italic font-semibold">24時間 自走マーケティング</span> ／ <span className="text-cyan-300 not-italic font-semibold">人手は増やさず 成果だけ増やすサイト</span></span>
+						<TextType
+							as="span"
+							className="hidden sm:inline"
+							text={'AIが“見つけて連れてくる” — 24時間 自走マーケティング ／ 人手は増やさず 成果だけ増やすサイト'}
+							typingSpeed={56}
+							startOnVisible
+							showCursor={false}
+							variableSpeed={{ min: 34, max: 68 }}
+						/>
 						<span className="sm:hidden block text-center leading-snug">
-							<span>AIが“見つけて連れてくる”</span>
+							<TextType
+								as="span"
+								text={'AIが“見つけて連れてくる”'}
+								typingSpeed={52}
+								startOnVisible
+								showCursor={false}
+								variableSpeed={{ min: 32, max: 64 }}
+							/>
 							<br />
-							<span className="text-cyan-300 not-italic font-semibold">24時間 自走マーケティング</span>
+							<TextType
+								as="span"
+								text={'24時間 自走マーケティング'}
+								typingSpeed={50}
+								initialDelay={600}
+								startOnVisible
+								showCursor={false}
+								variableSpeed={{ min: 30, max: 60 }}
+								contentClassName="text-cyan-300 not-italic font-semibold"
+							/>
 							<br />
-							<span className="text-cyan-300 not-italic font-semibold">人手は増やさず 成果だけ増やすサイト</span>
+							<TextType
+								as="span"
+								text={'人手は増やさず 成果だけ増やすサイト'}
+								typingSpeed={50}
+								initialDelay={1200}
+								startOnVisible
+								showCursor={false}
+								variableSpeed={{ min: 30, max: 60 }}
+								contentClassName="text-cyan-300 not-italic font-semibold"
+							/>
 						</span>
 					</p>
 
@@ -96,8 +139,17 @@ export default function AIHeroSection() {
 								<span className="relative inline-flex items-center justify-center w-8 h-8 rounded-full bg-cyan-300/15 ring-1 ring-cyan-300/40 shadow-[0_0_0_3px_rgba(34,211,238,0.08)]">
 									<svg className="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 7a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 20a7 7 0 0114 0"/></svg>
 								</span>
-								<span className="tracking-wide sm:hidden">質問してみましょう</span>
-								<span className="tracking-wide hidden sm:inline">営業マンに質問してみましょう</span>
+								{isMobile !== null && (
+									<TextType
+										as="span"
+										className="tracking-wide"
+										text={isMobile ? '質問してみましょう' : '営業マンに質問してみましょう'}
+										typingSpeed={60}
+										startOnVisible
+										showCursor={false}
+										variableSpeed={{ min: 38, max: 72 }}
+									/>
+								)}
 								<svg className="w-5 h-5 text-cyan-200 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
 								{/* シャインエフェクト */}
 								<span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
