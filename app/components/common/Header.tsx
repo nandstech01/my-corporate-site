@@ -44,7 +44,7 @@ export default function Header() {
   }, [isOpen]);
 
   // 管理画面とLPページの場合はヘッダーを表示しない
-  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/partner-admin') || pathname === '/lp')) {
+  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/partner-admin') || pathname === '/lp' || pathname === '/ai-site')) {
     return null;
   }
 
