@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import ChatBotModal from './ChatBotModal'
 
 const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { ssr: false })
 
 export default function AIHeroSection() {
 	const [isVisible, setIsVisible] = useState(false)
+	const [isChatOpen, setIsChatOpen] = useState(false)
 	useEffect(()=>{ setIsVisible(true)},[])
 
 	const scrollToContact = () => {
@@ -34,8 +36,9 @@ export default function AIHeroSection() {
 						</span>
 					</div>
 					<h1 className="mb-2 lg:mb-5 leading-tight">
+						{/* SPのみ上余白付与 */}
 						<span 
-							className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-3xl lg:text-7xl whitespace-nowrap"
+							className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-3xl lg:text-7xl whitespace-nowrap mt-2 lg:mt-0 block mb-4 lg:mb-0"
 							style={{
 								backgroundImage: 'linear-gradient(90deg, #00FFFF, #40E0D0, #00E5FF, #00CED1, #00FFFF)',
 								backgroundSize: '400% 100%'
@@ -46,7 +49,7 @@ export default function AIHeroSection() {
 					</h1>
 
 					{/* Distinct H2: label + tech badges */}
-					<div className="mb-3 lg:mb-4">
+					<div className="mb-4 lg:mb-4">
 						<div className="text-xs sm:text-sm tracking-wider text-slate-300/90 uppercase">AIに引用される構造</div>
 						<div className="mt-2 flex flex-wrap items-center justify-center gap-2">
 							<span className="inline-flex items-center px-3 py-1 rounded-full border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 text-xs sm:text-sm font-semibold">Triple RAG</span>
@@ -79,6 +82,32 @@ export default function AIHeroSection() {
 							</span>
 						</button>
 					</div>
+
+					{/* Chat inline opener */}
+					<div className="mt-24 sm:mt-24 lg:mt-36 flex justify-center px-4">
+						<button onClick={() => setIsChatOpen(true)} aria-label="AIチャットを開く" className="group w-full max-w-3xl relative overflow-hidden rounded-full p-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-teal-400 shadow-[0_14px_50px_rgba(34,211,238,0.35)] hover:shadow-[0_24px_90px_rgba(34,211,238,0.5)] transition-all">
+							{/* 外側ネオンオーラ */}
+							<span aria-hidden className="absolute -inset-4 rounded-full bg-cyan-400/25 blur-3xl opacity-50 group-hover:opacity-70 transition" />
+							{/* 本体（グラス） */}
+							<span className="relative w-full rounded-full bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(8,15,28,0.5))] backdrop-blur-2xl ring-1 ring-cyan-300/30 px-6 sm:px-8 py-3 sm:py-4 text-cyan-100 text-sm sm:text-base font-semibold inline-flex items-center justify-center gap-3">
+								{/* 内側エッジ */}
+								<span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(0,0,0,0.22)]" />
+								{/* 左アイコンチップ */}
+								<span className="relative inline-flex items-center justify-center w-8 h-8 rounded-full bg-cyan-300/15 ring-1 ring-cyan-300/40 shadow-[0_0_0_3px_rgba(34,211,238,0.08)]">
+									<svg className="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 7a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 20a7 7 0 0114 0"/></svg>
+								</span>
+								<span className="tracking-wide sm:hidden">質問してみましょう</span>
+								<span className="tracking-wide hidden sm:inline">営業マンに質問してみましょう</span>
+								<svg className="w-5 h-5 text-cyan-200 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+								{/* シャインエフェクト */}
+								<span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
+									<span className="absolute -left-1/3 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 transition-transform duration-700 group-hover:translate-x-[220%]" />
+								</span>
+							</span>
+						</button>
+					</div>
+
+					<ChatBotModal open={isChatOpen} onClose={() => setIsChatOpen(false)} />
 				</div>
 			</div>
 		</section>
