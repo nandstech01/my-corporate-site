@@ -21,7 +21,7 @@ export default function AIHeroSection() {
 			</div>
 			<div className="absolute inset-0 bg-black/10 backdrop-blur-[0.3px] z-10"></div>
 
-			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start min-h-screen px-4 lg:px-8 pt-12 pb-14 lg:pt-20 lg:pb-12">
+			<div className="relative z-20 flex flex-col items-center justify-start lg:justify-start min-h-screen px-4 lg:px-8 pt-12 pb-14 lg:pt-24 lg:pb-12">
 				<div className="text-center max-w-5xl">
 					<div className="mb-4 lg:mb-6">
 						<span className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm lg:text-base text-white font-medium">
