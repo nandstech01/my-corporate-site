@@ -10,7 +10,7 @@ export default function PricingSection() {
 					<div className="grid md:grid-cols-2 gap-6">
 						<div className="bg-white/5 rounded-2xl border border-white/10 p-8 text-left">
 							<h3 className="text-white font-bold text-xl mb-3">AIサイト 最低限パッケージ</h3>
-							<div className="text-cyan-300 text-3xl font-extrabold mb-2">450万円<span className="text-base text-gray-300 font-medium">（税別）</span></div>
+							<div className="text-cyan-300 text-3xl font-extrabold mb-2">350万円<span className="text-base text-gray-300 font-medium">（税別）</span></div>
 							<ul className="text-gray-300 text-sm list-disc pl-5 space-y-1">
 								<li>6機能一式・要件定義・初期データ投入・公開まで</li>
 								<li>導入目安：6–10週間（要件次第）</li>

@@ -70,47 +70,49 @@ export default function AIHeroSection() {
 
 					{/* ソフト訴求（AIに引用されやすいニュアンス） */}
 					<p className="text-slate-200 text-base lg:text-lg italic">
-						<TextType
-							as="span"
-							className="hidden sm:inline"
-							text={'AIが“見つけて連れてくる” — 24時間 自走マーケティング ／ 人手は増やさず 成果だけ増やすサイト'}
-							typingSpeed={56}
-							startOnVisible
-							showCursor={false}
-							variableSpeed={{ min: 34, max: 68 }}
-						/>
-						<span className="sm:hidden block text-center leading-snug">
+						{isMobile === true ? (
+							<span className="block text-center leading-snug">
+								<TextType
+									as="span"
+									text={'AIが“見つけて連れてくる”'}
+									typingSpeed={52}
+									startOnVisible
+									showCursor={false}
+									variableSpeed={{ min: 32, max: 64 }}
+								/>
+								<br />
+								<TextType
+									as="span"
+									text={'24時間 自走マーケティング'}
+									typingSpeed={50}
+									initialDelay={600}
+									startOnVisible
+									showCursor={false}
+									variableSpeed={{ min: 30, max: 60 }}
+									contentClassName="text-cyan-300 not-italic font-semibold"
+								/>
+								<br />
+								<TextType
+									as="span"
+									text={'人手は増やさず 成果だけ増やすサイト'}
+									typingSpeed={50}
+									initialDelay={1200}
+									startOnVisible
+									showCursor={false}
+									variableSpeed={{ min: 30, max: 60 }}
+									contentClassName="text-cyan-300 not-italic font-semibold"
+								/>
+							</span>
+						) : (
 							<TextType
 								as="span"
-								text={'AIが“見つけて連れてくる”'}
-								typingSpeed={52}
+								text={'AIが“見つけて連れてくる” — 24時間 自走マーケティング ／ 人手は増やさず 成果だけ増やすサイト'}
+								typingSpeed={56}
 								startOnVisible
 								showCursor={false}
-								variableSpeed={{ min: 32, max: 64 }}
+								variableSpeed={{ min: 34, max: 68 }}
 							/>
-							<br />
-							<TextType
-								as="span"
-								text={'24時間 自走マーケティング'}
-								typingSpeed={50}
-								initialDelay={600}
-								startOnVisible
-								showCursor={false}
-								variableSpeed={{ min: 30, max: 60 }}
-								contentClassName="text-cyan-300 not-italic font-semibold"
-							/>
-							<br />
-							<TextType
-								as="span"
-								text={'人手は増やさず 成果だけ増やすサイト'}
-								typingSpeed={50}
-								initialDelay={1200}
-								startOnVisible
-								showCursor={false}
-								variableSpeed={{ min: 30, max: 60 }}
-								contentClassName="text-cyan-300 not-italic font-semibold"
-							/>
-						</span>
+						)}
 					</p>
 
 					{/* CTA: 無料相談申込み（デザインは相談チャットのまま、スクロール動作に変更） */}
