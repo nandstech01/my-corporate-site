@@ -34,17 +34,32 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 
     while ((match = headingRegex.exec(content)) !== null) {
       const level = match[1].length; // #の数
-      const text = match[2];
-      const id = text
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-');
+      const rawText = match[2];
+      
+      // Fragment ID パターンをチェック ({#id} 形式)
+      const fragmentMatch = rawText.match(/^(.*?)\s*\{#([^}]+)\}$/);
+      
+      let displayText = rawText;
+      let id = '';
+      
+      if (fragmentMatch) {
+        // Fragment IDが見つかった場合、表示テキストとIDを分離
+        displayText = fragmentMatch[1].trim();
+        id = fragmentMatch[2];
+      } else {
+        // 従来通りのID生成
+        id = rawText
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
+      }
 
       if (level <= 4) { // h2, h3, h4のみを目次に含める
-        // 一意のIDを確保するためにカウンターを追加
+        // 一意のIDを確保するためにカウンターを追加（Fragment IDが無い場合のみ）
+        const finalId = id || `heading-${counter}`;
         tocItems.push({ 
-          id: id || `heading-${counter}`, 
-          text, 
+          id: finalId, 
+          text: displayText, 
           level 
         });
         counter++;
@@ -174,47 +189,89 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               );
             },
             h2({children}) {
-              const id = String(children)
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-');
+              // Fragment ID パターンをチェック ({#id} 形式)
+              const childrenStr = String(children);
+              const fragmentMatch = childrenStr.match(/^(.*?)\s*\{#([^}]+)\}$/);
+              
+              let displayText = childrenStr;
+              let id = '';
+              
+              if (fragmentMatch) {
+                // Fragment IDが見つかった場合、表示テキストとIDを分離
+                displayText = fragmentMatch[1].trim();
+                id = fragmentMatch[2];
+              } else {
+                // 従来通りのID生成
+                id = childrenStr
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, '')
+                  .replace(/\s+/g, '-');
+              }
               
               return (
                 <h2 
                   id={id}
                   className="not-prose bg-gray-50 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 border-l-4 border-cyan-400"
                 >
-                  {children}
+                  {displayText}
                 </h2>
               );
             },
             h3({children}) {
-              const id = String(children)
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-');
+              // Fragment ID パターンをチェック ({#id} 形式)
+              const childrenStr = String(children);
+              const fragmentMatch = childrenStr.match(/^(.*?)\s*\{#([^}]+)\}$/);
+              
+              let displayText = childrenStr;
+              let id = '';
+              
+              if (fragmentMatch) {
+                // Fragment IDが見つかった場合、表示テキストとIDを分離
+                displayText = fragmentMatch[1].trim();
+                id = fragmentMatch[2];
+              } else {
+                // 従来通りのID生成
+                id = childrenStr
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, '')
+                  .replace(/\s+/g, '-');
+              }
               
               return (
                 <h3 
                   id={id}
                   className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700"
                 >
-                  {children}
+                  {displayText}
                 </h3>
               );
             },
             h4({children}) {
-              const id = String(children)
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-');
+              // Fragment ID パターンをチェック ({#id} 形式)
+              const childrenStr = String(children);
+              const fragmentMatch = childrenStr.match(/^(.*?)\s*\{#([^}]+)\}$/);
+              
+              let displayText = childrenStr;
+              let id = '';
+              
+              if (fragmentMatch) {
+                // Fragment IDが見つかった場合、表示テキストとIDを分離
+                displayText = fragmentMatch[1].trim();
+                id = fragmentMatch[2];
+              } else {
+                // 従来通りのID生成
+                id = childrenStr
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, '')
+                  .replace(/\s+/g, '-');
+              }
               
               return (
                 <h4 
                   id={id}
                   className="mt-6 mb-3 text-lg font-bold text-gray-700 border-b border-gray-300 pb-1"
                 >
-                  {children}
+                  {displayText}
                 </h4>
               );
             },

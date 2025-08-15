@@ -251,7 +251,7 @@ export default function ContentGenerationPage() {
   const [blogGenerationForm, setBlogGenerationForm] = useState<BlogGenerationForm>({
     query: '',
     selectedRAGs: ['company', 'trend', 'youtube'],
-    targetLength: 6000,
+    targetLength: 7000,
     businessCategory: '',
     categorySlug: '',
     includeImages: true,
