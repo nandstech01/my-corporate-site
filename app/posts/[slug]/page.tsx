@@ -606,8 +606,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* FAQ表示（自動抽出） */}
-        {faqData.length > 0 && (
+        {/* FAQ表示（自動抽出） - 重複防止のため無効化（記事本文内FAQを使用） */}
+        {/* {faqData.length > 0 && (
           <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6 faq-section">
             <h2 className="text-xl font-bold mb-6 text-blue-900">よくある質問</h2>
             <div className="space-y-6">
@@ -619,7 +619,7 @@ export default async function PostPage({ params }: PageProps) {
               ))}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* HOW TO表示（自動抽出） - 非表示に変更 */}
         {/* {howToData.steps.length > 0 && (
