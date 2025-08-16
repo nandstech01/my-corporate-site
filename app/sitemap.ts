@@ -93,6 +93,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.95, // ベクトルRAG
     },
     {
+      url: `${baseUrl}/ai-site`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.97, // AIサイト開発サービス（Fragment ID統合済み）
+    },
+    {
       url: `${baseUrl}/chatbot-development`,
       lastModified: new Date(),
       changeFrequency: 'weekly',

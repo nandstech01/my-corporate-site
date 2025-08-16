@@ -49,6 +49,7 @@ Allow: /corporate
 Allow: /system-development
 Allow: /aio-seo
 Allow: /ai-agents
+Allow: /ai-site
 Allow: /vector-rag
 Allow: /chatbot-development
 Allow: /lp
@@ -60,6 +61,7 @@ Crawl-delay: 1
 
 User-agent: ChatGPT-User
 Allow: /
+Allow: /ai-site
 Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
@@ -69,6 +71,7 @@ Crawl-delay: 1
 
 User-agent: SearchGPT
 Allow: /
+Allow: /ai-site
 Allow: /lp
 Disallow: /partner-admin
 Disallow: /referrer-admin
