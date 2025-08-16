@@ -11,6 +11,7 @@ import AIHeroSectionSSR from '../../components/ai-site/AIHeroSectionSSR'
 import EmpathySectionSSR from '../../components/ai-site/EmpathySectionSSR'
 import MechanismSectionSSR from '../../components/ai-site/MechanismSectionSSR'
 import FeaturesSectionSSR from '../../components/ai-site/FeaturesSectionSSR'
+import AutoRAGGenerationSectionSSR from '../../components/ai-site/AutoRAGGenerationSectionSSR'
 import OptionsSectionSSR from '../../components/ai-site/OptionsSectionSSR'
 import DemoSectionSSR from '../../components/ai-site/DemoSectionSSR'
 import PricingSectionSSR from '../../components/ai-site/PricingSectionSSR'
@@ -130,6 +131,7 @@ export default async function AISitePage() {
 			<EmpathySectionSSR />
 			<MechanismSectionSSR />
 			<FeaturesSectionSSR />
+			<AutoRAGGenerationSectionSSR />
 			<OptionsSectionSSR />
 			<DemoSectionSSR />
 			<PricingSectionSSR />

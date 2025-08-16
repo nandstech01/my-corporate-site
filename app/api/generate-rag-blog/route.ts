@@ -92,7 +92,7 @@ function parseGeneratedContent(content: string): any {
         title: titleMatch ? titleMatch[1] : '生成されたタイトル',
         content: contentMatch ? contentMatch[1] : content,
         meta_description: metaMatch ? metaMatch[1] : '生成されたコンテンツ',
-        seo_keywords: ['AI', 'ニュース'],
+        seo_keywords: ['AI', 'ニュース', 'テクノロジー'],
         excerpt: content.substring(0, 200),
         estimated_reading_time: 5,
         word_count: content.length
@@ -238,6 +238,7 @@ ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、
 - 検索意図に完全に応える内容
 - 適切なキーワード密度（2-3%）
 - 関連キーワードの自然な配置
+- SEOキーワードは厳密に3つのみ生成（メインキーワード1つ + 関連キーワード2つ）
 
 ### 2. 構造化・Fragment ID最適化
 - 魅力的なタイトル（32文字以内、キーワード含む）
@@ -345,13 +346,20 @@ A: [150-200文字の詳細な回答8]
   "title": "魅力的なブログタイトル（32文字以内）",
   "meta_description": "160文字以内のメタディスクリプション",
   "content": "記事本文（Markdown形式、適切にエスケープされた文字列）",
-  "seo_keywords": ["キーワード1", "キーワード2", "キーワード3"],
+  "seo_keywords": ["メインキーワード", "関連キーワード1", "関連キーワード2"],
   "excerpt": "200文字以内の記事要約",
   "estimated_reading_time": 15,
   "word_count": ${targetLength}
 }
 
-記事は必ず${targetLength}文字程度になるよう、十分に詳細で価値ある内容にしてください。JSONの文字列内では改行は\\nで表現し、引用符は\\"でエスケープしてください。`;
+記事は必ず${targetLength}文字程度になるよう、十分に詳細で価値ある内容にしてください。
+
+【重要】SEOキーワードは必ず3つのみ生成してください：
+1. メインキーワード（検索クエリに最も関連するキーワード）
+2. 関連キーワード1（内容に密接に関連するキーワード）
+3. 関連キーワード2（記事のサブテーマに関連するキーワード）
+
+JSONの文字列内では改行は\\nで表現し、引用符は\\"でエスケープしてください。`;
 
     // OpenAI o1-miniで記事生成（本番環境タイムアウト対応）
     console.log('🤖 OpenAI o1-miniで記事生成中...');
@@ -379,6 +387,7 @@ A: [150-200文字の詳細な回答8]
 2. JSON以外のテキストや説明は一切含めないこと
 3. 文字列内の特殊文字は適切にエスケープすること
 4. 出力は指定されたJSON構造に完全に従うこと
+5. 【重要】seo_keywordsは厳密に3つのキーワードのみ配列で出力すること
 
 レスポンスはJSONのみで開始してください：`
               }
@@ -490,7 +499,10 @@ A: [150-200文字の詳細な回答8]
       (postData as any).meta_description = blogData.meta_description;
     }
     if (blogData.seo_keywords && Array.isArray(blogData.seo_keywords)) {
-      (postData as any).meta_keywords = blogData.seo_keywords;
+      // SEOキーワードを最大3つに制限
+      const limitedKeywords = blogData.seo_keywords.slice(0, 3);
+      (postData as any).meta_keywords = limitedKeywords;
+      console.log(`🔑 SEOキーワード制限適用: ${blogData.seo_keywords.length}個 → ${limitedKeywords.length}個`);
     }
 
     // データベースに記事を保存

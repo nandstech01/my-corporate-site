@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import ImageUploader from '@/components/ImageUploader';
 import PostPreview from '@/components/PostPreview';
 import { useAuth } from '@/contexts/AuthContext';
 import ContentImageManager from '@/components/admin/ContentImageManager';
+import type { Database } from '@/lib/database.types';
 
 type Category = {
   id: number;
@@ -59,6 +60,7 @@ export default function EditPostPage({
 }) {
   const router = useRouter();
   const { user } = useAuth();
+  const supabase = createClientComponentClient<Database>();
   const [title, setTitle] = React.useState('');
   const [content, setContent] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
