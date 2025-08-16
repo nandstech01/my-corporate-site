@@ -246,25 +246,48 @@ export default function CompanyRagPage() {
 
   // サービス再ベクトル化
   const handleServiceRegenerate = async () => {
-    if (!confirm('サービスページのベクトルデータを再生成しますか？\n（安全：構造化データ・Fragment IDは保護されます）')) return;
+    // 連続クリック防止の強化
+    if (serviceRegenerating) {
+      console.log('⚠️ サービス再ベクトル化が既に実行中です');
+      return;
+    }
+
+    if (!window.confirm('サービス内容を再ベクトル化しますか？\n既存のサービスベクトルが全て削除され、最新の内容で再生成されます。')) {
+      return;
+    }
 
     setServiceRegenerating(true);
     try {
+      console.log('🔄 サービス再ベクトル化開始...');
+      
       const response = await fetch('/api/vectorize-service-content', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        alert(`サービス再ベクトル化完了\n削除: ${data.results.deletedVectors}件\n新規: ${data.results.saveResults.success}件`);
-        loadVectorStats();
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        console.log('✅ サービス再ベクトル化成功:', result);
+        alert(`✅ サービス再ベクトル化完了！\n削除: ${result.deletedCount}件\n新規作成: ${result.successCount}件`);
+        
+        // 統計を再読み込み
+        await loadVectorStats();
       } else {
-        const errorData = await response.json();
-        alert(`サービス再ベクトル化でエラーが発生しました: ${errorData.error}`);
+        console.error('❌ サービス再ベクトル化失敗:', result);
+        
+        // 423 Lockedエラーの場合の特別処理
+        if (response.status === 423) {
+          alert('⚠️ サービス再ベクトル化が既に実行中です。\nしばらく待ってから再試行してください。');
+        } else {
+          alert(`❌ エラー: ${result.error || '再ベクトル化に失敗しました'}`);
+        }
       }
     } catch (error) {
-      console.error('Error regenerating service vectors:', error);
-      alert('サービス再ベクトル化でエラーが発生しました');
+      console.error('❌ サービス再ベクトル化エラー:', error);
+      alert('❌ ネットワークエラーまたはサーバーエラーが発生しました');
     } finally {
       setServiceRegenerating(false);
     }

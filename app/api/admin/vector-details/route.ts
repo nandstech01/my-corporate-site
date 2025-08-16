@@ -48,7 +48,7 @@ export async function GET() {
     // 4. structured-data詳細調査
     const { data: structuredDataVectors, error: structuredError } = await supabaseServiceRole
       .from('company_vectors')
-      .select('id, section_title, created_at, metadata, content')
+      .select('id, section_title, created_at, metadata, content_chunk')
       .eq('content_type', 'structured-data')
       .order('created_at', { ascending: false });
 
@@ -59,7 +59,7 @@ export async function GET() {
     // 5. fragment-id詳細調査
     const { data: fragmentIdVectors, error: fragmentError } = await supabaseServiceRole
       .from('company_vectors')
-      .select('id, section_title, created_at, metadata, content')
+      .select('id, section_title, created_at, metadata, content_chunk')
       .eq('content_type', 'fragment-id')
       .order('created_at', { ascending: false });
 
@@ -93,7 +93,7 @@ export async function GET() {
           id: item.id,
           title: item.section_title,
           created_at: item.created_at,
-          contentPreview: item.content?.substring(0, 200) + '...',
+          contentPreview: item.content_chunk?.substring(0, 200) + '...',
           metadata: item.metadata
         })) || []
       },
@@ -105,7 +105,7 @@ export async function GET() {
           id: item.id,
           title: item.section_title,
           created_at: item.created_at,
-          contentPreview: item.content?.substring(0, 200) + '...',
+          contentPreview: item.content_chunk?.substring(0, 200) + '...',
           metadata: item.metadata
         })) || []
       }
