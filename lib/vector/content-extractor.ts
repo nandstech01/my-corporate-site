@@ -28,7 +28,7 @@ interface ServicePageInfo {
   technicalSpecs: string;
 }
 
-// 全9サービスページの情報
+// 全11サービスページの情報（lp、ai-site含む）
 const SERVICE_PAGES: ServicePageInfo[] = [
   {
     slug: 'ai-agents',
@@ -51,65 +51,83 @@ const SERVICE_PAGES: ServicePageInfo[] = [
   {
     slug: 'aio-seo',
     serviceId: 'aio-seo',
-    title: 'AIO-SEO最適化サービス',
-    description: 'Mike King理論に基づくレリバンスエンジニアリング。AI検索最適化によるオーガニック流入増加。',
-    features: ['Mike King理論', 'レリバンスエンジニアリング', 'AI検索最適化', 'LLMO対応'],
-    pricing: 'ライト: 20万円〜、スタンダード: 50万円〜、プロ: 100万円〜',
-    technicalSpecs: 'レリバンスエンジニアリング、構造化データ、セマンティックSEO、AI検索対応'
+    title: 'AIO SEO対策サービス',
+    description: 'AI検索時代に対応したGEO（Generative Engine Optimization）とAIO（AI Optimization）の包括的SEO戦略。',
+    features: ['GEO最適化', 'AI検索対応', 'レリバンスエンジニアリング', 'コンテンツ最適化'],
+    pricing: 'ライト: 15万円〜、スタンダード: 30万円〜、プレミアム: 60万円〜',
+    technicalSpecs: 'レリバンスエンジニアリング、構造化データ、セマンティックSEO、AI検索最適化'
   },
   {
     slug: 'vector-rag',
     serviceId: 'vector-rag',
-    title: 'Vector RAGシステム構築',
-    description: 'pgvectorを活用したベクトル検索システム。高精度な情報検索とAI応答システム構築。',
-    features: ['pgvector活用', 'ベクトル検索', 'RAGシステム', 'セマンティック検索'],
-    pricing: 'ベーシック: 40万円〜、アドバンス: 80万円〜、エンタープライズ: 150万円〜',
-    technicalSpecs: 'pgvector, OpenAI Embeddings, PostgreSQL, Supabase, セマンティック検索'
-  },
-  {
-    slug: 'video-generation',
-    serviceId: 'video-generation',
-    title: '動画生成AIサービス',
-    description: 'AI技術を活用した動画コンテンツ自動生成。マーケティング動画から教育コンテンツまで幅広く対応。',
-    features: ['AI動画生成', 'コンテンツ自動化', 'マーケティング動画', '教育コンテンツ'],
-    pricing: 'スタンダード: 30万円〜、プロ: 70万円〜、エンタープライズ: 120万円〜',
-    technicalSpecs: 'AI動画生成API, 動画編集自動化, コンテンツ管理システム'
-  },
-  {
-    slug: 'hr-solutions',
-    serviceId: 'hr-solutions',
-    title: 'HR業務効率化ソリューション',
-    description: 'AI技術を活用したHR業務の自動化・効率化。採用から人事評価まで包括的にサポート。',
-    features: ['採用自動化', '人事評価システム', 'AI面接', 'データ分析'],
-    pricing: 'ベーシック: 25万円〜、スタンダード: 60万円〜、プレミアム: 120万円〜',
-    technicalSpecs: 'AI面接システム, 人事データ分析, 自動化ワークフロー'
-  },
-  {
-    slug: 'sns-automation',
-    serviceId: 'sns-automation',
-    title: 'SNS自動化サービス',
-    description: 'SNSマーケティングの自動化システム。投稿スケジューリングから効果測定まで一元管理。',
-    features: ['投稿自動化', 'スケジューリング', '効果測定', 'マルチプラットフォーム'],
-    pricing: 'ライト: 15万円〜、スタンダード: 40万円〜、プロ: 80万円〜',
-    technicalSpecs: 'SNS API統合, 投稿自動化, 分析ダッシュボード'
+    title: 'ベクトルRAGシステム開発',
+    description: 'Triple RAG（Company・Trend・YouTube）統合によるAI検索・引用最適化システム。OpenAI Embeddingsとベクトル検索の高度活用。',
+    features: ['Triple RAG統合', 'ベクトル検索', 'AI引用最適化', 'リアルタイム学習'],
+    pricing: 'ベーシック: 80万円〜、プロフェッショナル: 150万円〜、エンタープライズ: 300万円〜',
+    technicalSpecs: 'OpenAI Embeddings, Supabase Vector, PostgreSQL pgvector, Next.js'
   },
   {
     slug: 'chatbot-development',
     serviceId: 'chatbot-development',
-    title: 'チャットボット開発サービス',
-    description: 'AIチャットボットの開発・導入サービス。カスタマーサポートから営業支援まで幅広く対応。',
-    features: ['AIチャットボット', 'カスタマーサポート', '営業支援', 'マルチチャネル'],
-    pricing: 'ベーシック: 20万円〜、アドバンス: 50万円〜、エンタープライズ: 100万円〜',
-    technicalSpecs: 'OpenAI API, チャットボットフレームワーク, マルチチャネル対応'
+    title: 'AIチャットボット開発',
+    description: 'OpenAI APIとRAGシステムを統合した高精度チャットボット。カスタマーサポートと営業効率を大幅向上。',
+    features: ['OpenAI統合', 'RAG検索連携', '多言語対応', 'カスタマイズ可能'],
+    pricing: 'ベーシック: 25万円〜、スタンダード: 50万円〜、プレミアム: 100万円〜',
+    technicalSpecs: 'OpenAI GPT-4, RAGシステム, WebSocket, React'
+  },
+  {
+    slug: 'video-generation',
+    serviceId: 'video-generation',
+    title: 'AI動画生成サービス',
+    description: '最新AI技術による自動動画生成。マーケティング、教育、プレゼンテーション用途に最適化された高品質動画制作。',
+    features: ['AI自動生成', 'カスタムテンプレート', '多様な形式出力', 'ブランディング対応'],
+    pricing: 'ライト: 10万円〜、スタンダード: 25万円〜、プロ: 50万円〜',
+    technicalSpecs: 'AI動画生成エンジン, カスタムテンプレート, 4K出力対応'
+  },
+  {
+    slug: 'hr-solutions',
+    serviceId: 'hr-solutions',
+    title: 'HR支援ソリューション',
+    description: 'AI活用による人事業務効率化。採用、評価、研修管理を統合したデジタルHRプラットフォーム。',
+    features: ['採用支援AI', '人事評価システム', 'スキル管理', '研修プラットフォーム'],
+    pricing: 'スタンダード: 20万円〜、プレミアム: 40万円〜、エンタープライズ: 80万円〜',
+    technicalSpecs: 'AI分析エンジン, データベース統合, セキュリティ対応'
+  },
+  {
+    slug: 'sns-automation',
+    serviceId: 'sns-automation',
+    title: 'SNS自動化システム',
+    description: 'AI駆動のSNSマーケティング自動化。コンテンツ生成から投稿スケジューリングまで一括管理。',
+    features: ['自動投稿', 'コンテンツ生成', '分析レポート', '複数プラットフォーム対応'],
+    pricing: 'ベーシック: 8万円〜、スタンダード: 15万円〜、プロ: 30万円〜',
+    technicalSpecs: 'SNS API統合, AI コンテンツ生成, スケジューリングシステム'
   },
   {
     slug: 'mcp-servers',
     serviceId: 'mcp-servers',
     title: 'MCPサーバー開発',
-    description: 'Model Context Protocol (MCP)サーバーの開発・構築サービス。AI統合システムの診断・最適化。',
-    features: ['MCPサーバー構築', 'AI統合診断', 'システム最適化', 'プロトコル対応'],
-    pricing: 'ベーシック: 35万円〜、プロ: 70万円〜、エンタープライズ: 140万円〜',
-    technicalSpecs: 'MCP Protocol, AI統合システム, 診断ツール開発'
+    description: 'Model Context Protocol（MCP）準拠のサーバー開発。Claude DesktopやCursor等のAIツール連携を実現。',
+    features: ['MCP準拠開発', 'AIツール統合', 'カスタム機能実装', 'セキュア通信'],
+    pricing: 'ベーシック: 30万円〜、スタンダード: 60万円〜、エンタープライズ: 120万円〜',
+    technicalSpecs: 'MCP Protocol, TypeScript, Node.js, セキュリティ対応'
+  },
+  {
+    slug: 'lp',
+    serviceId: 'lp',
+    title: '人材開発支援助成金対応AI研修',
+    description: '人材開発支援助成金を活用したAI研修プログラム。リスキリング、SNS自動運用、レリバンスエンジニアリングの実践的研修。',
+    features: ['助成金対応研修', 'AI実践スキル', 'SNS運用技術', 'GEO最適化手法'],
+    pricing: '基本プラン: 50万円〜、充実プラン: 100万円〜、包括プラン: 200万円〜（助成金活用可能）',
+    technicalSpecs: '実践的カリキュラム, ハンズオン形式, 成果測定システム, フォローアップ支援'
+  },
+  {
+    slug: 'ai-site',
+    serviceId: 'ai-site',
+    title: 'AIサイト開発（Triple RAG統合）',
+    description: 'Triple RAGシステム統合による次世代Webサイト。AI検索最適化、自動コンテンツ生成、Fragment ID実装で完全自動化を実現。',
+    features: ['Triple RAG統合', '自動ブログ生成', 'Fragment ID実装', 'AI検索最適化'],
+    pricing: 'スタンダード: 100万円〜、プレミアム: 200万円〜、フルパッケージ: 400万円〜',
+    technicalSpecs: 'Next.js 14, OpenAI Embeddings, Supabase Vector, 構造化データ, レリバンスエンジニアリング'
   }
 ];
 
@@ -137,6 +155,7 @@ export interface ExtractedContent {
     wordCount: number;
     headings: string[];
     technicalConcepts?: string[];
+    serviceId?: string; // サービスページの場合に追加
   };
 }
 
@@ -344,7 +363,7 @@ export class ContentExtractor {
   /**
    * サービスページを抽出
    */
-  private async extractServicePages(): Promise<ExtractedContent[]> {
+  async extractServicePages(): Promise<ExtractedContent[]> {
     const contents: ExtractedContent[] = [];
     const appPath = join(this.basePath, 'app');
     
@@ -418,31 +437,73 @@ export class ContentExtractor {
   }
 
   /**
-   * サービスページのコンテンツを抽出
+   * サービスページのコンテンツを抽出（改善版 - 定義済みデータ優先使用）
    */
   private async extractServicePageContent(servicePath: string, serviceDir: string): Promise<ExtractedContent | null> {
     try {
+      // まず SERVICE_PAGES から定義済みデータを取得
+      const serviceInfo = SERVICE_PAGES.find(service => service.slug === serviceDir);
+      
+      if (serviceInfo) {
+        // 定義済みデータが存在する場合、それを優先使用
+        const content = [
+          serviceInfo.description,
+          `主な機能: ${serviceInfo.features.join('、')}`,
+          `料金体系: ${serviceInfo.pricing}`,
+          `技術仕様: ${serviceInfo.technicalSpecs}`
+        ].join(' ');
+        
+        console.log(`✅ 定義済みデータ使用: ${serviceInfo.title}`);
+        
+        return {
+          url: `/${serviceDir}`,
+          title: serviceInfo.title,
+          description: serviceInfo.description,
+          content: content,
+          metadata: {
+            type: 'service',
+            serviceId: serviceInfo.serviceId,
+            category: serviceDir,
+            lastModified: new Date().toISOString(),
+            wordCount: content.split(/\s+/).length,
+            headings: serviceInfo.features.map(feature => `機能: ${feature}`)
+          }
+        };
+      }
+      
+      // フォールバック: 既存のReactファイル解析
       const pageFile = join(servicePath, 'page.tsx');
-      if (!this.fileExists(pageFile)) return null;
+      if (!this.fileExists(pageFile)) {
+        console.warn(`⚠️ サービスページが見つかりません: ${serviceDir}`);
+        return null;
+      }
       
       const content = readFileSync(pageFile, 'utf-8');
       const extractedData = this.extractReactContent(content);
       
+      // Reactファイルから抽出したデータが不完全な場合の補完
+      const title = extractedData.title || this.formatServiceName(serviceDir);
+      const description = extractedData.description || `${title}サービスの詳細情報`;
+      const finalContent = extractedData.content || `${title}に関するサービス情報`;
+      
+      console.log(`⚠️ フォールバック解析使用: ${title}`);
+      
       return {
         url: `/${serviceDir}`,
-        title: extractedData.title || this.formatServiceName(serviceDir),
-        description: extractedData.description || `${this.formatServiceName(serviceDir)}のサービス詳細`,
-        content: extractedData.content,
+        title: title,
+        description: description,
+        content: finalContent,
         metadata: {
           type: 'service',
-          serviceType: serviceDir,
+          serviceId: serviceDir,
+          category: serviceDir,
           lastModified: this.getFileLastModified(pageFile),
-          wordCount: extractedData.content.split(/\s+/).length,
+          wordCount: finalContent.split(/\s+/).length,
           headings: extractedData.headings
         }
       };
     } catch (error) {
-      console.error(`Error extracting service page ${serviceDir}:`, error);
+      console.error(`❌ サービスページ抽出エラー ${serviceDir}:`, error);
       return null;
     }
   }
@@ -508,7 +569,7 @@ export class ContentExtractor {
   }
 
   /**
-   * Reactコンテンツから情報を抽出
+   * Reactコンテンツから情報を抽出（改善版 - プレースホルダー除去対応）
    */
   private extractReactContent(content: string): {
     title: string;
@@ -522,15 +583,45 @@ export class ContentExtractor {
     let title = '';
     let description = '';
     
+    // プレースホルダーやJavaScript式を除去するヘルパー関数
+    const cleanText = (text: string): string => {
+      return text
+        // {variable} や {function()} パターンを除去
+        .replace(/\{[^}]+\}/g, '')
+        // HTML entities をデコード
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        // 余分な空白を正規化
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+    
     // JSX内のテキストコンテンツを抽出
     for (const line of lines) {
       const trimmed = line.trim();
+      
+      // コメント行やimport文をスキップ
+      if (trimmed.startsWith('//') || 
+          trimmed.startsWith('/*') || 
+          trimmed.startsWith('import ') ||
+          trimmed.startsWith('export ') ||
+          trimmed.includes('className=') ||
+          trimmed.includes('onClick=') ||
+          trimmed.includes('useState') ||
+          trimmed.includes('useEffect')) {
+        continue;
+      }
       
       // タイトルを抽出
       if (trimmed.includes('<h1') || trimmed.includes('<title')) {
         const match = trimmed.match(/>([^<]+)</);
         if (match && !title) {
-          title = match[1];
+          const cleanedTitle = cleanText(match[1]);
+          if (cleanedTitle.length > 0) {
+            title = cleanedTitle;
+          }
         }
       }
       
@@ -538,15 +629,28 @@ export class ContentExtractor {
       if (trimmed.includes('<h2') || trimmed.includes('<h3')) {
         const match = trimmed.match(/>([^<]+)</);
         if (match) {
-          headings.push(match[1]);
+          const cleanedHeading = cleanText(match[1]);
+          if (cleanedHeading.length > 0) {
+            headings.push(cleanedHeading);
+          }
         }
       }
       
       // テキストコンテンツを抽出
       if (trimmed.includes('<p') || trimmed.includes('<li') || trimmed.includes('<span')) {
         const match = trimmed.match(/>([^<]+)</);
-        if (match && match[1].length > 10) {
-          contentParts.push(match[1]);
+        if (match) {
+          const cleanedContent = cleanText(match[1]);
+          // 意味のあるテキストのみを保存（10文字以上、プレースホルダーでない）
+          if (cleanedContent.length > 10 && 
+              !cleanedContent.includes('{') && 
+              !cleanedContent.includes('}') &&
+              !cleanedContent.includes('map(') &&
+              !cleanedContent.includes('filter(') &&
+              !cleanedContent.includes('useState') &&
+              !cleanedContent.includes('useEffect')) {
+            contentParts.push(cleanedContent);
+          }
         }
       }
     }
@@ -572,7 +676,9 @@ export class ContentExtractor {
       'hr-solutions': 'HR支援ソリューション',
       'system-development': 'システム開発',
       'sns-automation': 'SNS自動化',
-      'mcp-servers': 'MCPサーバー開発'
+      'mcp-servers': 'MCPサーバー開発',
+      'lp': '人材開発支援助成金対応AI研修',
+      'ai-site': 'AIサイト開発（Triple RAG統合）'
     };
     
     return nameMap[serviceDir] || serviceDir;

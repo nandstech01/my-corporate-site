@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import VectorCleanupManager from '../../../components/admin/VectorCleanupManager';
 
+
 interface ContentTypeDetail {
   count: number;
   percentage: string;
@@ -87,6 +88,8 @@ export default function CompanyRagPage() {
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
   const [cardDetails, setCardDetails] = useState<{ [key: string]: VectorDetailItem[] }>({});
   const [detailsLoading, setDetailsLoading] = useState<{ [key: string]: boolean }>({});
+  const [serviceRegenerating, setServiceRegenerating] = useState(false);
+  const [serviceDetails, setServiceDetails] = useState<{ [key: string]: boolean }>({});
 
   // 認証チェック
   useEffect(() => {
@@ -168,10 +171,50 @@ export default function CompanyRagPage() {
 
     setDetailsLoading(prev => ({ ...prev, [contentType]: true }));
     try {
-      const response = await fetch(`/api/admin/vector-details?content_type=${actualContentType}&limit=20`);
+      // 新しいvector-detailsエンドポイントを使用
+      const response = await fetch('/api/admin/vector-details', {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
       if (response.ok) {
-        const data: VectorDetailsResponse = await response.json();
-        setCardDetails(prev => ({ ...prev, [contentType]: data.data }));
+        const data = await response.json();
+        
+        // contentTypeに応じて適切なデータを抽出
+        let details = [];
+        if (actualContentType === 'service') {
+          // サービスベクトルの場合、serviceDetailsから取得
+          details = data.analysis?.serviceAnalysis?.serviceDetails?.slice(0, 20) || [];
+          // 古いAPI形式に変換
+          details = details.map((item: any) => ({
+            id: item.id,
+            title: item.section_title,
+            content_preview: `作成日: ${new Date(item.created_at).toLocaleDateString('ja-JP')}`,
+            created_at: item.created_at,
+            additional_info: item.metadata
+          }));
+        } else if (actualContentType === 'generated_blog') {
+          // 生成ブログの場合
+          details = data.analysis?.generatedBlogAnalysis?.recentBlogs?.slice(0, 20) || [];
+          details = details.map((item: any) => ({
+            id: item.id,
+            title: item.section_title,
+            content_preview: `作成日: ${new Date(item.created_at).toLocaleDateString('ja-JP')}`,
+            created_at: item.created_at,
+            additional_info: item.metadata
+          }));
+        } else if (actualContentType === 'structured-data') {
+          // 構造化データの場合
+          details = data.analysis?.structuredDataAnalysis?.details?.slice(0, 20) || [];
+        } else if (actualContentType === 'fragment-id') {
+          // Fragment IDの場合
+          details = data.analysis?.fragmentIdAnalysis?.details?.slice(0, 20) || [];
+        }
+        
+        setCardDetails(prev => ({ ...prev, [contentType]: details }));
       } else {
         console.error(`Failed to load details for ${contentType}`);
       }
@@ -201,29 +244,35 @@ export default function CompanyRagPage() {
     }));
   };
 
-  // ベクトル再生成
-  const handleRegenerate = async () => {
-    if (!confirm('すべてのベクトルデータを再生成しますか？\n（この処理には時間がかかります）')) return;
+  // サービス再ベクトル化
+  const handleServiceRegenerate = async () => {
+    if (!confirm('サービスページのベクトルデータを再生成しますか？\n（安全：構造化データ・Fragment IDは保護されます）')) return;
 
-    setLoading(true);
+    setServiceRegenerating(true);
     try {
-      const response = await fetch('/api/vectorize-all-content', {
+      const response = await fetch('/api/vectorize-service-content', {
         method: 'POST'
       });
 
       if (response.ok) {
         const data = await response.json();
-        alert(`ベクトル化完了: ${data.total}個のコンテンツを処理しました`);
+        alert(`サービス再ベクトル化完了\n削除: ${data.results.deletedVectors}件\n新規: ${data.results.saveResults.success}件`);
         loadVectorStats();
       } else {
-        alert('ベクトル化でエラーが発生しました');
+        const errorData = await response.json();
+        alert(`サービス再ベクトル化でエラーが発生しました: ${errorData.error}`);
       }
     } catch (error) {
-      console.error('Error regenerating vectors:', error);
-      alert('ベクトル化でエラーが発生しました');
+      console.error('Error regenerating service vectors:', error);
+      alert('サービス再ベクトル化でエラーが発生しました');
     } finally {
-      setLoading(false);
+      setServiceRegenerating(false);
     }
+  };
+
+  // サービス詳細の展開/折りたたみ
+  const toggleServiceDetails = () => {
+    setServiceDetails(prev => ({ service: !prev.service }));
   };
 
   const predefinedQueries = [
@@ -429,6 +478,92 @@ export default function CompanyRagPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* サービス専用再ベクトル化ボタン */}
+                    {type === 'service' && (
+                      <div className="border-t border-gray-600 bg-gradient-to-r from-blue-900/20 to-blue-800/20 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span className="text-sm font-medium text-blue-300">サービス再ベクトル化</span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleServiceDetails();
+                            }}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            {serviceDetails.service ? '詳細を隠す' : '詳細を表示'}
+                          </button>
+                        </div>
+                        
+                        {/* トグル可能な詳細情報 */}
+                        {serviceDetails.service && (
+                          <div className="bg-blue-900/30 rounded-lg p-3 mb-3 border border-blue-700/50">
+                            <div className="text-xs text-blue-200 space-y-1">
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>既存のサービスベクトルを安全に削除</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>最新のサービスページ内容を抽出</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>プレースホルダーなしの正確なベクトル化</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <span>構造化データ・Fragment IDは保護</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleServiceRegenerate();
+                          }}
+                          disabled={serviceRegenerating}
+                          className={`
+                            w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 
+                            ${serviceRegenerating 
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/25'
+                            }
+                          `}
+                        >
+                          {serviceRegenerating ? (
+                            <>
+                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              <span>再ベクトル化中...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              <span>サービス再ベクトル化</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     {/* 詳細表示エリア */}
                     {isExpanded && (
@@ -761,13 +896,6 @@ export default function CompanyRagPage() {
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <h2 className="text-xl font-semibold mb-4">管理操作</h2>
           <div className="flex flex-wrap gap-4">
-            <button
-              onClick={handleRegenerate}
-              disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 disabled:opacity-50 transition-all duration-200"
-            >
-              {loading ? '処理中...' : 'ベクトル再生成'}
-            </button>
             <button
               onClick={loadVectorStats}
               disabled={vectorLoading}

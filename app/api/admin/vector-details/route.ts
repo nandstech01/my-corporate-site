@@ -1,90 +1,174 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-export async function GET(request: NextRequest) {
+// Service Role Key を使用してRLSをバイパス
+const supabaseServiceRole = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { searchParams } = new URL(request.url);
-    const contentType = searchParams.get('content_type');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    console.log('🔍 RAG詳細調査開始...');
 
-    if (!contentType) {
-      return NextResponse.json({ error: 'content_type parameter is required' }, { status: 400 });
-    }
-
-    // company_vectorsから指定されたcontent_typeの詳細データを取得
-    const { data: vectors, error } = await supabase
+    // 1. generated_blog詳細調査（削除されたブログ含む）
+    const { data: allGeneratedBlogs, error: blogError } = await supabaseServiceRole
       .from('company_vectors')
-      .select('id, section_title, content_chunk, created_at, metadata')
-      .eq('content_type', contentType)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .select('id, section_title, created_at, metadata, service_id')
+      .eq('content_type', 'generated_blog')
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Vector details fetch error:', error);
-      return NextResponse.json({ error: 'Failed to fetch vector details' }, { status: 500 });
+    if (blogError) {
+      console.error('Generated blog vectors error:', blogError);
+      return NextResponse.json({ error: blogError.message }, { status: 500 });
     }
 
-    // コンテンツタイプ別の追加情報を取得
-    let additionalData = null;
-    
-    if (contentType === 'generated_blog') {
-      // 生成ブログの場合、postsテーブルから追加情報を取得
-      const { data: posts, error: postsError } = await supabase
-        .from('posts')
-        .select('id, title, slug, status, published_at, category_id, business_id')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-      
-      if (!postsError && posts) {
-        additionalData = posts;
-      }
-    } else if (contentType === 'service') {
-      // サービスの場合、businessesテーブルから追加情報を取得
-      const { data: businesses, error: businessesError } = await supabase
-        .from('businesses')
-        .select('id, name, description, category, created_at')
-        .order('created_at', { ascending: false });
-      
-      if (!businessesError && businesses) {
-        additionalData = businesses;
-      }
+    // 2. 実際のpostsテーブルと照合（削除されたブログを特定）
+    const { data: existingPosts, error: postsError } = await supabaseServiceRole
+      .from('posts')
+      .select('id, title, created_at, status')
+      .order('created_at', { ascending: false });
+
+    if (postsError) {
+      console.error('Posts error:', postsError);
     }
 
-    // 結果の整形
-    const formattedData = vectors?.map((vector, index) => {
-      const baseData = {
-        id: vector.id,
-        title: vector.section_title || `Vector ${vector.id}`,
-        content_preview: vector.content_chunk ? vector.content_chunk.substring(0, 150) + '...' : '',
-        created_at: vector.created_at,
-        metadata: vector.metadata
-      };
+    // 3. service詳細調査（重複確認）
+    const { data: allServiceVectors, error: serviceError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, section_title, created_at, service_id, metadata')
+      .eq('content_type', 'service')
+      .order('section_title', { ascending: true });
 
-      // 追加データがある場合はマージ
-      if (additionalData && additionalData[index]) {
-        return {
-          ...baseData,
-          additional_info: additionalData[index]
-        };
+    if (serviceError) {
+      console.error('Service vectors error:', serviceError);
+      return NextResponse.json({ error: serviceError.message }, { status: 500 });
+    }
+
+    // 4. structured-data詳細調査
+    const { data: structuredDataVectors, error: structuredError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, section_title, created_at, metadata, content')
+      .eq('content_type', 'structured-data')
+      .order('created_at', { ascending: false });
+
+    if (structuredError) {
+      console.error('Structured data vectors error:', structuredError);
+    }
+
+    // 5. fragment-id詳細調査
+    const { data: fragmentIdVectors, error: fragmentError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, section_title, created_at, metadata, content')
+      .eq('content_type', 'fragment-id')
+      .order('created_at', { ascending: false });
+
+    if (fragmentError) {
+      console.error('Fragment ID vectors error:', fragmentError);
+    }
+
+    // 分析結果
+    const analysis = {
+      // generated_blog分析
+      generatedBlogAnalysis: {
+        totalVectors: allGeneratedBlogs?.length || 0,
+        existingPosts: existingPosts?.length || 0,
+        potentialOrphans: [],
+        recentBlogs: allGeneratedBlogs?.slice(0, 10) || []
+      },
+
+      // service分析（重複確認）
+      serviceAnalysis: {
+        totalVectors: allServiceVectors?.length || 0,
+        duplicateGroups: [] as any[],
+        uniqueServices: [] as string[],
+        serviceDetails: allServiceVectors || []
+      },
+
+      // structured-data分析
+      structuredDataAnalysis: {
+        totalVectors: structuredDataVectors?.length || 0,
+        types: [] as any[],
+        details: structuredDataVectors?.map(item => ({
+          id: item.id,
+          title: item.section_title,
+          created_at: item.created_at,
+          contentPreview: item.content?.substring(0, 200) + '...',
+          metadata: item.metadata
+        })) || []
+      },
+
+      // fragment-id分析
+      fragmentIdAnalysis: {
+        totalVectors: fragmentIdVectors?.length || 0,
+        details: fragmentIdVectors?.map(item => ({
+          id: item.id,
+          title: item.section_title,
+          created_at: item.created_at,
+          contentPreview: item.content?.substring(0, 200) + '...',
+          metadata: item.metadata
+        })) || []
       }
+    };
 
-      return baseData;
-    }) || [];
+    // サービス重複グループ化
+    if (allServiceVectors) {
+      const serviceGroups = allServiceVectors.reduce((acc, vector) => {
+        const key = vector.section_title || 'unknown';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(vector);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      analysis.serviceAnalysis.duplicateGroups = Object.entries(serviceGroups)
+        .filter(([_, vectors]) => vectors.length > 1)
+        .map(([title, vectors]) => ({
+          title,
+          count: vectors.length,
+          vectors: vectors.map(v => ({
+            id: v.id,
+            created_at: v.created_at,
+            service_id: v.service_id
+          }))
+        }));
+
+      analysis.serviceAnalysis.uniqueServices = Object.keys(serviceGroups);
+    }
+
+    // structured-dataタイプ分析
+    if (structuredDataVectors) {
+      const typeGroups = structuredDataVectors.reduce((acc, vector) => {
+        const metadata = vector.metadata || {};
+        const type = metadata.type || metadata.schema_type || 'unknown';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      analysis.structuredDataAnalysis.types = Object.entries(typeGroups).map(([type, count]) => ({
+        type,
+        count
+      }));
+    }
+
+    console.log('✅ RAG詳細調査完了');
+    console.log(`📊 生成ブログベクトル: ${analysis.generatedBlogAnalysis.totalVectors}`);
+    console.log(`📊 サービスベクトル: ${analysis.serviceAnalysis.totalVectors}`);
+    console.log(`📊 構造化データベクトル: ${analysis.structuredDataAnalysis.totalVectors}`);
+    console.log(`📊 Fragment IDベクトル: ${analysis.fragmentIdAnalysis.totalVectors}`);
 
     return NextResponse.json({
       success: true,
-      content_type: contentType,
-      total_count: vectors?.length || 0,
-      data: formattedData
+      timestamp: new Date().toISOString(),
+      analysis
     });
 
   } catch (error) {
-    console.error('Vector details API error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+    console.error('❌ Vector details API error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch vector details',
+      details: (error as Error).message,
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 } 
