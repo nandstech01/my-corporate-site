@@ -53,12 +53,16 @@ export class AutoTOCSystem {
   } {
     const headings = this.extractHeadingsFromHTML(htmlContent);
     const fragments = this.createFragments(headings);
-    const toc = this.buildTOCHierarchy(fragments);
-    const enhancedContent = this.injectFragmentIds(htmlContent, fragments);
+    
+    // 🎯 NEW: H1タイトルのFragment ID化（Mike King理論準拠）
+    const enhancedFragments = this.addH1FragmentId(fragments, htmlContent);
+    
+    const toc = this.buildTOCHierarchy(enhancedFragments);
+    const enhancedContent = this.injectFragmentIds(htmlContent, enhancedFragments);
 
     return {
       toc,
-      fragmentIds: fragments.map(f => f.id),
+      fragmentIds: enhancedFragments.map(f => f.id),
       enhancedContent
     };
   }
@@ -82,28 +86,48 @@ export class AutoTOCSystem {
 
   /**
    * HTMLからヘッダー要素を抽出
+   * 🎯 Fragment ID形式 {#id} を正しく認識するように修正
    */
   private extractHeadingsFromHTML(htmlContent: string): Array<{
     level: number;
     text: string;
     id?: string;
   }> {
-    const headingRegex = /<h([1-6])[^>]*>([^<]+)<\/h[1-6]>/gi;
+    // 🎯 Fragment ID形式に対応した正規表現: ## タイトル {#fragment-id}
+    const headingRegex = /<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi;
     const headings: Array<{level: number, text: string, id?: string}> = [];
     let match;
 
     while ((match = headingRegex.exec(htmlContent)) !== null) {
       const level = parseInt(match[1]);
-      const text = match[2].trim();
+      const fullText = match[2].trim();
       
-      if (level >= this.config.minLevel && level <= this.config.maxLevel) {
+      // 🎯 Fragment ID パターン検出: {#id} 形式
+      const fragmentIdMatch = fullText.match(/^(.*?)\s*\{#([^}]+)\}\s*$/);
+      
+      if (fragmentIdMatch) {
+        // Fragment ID付きヘッダー
+        const cleanText = fragmentIdMatch[1].trim();
+        const fragmentId = fragmentIdMatch[2];
+        
         headings.push({
           level,
-          text: this.cleanHeadingText(text),
-          id: this.generateFragmentId(text)
+          text: cleanText,
+          id: fragmentId
+        });
+        
+        console.log(`🔍 Fragment ID検出: "${cleanText}" → #${fragmentId}`);
+      } else {
+        // 通常のヘッダー（Fragment IDなし）
+        headings.push({
+          level,
+          text: fullText
         });
       }
     }
+    
+    console.log(`📊 抽出されたヘッダー数: ${headings.length}個`);
+    console.log(`🎯 Fragment ID付きヘッダー数: ${headings.filter(h => h.id).length}個`);
 
     return headings;
   }
@@ -157,7 +181,7 @@ export class AutoTOCSystem {
    */
   private createFragments(headings: Array<{level: number, text: string, id?: string}>): FragmentData[] {
     return headings.map((heading, index) => ({
-      id: heading.id || this.generateFragmentId(heading.text),
+              id: heading.id || this.generateBasicFragmentId(heading.text),
       title: heading.text,
       content: '', // 実際の実装では隣接コンテンツを抽出
       level: heading.level,
@@ -174,7 +198,7 @@ export class AutoTOCSystem {
     componentStructure: any
   ): FragmentData[] {
     return sections.map((section, index) => ({
-      id: this.generateFragmentId(section.title),
+              id: this.generateBasicFragmentId(section.title),
       title: section.title,
       content: section.component,
       level: section.level,
@@ -240,9 +264,35 @@ export class AutoTOCSystem {
   }
 
   /**
-   * フラグメントIDの生成
+   * H1タイトルにFragment IDを追加（AI引用最適化）
+   * Mike King理論: H1タイトルのFragment ID化でAI引用率向上
    */
-  private generateFragmentId(text: string): string {
+  private addH1FragmentId(fragments: FragmentData[], htmlContent: string): FragmentData[] {
+    // H1タイトルを抽出
+    const h1Match = htmlContent.match(/<h1[^>]*>(.*?)<\/h1>/i);
+    if (!h1Match) return fragments;
+
+    const h1Text = h1Match[1].replace(/<[^>]*>/g, '').trim();
+    const h1FragmentId = this.generateFragmentId(h1Text, 'main-title');
+
+    // H1 Fragment IDを最初に追加
+    const h1Fragment: FragmentData = {
+      id: h1FragmentId,
+      title: h1Text,
+      content: h1Text,
+      level: 1, // H1レベル
+      keywords: this.extractKeywordsFromText(h1Text),
+      semanticScore: 1.0 // 最高スコア（メインタイトル）
+    };
+
+    // H1を最初に、その他の見出しを続ける
+    return [h1Fragment, ...fragments];
+  }
+
+  /**
+   * 基本Fragment ID生成（既存システム互換）
+   */
+  private generateBasicFragmentId(text: string): string {
     return text
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
@@ -250,6 +300,20 @@ export class AutoTOCSystem {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .substring(0, 50);
+  }
+
+  /**
+   * 拡張Fragment ID生成（H1タイトル用）
+   */
+  private generateFragmentId(text: string, prefix: string = 'section'): string {
+    const cleanText = text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    
+    return `${prefix}-${cleanText}`;
   }
 
   /**
@@ -397,5 +461,5 @@ export const TOCHelpers = {
   /**
    * フラグメントID生成
    */
-  generateId: (text: string) => autoTOC['generateFragmentId'](text)
+  generateId: (text: string) => autoTOC['generateBasicFragmentId'](text)
 }; 

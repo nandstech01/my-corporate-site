@@ -6,7 +6,7 @@ const features = [
 	{ title: 'エンティティRAG', desc: '企業固有情報をベクトル化し、AIの誤認識を回避', icon: '🔗' },
 	{ title: 'チャットボット', desc: 'サイト内ナレッジに即応答、CV導線へ', icon: '💬' },
 	{ title: 'レリバンスエンジニアリング', desc: '情報設計と内部リンクでAI/検索の理解を最大化', icon: '🧭' },
-	{ title: '構造化データ 自動生成', desc: 'JSON-LDを自動付与し、AIに読める証拠を添付', icon: '🧱' },
+	{ title: 'Fragment ID 自動付与', desc: 'H1・FAQ・セクションに14個IDを生成、AI引用の精度向上', icon: '🔖' },
 	{ title: '自動ベクトルブログ生成', desc: '毎日、権威性を積み上げる長文生成＋再学習', icon: '📝' },
 	{ title: 'Triple RAG＋スケジューラー', desc: '最新×自社×公開コーパスを自動運転', icon: '🕒' },
 ]

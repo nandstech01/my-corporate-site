@@ -10,6 +10,12 @@ import {
   ChartBarIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import VectorCleanupManager from '../../../components/admin/VectorCleanupManager';
+
+interface ContentTypeDetail {
+  count: number;
+  percentage: string;
+}
 
 interface VectorStats {
   totalVectors: number;
@@ -18,6 +24,30 @@ interface VectorStats {
     maxSimilarity: number;
     avgSimilarity: number;
     successRate: number;
+  };
+  detailedStats?: {
+    contentTypes: { [key: string]: ContentTypeDetail };
+    timeSeriesStats: {
+      total: number;
+      last_week: number;
+      last_month: number;
+    };
+    recentActivity: {
+      latest_generated_blogs: Array<{
+        id: string;
+        title: string;
+        created_at: string;
+        metadata?: any;
+      }>;
+      latest_posts: Array<{
+        id: string;
+        title: string;
+        created_at: string;
+        status: string;
+        business_id: number;
+        category_id: number;
+      }>;
+    };
   };
 }
 
@@ -55,7 +85,7 @@ export default function CompanyRagPage() {
       setVectorLoading(true);
       // キャッシュバスターを追加して常に最新データを取得
       const cacheBuster = `_t=${Date.now()}`;
-      const response = await fetch(`/api/trend-stats?${cacheBuster}`, {
+      const response = await fetch(`/api/admin/vector-stats?${cacheBuster}`, {
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache',
@@ -172,7 +202,7 @@ export default function CompanyRagPage() {
               <DocumentTextIcon className="w-8 h-8 text-green-400" />
               <div>
                 <p className="text-2xl font-bold text-white">
-                  {vectorLoading ? '...' : stats?.totalVectors || 42}
+                  {vectorLoading ? '...' : stats?.totalVectors || 0}
                 </p>
                 <p className="text-gray-400">総ベクトル数</p>
               </div>
@@ -212,6 +242,70 @@ export default function CompanyRagPage() {
             </div>
           </div>
         </div>
+
+        {/* 詳細統計セクション */}
+        {stats && stats.detailedStats && (
+          <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 text-white">詳細統計</h2>
+            
+            {/* コンテンツタイプ別詳細 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {Object.entries(stats.detailedStats.contentTypes).map(([type, data]) => (
+                <div key={type} className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-medium text-white mb-2 capitalize">{type.replace('-', ' ')}</h3>
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-cyan-400">{data.count}</span>
+                    <span className="text-sm text-gray-400">{data.percentage}%</span>
+                  </div>
+                  <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-cyan-500 h-2 rounded-full" 
+                      style={{ width: `${data.percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 時系列統計 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gray-700 rounded-lg p-4 text-center">
+                <p className="text-gray-400 text-sm">総数</p>
+                <p className="text-2xl font-bold text-white">{stats.detailedStats.timeSeriesStats.total}</p>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-4 text-center">
+                <p className="text-gray-400 text-sm">先週追加</p>
+                <p className="text-2xl font-bold text-green-400">{stats.detailedStats.timeSeriesStats.last_week}</p>
+              </div>
+              <div className="bg-gray-700 rounded-lg p-4 text-center">
+                <p className="text-gray-400 text-sm">先月追加</p>
+                <p className="text-2xl font-bold text-blue-400">{stats.detailedStats.timeSeriesStats.last_month}</p>
+              </div>
+            </div>
+
+            {/* 最新の生成ブログ */}
+            {stats.detailedStats.recentActivity.latest_generated_blogs.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-white mb-3">最新の生成ブログ</h3>
+                <div className="space-y-2">
+                  {stats.detailedStats.recentActivity.latest_generated_blogs.slice(0, 5).map((blog, index) => (
+                    <div key={blog.id} className="bg-gray-700 rounded-lg p-3">
+                      <div className="flex justify-between items-start">
+                        <p className="text-white font-medium text-sm">{blog.title}</p>
+                        <span className="text-xs text-gray-400 ml-2">
+                          {new Date(blog.created_at).toLocaleDateString('ja-JP')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ベクトルデータ最適化 */}
+        <VectorCleanupManager />
 
         {/* ベクトル検索テスト */}
         <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
@@ -276,29 +370,53 @@ export default function CompanyRagPage() {
         {/* コンテンツ種別統計 */}
         <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
           <h2 className="text-xl font-semibold mb-4">コンテンツ種別統計</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">9</div>
+                <div className="text-2xl font-bold text-blue-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.service || 0}
+                </div>
                 <div className="text-sm text-gray-400">サービス</div>
               </div>
             </div>
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">10</div>
+                <div className="text-2xl font-bold text-cyan-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.generated_blog || 0}
+                </div>
+                <div className="text-sm text-gray-400">生成ブログ</div>
+              </div>
+            </div>
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.['structured-data'] || 0}
+                </div>
                 <div className="text-sm text-gray-400">構造化データ</div>
               </div>
             </div>
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">4</div>
+                <div className="text-2xl font-bold text-purple-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.corporate || 0}
+                </div>
                 <div className="text-sm text-gray-400">コーポレート</div>
               </div>
             </div>
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-400">4</div>
+                <div className="text-2xl font-bold text-orange-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.technical || 0}
+                </div>
                 <div className="text-sm text-gray-400">技術</div>
+              </div>
+            </div>
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">
+                  {vectorLoading ? '...' : stats?.vectorsByType?.['fragment-id'] || 0}
+                </div>
+                <div className="text-sm text-gray-400">Fragment ID</div>
               </div>
             </div>
           </div>

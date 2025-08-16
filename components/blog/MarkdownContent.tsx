@@ -188,6 +188,10 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                 </code>
               );
             },
+            h1({children}) {
+              // H1タイトルは記事本文中に表示しない（タイトル欄で既に表示済み）
+              return null;
+            },
             h2({children}) {
               // Fragment ID パターンをチェック ({#id} 形式)
               const childrenStr = String(children);

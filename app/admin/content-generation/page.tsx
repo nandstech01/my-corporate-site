@@ -17,6 +17,8 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import XPostGenerationSection from './components/XPostGenerationSection';
+import AutoScheduler from './components/AutoScheduler';
+import ThumbnailStockManager from './components/ThumbnailStockManager';
 
 // キーワードデータベース（英語・日本語対応）
 const keywordDatabase = {
@@ -1555,6 +1557,12 @@ export default function ContentGenerationPage() {
             </div>
           )}
         </div>
+
+        {/* サムネイル画像ストック管理 */}
+        <ThumbnailStockManager />
+
+        {/* 自動スケジューラーセクション */}
+        <AutoScheduler />
 
         {/* X投稿生成セクション */}
         <XPostGenerationSection className="mb-8" />

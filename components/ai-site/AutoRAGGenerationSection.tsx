@@ -26,7 +26,7 @@ const currentFeatures = [
   },
   {
     title: "FAQ自動生成",
-    description: "8個のQ&A形式を記事内に自動挿入、構造化データでAI検索最適化",
+    description: "8個のQ&A形式を記事内に自動挿入、Fragment IDでAI検索最適化",
     icon: (
       <svg className="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -45,8 +45,8 @@ const currentFeatures = [
     status: "✅ 実装済み"
   },
   {
-    title: "構造化データ生成",
-    description: "Schema.org準拠のJSON-LDを自動生成、検索エンジンとAIの理解を向上",
+    title: "Fragment IDベクトル化",
+    description: "H1タイトル・FAQ・セクションの14個Fragment IDを専用ベクトルとして資産化",
     icon: (
       <svg className="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -243,8 +243,8 @@ export default function AutoRAGGenerationSection() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 ), 
-                label: "構造化データ", 
-                desc: "AI理解促進" 
+                label: "Fragment IDベクトル化", 
+                desc: "14個ID専用資産化" 
               },
               { 
                 icon: (
