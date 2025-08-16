@@ -369,8 +369,10 @@ export default async function AIAgentsPage() {
 
 
         {/* Services Section */}
-          <section id="agent-services" itemScope itemType="https://schema.org/WebPageElement">
+          <section id="agent-services" className="service" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="サービス一覧" />
+            {/* エンティティマップ対応Fragment ID */}
+            <div id="service"></div>
           <AIAgentServicesSection />
         </section>
 

@@ -8,13 +8,31 @@ import {
   MagnifyingGlassIcon,
   DocumentTextIcon,
   ChartBarIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import VectorCleanupManager from '../../../components/admin/VectorCleanupManager';
 
 interface ContentTypeDetail {
   count: number;
   percentage: string;
+}
+
+interface VectorDetailItem {
+  id: string;
+  title: string;
+  content_preview: string;
+  created_at: string;
+  metadata?: any;
+  additional_info?: any;
+}
+
+interface VectorDetailsResponse {
+  success: boolean;
+  content_type: string;
+  total_count: number;
+  data: VectorDetailItem[];
 }
 
 interface VectorStats {
@@ -66,6 +84,9 @@ export default function CompanyRagPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [vectorLoading, setVectorLoading] = useState(true);
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
+  const [cardDetails, setCardDetails] = useState<{ [key: string]: VectorDetailItem[] }>({});
+  const [detailsLoading, setDetailsLoading] = useState<{ [key: string]: boolean }>({});
 
   // 認証チェック
   useEffect(() => {
@@ -132,6 +153,52 @@ export default function CompanyRagPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // RAGカード詳細の取得
+  const loadCardDetails = async (contentType: string) => {
+    if (cardDetails[contentType]) {
+      return; // 既に取得済みの場合はスキップ
+    }
+
+    // detailed_プレフィックスがある場合は除去してAPIコール用のタイプを取得
+    const actualContentType = contentType.startsWith('detailed_') 
+      ? contentType.replace('detailed_', '') 
+      : contentType;
+
+    setDetailsLoading(prev => ({ ...prev, [contentType]: true }));
+    try {
+      const response = await fetch(`/api/admin/vector-details?content_type=${actualContentType}&limit=20`);
+      if (response.ok) {
+        const data: VectorDetailsResponse = await response.json();
+        setCardDetails(prev => ({ ...prev, [contentType]: data.data }));
+      } else {
+        console.error(`Failed to load details for ${contentType}`);
+      }
+    } catch (error) {
+      console.error(`Error loading details for ${contentType}:`, error);
+    } finally {
+      setDetailsLoading(prev => ({ ...prev, [contentType]: false }));
+    }
+  };
+
+  // RAGカードの展開/折りたたみ
+  const toggleCardExpansion = async (contentType: string) => {
+    const isCurrentlyExpanded = expandedCards[contentType];
+    
+    if (!isCurrentlyExpanded) {
+      // 展開する場合は詳細データを取得
+      // detailed_プレフィックスがある場合は除去
+      const actualContentType = contentType.startsWith('detailed_') 
+        ? contentType.replace('detailed_', '') 
+        : contentType;
+      await loadCardDetails(contentType);
+    }
+    
+    setExpandedCards(prev => ({
+      ...prev,
+      [contentType]: !isCurrentlyExpanded
+    }));
   };
 
   // ベクトル再生成
@@ -248,23 +315,181 @@ export default function CompanyRagPage() {
           <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
             <h2 className="text-xl font-semibold mb-4 text-white">詳細統計</h2>
             
-            {/* コンテンツタイプ別詳細 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {Object.entries(stats.detailedStats.contentTypes).map(([type, data]) => (
-                <div key={type} className="bg-gray-700 rounded-lg p-4">
-                  <h3 className="font-medium text-white mb-2 capitalize">{type.replace('-', ' ')}</h3>
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold text-cyan-400">{data.count}</span>
-                    <span className="text-sm text-gray-400">{data.percentage}%</span>
-                  </div>
-                  <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+            {/* コンテンツタイプ別詳細（詳細表示対応） */}
+            <div className="space-y-4 mb-6">
+              <h3 className="text-lg font-medium text-white mb-4">コンテンツタイプ別詳細</h3>
+              {Object.entries(stats.detailedStats.contentTypes).map(([type, data]) => {
+                const isExpanded = expandedCards[`detailed_${type}`];
+                const isDetailsLoading = detailsLoading[`detailed_${type}`];
+                const details = cardDetails[`detailed_${type}`] || [];
+
+                                 // アイコンとカラーの設定
+                 const getTypeConfig = (contentType: string) => {
+                   switch (contentType) {
+                     case 'service': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                         </svg>
+                       ), 
+                       color: 'blue' 
+                     };
+                     case 'generated_blog': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                         </svg>
+                       ), 
+                       color: 'cyan' 
+                     };
+                     case 'structured-data': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
+                         </svg>
+                       ), 
+                       color: 'green' 
+                     };
+                     case 'fragment-id': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                         </svg>
+                       ), 
+                       color: 'yellow' 
+                     };
+                     case 'corporate': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                         </svg>
+                       ), 
+                       color: 'purple' 
+                     };
+                     case 'technical': return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                         </svg>
+                       ), 
+                       color: 'orange' 
+                     };
+                     default: return { 
+                       icon: (
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                         </svg>
+                       ), 
+                       color: 'gray' 
+                     };
+                   }
+                 };
+
+                const config = getTypeConfig(type);
+
+                return (
+                  <div key={type} className="bg-gray-700 rounded-lg overflow-hidden">
+                    {/* カードヘッダー（クリック可能） */}
                     <div 
-                      className="bg-cyan-500 h-2 rounded-full" 
-                      style={{ width: `${data.percentage}%` }}
-                    ></div>
+                      className="p-4 cursor-pointer hover:bg-gray-600 transition-colors"
+                      onClick={() => toggleCardExpansion(`detailed_${type}`)}
+                    >
+                      <div className="flex items-center justify-between">
+                                                 <div className="flex items-center space-x-3">
+                           <div className={`text-${config.color}-400`}>{config.icon}</div>
+                          <div>
+                            <h3 className="font-medium text-white mb-1 capitalize">
+                              {type.replace('-', ' ')}
+                            </h3>
+                            <div className="flex items-center space-x-4">
+                              <span className={`text-xl font-bold text-${config.color}-400`}>
+                                {data.count}
+                              </span>
+                              <span className="text-sm text-gray-400">{data.percentage}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {/* プログレスバー */}
+                          <div className="w-20 bg-gray-600 rounded-full h-2">
+                            <div 
+                              className={`bg-${config.color}-500 h-2 rounded-full`}
+                              style={{ width: `${data.percentage}%` }}
+                            ></div>
+                          </div>
+                          {isDetailsLoading && (
+                            <div className="text-xs text-gray-400">読み込み中...</div>
+                          )}
+                          {isExpanded ? (
+                            <ChevronUpIcon className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 詳細表示エリア */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-600 bg-gray-750 p-4">
+                        {isDetailsLoading ? (
+                          <div className="text-center py-4">
+                            <div className="text-gray-400">詳細データを読み込み中...</div>
+                          </div>
+                        ) : details.length > 0 ? (
+                          <div className="space-y-3">
+                            <div className="text-sm font-medium text-gray-300 mb-3">
+                              詳細一覧 ({details.length}件)
+                            </div>
+                            {details.slice(0, 8).map((detail, index) => (
+                              <div key={detail.id} className="bg-gray-800 rounded p-3 border border-gray-600">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium text-white text-sm line-clamp-1">
+                                    {detail.title}
+                                  </h4>
+                                  <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">
+                                    {new Date(detail.created_at).toLocaleDateString('ja-JP')}
+                                  </span>
+                                </div>
+                                {detail.content_preview && (
+                                  <p className="text-xs text-gray-400 line-clamp-2">
+                                    {detail.content_preview}
+                                  </p>
+                                )}
+                                {detail.additional_info && (
+                                  <div className="mt-2 text-xs text-gray-500">
+                                    {type === 'generated_blog' && detail.additional_info.status && (
+                                      <span className={`px-2 py-1 rounded text-xs ${
+                                        detail.additional_info.status === 'published' 
+                                          ? 'bg-green-600 text-green-100' 
+                                          : 'bg-yellow-600 text-yellow-100'
+                                      }`}>
+                                        {detail.additional_info.status}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {details.length > 8 && (
+                              <div className="text-center pt-2">
+                                <span className="text-xs text-gray-400">
+                                  ...他 {details.length - 8}件
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <div className="text-gray-400">データがありません</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* 時系列統計 */}
@@ -367,58 +592,168 @@ export default function CompanyRagPage() {
           )}
         </div>
 
-        {/* コンテンツ種別統計 */}
+        {/* コンテンツ種別統計（詳細表示対応） */}
         <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
           <h2 className="text-xl font-semibold mb-4">コンテンツ種別統計</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.service || 0}
+          <div className="space-y-4">
+            {[
+              { 
+                key: 'service', 
+                name: 'サービス', 
+                color: 'blue', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'generated_blog', 
+                name: '生成ブログ', 
+                color: 'cyan', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'structured-data', 
+                name: '構造化データ', 
+                color: 'green', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'fragment-id', 
+                name: 'Fragment ID', 
+                color: 'yellow', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'corporate', 
+                name: 'コーポレート', 
+                color: 'purple', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'technical', 
+                name: '技術', 
+                color: 'orange', 
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                )
+              }
+            ].map((item) => {
+              const count = vectorLoading ? '...' : stats?.vectorsByType?.[item.key] || 0;
+              const isExpanded = expandedCards[item.key];
+              const isDetailsLoading = detailsLoading[item.key];
+              const details = cardDetails[item.key] || [];
+
+              return (
+                <div key={item.key} className="bg-gray-700 rounded-lg overflow-hidden">
+                  {/* カードヘッダー（クリック可能） */}
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-600 transition-colors"
+                    onClick={() => toggleCardExpansion(item.key)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`text-${item.color}-400`}>{item.icon}</div>
+                        <div>
+                          <div className={`text-2xl font-bold text-${item.color}-400`}>
+                            {count}
+                          </div>
+                          <div className="text-sm text-gray-400">{item.name}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {isDetailsLoading && (
+                          <div className="text-xs text-gray-400">読み込み中...</div>
+                        )}
+                        {isExpanded ? (
+                          <ChevronUpIcon className="w-5 h-5 text-gray-400" />
+                        ) : (
+                          <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 詳細表示エリア */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-600 bg-gray-750 p-4">
+                      {isDetailsLoading ? (
+                        <div className="text-center py-4">
+                          <div className="text-gray-400">詳細データを読み込み中...</div>
+                        </div>
+                      ) : details.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-gray-300 mb-3">
+                            詳細一覧 ({details.length}件)
+                          </div>
+                          {details.slice(0, 10).map((detail, index) => (
+                            <div key={detail.id} className="bg-gray-800 rounded p-3 border border-gray-600">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium text-white text-sm line-clamp-1">
+                                  {detail.title}
+                                </h4>
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">
+                                  {new Date(detail.created_at).toLocaleDateString('ja-JP')}
+                                </span>
+                              </div>
+                              {detail.content_preview && (
+                                <p className="text-xs text-gray-400 line-clamp-2">
+                                  {detail.content_preview}
+                                </p>
+                              )}
+                              {detail.additional_info && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                  {item.key === 'generated_blog' && detail.additional_info.status && (
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      detail.additional_info.status === 'published' 
+                                        ? 'bg-green-600 text-green-100' 
+                                        : 'bg-yellow-600 text-yellow-100'
+                                    }`}>
+                                      {detail.additional_info.status}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {details.length > 10 && (
+                            <div className="text-center pt-2">
+                              <span className="text-xs text-gray-400">
+                                ...他 {details.length - 10}件
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <div className="text-gray-400">データがありません</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="text-sm text-gray-400">サービス</div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.generated_blog || 0}
-                </div>
-                <div className="text-sm text-gray-400">生成ブログ</div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.['structured-data'] || 0}
-                </div>
-                <div className="text-sm text-gray-400">構造化データ</div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.corporate || 0}
-                </div>
-                <div className="text-sm text-gray-400">コーポレート</div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.technical || 0}
-                </div>
-                <div className="text-sm text-gray-400">技術</div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">
-                  {vectorLoading ? '...' : stats?.vectorsByType?.['fragment-id'] || 0}
-                </div>
-                <div className="text-sm text-gray-400">Fragment ID</div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
 

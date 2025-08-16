@@ -353,8 +353,10 @@ export default async function AIOPage() {
           </section>
 
           {/* AIOサービスセクション */}
-          <section id="aio-services" itemScope itemType="https://schema.org/WebPageElement">
+          <section id="aio-services" className="service" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="AIOサービス" />
+            {/* エンティティマップ対応Fragment ID */}
+            <div id="service"></div>
           <AIOServicesSection />
         </section>
 

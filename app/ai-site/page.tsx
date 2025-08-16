@@ -120,6 +120,9 @@ export default async function AISitePage() {
 	const posts = await getLatestPosts();
 	return (
 		<main className="relative min-h-screen overflow-hidden">
+			{/* Fragment ID for Entity Map - Hidden from users */}
+			<div id="service" style={{ display: 'none' }} aria-hidden="true" />
+			
 			{/* 背景（/lp と同等の黒×シアン基調） */}
 			<div className="pointer-events-none absolute inset-0 -z-10">
 				<div className="absolute inset-0 bg-gradient-to-b from-[#0b1f3b] via-[#0a1b33] to-[#08152a]" />

@@ -351,7 +351,7 @@ export class ContentExtractor {
     const serviceDirectories = [
       'ai-agents', 'chatbot-development', 'vector-rag', 'aio-seo',
       'video-generation', 'hr-solutions', 'system-development',
-      'sns-automation', 'mcp-servers'
+      'sns-automation', 'mcp-servers', 'lp', 'ai-site'
     ];
     
     for (const serviceDir of serviceDirectories) {

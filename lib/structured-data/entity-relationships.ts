@@ -268,6 +268,75 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
       'コンプライアンス',
       'ナレッジ管理'
     ]
+  },
+  {
+    '@id': 'https://nands.tech/lp#service',
+    '@type': 'Service',
+    name: '人材開発支援助成金対応AI研修サービス',
+    serviceType: 'CorporateAITraining',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '人材開発支援助成金',
+      'リスキリング',
+      'AI研修',
+      'SNS自動運用',
+      'レリバンスエンジニアリング',
+      'GEO最適化',
+      'AI検索対策',
+      '法人向け研修',
+      'ChatGPT活用',
+      'Claude活用',
+      'AI時代対応',
+      '75%還付制度'
+    ],
+    relatedTo: [
+      'https://nands.tech/ai-site#service',
+      'https://nands.tech/aio-seo#service',
+      'https://nands.tech/hr-solutions#service'
+    ],
+    mentions: [
+      '人材育成',
+      'デジタル人材',
+      'AI人材育成',
+      '企業研修',
+      'スキルアップ',
+      '助成金活用'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#service',
+    '@type': 'Service',
+    name: 'AIサイト開発サービス（Triple RAG統合）',
+    serviceType: 'AISiteDevelopment',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Triple RAG',
+      '自動ベクトルブログ',
+      '構造化データ',
+      'AI引用最適化',
+      '24時間365日無人営業',
+      'IT補助金対応',
+      '自立成長サイト',
+      'ベクトル検索',
+      'OpenAI Embeddings',
+      'Supabase pgvector',
+      'Fragment ID最適化',
+      'セマンティック検索',
+      'RAGシステム統合'
+    ],
+    relatedTo: [
+      'https://nands.tech/vector-rag#service',
+      'https://nands.tech/aio-seo#service',
+      'https://nands.tech/system-development#service'
+    ],
+    mentions: [
+      'AIに引用される設計',
+      '自立成長',
+      '無人営業システム',
+      'Triple RAG統合',
+      '構造化データ最適化',
+      'AI検索対応'
+    ]
   }
 ];
 
@@ -304,6 +373,24 @@ export const ENTITY_RELATIONSHIP_MAP = {
   reskillingToTech: {
     relation: 'teaches',
     description: 'リスキリングが技術サービスの活用方法を教育'
+  },
+  
+  // LP研修 ↔ AIサイト
+  lpToAISite: {
+    relation: 'prepares',
+    description: '人材開発研修がAIサイト活用に必要なスキルを提供'
+  },
+  
+  // AIサイト ↔ ベクトルRAG
+  aiSiteToRAG: {
+    relation: 'utilizes',
+    description: 'AIサイトがTriple RAGシステムを活用'
+  },
+  
+  // AIサイト ↔ AIO SEO
+  aiSiteToSEO: {
+    relation: 'implements',
+    description: 'AIサイトがAIO SEO・GEO対策を実装'
   }
 };
 
