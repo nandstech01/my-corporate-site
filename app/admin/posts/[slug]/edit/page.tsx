@@ -42,7 +42,6 @@ type Post = {
   featured_image?: string;
   thumbnail_url?: string;
   meta_description?: string;
-  seo_keywords?: string[];
   meta_keywords?: string[];
   is_indexable?: boolean;
   canonical_url?: string;
@@ -218,7 +217,7 @@ export default function EditPostPage({
       setStatus(post.status as 'draft' | 'published');
       setThumbnailUrl(post.featured_image || post.thumbnail_url || '');
       setMetaDescription(post.meta_description || '');
-      setSeoKeywords(post.seo_keywords || post.meta_keywords || []);
+      setSeoKeywords(post.meta_keywords || []);
       setIsIndexable(post.is_indexable ?? true);
       setCanonicalUrl(post.canonical_url || '');
       setPostId(post.id.toString());
@@ -292,7 +291,7 @@ export default function EditPostPage({
             featured_image: thumbnailUrl,
             updated_at: new Date().toISOString(),
             meta_description: metaDescription,
-            seo_keywords: seoKeywords,
+            meta_keywords: seoKeywords,
             is_indexable: isIndexable,
             canonical_url: canonicalUrl,
             is_chatgpt_special: isChatGPTSpecial,
