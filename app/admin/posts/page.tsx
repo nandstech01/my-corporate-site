@@ -120,7 +120,7 @@ export default function PostsPage() {
   }, []);
 
   const handleDelete = async (post: Post) => {
-    if (!window.confirm('この記事を削除してもよろしいですか？')) {
+    if (!window.confirm('この記事を削除してもよろしいですか？\n※関連するRAGベクトルデータも同時に削除されます。')) {
       return;
     }
 
@@ -131,7 +131,30 @@ export default function PostsPage() {
       
       console.log('Deleting post with id:', originalId, 'from table:', post.table_type);
       
-      // 適切なテーブルから記事を削除
+      // 1. 関連するRAGベクトルデータを削除（postsテーブルの記事のみ）
+      if (post.table_type === 'posts') {
+        console.log('🗑️ 関連RAGベクトルデータの削除開始...');
+        
+        try {
+          const { error: vectorDeleteError, count: vectorDeleteCount } = await supabase
+            .from('company_vectors')
+            .delete({ count: 'exact' })
+            .eq('content_type', 'generated_blog')
+            .eq('section_title', post.title);
+
+          if (vectorDeleteError) {
+            console.error('RAGベクトル削除エラー:', vectorDeleteError);
+            // RAGベクトル削除に失敗してもメイン削除は続行
+          } else {
+            console.log(`✅ RAGベクトル削除完了: ${vectorDeleteCount}件`);
+          }
+        } catch (vectorError) {
+          console.error('RAGベクトル削除処理でエラー:', vectorError);
+          // エラーは記録するが処理は続行
+        }
+      }
+      
+      // 2. 適切なテーブルから記事を削除
       const { error: deleteError } = await supabase
         .from(post.table_type)
         .delete()
@@ -142,7 +165,7 @@ export default function PostsPage() {
         throw deleteError;
       }
 
-      console.log('Delete operation completed successfully');
+      console.log('✅ 記事削除処理完了（RAGベクトル含む）');
       // 成功したら記事一覧を再取得
       await fetchPosts();
     } catch (error) {
