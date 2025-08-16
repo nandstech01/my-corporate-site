@@ -67,6 +67,28 @@ export async function GET() {
       console.error('Fragment ID vectors error:', fragmentError);
     }
 
+    // 6. corporate詳細調査
+    const { data: corporateVectors, error: corporateError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, section_title, created_at, metadata, content_chunk')
+      .eq('content_type', 'corporate')
+      .order('section_title', { ascending: true });
+
+    if (corporateError) {
+      console.error('Corporate vectors error:', corporateError);
+    }
+
+    // 7. technical詳細調査
+    const { data: technicalVectors, error: technicalError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, section_title, created_at, metadata, content_chunk')
+      .eq('content_type', 'technical')
+      .order('section_title', { ascending: true });
+
+    if (technicalError) {
+      console.error('Technical vectors error:', technicalError);
+    }
+
     // 分析結果
     const analysis = {
       // generated_blog分析
@@ -102,6 +124,30 @@ export async function GET() {
       fragmentIdAnalysis: {
         totalVectors: fragmentIdVectors?.length || 0,
         details: fragmentIdVectors?.map(item => ({
+          id: item.id,
+          title: item.section_title,
+          created_at: item.created_at,
+          contentPreview: item.content_chunk?.substring(0, 200) + '...',
+          metadata: item.metadata
+        })) || []
+      },
+
+      // corporate分析
+      corporateAnalysis: {
+        totalVectors: corporateVectors?.length || 0,
+        details: corporateVectors?.map(item => ({
+          id: item.id,
+          title: item.section_title,
+          created_at: item.created_at,
+          contentPreview: item.content_chunk?.substring(0, 200) + '...',
+          metadata: item.metadata
+        })) || []
+      },
+
+      // technical分析
+      technicalAnalysis: {
+        totalVectors: technicalVectors?.length || 0,
+        details: technicalVectors?.map(item => ({
           id: item.id,
           title: item.section_title,
           created_at: item.created_at,
@@ -155,6 +201,8 @@ export async function GET() {
     console.log(`📊 サービスベクトル: ${analysis.serviceAnalysis.totalVectors}`);
     console.log(`📊 構造化データベクトル: ${analysis.structuredDataAnalysis.totalVectors}`);
     console.log(`📊 Fragment IDベクトル: ${analysis.fragmentIdAnalysis.totalVectors}`);
+    console.log(`📊 Corporateベクトル: ${analysis.corporateAnalysis.totalVectors}`);
+    console.log(`📊 Technicalベクトル: ${analysis.technicalAnalysis.totalVectors}`);
 
     return NextResponse.json({
       success: true,

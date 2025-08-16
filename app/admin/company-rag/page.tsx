@@ -212,6 +212,12 @@ export default function CompanyRagPage() {
         } else if (actualContentType === 'fragment-id') {
           // Fragment IDの場合
           details = data.analysis?.fragmentIdAnalysis?.details?.slice(0, 20) || [];
+        } else if (actualContentType === 'corporate') {
+          // Corporateの場合
+          details = data.analysis?.corporateAnalysis?.details?.slice(0, 20) || [];
+        } else if (actualContentType === 'technical') {
+          // Technicalの場合
+          details = data.analysis?.technicalAnalysis?.details?.slice(0, 20) || [];
         }
         
         setCardDetails(prev => ({ ...prev, [contentType]: details }));
@@ -244,23 +250,23 @@ export default function CompanyRagPage() {
     }));
   };
 
-  // サービス再ベクトル化
+  // 全コンテンツ再ベクトル化
   const handleServiceRegenerate = async () => {
     // 連続クリック防止の強化
     if (serviceRegenerating) {
-      console.log('⚠️ サービス再ベクトル化が既に実行中です');
+      console.log('⚠️ 全コンテンツベクトル化が既に実行中です');
       return;
     }
 
-    if (!window.confirm('サービス内容を再ベクトル化しますか？\n既存のサービスベクトルが全て削除され、最新の内容で再生成されます。')) {
+    if (!window.confirm('全コンテンツを再ベクトル化しますか？\n既存のservice、corporate、technical、structured-dataベクトルが全て削除され、最新の内容で再生成されます。\n\n※generated_blog、fragment-idは保護されます。')) {
       return;
     }
 
     setServiceRegenerating(true);
     try {
-      console.log('🔄 サービス再ベクトル化開始...');
+      console.log('🔄 全コンテンツベクトル化開始...');
       
-      const response = await fetch('/api/vectorize-service-content', {
+      const response = await fetch('/api/vectorize-all-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,23 +276,23 @@ export default function CompanyRagPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        console.log('✅ サービス再ベクトル化成功:', result);
-        alert(`✅ サービス再ベクトル化完了！\n削除: ${result.deletedCount}件\n新規作成: ${result.successCount}件`);
+        console.log('✅ 全コンテンツベクトル化成功:', result);
+        alert(`✅ 全コンテンツベクトル化完了！\n削除: ${result.results.deletedVectors}件\n新規作成: ${result.results.saveResults.success}件`);
         
         // 統計を再読み込み
         await loadVectorStats();
       } else {
-        console.error('❌ サービス再ベクトル化失敗:', result);
+        console.error('❌ 全コンテンツベクトル化失敗:', result);
         
         // 423 Lockedエラーの場合の特別処理
         if (response.status === 423) {
-          alert('⚠️ サービス再ベクトル化が既に実行中です。\nしばらく待ってから再試行してください。');
+          alert('⚠️ 全コンテンツベクトル化が既に実行中です。\nしばらく待ってから再試行してください。');
         } else {
           alert(`❌ エラー: ${result.error || '再ベクトル化に失敗しました'}`);
         }
       }
     } catch (error) {
-      console.error('❌ サービス再ベクトル化エラー:', error);
+      console.error('❌ 全コンテンツベクトル化エラー:', error);
       alert('❌ ネットワークエラーまたはサーバーエラーが発生しました');
     } finally {
       setServiceRegenerating(false);
@@ -510,7 +516,7 @@ export default function CompanyRagPage() {
                             <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            <span className="text-sm font-medium text-blue-300">サービス再ベクトル化</span>
+                            <span className="text-sm font-medium text-blue-300">全コンテンツ再ベクトル化<br/><span className="text-xs text-gray-400">(service/corporate/technical/structured-data)</span></span>
                           </div>
                           <button
                             onClick={(e) => {
@@ -581,7 +587,7 @@ export default function CompanyRagPage() {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
-                              <span>サービス再ベクトル化</span>
+                              <span>全コンテンツ再ベクトル化</span>
                             </>
                           )}
                         </button>

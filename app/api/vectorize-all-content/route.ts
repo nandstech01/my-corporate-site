@@ -30,25 +30,33 @@ export async function POST() {
 
     console.log('🚀 全コンテンツベクトル化開始...');
     
-    // 2. 既存のstructured-dataベクトルを削除（重複防止）
-    console.log('🗑️ 既存のstructured-dataベクトルを削除中...');
-    const { data: deletedData, error: deleteError } = await supabaseServiceRole
-      .from('company_vectors')
-      .delete()
-      .eq('content_type', 'structured-data')
-      .select('id');
+    // 2. 既存の重複可能性があるベクトルを削除（重複防止）
+    const deleteTypes = ['structured-data', 'service', 'corporate', 'technical'];
+    let totalDeletedCount = 0;
+    
+    for (const contentType of deleteTypes) {
+      console.log(`🗑️ 既存の${contentType}ベクトルを削除中...`);
+      const { data: deletedData, error: deleteError } = await supabaseServiceRole
+        .from('company_vectors')
+        .delete()
+        .eq('content_type', contentType)
+        .select('id');
 
-    if (deleteError) {
-      console.error('❌ structured-dataベクトル削除エラー:', deleteError);
-      isVectorizationRunning = false; // ロック解除
-      return NextResponse.json({
-        success: false,
-        error: `削除エラー: ${deleteError.message}`
-      }, { status: 500 });
+      if (deleteError) {
+        console.error(`❌ ${contentType}ベクトル削除エラー:`, deleteError);
+        isVectorizationRunning = false; // ロック解除
+        return NextResponse.json({
+          success: false,
+          error: `削除エラー (${contentType}): ${deleteError.message}`
+        }, { status: 500 });
+      }
+
+      const deletedCount = deletedData?.length || 0;
+      totalDeletedCount += deletedCount;
+      console.log(`✅ ${deletedCount}個の既存${contentType}ベクトルを削除`);
     }
 
-    const deletedCount = deletedData?.length || 0;
-    console.log(`✅ ${deletedCount}個の既存structured-dataベクトルを削除`);
+    console.log(`🎯 総削除件数: ${totalDeletedCount}件`);
     
     // 3. コンテンツ抽出
     const contentExtractor = new ContentExtractor();
@@ -93,14 +101,14 @@ export async function POST() {
       }
     }
     
-    console.log(`✅ 全コンテンツベクトル化完了！削除: ${deletedCount}, 成功: ${successCount}, 失敗: ${failureCount}`);
+    console.log(`✅ 全コンテンツベクトル化完了！削除: ${totalDeletedCount}, 成功: ${successCount}, 失敗: ${failureCount}`);
     
     isVectorizationRunning = false; // ロック解除
     return NextResponse.json({
       success: true,
       message: '全コンテンツのベクトル化が完了しました',
       results: {
-        deletedVectors: deletedCount,
+        deletedVectors: totalDeletedCount,
         extractedContents: contents.length,
         totalVectors: allVectors.length,
         saveResults: {
