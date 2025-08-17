@@ -138,6 +138,9 @@ export default async function ReviewsPage() {
       )}
 
       <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        {/* Fragment ID for Entity Map - Hidden from users */}
+        <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+        
         {/* パンくずナビ */}
         <nav className="bg-white shadow-sm px-4 py-3">
           <div className="max-w-6xl mx-auto">

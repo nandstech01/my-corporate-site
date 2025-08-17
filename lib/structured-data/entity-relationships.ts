@@ -28,6 +28,13 @@ export interface ServiceEntity extends EntityRelationship {
   };
 }
 
+export interface CompanyPageEntity extends EntityRelationship {
+  pageType: string;
+  provider: {
+    '@id': string;
+  };
+}
+
 /**
  * 中央エンティティ（組織）の定義
  * 全ての関係性の中心となるエンティティ
@@ -336,6 +343,204 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
       'Triple RAG統合',
       '構造化データ最適化',
       'AI検索対応'
+    ]
+  },
+
+];
+
+/**
+ * 企業情報系エンティティの定義
+ * Fragment ID・完全URI統合対応
+ */
+export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
+  {
+    '@id': 'https://nands.tech/corporate#company',
+    '@type': 'AboutPage',
+    name: '企業情報・会社概要',
+    pageType: 'CorporateInformation',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '企業情報',
+      '会社概要',
+      '代表者情報',
+      '設立年月日',
+      '資本金',
+      '事業内容',
+      '所在地',
+      '連絡先',
+      '企業理念',
+      'ミッション',
+      'ビジョン',
+      '経営方針',
+      '沿革',
+      '組織体制',
+      '役員構成',
+      '企業文化',
+      'CSR活動',
+      '環境への取り組み',
+      '社会貢献',
+      '持続可能性',
+      'コンプライアンス',
+      'ガバナンス'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#company',
+      'https://nands.tech/sustainability#company',
+      'https://nands.tech/reviews#company',
+      'https://nands.tech/faq#company'
+    ],
+    mentions: [
+      '株式会社エヌアンドエス',
+      '原田賢治',
+      'AI技術',
+      'レリバンスエンジニアリング',
+      '関西地方',
+      '滋賀県大津市',
+      '2008年設立',
+      'ITコンサルティング',
+      '人材育成',
+      'DX推進'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#company',
+    '@type': 'AboutPage',
+    name: '会社概要・代表者紹介',
+    pageType: 'AboutUs',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '会社概要',
+      '代表者紹介',
+      '原田賢治',
+      '経歴',
+      '専門分野',
+      '資格',
+      '実績',
+      '著書',
+      '講演',
+      'AI研究',
+      'レリバンスエンジニアリング研究',
+      'SEO専門',
+      'GEO対策',
+      'AI検索最適化',
+      'プロンプトエンジニアリング',
+      '生成AI活用',
+      'ChatGPT専門',
+      'Perplexity最適化',
+      'Claude活用',
+      '企業研修',
+      '人材育成',
+      'コンサルティング'
+    ],
+    relatedTo: [
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/reviews#company',
+      'https://nands.tech/ai-agents#service',
+      'https://nands.tech/aio-seo#service'
+    ],
+    mentions: [
+      'Mike King理論',
+      'iPullRank',
+      'SEOコンサルタント',
+      'AI研究者',
+      '関西SEO',
+      '滋賀県AI',
+      'AI人材育成',
+      'DXコンサルタント'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/reviews#company',
+    '@type': 'ReviewPage',
+    name: 'お客様の声・評価・実績',
+    pageType: 'CustomerReviews',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'お客様の声',
+      '顧客評価',
+      '実績',
+      '成功事例',
+      'ケーススタディ',
+      '導入事例',
+      '効果測定',
+      'ROI改善',
+      '業務効率化',
+      'AI導入成果',
+      'SEO改善結果',
+      '検索順位向上',
+      'アクセス数増加',
+      'コンバージョン改善',
+      '売上向上',
+      '人材育成効果',
+      'スキルアップ',
+      '研修満足度',
+      '企業満足度',
+      'サービス品質',
+      'サポート体制',
+      '継続利用率'
+    ],
+    relatedTo: [
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/about#company',
+      'https://nands.tech/faq#company',
+      'https://nands.tech/ai-agents#service'
+    ],
+    mentions: [
+      '顧客満足度',
+      '実績No.1',
+      '関西地方実績',
+      'AI導入支援',
+      'SEO対策実績',
+      '研修実績',
+      '継続率',
+      '効果実証'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/faq#company',
+    '@type': 'FAQPage',
+    name: 'よくある質問・FAQ',
+    pageType: 'FrequentlyAskedQuestions',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'よくある質問',
+      'FAQ',
+      'サービス内容',
+      '料金体系',
+      '契約条件',
+      '導入方法',
+      '導入期間',
+      'サポート内容',
+      '対応地域',
+      '対象業界',
+      '対象企業規模',
+      '必要な準備',
+      '効果期間',
+      '成果保証',
+      '解約条件',
+      '支払い方法',
+      '無料相談',
+      '無料トライアル',
+      'デモンストレーション',
+      '技術要件',
+      'セキュリティ',
+      'プライバシー'
+    ],
+    relatedTo: [
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/about#company',
+      'https://nands.tech/reviews#company',
+      'https://nands.tech/legal#company'
+    ],
+    mentions: [
+      '無料相談',
+      '初回無料',
+      '成果保証',
+      '関西対応',
+      '全国対応',
+      'オンライン対応',
+      '24時間サポート',
+      '専任担当'
     ]
   }
 ];

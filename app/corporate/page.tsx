@@ -513,6 +513,9 @@ export default async function CorporatePage() {
       />
 
       <main className="min-h-screen bg-white">
+        {/* Fragment ID for Entity Map - Hidden from users */}
+        <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+        
         {/* AI検索流入対応: Click-Recovery Banner */}
         {pageData?.aiSearchDetection?.shouldShowBanner && (
           <section className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3">

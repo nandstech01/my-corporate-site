@@ -173,6 +173,9 @@ const AboutPage = () => {
 
   return (
     <div className="pt-16">
+      {/* Fragment ID for Entity Map - Hidden from users */}
+      <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+      
       {/* メインビジュアル - 正方形に修正 */}
       <div className="relative h-screen bg-black"> {/* h-[${Math.round(100 * PHI)}vh] から h-screen に変更 */}
         <motion.div
