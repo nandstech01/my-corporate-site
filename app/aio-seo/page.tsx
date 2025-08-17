@@ -356,7 +356,8 @@ export default async function AIOPage() {
           <section id="aio-services" className="service" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="AIOサービス" />
             {/* エンティティマップ対応Fragment ID */}
-            <div id="service"></div>
+            {/* Fragment ID for Entity Map - Hidden from users */}
+            <div id="service" style={{ display: 'none' }} aria-hidden="true" />
           <AIOServicesSection />
         </section>
 

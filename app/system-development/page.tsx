@@ -426,7 +426,8 @@ const SystemDevelopmentPage = async () => {
           <section id="system-features" className="py-16 bg-gray-50 service" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="システム開発の特徴" />
             {/* エンティティマップ対応Fragment ID */}
-            <div id="service"></div>
+            {/* Fragment ID for Entity Map - Hidden from users */}
+        <div id="service" style={{ display: 'none' }} aria-hidden="true" />
             <div className="container mx-auto px-4">
               <div className="max-w-6xl mx-auto">
                 <h2 className="text-3xl font-bold text-center mb-12">🚀 AIシステム開発の特徴</h2>

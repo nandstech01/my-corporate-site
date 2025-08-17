@@ -95,7 +95,8 @@ export default function MCPServicesSection() {
   return (
     <section id="services" className="py-20 bg-gray-50 service">
       {/* エンティティマップ対応Fragment ID */}
-      <div id="service"></div>
+              {/* Fragment ID for Entity Map - Hidden from users */}
+        <div id="service" style={{ display: 'none' }} aria-hidden="true" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* セクションヘッダー */}
         <div className="text-center mb-16">

@@ -384,7 +384,8 @@ export default async function VectorRagPage() {
           {/* ベクトル検索・RAGシステム体験予定エリア */}
         <section id="vector-search-preview" className="service">
           {/* エンティティマップ対応Fragment ID */}
-          <div id="service"></div>
+                      {/* Fragment ID for Entity Map - Hidden from users */}
+            <div id="service" style={{ display: 'none' }} aria-hidden="true" />
           <FeaturePreviewSection
             title="ベクトル検索・RAGシステム体験"
               subtitle="トリプルRAG統合・高精度セマンティック検索"

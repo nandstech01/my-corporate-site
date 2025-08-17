@@ -372,7 +372,8 @@ export default async function AIAgentsPage() {
           <section id="agent-services" className="service" itemScope itemType="https://schema.org/WebPageElement">
             <meta itemProp="name" content="サービス一覧" />
             {/* エンティティマップ対応Fragment ID */}
-            <div id="service"></div>
+            {/* Fragment ID for Entity Map - Hidden from users */}
+          <div id="service" style={{ display: 'none' }} aria-hidden="true" />
           <AIAgentServicesSection />
         </section>
 
