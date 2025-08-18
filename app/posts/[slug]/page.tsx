@@ -216,8 +216,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-// 🚀 SSG（Static Site Generation）設定
-// 全記事のslugを事前生成し、ビルド時に静的HTMLを作成
+// 🚀 ISR（Incremental Static Regeneration）設定
+// 本番環境でのSupabase+SSG問題を回避するため、一時的にISRのみ使用
+export const revalidate = 300 // 5分間隔でISR実行
+
+// 🚨 一時的にSSGを無効化 - generateStaticParamsをコメントアウト
+// 本番環境でのSupabase cookiesエラーを回避
+/*
 export async function generateStaticParams() {
   const supabase = createClient()
   
@@ -268,10 +273,7 @@ export async function generateStaticParams() {
     return []
   }
 }
-
-// 🔄 ISR（Incremental Static Regeneration）設定
-// 5分間隔でキャッシュ更新し、新記事や更新も自動反映
-export const revalidate = 300
+*/
 
 export default async function PostPage({ params }: PageProps) {
   const post = await getPost(params.slug)
