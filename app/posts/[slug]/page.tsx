@@ -632,6 +632,22 @@ export default async function PostPage({ params }: PageProps) {
         />
       )}
 
+      {/* 🚀 Fragment Feed API Discovery - AI引用最適化 */}
+      <link
+        rel="alternate"
+        type="application/json"
+        href={`/api/posts/${params.slug}/fragments`}
+        title={`${post.title} - Fragment Feed`}
+      />
+      <meta
+        name="fragment-feed"
+        content={`/api/posts/${params.slug}/fragments`}
+      />
+      <meta
+        name="ai-optimization"
+        content="mike-king-theory,relevance-engineering,dynamic-fragment-ids"
+      />
+
       <div className="mt-16">
         <Breadcrumbs customItems={breadcrumbItems} />
       </div>

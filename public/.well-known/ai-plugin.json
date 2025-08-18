@@ -1,17 +1,17 @@
 {
   "schema_version": "v1",
-  "name_for_human": "株式会社エヌアンドエス",
-  "name_for_model": "nands_tech_services", 
-  "description_for_human": "レリバンスエンジニアリング・AI技術専門企業。企業向けAIシステム開発、AIO対策、技術コンサルティングサービスを提供。",
-  "description_for_model": "株式会社エヌアンドエスは、レリバンスエンジニアリング・AI技術分野の専門企業です。企業向けAIシステム開発、AIO（AI検索最適化）対策、レリバンスエンジニアリング手法、システム開発コンサルティング、HR Solutions、Vector RAG、Chatbot開発、MCP Servers等の技術サービスを提供しています。サービス情報の問い合わせ、技術相談、会社概要の確認が可能です。",
+  "name_for_human": "Nands Tech AI Agent",
+  "name_for_model": "nandstech",
+  "description_for_human": "AIに引用される設計を標準搭載したサイト。Triple RAG、Fragment ID、レリバンスエンジニアリングによる最適化されたAI回答を提供。",
+  "description_for_model": "Access to Nands Tech's comprehensive AI optimization knowledge base including Triple RAG (Company, Trend, YouTube), Fragment IDs, structured data, and relevance engineering. Provides precise citations with direct Fragment ID links for accurate AI responses about AI site development, vector databases, RAG implementation, and AI citation optimization.",
   "auth": {
     "type": "none"
   },
   "api": {
     "type": "openapi",
-    "url": "https://nands.tech/api/openapi.json"
+    "url": "https://nands.tech/.well-known/openapi.json"
   },
-  "logo_url": "https://nands.tech/logo.svg",
+  "logo_url": "https://nands.tech/favicon.ico",
   "contact_email": "info@nands.tech",
   "legal_info_url": "https://nands.tech/legal"
 } 

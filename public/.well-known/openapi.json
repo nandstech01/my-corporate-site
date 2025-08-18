@@ -1,0 +1,261 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Nands Tech AI Agent API",
+    "description": "AIに引用される設計を標準搭載。Triple RAG、Fragment ID、レリバンスエンジニアリングによる最適化されたAI回答API。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://nands.tech"
+    }
+  ],
+  "paths": {
+    "/api/openai-plugin/search": {
+      "get": {
+        "operationId": "searchContent",
+        "summary": "AIサイト・ベクトルブログコンテンツを検索",
+        "description": "質問に基づいてTriple RAG（Company, Trend, YouTube）とFragment IDを活用し、最適な回答と推奨URLを提供",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "検索クエリ（日本語・英語対応）"
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "type": "string",
+              "enum": ["all", "company", "trend", "youtube", "blog", "service"]
+            },
+            "required": false,
+            "description": "検索対象ソース"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 5
+            },
+            "required": false,
+            "description": "返す結果数"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "検索結果とFragment ID付き推奨URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/openai-plugin/fragments": {
+      "get": {
+        "operationId": "getFragments",
+        "summary": "Fragment IDベース検索",
+        "description": "特定のFragment IDまたはページのFragment情報を取得",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "ページパス（例: /ai-site, /posts/slug）"
+          },
+          {
+            "in": "query",
+            "name": "fragmentId",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "特定のFragment ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fragment情報",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FragmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/openai-plugin/services": {
+      "get": {
+        "operationId": "getServices",
+        "summary": "サービス情報取得",
+        "description": "エヌアンドエスの提供サービス一覧と詳細情報",
+        "responses": {
+          "200": {
+            "description": "サービス情報",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "元の検索クエリ"
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "総結果数"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "relatedServices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "関連サービス"
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "コンテンツタイトル"
+          },
+          "content": {
+            "type": "string",
+            "description": "要約されたコンテンツ"
+          },
+          "url": {
+            "type": "string",
+            "description": "Fragment ID付きURL"
+          },
+          "fragmentId": {
+            "type": "string",
+            "description": "Fragment ID"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["company", "trend", "youtube", "blog", "service"],
+            "description": "情報ソース"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "関連度スコア"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time",
+            "description": "最終更新日"
+          }
+        }
+      },
+      "FragmentResponse": {
+        "type": "object",
+        "properties": {
+          "fragments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fragment"
+            }
+          }
+        }
+      },
+      "Fragment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Fragment ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Fragment名"
+          },
+          "url": {
+            "type": "string",
+            "description": "Complete URI"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["title", "section", "faq", "passage"],
+            "description": "Fragment種別"
+          },
+          "weight": {
+            "type": "number",
+            "description": "重要度"
+          }
+        }
+      },
+      "ServicesResponse": {
+        "type": "object",
+        "properties": {
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Service"
+            }
+          }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "サービス名"
+          },
+          "description": {
+            "type": "string",
+            "description": "サービス説明"
+          },
+          "url": {
+            "type": "string",
+            "description": "サービスページURL"
+          },
+          "category": {
+            "type": "string",
+            "description": "サービスカテゴリ"
+          }
+        }
+      }
+    }
+  }
+} 
