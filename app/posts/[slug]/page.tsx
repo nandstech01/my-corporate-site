@@ -295,6 +295,28 @@ export default async function PostPage({ params }: PageProps) {
   const faqData = howToFAQSystem.extractFAQFromContent(post.content)
   const howToData = howToFAQSystem.extractHowToFromContent(post.content, post.title)
 
+  // 🎯 ベクトルブログ専用: 動的FAQ Fragment IDエンティティ生成
+  const dynamicBlogSchema = faqData.length > 0 ? structuredDataSystem.generateBlogPageSchemaWithDynamicFAQs({
+    path: `/posts/${params.slug}`,
+    title: post.title,
+    description: post.meta_description || post.excerpt || '',
+    slug: params.slug,
+    postId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
+    content: post.content,
+    lastModified: post.updated_at,
+    faqItems: faqData.map((faq: any, index: number) => ({
+      question: faq.question,
+      answer: faq.answer,
+      index: index
+    })),
+    toc: tocData.toc.map((item: any) => ({
+      id: item.anchor || item.id,
+      title: item.title,
+      level: item.level,
+      anchor: item.anchor || item.id
+    }))
+  }) : null
+
   // パンくずリスト構造化データ
   const breadcrumbItems: BreadcrumbItem[] = [
     { name: '記事一覧', path: '/posts' }
@@ -601,6 +623,15 @@ export default async function PostPage({ params }: PageProps) {
         />
       )}
 
+      {/* 🎯 動的FAQ Fragment ID構造化データ */}
+      {dynamicBlogSchema && (
+        <Script
+          id="structured-data-dynamic-faq"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(dynamicBlogSchema) }}
+        />
+      )}
+
       <div className="mt-16">
         <Breadcrumbs customItems={breadcrumbItems} />
       </div>
@@ -615,7 +646,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )}
 
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">{post.title}</h1>
+        {/* 記事タイトル - Fragment ID対応 */}
+        <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">{post.title}</h1>
         
         {/* 記事メタ情報 */}
         <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600">

@@ -7,6 +7,13 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import type { Plugin } from 'unified';
 
+// TypeScript Window拡張
+declare global {
+  interface Window {
+    __faqCounter?: number;
+  }
+}
+
 interface MarkdownContentProps {
   content: string;
 }
@@ -22,6 +29,8 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
   const [isTocOpen, setIsTocOpen] = useState(false);
   const [activeHeading, setActiveHeading] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
+  const faqCounterRef = useRef<number>(0); // FAQ質問カウンター
+  const usedIdsRef = useRef<Set<string>>(new Set()); // 重複ID防止
 
   // 見出しから目次を生成
   useEffect(() => {
@@ -212,9 +221,18 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   .replace(/\s+/g, '-');
               }
               
+              // 🔧 重複ID防止処理
+              let uniqueId = id;
+              let counter = 1;
+              while (usedIdsRef.current.has(uniqueId)) {
+                uniqueId = `${id}-${counter}`;
+                counter++;
+              }
+              usedIdsRef.current.add(uniqueId);
+              
               return (
                 <h2 
-                  id={id}
+                  id={uniqueId}
                   className="not-prose bg-gray-50 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 border-l-4 border-cyan-400"
                 >
                   {displayText}
@@ -241,9 +259,18 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   .replace(/\s+/g, '-');
               }
               
+              // 🔧 重複ID防止処理
+              let uniqueId = id;
+              let counter = 1;
+              while (usedIdsRef.current.has(uniqueId)) {
+                uniqueId = `${id}-${counter}`;
+                counter++;
+              }
+              usedIdsRef.current.add(uniqueId);
+              
               return (
                 <h3 
-                  id={id}
+                  id={uniqueId}
                   className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700"
                 >
                   {displayText}
@@ -263,16 +290,32 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                 displayText = fragmentMatch[1].trim();
                 id = fragmentMatch[2];
               } else {
-                // 従来通りのID生成
-                id = childrenStr
-                  .toLowerCase()
-                  .replace(/[^\w\s-]/g, '')
-                  .replace(/\s+/g, '-');
+                // FAQ質問の自動Fragment ID生成（AI引用最適化）
+                if (childrenStr.match(/^Q[：:]\s*(.+)/)) {
+                  // FAQ質問のカウンターを管理（useRef使用）
+                  faqCounterRef.current += 1;
+                  id = `faq-${faqCounterRef.current}`;
+                } else {
+                  // 従来通りのID生成
+                  id = childrenStr
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-');
+                }
               }
+              
+              // 🔧 重複ID防止処理
+              let uniqueId = id;
+              let counter = 1;
+              while (usedIdsRef.current.has(uniqueId)) {
+                uniqueId = `${id}-${counter}`;
+                counter++;
+              }
+              usedIdsRef.current.add(uniqueId);
               
               return (
                 <h4 
-                  id={id}
+                  id={uniqueId}
                   className="mt-6 mb-3 text-lg font-bold text-gray-700 border-b border-gray-300 pb-1"
                 >
                   {displayText}

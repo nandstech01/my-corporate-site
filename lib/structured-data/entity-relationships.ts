@@ -1193,3 +1193,185 @@ export function getRelatedServices(serviceType: string): ServiceEntity[] {
     )
   );
 } 
+
+/**
+ * 動的ベクトルブログエンティティ生成システム
+ * Mike King理論準拠: AI引用最適化
+ */
+export interface DynamicBlogEntity extends ServiceEntity {
+  postId: number;
+  slug: string;
+  fragmentType: 'title' | 'section' | 'faq' | 'howto';
+  generatedAt: string;
+  vectorId?: number;
+}
+
+/**
+ * ベクトルブログFAQ動的エンティティ生成
+ */
+export function generateBlogFAQEntities(
+  postData: {
+    id: number;
+    title: string;
+    slug: string;
+    content: string;
+  },
+  faqItems: Array<{ question: string; answer: string; index: number }>
+): DynamicBlogEntity[] {
+  const entities: DynamicBlogEntity[] = [];
+
+  faqItems.forEach((faq, index) => {
+    const entity: DynamicBlogEntity = {
+      '@id': `https://nands.tech/posts/${postData.slug}#faq-${index + 1}`,
+      '@type': 'Service',
+      name: `${faq.question} - FAQ`,
+      serviceType: 'FAQ',
+      provider: { '@id': 'https://nands.tech/#organization' },
+      knowsAbout: [
+        // AI引用最適化キーワード抽出
+        ...extractKeywordsFromText(faq.question),
+        ...extractKeywordsFromText(faq.answer),
+        'AI引用最適化',
+        'ベクトルブログ'
+      ],
+      relatedTo: [
+        `https://nands.tech/posts/${postData.slug}#main-title`,
+        `https://nands.tech/posts/${postData.slug}#faq-section`
+      ],
+      mentions: extractMentionsFromText(faq.answer),
+      // 動的エンティティ専用プロパティ
+      postId: postData.id,
+      slug: postData.slug,
+      fragmentType: 'faq',
+      generatedAt: new Date().toISOString()
+    };
+
+    entities.push(entity);
+  });
+
+  return entities;
+}
+
+/**
+ * ベクトルブログセクション動的エンティティ生成
+ */
+export function generateBlogSectionEntities(
+  postData: {
+    id: number;
+    title: string;
+    slug: string;
+    content: string;
+  },
+  sections: Array<{ id: string; title: string; level: number }>
+): DynamicBlogEntity[] {
+  const entities: DynamicBlogEntity[] = [];
+
+  sections.forEach((section) => {
+    const entity: DynamicBlogEntity = {
+      '@id': `https://nands.tech/posts/${postData.slug}#${section.id}`,
+      '@type': 'Service',
+      name: `${section.title} - セクション`,
+      serviceType: 'BlogSection',
+      provider: { '@id': 'https://nands.tech/#organization' },
+      knowsAbout: [
+        ...extractKeywordsFromText(section.title),
+        'AI引用最適化',
+        'Fragment ID',
+        'レリバンスエンジニアリング'
+      ],
+      relatedTo: [
+        `https://nands.tech/posts/${postData.slug}#main-title`
+      ],
+      mentions: [section.title],
+      // 動的エンティティ専用プロパティ
+      postId: postData.id,
+      slug: postData.slug,
+      fragmentType: 'section',
+      generatedAt: new Date().toISOString()
+    };
+
+    entities.push(entity);
+  });
+
+  return entities;
+}
+
+/**
+ * テキストからキーワードを抽出（簡易版）
+ */
+function extractKeywordsFromText(text: string): string[] {
+  const keywords: string[] = [];
+  
+  // AI・技術関連キーワード
+  const techKeywords = ['AI', 'AIO', 'SEO', 'RAG', 'ベクトル', 'API', 'システム', 'データ', 'プロンプト'];
+  techKeywords.forEach(keyword => {
+    if (text.includes(keyword)) {
+      keywords.push(keyword);
+    }
+  });
+
+  // ビジネス関連キーワード
+  const businessKeywords = ['マーケティング', '最適化', '効率', '業務', '企業', '戦略', '導入'];
+  businessKeywords.forEach(keyword => {
+    if (text.includes(keyword)) {
+      keywords.push(keyword);
+    }
+  });
+
+  return Array.from(new Set(keywords)); // 重複除去
+}
+
+/**
+ * テキストからメンション（言及）を抽出
+ */
+function extractMentionsFromText(text: string): string[] {
+  const mentions: string[] = [];
+  
+  // 重要な固有名詞・サービス名を抽出
+  const importantTerms = [
+    'ChatGPT', 'OpenAI', 'Google', 'Perplexity', 'Claude',
+    'Next.js', 'React', 'TypeScript', 'Supabase',
+    'Mike King', 'レリバンスエンジニアリング', 'Fragment ID'
+  ];
+  
+  importantTerms.forEach(term => {
+    if (text.includes(term)) {
+      mentions.push(term);
+    }
+  });
+
+  return Array.from(new Set(mentions)); // 重複除去
+}
+
+/**
+ * 動的エンティティをメモリ内キャッシュ（一時的）
+ */
+let DYNAMIC_BLOG_ENTITIES: DynamicBlogEntity[] = [];
+
+/**
+ * 動的エンティティの追加
+ */
+export function addDynamicBlogEntities(entities: DynamicBlogEntity[]): void {
+  DYNAMIC_BLOG_ENTITIES = [...DYNAMIC_BLOG_ENTITIES, ...entities];
+}
+
+/**
+ * 動的エンティティの取得
+ */
+export function getDynamicBlogEntities(slug?: string): DynamicBlogEntity[] {
+  if (slug) {
+    return DYNAMIC_BLOG_ENTITIES.filter(entity => entity.slug === slug);
+  }
+  return DYNAMIC_BLOG_ENTITIES;
+}
+
+/**
+ * 全エンティティ取得（静的 + 動的）
+ */
+export function getAllEntities(): (ServiceEntity | DynamicBlogEntity)[] {
+  return [
+    ...SERVICE_ENTITIES,
+    ...AI_SITE_FAQ_ENTITIES,
+    ...DYNAMIC_BLOG_ENTITIES
+  ];
+} 

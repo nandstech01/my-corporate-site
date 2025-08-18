@@ -348,6 +348,137 @@ export class UnifiedStructuredDataSystem {
   }
 
   /**
+   * ベクトルブログ専用: 動的FAQ Fragment IDエンティティ統合
+   * Mike King理論準拠: AI引用最適化
+   */
+  generateBlogPageSchemaWithDynamicFAQs(pageData: {
+    path: string;
+    title: string;
+    description: string;
+    slug: string;
+    postId: number;
+    content: string;
+    lastModified?: string;
+    faqItems?: Array<{ question: string; answer: string; index: number }>;
+    toc?: TOCItem[];
+  }): any {
+    const pageUrl = `${this.baseUrl}${pageData.path}`;
+    
+    // 基本のWebPageスキーマ
+    const baseSchema: any = {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": pageUrl,
+      "url": pageUrl,
+      "name": pageData.title,
+      "description": pageData.description,
+      "inLanguage": "ja-JP",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": `${this.baseUrl}/#website`
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": `${this.baseUrl}/#organization`
+      },
+      "dateModified": pageData.lastModified || new Date().toISOString(),
+      // 🎯 H1メインタイトルのFragment ID統合
+      "hasPart": [
+        {
+          "@type": "WebPageElement",
+          "@id": `${pageUrl}#main-title`,
+          "name": pageData.title,
+          "url": `${pageUrl}#main-title`,
+          "about": pageData.title
+        }
+      ]
+    };
+
+    // Fragment IDベースのhasPartスキーマ統合
+    if (pageData.toc && pageData.toc.length > 0) {
+      const hasPartElements = pageData.toc.map(tocItem => ({
+        "@type": "WebPageElement",
+        "@id": `${pageUrl}#${tocItem.id}`,
+        "name": tocItem.title,
+        "url": `${pageUrl}#${tocItem.id}`
+      }));
+      
+      baseSchema.hasPart = hasPartElements;
+    }
+
+    // 動的FAQ Fragment IDエンティティ統合
+    if (pageData.faqItems && pageData.faqItems.length > 0) {
+      // 動的エンティティを生成
+      const {
+        generateBlogFAQEntities,
+        addDynamicBlogEntities
+      } = require('./entity-relationships');
+      
+      const dynamicFAQEntities = generateBlogFAQEntities(
+        {
+          id: pageData.postId,
+          title: pageData.title,
+          slug: pageData.slug,
+          content: pageData.content
+        },
+        pageData.faqItems
+      );
+
+      // メモリ内キャッシュに追加
+      addDynamicBlogEntities(dynamicFAQEntities);
+
+      // FAQ用構造化データ: Question+Answer形式
+      const faqQuestions = pageData.faqItems.map((faq, index) => ({
+        "@type": "Question",
+        "@id": `${pageUrl}#faq-${index + 1}`,
+        "name": faq.question,
+        "url": `${pageUrl}#faq-${index + 1}`,
+        "text": faq.question,
+        "answerCount": 1,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "@id": `${pageUrl}#faq-${index + 1}-answer`,
+          "text": faq.answer,
+          "url": `${pageUrl}#faq-${index + 1}`,
+          "author": {
+            "@type": "Person",
+            "@id": `${this.baseUrl}/author/harada-kenji`,
+            "name": "原田賢治"
+          }
+        },
+        "mainEntity": {
+          "@type": "Thing",
+          "name": `${pageData.title}関連質問`,
+          "description": "ベクトルブログ記事のFAQ"
+        }
+      }));
+
+      // WebPageElementとしてhasPartに追加
+      const faqWebElements = faqQuestions.map(question => ({
+        "@type": "WebPageElement", 
+        "@id": question["@id"],
+        "name": question.name,
+        "url": question.url
+      }));
+      
+      const existingHasParts = baseSchema.hasPart || [];
+      baseSchema.hasPart = [...existingHasParts, ...faqWebElements];
+      
+      // FAQPage構造（メインエンティティとして設定）
+      baseSchema.mainEntity = {
+        "@type": "FAQPage",
+        "@id": `${pageUrl}#faq-collection`,
+        "name": `${pageData.title} - よくある質問`,
+        "description": `${pageData.title}に関するよくある質問と回答`,
+        "url": `${pageUrl}#faq-section`,
+        "mainEntity": faqQuestions
+      };
+    }
+
+    return baseSchema;
+  }
+
+  /**
    * GEO最適化版のhasPartスキーマ生成
    */
   generateGEOOptimizedHasPart(
