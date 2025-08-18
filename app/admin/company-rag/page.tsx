@@ -258,7 +258,11 @@ export default function CompanyRagPage() {
       return;
     }
 
-    if (!window.confirm('全コンテンツを再ベクトル化しますか？\n既存のservice、corporate、technical、structured-dataベクトルが全て削除され、最新の内容で再生成されます。\n\n※generated_blog、fragment-idは保護されます。')) {
+    if (!window.confirm('⚠️ 重要な操作です ⚠️\n\n全コンテンツを再ベクトル化しますか？\n\n【削除対象】\n- service（サービスページ）\n- corporate（企業情報）\n- technical（技術情報）\n- structured-data（構造化データ）\n\n【保護対象】\n- generated_blog（生成ブログ）\n- fragment-id（Fragment ID）\n\n※この操作は取り消せません。本当によろしいですか？')) {
+      return;
+    }
+
+    if (!window.confirm('最終確認：\n本当に実行しますか？')) {
       return;
     }
 
