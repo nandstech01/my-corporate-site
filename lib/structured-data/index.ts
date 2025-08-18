@@ -63,10 +63,11 @@ export {
   type HasPartConfiguration
 } from './haspart-schema-system';
 
-import { ORGANIZATION_ENTITY, SERVICE_ENTITIES, type ServiceEntity } from './entity-relationships';
+import { ORGANIZATION_ENTITY, SERVICE_ENTITIES, AI_SITE_FAQ_ENTITIES, type ServiceEntity } from './entity-relationships';
 import { validateJsonLd, type ValidationResult } from './validation-system';
 import { HasPartSchemaSystem, type HasPartSchema } from './haspart-schema-system';
 import { type TOCItem } from './auto-toc-system';
+import { HARADA_KENJI_PROFILE, type AuthorProfile } from './author-trust-system';
 
 /**
  * 統合構造化データ生成システム
@@ -241,6 +242,81 @@ export class UnifiedStructuredDataSystem {
         "name": fragment.name,
         "url": fragment.url
       }));
+    }
+
+    // AI-site専用: FAQ Fragment IDエンティティ統合（tocの有無に関係なく実行）
+    if (pageData.path === '/ai-site' && AI_SITE_FAQ_ENTITIES.length > 0) {
+      // 既存のhasPartがあれば統合、なければ新規作成
+      const existingHasParts = baseSchema.hasPart || [];
+      const faqHasParts = AI_SITE_FAQ_ENTITIES.map(faq => ({
+        "@type": "FAQPage",
+        "@id": faq['@id'],
+        "name": faq.name,
+        "url": faq['@id'],
+        "about": faq.knowsAbout,
+        "mentions": faq.mentions
+      }));
+      
+      baseSchema.hasPart = [...existingHasParts, ...faqHasParts];
+      
+      // FAQ専用の追加スキーマ
+      baseSchema.mainEntity = {
+        "@type": "FAQPage",
+        "@id": `${pageUrl}#faq-collection`,
+        "name": "AIサイト よくある質問集",
+        "hasPart": faqHasParts
+      };
+
+      // レリバンスエンジニアリング専門家・原田賢治の権威性構造化データ
+      baseSchema.author = {
+        "@type": "Person",
+        "@id": HARADA_KENJI_PROFILE['@id'],
+        "name": HARADA_KENJI_PROFILE.name,
+        "jobTitle": HARADA_KENJI_PROFILE.jobTitle,
+        "description": HARADA_KENJI_PROFILE.description,
+        "expertise": HARADA_KENJI_PROFILE.expertise,
+        "worksFor": HARADA_KENJI_PROFILE.worksFor,
+        "knowsAbout": [
+          "レリバンスエンジニアリング",
+          "AI検索最適化", 
+          "Mike King理論",
+          "Fragment ID実装",
+          "Complete URI生成",
+          "Triple RAGシステム",
+          "ベクトル検索システム",
+          "AI引用最適化",
+          "構造化データ設計",
+          "hasPartスキーマ実装",
+          "WebPageElement最適化",
+          "AIサイト構築",
+          "ベクトルRAG検索",
+          "エンティティマップ設計",
+          "セマンティック検索",
+          "AI検索エンジン対応"
+        ],
+        "hasCredential": HARADA_KENJI_PROFILE.credentials.map(cred => ({
+          "@type": "EducationalOccupationalCredential",
+          "name": cred.title,
+          "credentialCategory": cred.type,
+          "recognizedBy": {
+            "@type": "Organization",
+            "name": cred.issuer
+          },
+          "dateCreated": cred.year.toString()
+        }))
+      };
+
+      // サービス提供者として専門性を明示
+      baseSchema.provider = {
+        "@type": "Person",
+        "@id": HARADA_KENJI_PROFILE['@id'],
+        "name": HARADA_KENJI_PROFILE.name,
+        "expertise": [
+          "レリバンスエンジニアリング実装",
+          "AI引用最適化システム構築",
+          "Mike King理論の日本市場適用"
+        ]
+      };
     }
 
     return baseSchema;

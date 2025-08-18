@@ -16,7 +16,7 @@ export default function FeaturesSection() {
 		<section id="features" className="py-20 bg-gradient-to-br from-gray-900 via-slate-900 to-black">
 			<div className="container mx-auto px-4">
 				<div className="text-center mb-12">
-					<h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+					<h2 id="features-title" className="text-3xl lg:text-4xl font-bold text-white mb-4">
 						<TextType text="機能一覧" className="text-white" showCursor={false} startOnVisible as="span" />
 					</h2>
 					<p className="text-gray-300">AIに選ばれるための要素を標準搭載</p>

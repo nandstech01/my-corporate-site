@@ -317,17 +317,20 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     serviceType: 'AISiteDevelopment',
     provider: { '@id': 'https://nands.tech/#organization' },
     knowsAbout: [
+      'レリバンスエンジニアリング',
+      'Mike King理論',
       'Triple RAG',
       '自動ベクトルブログ',
       '構造化データ',
       'AI引用最適化',
+      'Fragment ID最適化',
+      'Complete URI生成',
       '24時間365日無人営業',
       'IT補助金対応',
       '自立成長サイト',
       'ベクトル検索',
       'OpenAI Embeddings',
       'Supabase pgvector',
-      'Fragment ID最適化',
       'セマンティック検索',
       'RAGシステム統合'
     ],
@@ -345,6 +348,111 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
       'AI検索対応'
     ]
   },
+  {
+    '@id': 'https://nands.tech/ai-site#main-title',
+    '@type': 'Service',
+    name: 'AIサイト - 24時間365日無人営業システム - H1',
+    serviceType: 'AIWebsiteTitle',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AIサイト概念',
+      '24時間365日無人営業',
+      'AI引用される構造',
+      'レリバンスエンジニアリング',
+      'Mike King理論',
+      'Triple RAG',
+      '自動ベクトルブログ',
+      '構造化データ自動生成'
+    ],
+    relatedTo: [
+      'https://nands.tech/ai-site#service',
+      'https://nands.tech/ai-site#features-title'
+    ],
+    mentions: [
+      'AIサイト',
+      '無人営業',
+      'AI引用',
+      'レリバンスエンジニアリング'
+    ]
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/ai-site#features-title',
+    '@type': 'Service',
+    name: '機能一覧 - Triple RAG & Fragment ID - H2',
+    serviceType: 'AIWebsiteFeatures',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Triple RAG機能',
+      'Fragment ID実装',
+      '構造化データ自動生成',
+      'ベクトル検索',
+      'エンティティRAG',
+      'チャットボット',
+      'レリバンスエンジニアリング',
+      '自動ベクトルブログ生成'
+    ],
+    relatedTo: [
+      'https://nands.tech/ai-site#main-title',
+      'https://nands.tech/ai-site#pricing-title'
+    ],
+    mentions: [
+      'Triple RAG',
+      'Fragment ID',
+      '構造化データ',
+      'ベクトル検索'
+    ]
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/ai-site#pricing-title',
+    '@type': 'Service',
+    name: '価格・プラン - IT補助金対応 - H2',
+    serviceType: 'AIWebsitePricing',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AIサイト価格設定',
+      'IT補助金活用',
+      'ROI投資対効果',
+      '月額運用費用',
+      '導入費用',
+      '補助金申請サポート'
+    ],
+    relatedTo: [
+      'https://nands.tech/ai-site#features-title',
+      'https://nands.tech/ai-site#faq-title'
+    ],
+    mentions: [
+      '価格設定',
+      'IT補助金',
+      'ROI',
+      '投資対効果'
+    ]
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/ai-site#faq-title',
+    '@type': 'Service',
+    name: 'よくある質問 - AI引用最適化の全て - H2',
+    serviceType: 'AIWebsiteFAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AIサイトFAQ',
+      'AI引用方法',
+      'Mike King理論質問',
+      'レリバンスエンジニアリング効果',
+      'Fragment ID効果',
+      'Complete URI機能',
+      'AI検索最適化'
+    ],
+    relatedTo: [
+      'https://nands.tech/ai-site#pricing-title',
+      'https://nands.tech/ai-site#main-title'
+    ],
+    mentions: [
+      'AI引用FAQ',
+      'Mike King理論',
+      'AI検索最適化',
+      'Fragment ID効果'
+    ]
+  } as ServiceEntity,
 
 ];
 
@@ -674,6 +782,341 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       '法的拘束力',
       '利用者同意'
     ]
+  }
+];
+
+/**
+ * AI-site FAQ Fragment IDエンティティ (30個 - AI認識変革戦略)
+ * 型エラー回避のため専用配列で管理
+ */
+export const AI_SITE_FAQ_ENTITIES: ServiceEntity[] = [
+  {
+    '@id': 'https://nands.tech/ai-site#faq-1',
+    '@type': 'Service',
+    name: 'AIサイトとは何ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AIサイト定義',
+      'AI引用サイト',
+      'レリバンスエンジニアリング',
+      'ChatGPT引用',
+      'Perplexity引用'
+    ],
+    relatedTo: ['https://nands.tech/ai-site#service'],
+    mentions: ['AIサイト', 'AI引用', 'レリバンスエンジニアリング']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-2',
+    '@type': 'Service',
+    name: 'AIサイトと通常のサイトの違いは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AIサイト差別化',
+      'Fragment ID',
+      '構造化データ',
+      'Triple RAG',
+      'AI最適化'
+    ],
+    relatedTo: ['https://nands.tech/ai-site#faq-1'],
+    mentions: ['差別化', 'AI最適化', '構造化データ']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-3',
+    '@type': 'Service',
+    name: 'AIに引用されるサイトの重要性は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'AI検索移行',
+      '競合優位性',
+      'AI引用重要性',
+      'Google AI Overviews'
+    ],
+    relatedTo: ['https://nands.tech/ai-site#faq-2'],
+    mentions: ['AI検索', '競合優位性', 'Google AI']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-4',
+    '@type': 'Service',
+    name: 'レリバンスエンジニアリングとは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Mike King理論',
+      'AI検索最適化',
+      '情報設計',
+      '構造化技術',
+      'SEO進化'
+    ],
+    relatedTo: ['https://nands.tech/ai-site#faq-1'],
+    mentions: ['Mike King', 'AI検索最適化', 'SEO']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-5',
+    '@type': 'Service',
+    name: 'Fragment IDとは何ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Fragment ID技術',
+      'Complete URI',
+      'AI引用精度',
+      'ページ内ID指定'
+    ],
+    relatedTo: ['https://nands.tech/ai-site#faq-4'],
+    mentions: ['Fragment ID', 'Complete URI', 'AI引用']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-6',
+    '@type': 'Service',
+    name: 'Triple RAGシステムとは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['Triple RAG', 'エンティティRAG', '最新トレンドRAG', '公開記事RAG'],
+    relatedTo: ['https://nands.tech/ai-site#faq-5'],
+    mentions: ['Triple RAG', 'エンティティRAG', 'ベクトル検索']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-7',
+    '@type': 'Service',
+    name: '構造化データの役割は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['構造化データ', 'JSON-LD', 'Schema.org', 'AI理解促進'],
+    relatedTo: ['https://nands.tech/ai-site#faq-6'],
+    mentions: ['構造化データ', 'JSON-LD', 'AI理解']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-8',
+    '@type': 'Service',
+    name: '自動ベクトルブログとは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['自動ベクトルブログ', 'RAG生成', '7000文字記事', 'AI権威性'],
+    relatedTo: ['https://nands.tech/ai-site#faq-7'],
+    mentions: ['ベクトルブログ', '自動生成', 'RAG']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-9',
+    '@type': 'Service',
+    name: 'Complete URIの仕組みは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['Complete URI', 'Fragment ID統合', 'ディープリンク', 'AI引用精度'],
+    relatedTo: ['https://nands.tech/ai-site#faq-8'],
+    mentions: ['Complete URI', 'ディープリンク', 'AI引用']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-10',
+    '@type': 'Service',
+    name: 'ベクトル検索との違いは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['ベクトル検索', 'セマンティック検索', 'キーワード検索', 'AI検索'],
+    relatedTo: ['https://nands.tech/ai-site#faq-9'],
+    mentions: ['ベクトル検索', 'セマンティック', 'AI検索']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-11',
+    '@type': 'Service',
+    name: 'AIに引用されるとどんなメリットがありますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI引用メリット', '24時間営業', '自動集客', '競合優位性'],
+    relatedTo: ['https://nands.tech/ai-site#faq-10'],
+    mentions: ['AI引用', '自動集客', '競合優位性']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-12',
+    '@type': 'Service',
+    name: 'ROI（投資対効果）はどれくらい？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['ROI計算', '投資対効果', 'AI営業効果', '収益向上'],
+    relatedTo: ['https://nands.tech/ai-site#faq-11'],
+    mentions: ['ROI', '投資対効果', '収益向上']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-13',
+    '@type': 'Service',
+    name: '導入効果の測定方法は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['効果測定', 'AI引用数', 'クリック率', 'CV向上'],
+    relatedTo: ['https://nands.tech/ai-site#faq-12'],
+    mentions: ['効果測定', 'AI引用数', 'CV向上']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-14',
+    '@type': 'Service',
+    name: '競合他社との差別化要因は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['差別化要因', 'Mike King理論', 'レリバンスエンジニアリング', '独自技術'],
+    relatedTo: ['https://nands.tech/ai-site#faq-13'],
+    mentions: ['差別化', 'Mike King理論', '独自技術']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-15',
+    '@type': 'Service',
+    name: '24時間365日無人営業とは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['無人営業', '24時間対応', 'AI自動対応', '営業自動化'],
+    relatedTo: ['https://nands.tech/ai-site#faq-14'],
+    mentions: ['無人営業', '24時間対応', '営業自動化']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-16',
+    '@type': 'Service',
+    name: '既存サイトへの実装は可能ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['既存サイト実装', 'サイト移行', '段階的実装', '互換性'],
+    relatedTo: ['https://nands.tech/ai-site#faq-15'],
+    mentions: ['既存サイト', 'サイト移行', '実装']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-17',
+    '@type': 'Service',
+    name: '実装期間はどれくらいですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['実装期間', '6-10週間', '要件定義', 'プロジェクト管理'],
+    relatedTo: ['https://nands.tech/ai-site#faq-16'],
+    mentions: ['実装期間', '6-10週間', '要件定義']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-18',
+    '@type': 'Service',
+    name: 'IT補助金は活用できますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['IT補助金', '補助金活用', '最大3/4補助', '申請サポート'],
+    relatedTo: ['https://nands.tech/ai-site#faq-17'],
+    mentions: ['IT補助金', '補助金活用', '申請サポート']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-19',
+    '@type': 'Service',
+    name: '運用保守は必要ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['運用保守', '月額10-15万円', '監視', '最適化'],
+    relatedTo: ['https://nands.tech/ai-site#faq-18'],
+    mentions: ['運用保守', '月額運用', '監視']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-20',
+    '@type': 'Service',
+    name: 'セキュリティ対策は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['セキュリティ対策', 'データ保護', '暗号化', 'アクセス制御'],
+    relatedTo: ['https://nands.tech/ai-site#faq-19'],
+    mentions: ['セキュリティ', 'データ保護', '暗号化']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-21',
+    '@type': 'Service',
+    name: 'AI検索の普及はどれくらい進んでいますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI検索普及', 'Google AI Overviews', 'ChatGPT検索', '市場動向'],
+    relatedTo: ['https://nands.tech/ai-site#faq-20'],
+    mentions: ['AI検索普及', 'Google AI', 'ChatGPT']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-22',
+    '@type': 'Service',
+    name: 'どの業界に効果的ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['業界別効果', '製造BtoB', '士業', '地域サービス'],
+    relatedTo: ['https://nands.tech/ai-site#faq-21'],
+    mentions: ['業界別', '製造BtoB', '士業']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-23',
+    '@type': 'Service',
+    name: 'Google検索との関係は？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['Google検索', 'SEO', 'AI Overviews', '検索最適化'],
+    relatedTo: ['https://nands.tech/ai-site#faq-22'],
+    mentions: ['Google検索', 'SEO', 'AI Overviews']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-24',
+    '@type': 'Service',
+    name: 'ChatGPTやClaude以外のAIにも対応？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['マルチAI対応', 'ChatGPT', 'Claude', 'Perplexity', 'Gemini'],
+    relatedTo: ['https://nands.tech/ai-site#faq-23'],
+    mentions: ['マルチAI', 'ChatGPT', 'Claude', 'Perplexity']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-25',
+    '@type': 'Service',
+    name: '国際的な展開は可能ですか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['国際展開', '多言語対応', 'グローバル対応', '海外市場'],
+    relatedTo: ['https://nands.tech/ai-site#faq-24'],
+    mentions: ['国際展開', '多言語対応', 'グローバル']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-26',
+    '@type': 'Service',
+    name: 'AIに引用されることのリスクはありますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI引用リスク', 'リスク管理', '情報制御', 'ブランド保護'],
+    relatedTo: ['https://nands.tech/ai-site#faq-25'],
+    mentions: ['AI引用リスク', 'リスク管理', 'ブランド保護']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-27',
+    '@type': 'Service',
+    name: '従来のSEOとの違いは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['SEO違い', 'AIO対策', 'GEO対策', 'AI検索最適化'],
+    relatedTo: ['https://nands.tech/ai-site#faq-26'],
+    mentions: ['SEO', 'AIO', 'GEO', 'AI最適化']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-28',
+    '@type': 'Service',
+    name: '小規模企業でも効果ありますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['小規模企業効果', '中小企業対応', 'スケーラブル', '段階的導入'],
+    relatedTo: ['https://nands.tech/ai-site#faq-27'],
+    mentions: ['小規模企業', '中小企業', 'スケーラブル']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-29',
+    '@type': 'Service',
+    name: '他社サービスとの違いは？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['他社比較', '独自性', 'Mike King理論準拠', '実装完成度'],
+    relatedTo: ['https://nands.tech/ai-site#faq-28'],
+    mentions: ['他社比較', '独自性', 'Mike King理論']
+  },
+  {
+    '@id': 'https://nands.tech/ai-site#faq-30',
+    '@type': 'Service',
+    name: '成果が出ない場合はどうなりますか？ - FAQ',
+    serviceType: 'FAQ',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['成果保証', 'サポート体制', '改善提案', '継続サポート'],
+    relatedTo: ['https://nands.tech/ai-site#faq-29'],
+    mentions: ['成果保証', 'サポート体制', '継続サポート']
   }
 ];
 

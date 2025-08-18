@@ -103,6 +103,7 @@ export default function CompanyRagPage() {
   const [detailsLoading, setDetailsLoading] = useState<{ [key: string]: boolean }>({});
   const [serviceRegenerating, setServiceRegenerating] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<{ [key: string]: boolean }>({});
+  const [showAllFragments, setShowAllFragments] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -524,6 +525,30 @@ export default function CompanyRagPage() {
                                   </div>
                                 </div>
                                 <div className="text-sm text-gray-400">Fragment ID / ディープリンク</div>
+                                
+                                {/* 詳細表示ボタン */}
+                                {stats?.fragmentStats?.fragmentDetails && stats.fragmentStats.fragmentDetails.length > 0 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedCards(prev => ({
+                                        ...prev,
+                                        'fragment-id': !prev['fragment-id']
+                                      }));
+                                    }}
+                                    className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1"
+                                  >
+                                    <span>詳細表示</span>
+                                    <svg 
+                                      className={`w-3 h-3 transition-transform ${expandedCards['fragment-id'] ? 'rotate-180' : ''}`}
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                )}
                               </>
                             ) : (
                               <div className="flex items-center space-x-4">
@@ -555,91 +580,7 @@ export default function CompanyRagPage() {
                       </div>
                     </div>
 
-                    {/* サービス専用再ベクトル化ボタン */}
-                    {type === 'service' && (
-                      <div className="border-t border-gray-600 bg-gradient-to-r from-blue-900/20 to-blue-800/20 p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span className="text-sm font-medium text-blue-300">全コンテンツ再ベクトル化<br/><span className="text-xs text-gray-400">(service/corporate/technical/structured-data)</span></span>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleServiceDetails();
-                            }}
-                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            {serviceDetails.service ? '詳細を隠す' : '詳細を表示'}
-                          </button>
-                        </div>
-                        
-                        {/* トグル可能な詳細情報 */}
-                        {serviceDetails.service && (
-                          <div className="bg-blue-900/30 rounded-lg p-3 mb-3 border border-blue-700/50">
-                            <div className="text-xs text-blue-200 space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>既存のサービスベクトルを安全に削除</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>最新のサービスページ内容を抽出</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>プレースホルダーなしの正確なベクトル化</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <svg className="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                                <span>構造化データ・Fragment IDは保護</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleServiceRegenerate();
-                          }}
-                          disabled={serviceRegenerating}
-                          className={`
-                            w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 
-                            ${serviceRegenerating 
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/25'
-                            }
-                          `}
-                        >
-                          {serviceRegenerating ? (
-                            <>
-                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              <span>再ベクトル化中...</span>
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              <span>全コンテンツ再ベクトル化</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
 
                     {/* 詳細表示エリア */}
                     {isExpanded && (
@@ -696,6 +637,115 @@ export default function CompanyRagPage() {
                             <div className="text-gray-400">データがありません</div>
                           </div>
                         )}
+                      </div>
+                    )}
+                    
+                    {/* Fragment ID専用詳細表示エリア */}
+                    {type === 'fragment-id' && expandedCards['fragment-id'] && stats?.fragmentStats?.fragmentDetails && (
+                      <div className="border-t border-gray-600 bg-gradient-to-r from-cyan-900/20 to-cyan-800/20 p-4">
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-cyan-300 mb-3 flex items-center space-x-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <span>ディープリンク詳細 ({stats.fragmentStats.totalDeepLinks}件)</span>
+                          </div>
+                          
+                          {(showAllFragments 
+                            ? stats.fragmentStats.fragmentDetails 
+                            : stats.fragmentStats.fragmentDetails.slice(0, 10)
+                          ).map((detail: any, index: number) => (
+                            <div key={detail.id} className="bg-cyan-900/30 rounded-lg p-3 border border-cyan-700/50">
+                              <div className="space-y-2">
+                                {/* Fragment ID & Type */}
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs text-cyan-200 font-mono bg-cyan-800/30 px-2 py-1 rounded">
+                                    Fragment ID
+                                  </span>
+                                  <span className="text-sm text-white font-medium">
+                                    #{detail.fragmentId}
+                                  </span>
+                                  {detail.type && (
+                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                      detail.type === 'ブログ記事' ? 'bg-green-100 text-green-800' :
+                                      detail.type === 'サービスページ' ? 'bg-blue-100 text-blue-800' :
+                                      detail.type === '企業情報ページ' ? 'bg-purple-100 text-purple-800' :
+                                      'bg-orange-100 text-orange-800'
+                                    }`}>
+                                      {detail.type}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* 完全URI */}
+                                {detail.completeURI && (
+                                  <div className="flex items-start space-x-2">
+                                    <span className="text-xs text-green-200 font-mono bg-green-800/30 px-2 py-1 rounded mt-0.5">
+                                      URI
+                                    </span>
+                                    <div className="flex-1">
+                                      <a 
+                                        href={detail.completeURI} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-sm text-green-300 hover:text-green-200 underline break-all"
+                                      >
+                                        {detail.completeURI}
+                                      </a>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* キーワード/パッセージ (セクションタイトル) */}
+                                {detail.source && (
+                                  <div className="flex items-start space-x-2">
+                                    <span className="text-xs text-purple-200 font-mono bg-purple-800/30 px-2 py-1 rounded mt-0.5">
+                                      内容
+                                    </span>
+                                    <span className="text-sm text-purple-200 flex-1">
+                                      {detail.source}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* 作成日時 */}
+                                <div className="flex items-center justify-between pt-1 border-t border-cyan-700/30">
+                                  <span className="text-xs text-gray-400">
+                                    作成: {new Date(detail.created_at).toLocaleString('ja-JP')}
+                                  </span>
+                                  <span className="text-xs text-cyan-400">
+                                    AI引用対応
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {stats.fragmentStats.fragmentDetails.length > 10 && (
+                            <div className="text-center pt-2">
+                              <button
+                                onClick={() => setShowAllFragments(!showAllFragments)}
+                                className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center justify-center space-x-1 mx-auto"
+                              >
+                                {showAllFragments ? (
+                                  <>
+                                    <span>詳細を折りたたむ</span>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>...他 {stats.fragmentStats.fragmentDetails.length - 10}件のディープリンクを表示</span>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -814,6 +864,176 @@ export default function CompanyRagPage() {
             >
               {vectorLoading ? '読み込み中...' : '統計更新'}
             </button>
+          </div>
+        </div>
+
+        {/* 全コンテンツ再ベクトル化（独立セクション） */}
+        <div className="bg-gradient-to-br from-red-900/30 to-orange-900/30 rounded-xl p-6 border border-red-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-red-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">全コンテンツ再ベクトル化</h2>
+              <p className="text-sm text-gray-400">高度な管理機能 - 慎重に実行してください</p>
+            </div>
+          </div>
+
+          {/* 機能説明 */}
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">機能説明</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>削除・再生成対象</span>
+                </h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• <span className="text-blue-300">service</span> - サービスページベクトル</li>
+                  <li>• <span className="text-purple-300">corporate</span> - 企業情報ページベクトル</li>
+                  <li>• <span className="text-orange-300">technical</span> - 技術情報ページベクトル</li>
+                  <li>• <span className="text-green-300">structured-data</span> - 構造化データベクトル</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-yellow-400 mb-2 flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>保護される項目</span>
+                </h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• <span className="text-cyan-300">generated_blog</span> - 生成ブログ記事（37件）</li>
+                  <li>• <span className="text-yellow-300">fragment-id</span> - Fragment ID・ディープリンク</li>
+                  <li>• すべてのブログ記事コンテンツ</li>
+                  <li>• AIトレーニングデータ</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* 実行フロー */}
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">実行フロー</h3>
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center space-x-1 text-red-300">
+                <span className="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                <span>既存ベクトル削除</span>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <div className="flex items-center space-x-1 text-blue-300">
+                <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                <span>コンテンツ抽出</span>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <div className="flex items-center space-x-1 text-green-300">
+                <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                <span>ベクトル化・保存</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 詳細情報トグル */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm text-gray-300">詳細な技術情報</span>
+            <button
+              onClick={toggleServiceDetails}
+              className="text-xs text-orange-400 hover:text-orange-300 transition-colors flex items-center space-x-1"
+            >
+              {serviceDetails.service ? (
+                <>
+                  <span>詳細を隠す</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  <span>詳細を表示</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* 詳細情報（トグル可能） */}
+          {serviceDetails.service && (
+            <div className="bg-orange-900/30 rounded-lg p-4 mb-4 border border-orange-700/50">
+              <div className="grid md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <h4 className="text-orange-300 font-medium mb-2">技術仕様</h4>
+                  <ul className="text-orange-200 space-y-1">
+                    <li>• OpenAI Embeddings による高精度ベクトル化</li>
+                    <li>• Supabase Vector (pgvector) での安全な保存</li>
+                    <li>• データベースロック機能による並行実行防止</li>
+                    <li>• React プレースホルダー除去機能</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-orange-300 font-medium mb-2">安全機能</h4>
+                  <ul className="text-orange-200 space-y-1">
+                    <li>• トランザクション処理による整合性保証</li>
+                    <li>• 2段階確認ダイアログ</li>
+                    <li>• 重要データ自動保護機能</li>
+                    <li>• 実行ログによる追跡可能性</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 実行ボタン */}
+          <button
+            onClick={handleServiceRegenerate}
+            disabled={serviceRegenerating}
+            className={`
+              w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg font-medium transition-all duration-200 
+              ${serviceRegenerating 
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-red-600 via-orange-600 to-red-700 text-white hover:from-red-700 hover:via-orange-700 hover:to-red-800 shadow-lg hover:shadow-red-500/25'
+              }
+            `}
+          >
+            {serviceRegenerating ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-lg">再ベクトル化実行中...</span>
+                <span className="text-sm opacity-75">処理完了までお待ちください</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-lg">全コンテンツ再ベクトル化を実行</span>
+                <span className="text-sm opacity-75">service / corporate / technical / structured-data</span>
+              </>
+            )}
+          </button>
+
+          {/* 注意事項 */}
+          <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <svg className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div className="text-xs text-yellow-200">
+                <strong>注意:</strong> この操作は重要なシステムデータを再構築します。実行前に必ず影響範囲を確認し、
+                生成ブログやFragment IDが保護されることを理解してから実行してください。
+              </div>
+            </div>
           </div>
         </div>
       </div>

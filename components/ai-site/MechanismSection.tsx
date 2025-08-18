@@ -7,8 +7,15 @@ export default function MechanismSection() {
 		<section id="mechanism" className="py-20 bg-gradient-to-br from-gray-900 to-slate-800 relative overflow-hidden">
 			<div className="container mx-auto px-4">
 				<div className="max-w-5xl mx-auto text-center">
-					<h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-						<TextType text="Triple RAGで“選ばれる理由”をつくる" className="text-white" showCursor={false} startOnVisible as="span" />
+					<h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
+						<span className="md:hidden block">
+							<TextType text="Triple RAGで" className="text-white" showCursor={false} startOnVisible as="span" />
+							<br />
+							<TextType text="'選ばれる理由'をつくる" className="text-white" showCursor={false} startOnVisible as="span" initialDelay={400} />
+						</span>
+						<span className="hidden md:block">
+							<TextType text="Triple RAGで'選ばれる理由'をつくる" className="text-white" showCursor={false} startOnVisible as="span" />
+						</span>
 					</h2>
 					<p className="text-lg text-gray-300 leading-relaxed mb-8">
 						自社RAG × 最新トレンドRAG × 公開記事RAG の循環で、常に最新で一貫した専門性を形成。

@@ -102,7 +102,16 @@ export default function OptionsSection() {
 		<section className="py-20 bg-gradient-to-br from-gray-900 via-slate-900 to-black">
 			<div className="container mx-auto px-4">
 				<div className="text-center mb-12">
-					<h2 className="text-3xl lg:text-4xl font-bold text-white mb-3">オプション：SNS自動配信</h2>
+					<h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 text-center">
+					<span className="md:hidden block">
+						オプション
+						<br />
+						SNS自動配信
+					</span>
+					<span className="hidden md:block">
+						オプション：SNS自動配信
+					</span>
+				</h2>
 					<p className="text-slate-300">主要SNSに、わかりやすく安全に。連携〜承認〜自動運用まで一気通貫でサポートします。</p>
 				</div>
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">

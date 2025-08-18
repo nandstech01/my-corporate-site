@@ -5,7 +5,7 @@ export default function PricingSection() {
 		<section id="pricing" className="py-20 bg-gradient-to-br from-gray-900 via-slate-900 to-black">
 			<div className="container mx-auto px-4">
 				<div className="max-w-5xl mx-auto text-center">
-					<h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">価格・プラン</h2>
+					<h2 id="pricing-title" className="text-3xl lg:text-4xl font-bold text-white mb-4">価格・プラン</h2>
 					<p className="text-gray-300 mb-10">明瞭価格で意思決定を前に進める</p>
 					<div className="grid md:grid-cols-2 gap-6">
 						<div className="bg-white/5 rounded-2xl border border-white/10 p-8 text-left">

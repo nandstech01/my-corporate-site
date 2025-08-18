@@ -76,11 +76,13 @@ export async function GET() {
       .eq('content_type', 'fragment-id');
 
     let fragmentStats = null;
-    if (!fragmentError && fragmentData && fragmentData.length > 0) {
-      // Fragment IDの詳細分析
-      const fragmentDetails: any[] = [];
-      let totalDeepLinks = 0;
+    
+    // Fragment IDの詳細分析（ブログ記事 + プロジェクト全体）
+    const fragmentDetails: any[] = [];
+    let blogDeepLinks = 0;
 
+    // 1. ブログ記事のFragment ID処理
+    if (!fragmentError && fragmentData && fragmentData.length > 0) {
       fragmentData.forEach(item => {
         // Fragment IDの抽出
         const fragmentMatches = item.content_chunk.match(/Fragment ID: ([a-zA-Z0-9_-]+)/g) || [];
@@ -91,28 +93,108 @@ export async function GET() {
           const completeURI = uriMatches[index]?.replace('完全URI: ', '') || '';
           
           fragmentDetails.push({
-            id: `${item.id}-${index}`,
+            id: `blog-${item.id}-${index}`,
             fragmentId,
             completeURI,
             source: item.section_title,
+            type: 'ブログ記事',
             created_at: item.created_at
           });
-          totalDeepLinks++;
+          blogDeepLinks++;
         });
       });
+    }
 
-      // 今後のプロジェクト全体ディープリンク計算のため
-      // Corporate (4) + Technical (4) + Service (11) の#companyディープリンクも考慮
-      const projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
-                                  (contentTypeStats.technical || 0) + 
-                                  (contentTypeStats.service || 0);
+    // 2. プロジェクト全体のFragment ID追加（エンティティマップベース）
+    const projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
+                                (contentTypeStats.technical || 0) + 
+                                (contentTypeStats.service || 0);
 
+    // サービスページのFragment ID（#service）
+    const servicePages = [
+      'AIエージェント開発サービス', 'システム開発サービス', 'AIO SEO対策サービス',
+      'ベクトルRAGシステム開発', 'AIチャットボット開発', 'AI動画生成サービス',
+      'HR支援ソリューション', 'SNS自動化システム', 'MCPサーバー開発',
+      '個人向けAIリスキリング研修', 'AIサイト開発（Triple RAG統合）',
+      'AI副業支援サービス', '法人向けAIソリューション'
+    ];
+
+    // 企業情報ページのFragment ID（#company）
+    const corporatePages = [
+      '企業情報', '会社概要', '持続可能性', 'お客様の声'
+    ];
+
+    // 技術情報ページのFragment ID（#company）
+    const technicalPages = [
+      'よくある質問', '法的情報', 'プライバシーポリシー', '利用規約'
+    ];
+
+    // プロジェクト全体Fragment IDを追加
+    servicePages.slice(0, contentTypeStats.service || 0).forEach((serviceName, index) => {
+      const slug = serviceName === 'AIエージェント開発サービス' ? 'ai-agents' :
+                   serviceName === 'システム開発サービス' ? 'system-development' :
+                   serviceName === 'AIO SEO対策サービス' ? 'aio-seo' :
+                   serviceName === 'ベクトルRAGシステム開発' ? 'vector-rag' :
+                   serviceName === 'AIチャットボット開発' ? 'chatbot-development' :
+                   serviceName === 'AI動画生成サービス' ? 'video-generation' :
+                   serviceName === 'HR支援ソリューション' ? 'hr-solutions' :
+                   serviceName === 'SNS自動化システム' ? 'sns-automation' :
+                   serviceName === 'MCPサーバー開発' ? 'mcp-servers' :
+                   serviceName === '個人向けAIリスキリング研修' ? 'reskilling' :
+                   serviceName === 'AIサイト開発（Triple RAG統合）' ? 'ai-site' :
+                   serviceName === 'AI副業支援サービス' ? 'fukugyo' :
+                   'service';
+
+      fragmentDetails.push({
+        id: `service-${index}`,
+        fragmentId: 'service',
+        completeURI: `https://nands.tech/${slug}#service`,
+        source: serviceName,
+        type: 'サービスページ',
+        created_at: new Date().toISOString()
+      });
+    });
+
+    corporatePages.slice(0, contentTypeStats.corporate || 0).forEach((pageName, index) => {
+      const slug = pageName === '企業情報' ? 'corporate' :
+                   pageName === '会社概要' ? 'about' :
+                   pageName === '持続可能性' ? 'sustainability' :
+                   'reviews';
+
+      fragmentDetails.push({
+        id: `corporate-${index}`,
+        fragmentId: 'company',
+        completeURI: `https://nands.tech/${slug}#company`,
+        source: pageName,
+        type: '企業情報ページ',
+        created_at: new Date().toISOString()
+      });
+    });
+
+    technicalPages.slice(0, contentTypeStats.technical || 0).forEach((pageName, index) => {
+      const slug = pageName === 'よくある質問' ? 'faq' :
+                   pageName === '法的情報' ? 'legal' :
+                   pageName === 'プライバシーポリシー' ? 'privacy' :
+                   'terms';
+
+      fragmentDetails.push({
+        id: `technical-${index}`,
+        fragmentId: 'company',
+        completeURI: `https://nands.tech/${slug}#company`,
+        source: pageName,
+        type: '技術情報ページ',
+        created_at: new Date().toISOString()
+      });
+    });
+
+    // Fragment ID統計の構築
+    if (fragmentDetails.length > 0) {
       fragmentStats = {
-        totalRecords: fragmentData.length,
-        totalDeepLinks: totalDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体
-        blogDeepLinks: totalDeepLinks, // ブログ内のみ
+        totalRecords: fragmentData?.length || 0,
+        totalDeepLinks: blogDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体
+        blogDeepLinks: blogDeepLinks, // ブログ内のみ
         projectWideDeepLinks: projectWideDeepLinks, // プロジェクト全体（サービス、企業情報等）
-        fragmentDetails: fragmentDetails.slice(0, 20) // 最大20件表示
+        fragmentDetails: fragmentDetails // 全35件を表示可能
       };
     }
 

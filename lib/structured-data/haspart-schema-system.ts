@@ -90,11 +90,53 @@ export class HasPartSchemaSystem {
     fragmentIds.forEach((fragmentId, index) => {
       const tocItem = tocItems?.find(item => item.id === fragmentId);
       const fragmentUrl = `${pageUrl}#${fragmentId}`;
+      
+      // FAQ Fragment IDの特別処理
+      let fragmentName = tocItem?.title || `セクション ${index + 1}`;
+      if (fragmentId.startsWith('faq-') && pageUrl.includes('/ai-site')) {
+        const faqNumber = fragmentId.replace('faq-', '');
+        const faqTitles = [
+          'AIサイトとは何ですか？',
+          'AIサイトと通常のサイトの違いは？',
+          'AIに引用されるサイトの重要性は？',
+          'レリバンスエンジニアリングとは？',
+          'Fragment IDとは何ですか？',
+          'Triple RAGシステムとは？',
+          '構造化データの役割は？',
+          '自動ベクトルブログとは？',
+          'Complete URIの仕組みは？',
+          'ベクトル検索との違いは？',
+          'AIに引用されるとどんなメリットがありますか？',
+          'ROI（投資対効果）はどれくらい？',
+          '導入効果の測定方法は？',
+          '競合他社との差別化要因は？',
+          '24時間365日無人営業とは？',
+          '既存サイトへの実装は可能ですか？',
+          '実装期間はどれくらいですか？',
+          'IT補助金は活用できますか？',
+          '運用保守は必要ですか？',
+          'セキュリティ対策は？',
+          'AI検索の普及はどれくらい進んでいますか？',
+          'どの業界に効果的ですか？',
+          'Google検索との関係は？',
+          'ChatGPTやClaude以外のAIにも対応？',
+          '国際的な展開は可能ですか？',
+          'AIに引用されることのリスクはありますか？',
+          '従来のSEOとの違いは？',
+          '小規模企業でも効果ありますか？',
+          '他社サービスとの違いは？',
+          '成果が出ない場合はどうなりますか？'
+        ];
+        const idx = parseInt(faqNumber) - 1;
+        if (idx >= 0 && idx < faqTitles.length) {
+          fragmentName = faqTitles[idx];
+        }
+      }
 
       const fragmentSchema: HasPartSchema = {
         '@type': 'CreativeWork',
         '@id': fragmentUrl,
-        name: tocItem?.title || `セクション ${index + 1}`,
+        name: fragmentName,
         url: fragmentUrl,
         position: this.config.includePosition ? index + 1 : undefined,
         isPartOf: {

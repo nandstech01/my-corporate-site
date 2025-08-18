@@ -45,7 +45,7 @@ export default function AIHeroSection() {
 							</span>
 						</span>
 					</div>
-					<h1 className="mb-2 lg:mb-5 leading-tight">
+					<h1 id="main-title" className="mb-2 lg:mb-5 leading-tight">
 						{/* SPのみ上余白付与 */}
 						<span 
 							className="bg-gradient-to-r bg-clip-text text-transparent font-bold text-3xl lg:text-7xl whitespace-nowrap mt-2 lg:mt-0 block mb-4 lg:mb-0"
@@ -115,8 +115,8 @@ export default function AIHeroSection() {
 						)}
 					</p>
 
-					{/* CTA: 無料相談申込み（デザインは相談チャットのまま、スクロール動作に変更） */}
-					<div className="mt-14 sm:mt-16 lg:mt-24 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+									{/* CTA: 無料相談申込み（デザインは相談チャットのまま、スクロール動作に変更） */}
+				<div className="mt-10 sm:mt-12 lg:mt-16 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
 						<button
 							onClick={scrollToContact}
 							className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-teal-400 via-cyan-500 to-sky-500 p-[1px] shadow-[0_18px_50px_rgba(34,211,238,0.28)] hover:shadow-[0_28px_80px_rgba(34,211,238,0.38)] transition-all duration-300 transform hover:scale-[1.02]">
@@ -128,8 +128,8 @@ export default function AIHeroSection() {
 						</button>
 					</div>
 
-					{/* Chat inline opener */}
-					<div className="mt-20 sm:mt-24 lg:mt-36 flex justify-center px-4">
+									{/* Chat inline opener */}
+				<div className="mt-16 sm:mt-18 lg:mt-24 flex justify-center px-4">
 						<button onClick={() => setIsChatOpen(true)} aria-label="AIチャットを開く" className="group w-full max-w-3xl relative overflow-hidden rounded-full p-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-teal-400 shadow-[0_14px_50px_rgba(34,211,238,0.35)] hover:shadow-[0_24px_90px_rgba(34,211,238,0.5)] transition-all">
 							{/* 外側ネオンオーラ */}
 							<span aria-hidden className="absolute -inset-4 rounded-full bg-cyan-400/25 blur-3xl opacity-50 group-hover:opacity-70 transition" />
@@ -145,7 +145,7 @@ export default function AIHeroSection() {
 									<TextType
 										as="span"
 										className="tracking-wide"
-										text={isMobile ? '質問してみましょう' : '営業マンに質問してみましょう'}
+										text={isMobile ? '質問してみましょう' : '質問してみましょう'}
 										typingSpeed={60}
 										startOnVisible
 										showCursor={false}

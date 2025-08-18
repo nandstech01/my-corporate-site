@@ -1,9 +1,13 @@
 import { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
+import Script from 'next/script'
 import PostsGridSSR from '@/components/common/PostsGridSSR'
 import PostsGridAnimations from '@/components/common/PostsGridAnimations'
+import TableOfContents from '@/components/common/TableOfContents'
 import { getUnifiedSupabaseClient } from '@/lib/supabase/unified-client'
+import { UnifiedStructuredDataSystem } from '@/lib/structured-data/index'
+import type { TOCItem } from '@/components/common/TableOfContents'
 
 // SSR ラッパー（各セクションはテキストSSR・アニメCSR方針）
 import AIHeader from '../../components/ai-site/AIHeader'
@@ -116,9 +120,96 @@ async function getLatestPosts(): Promise<Post[]> {
 	}
 }
 
+// AI-site専用目次（Mike King理論準拠 - レリバンスエンジニアリング最適化）
+const aiSiteTocItems: TOCItem[] = [
+  { 
+    id: 'main-title', 
+    title: 'AIサイト - 24時間365日無人営業システム', 
+    level: 1,
+    semanticWeight: 0.98,
+    targetQueries: ['AIサイト とは', 'AI引用される サイト', 'レリバンスエンジニアリング', '24時間365日 無人営業'],
+    entities: ['AIサイト', 'AI引用', 'レリバンスエンジニアリング', '無人営業', 'nands.tech']
+  },
+  { 
+    id: 'features-title', 
+    title: '機能一覧 - Triple RAG & Fragment ID', 
+    level: 1,
+    semanticWeight: 0.95,
+    targetQueries: ['Triple RAG システム', 'Fragment ID 実装', '構造化データ 自動生成', 'ベクトル検索'],
+    entities: ['Triple RAG', 'Fragment ID', '構造化データ', 'Complete URI', 'ベクトル検索']
+  },
+  { 
+    id: 'pricing-title', 
+    title: '価格・プラン - IT補助金対応', 
+    level: 1,
+    semanticWeight: 0.92,
+    targetQueries: ['AIサイト 価格', 'レリバンスエンジニアリング 費用', 'IT補助金 活用', 'ROI 投資対効果'],
+    entities: ['価格設定', 'IT補助金', 'ROI', '投資対効果', '月額運用']
+  },
+  { 
+    id: 'faq-title', 
+    title: 'よくある質問 - AI引用最適化の全て', 
+    level: 1,
+    semanticWeight: 0.94,
+    targetQueries: ['AIサイト FAQ', 'AI引用 方法', 'Mike King理論 質問', 'レリバンスエンジニアリング 効果'],
+    entities: ['AI引用FAQ', 'Mike King理論', 'AI検索最適化', 'Fragment ID効果', 'Complete URI']
+  },
+  { 
+    id: 'latest-blog-posts', 
+    title: '最新記事 - AI技術・実装事例', 
+    level: 1,
+    semanticWeight: 0.90,
+    targetQueries: ['AI技術 最新情報', '実装事例', 'レリバンスエンジニアリング 記事', 'AI検索 対策'],
+    entities: ['AI技術記事', '実装事例', '技術情報', 'ブログ記事', '最新トレンド']
+  },
+  { 
+    id: 'contact', 
+    title: 'お問い合わせ - 30分無料デモ', 
+    level: 1,
+    semanticWeight: 0.88,
+    targetQueries: ['AIサイト 相談', '無料デモ', 'レリバンスエンジニアリング 導入', 'AI引用 問い合わせ'],
+    entities: ['お問い合わせ', '無料デモ', '導入相談', 'コンタクト', '30分デモ']
+  }
+];
+
+// 構造化データ用のTOCアイテム（anchorプロパティ追加）
+const aiSiteTocItemsForStructuredData = aiSiteTocItems.map(item => ({
+  id: item.id,
+  title: item.title,
+  level: item.level,
+  anchor: `#${item.id}`
+}));
+
 export default async function AISitePage() {
 	const posts = await getLatestPosts();
+	
+	// AI-site専用構造化データ生成（原田賢治の権威性含む）
+	const structuredDataSystem = new UnifiedStructuredDataSystem();
+	const aiSiteStructuredData = structuredDataSystem.generateWebPageSchemaWithHasPart({
+		path: '/ai-site',
+		title: 'AIサイト｜自立して育つ、24時間365日 無人営業マン搭載の"AIに引用される"サイト',
+		description: 'Triple RAG × 自動ベクトルブログ × 構造化データ。AIに引用される設計を標準搭載。IT補助金活用可。まずは30分デモ。',
+		serviceType: 'AISiteService',
+		toc: aiSiteTocItemsForStructuredData,
+		fragmentIds: [
+			'main-title', 'features-title', 'pricing-title', 'faq-title',
+			'faq-1', 'faq-2', 'faq-3', 'faq-4', 'faq-5', 'faq-6', 'faq-7', 'faq-8', 'faq-9', 'faq-10',
+			'faq-11', 'faq-12', 'faq-13', 'faq-14', 'faq-15', 'faq-16', 'faq-17', 'faq-18', 'faq-19', 'faq-20',
+			'faq-21', 'faq-22', 'faq-23', 'faq-24', 'faq-25', 'faq-26', 'faq-27', 'faq-28', 'faq-29', 'faq-30'
+		]
+	});
+
 	return (
+		<>
+			{/* AI-site専用構造化データ（原田賢治の権威性・FAQ・hasPartスキーマ統合） */}
+			<Script
+				id="ai-site-structured-data"
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(aiSiteStructuredData, null, 2)
+				}}
+			/>
+			
 		<main className="relative min-h-screen overflow-hidden">
 			{/* Fragment ID for Entity Map - Hidden from users */}
 			<div id="service" style={{ display: 'none' }} aria-hidden="true" />
@@ -130,6 +221,13 @@ export default async function AISitePage() {
 			</div>
 
 			<AIHeader />
+			
+			{/* Table of Contents（メインページ同様のおしゃれなナビゲーション） */}
+			<div className="bg-black py-3 border-b border-gray-800">
+				<div className="container mx-auto px-4">
+					<TableOfContents items={aiSiteTocItems} compact={true} />
+				</div>
+			</div>
 			<AIHeroSectionSSR />
 			<EmpathySectionSSR />
 			<MechanismSectionSSR />
@@ -163,5 +261,6 @@ export default async function AISitePage() {
 
 			<ContactSectionSSR />
 		</main>
+		</>
 	)
 } 

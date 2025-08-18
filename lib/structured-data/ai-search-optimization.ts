@@ -487,6 +487,276 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     semanticWeight: 0.85,
     hierarchyLevel: 2,
     relatedFragments: ['training-subsidy', 'it-subsidy']
+  },
+  
+  // AI-siteページ専用Fragment IDs
+  {
+    id: 'main-title',
+    sectionName: 'AIに"引用される"サイト - メインタイトル',
+    targetQueries: [
+      'AI 引用される サイト',
+      'レリバンスエンジニアリング サイト',
+      'Mike King理論 実装',
+      'AI検索最適化 サイト構築'
+    ],
+    entities: [
+      {
+        entity: 'レリバンスエンジニアリング',
+        entityType: 'Methodology',
+        context: 'implements',
+        importance: 10,
+        relatedKnowledge: ['Mike King理論', 'Fragment ID', 'Complete URI'],
+        searchIntents: ['AI引用 仕組み', 'レリバンスエンジニアリング とは'],
+        coOccurringTerms: ['Mike King', 'Fragment ID', 'AI引用', 'Complete URI']
+      }
+    ],
+    semanticWeight: 0.98,
+    hierarchyLevel: 1,
+    relatedFragments: ['relevance-engineering-overview', 'features', 'pricing']
+  },
+  {
+    id: 'features',
+    sectionName: 'AIサイト機能・特徴一覧',
+    targetQueries: [
+      'AIサイト 機能',
+      'Triple RAG システム',
+      '自動ベクトルブログ',
+      'Fragment ID 自動付与'
+    ],
+    entities: [
+      {
+        entity: 'Triple RAG',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['ベクトル検索', 'RAG アーキテクチャ', 'LLM統合'],
+        searchIntents: ['Triple RAG とは', 'RAG システム 構築'],
+        coOccurringTerms: ['Vector Database', 'Embeddings', 'Retrieval']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'mechanism', 'pricing']
+  },
+  {
+    id: 'pricing',
+    sectionName: 'AIサイト料金プラン',
+    targetQueries: [
+      'AIサイト 料金',
+      'レリバンスエンジニアリング 費用',
+      'AI引用サイト 価格',
+      'Fragment ID実装 コスト'
+    ],
+    entities: [
+      {
+        entity: 'IT補助金対応',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['補助金制度', 'DX投資', 'IT導入支援'],
+        searchIntents: ['IT補助金 AI', 'AIサイト 補助金'],
+        coOccurringTerms: ['IT補助金', 'DX投資', '補助金制度']
+      }
+    ],
+    semanticWeight: 0.85,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'features', 'subsidy']
+  },
+  
+  // H2タイトル専用Fragment IDs
+  {
+    id: 'features-title',
+    sectionName: '機能一覧タイトル',
+    targetQueries: [
+      '機能一覧',
+      'AIサイト 機能',
+      'レリバンスエンジニアリング 機能',
+      'Fragment ID 機能'
+    ],
+    entities: [
+      {
+        entity: 'レリバンスエンジニアリング機能',
+        entityType: 'Service',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['機能設計', 'AI最適化', 'Fragment ID'],
+        searchIntents: ['機能一覧', 'AIサイト機能'],
+        coOccurringTerms: ['機能', 'Features', 'レリバンスエンジニアリング']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'features', 'pricing-title']
+  },
+  {
+    id: 'pricing-title',
+    sectionName: '価格・プランタイトル',
+    targetQueries: [
+      '価格',
+      'プラン',
+      'AIサイト 料金',
+      'レリバンスエンジニアリング 価格'
+    ],
+    entities: [
+      {
+        entity: '価格体系',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['料金プラン', 'IT補助金', 'ROI'],
+        searchIntents: ['価格', '料金', 'プラン'],
+        coOccurringTerms: ['価格', 'プラン', '料金', 'Pricing']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'pricing', 'faq-title']
+  },
+  {
+    id: 'faq-title',
+    sectionName: 'よくある質問タイトル',
+    targetQueries: [
+      'よくある質問',
+      'FAQ',
+      'AIサイト FAQ',
+      'レリバンスエンジニアリング 質問'
+    ],
+    entities: [
+      {
+        entity: 'FAQ',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 7,
+        relatedKnowledge: ['質問', '回答', 'サポート'],
+        searchIntents: ['FAQ', 'よくある質問', '質問'],
+        coOccurringTerms: ['FAQ', '質問', 'Q&A', 'サポート']
+      }
+    ],
+    semanticWeight: 0.82,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'pricing-title', 'faq']
+  },
+  
+  // FAQ個別Fragment IDs (AI認識変革戦略)
+  {
+    id: 'faq-1',
+    sectionName: 'AIサイトとは何ですか？',
+    targetQueries: [
+      'AIサイトとは',
+      'AIサイト 意味',
+      'AI引用されるサイト',
+      'レリバンスエンジニアリング サイト'
+    ],
+    entities: [
+      {
+        entity: 'AIサイト定義',
+        entityType: 'Concept',
+        context: 'implements',
+        importance: 10,
+        relatedKnowledge: ['AI引用', 'レリバンスエンジニアリング', 'Fragment ID'],
+        searchIntents: ['AIサイトとは', 'AI引用サイト'],
+        coOccurringTerms: ['AIサイト', 'AI引用', 'ChatGPT', 'Perplexity']
+      }
+    ],
+    semanticWeight: 0.95,
+    hierarchyLevel: 3,
+    relatedFragments: ['faq-title', 'faq-2', 'main-title']
+  },
+  {
+    id: 'faq-2',
+    sectionName: 'AIサイトと通常のサイトの違いは？',
+    targetQueries: [
+      'AIサイト 違い',
+      'AI最適化 サイト',
+      'Fragment ID サイト',
+      '構造化データ サイト'
+    ],
+    entities: [
+      {
+        entity: 'AIサイト差別化',
+        entityType: 'Concept',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['Fragment ID', '構造化データ', 'Triple RAG'],
+        searchIntents: ['AIサイト違い', 'AI最適化'],
+        coOccurringTerms: ['差別化', 'AI最適化', '構造化データ']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 3,
+    relatedFragments: ['faq-1', 'faq-3', 'features-title']
+  },
+  {
+    id: 'faq-5',
+    sectionName: 'Fragment IDとは何ですか？',
+    targetQueries: [
+      'Fragment ID とは',
+      'フラグメントID',
+      'AI引用 ID',
+      'Complete URI'
+    ],
+    entities: [
+      {
+        entity: 'Fragment ID技術',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['Complete URI', 'AI引用', 'Mike King理論'],
+        searchIntents: ['Fragment IDとは', 'AI引用技術'],
+        coOccurringTerms: ['Fragment ID', 'URI', 'AI引用', 'Mike King']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 3,
+    relatedFragments: ['faq-title', 'faq-9', 'features']
+  },
+  {
+    id: 'faq-6',
+    sectionName: 'Triple RAGシステムとは？',
+    targetQueries: [
+      'Triple RAG とは',
+      'RAGシステム',
+      'Retrieval-Augmented Generation',
+      '企業RAG'
+    ],
+    entities: [
+      {
+        entity: 'Triple RAGアーキテクチャ',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['RAG', 'ベクトル検索', 'LLM', 'AI生成'],
+        searchIntents: ['Triple RAGとは', 'RAGシステム'],
+        coOccurringTerms: ['Triple RAG', 'ベクトル', '生成AI', 'LLM']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 3,
+    relatedFragments: ['faq-5', 'faq-8', 'features']
+  },
+  {
+    id: 'faq-11',
+    sectionName: 'AIに引用されるとどんなメリットがありますか？',
+    targetQueries: [
+      'AI引用 メリット',
+      'AIサイト 効果',
+      'AI検索 メリット',
+      'レリバンスエンジニアリング 効果'
+    ],
+    entities: [
+      {
+        entity: 'AI引用メリット',
+        entityType: 'Concept',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['ブランド権威性', '集客効果', '競合優位性'],
+        searchIntents: ['AI引用メリット', 'AIサイト効果'],
+        coOccurringTerms: ['メリット', 'ブランド', '権威性', '集客']
+      }
+    ],
+    semanticWeight: 0.85,
+    hierarchyLevel: 3,
+    relatedFragments: ['faq-title', 'faq-12', 'pricing-title']
   }
 ];
 

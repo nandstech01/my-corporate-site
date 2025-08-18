@@ -14,13 +14,20 @@ export default function EmpathySection() {
 					<div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-6 py-2 mb-6">
 						<span className="text-white font-semibold text-sm">時代背景</span>
 					</div>
-					<h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-relaxed">
-						<TextType text="検索は “10件から1件を選ぶ” から、AIが1件を選ぶ時代へ" className="text-white" showCursor={false} startOnVisible as="span" />
+					<h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-relaxed text-center">
+						<span className="md:hidden block">
+							<TextType text="検索は '10件から1件を選ぶ' から" className="text-white" showCursor={false} startOnVisible as="span" />
+							<br />
+							<TextType text="AIが1件を選ぶ時代へ" className="text-white" showCursor={false} startOnVisible as="span" initialDelay={500} />
+						</span>
+						<span className="hidden md:block">
+							<TextType text="検索は '10件から1件を選ぶ' から、AIが1件を選ぶ時代へ" className="text-white" showCursor={false} startOnVisible as="span" />
+						</span>
 					</h2>
 					<p className="text-xl text-slate-300 leading-relaxed">
 						AIに<strong className="text-cyan-300">引用されない = 見つけられない</strong>。従来型サイトでは、2年後に機会損失が常態化します。
 						<br className="hidden lg:block" />
-						AIサイトは最初から<strong className="text-cyan-300">“AIに選ばれる構造”</strong>を備えた、自己成長型の集客資産です。
+						AIサイトは最初から<strong className="text-cyan-300">"AIに選ばれる構造"</strong>を備えた、自己成長型の集客資産です。
 					</p>
 				</div>
 			</div>

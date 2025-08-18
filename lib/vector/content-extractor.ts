@@ -28,7 +28,7 @@ interface ServicePageInfo {
   technicalSpecs: string;
 }
 
-// 全11サービスページの情報（lp、ai-site含む）
+// 全14サービスページの情報（完全版）
 const SERVICE_PAGES: ServicePageInfo[] = [
   {
     slug: 'ai-agents',
@@ -75,15 +75,7 @@ const SERVICE_PAGES: ServicePageInfo[] = [
     pricing: 'ベーシック: 25万円〜、スタンダード: 50万円〜、プレミアム: 100万円〜',
     technicalSpecs: 'OpenAI GPT-4, RAGシステム, WebSocket, React'
   },
-  {
-    slug: 'video-generation',
-    serviceId: 'video-generation',
-    title: 'AI動画生成サービス',
-    description: '最新AI技術による自動動画生成。マーケティング、教育、プレゼンテーション用途に最適化された高品質動画制作。',
-    features: ['AI自動生成', 'カスタムテンプレート', '多様な形式出力', 'ブランディング対応'],
-    pricing: 'ライト: 10万円〜、スタンダード: 25万円〜、プロ: 50万円〜',
-    technicalSpecs: 'AI動画生成エンジン, カスタムテンプレート, 4K出力対応'
-  },
+
   {
     slug: 'hr-solutions',
     serviceId: 'hr-solutions',
@@ -114,11 +106,11 @@ const SERVICE_PAGES: ServicePageInfo[] = [
   {
     slug: 'lp',
     serviceId: 'lp',
-    title: '人材開発支援助成金対応AI研修',
-    description: '人材開発支援助成金を活用したAI研修プログラム。リスキリング、SNS自動運用、レリバンスエンジニアリングの実践的研修。',
-    features: ['助成金対応研修', 'AI実践スキル', 'SNS運用技術', 'GEO最適化手法'],
-    pricing: '基本プラン: 50万円〜、充実プラン: 100万円〜、包括プラン: 200万円〜（助成金活用可能）',
-    technicalSpecs: '実践的カリキュラム, ハンズオン形式, 成果測定システム, フォローアップ支援'
+    title: '個人向けAIリスキリング研修',
+    description: '人材開発支援助成金を活用した個人向けAI研修プログラム。ChatGPT活用、SNS自動運用、AI副業支援などの実践的スキル習得。',
+    features: ['助成金対応研修', 'ChatGPT実践活用', 'AI副業支援', 'SNS運用技術', 'キャリアアップ支援'],
+    pricing: '基本プラン: 5万円〜、充実プラン: 15万円〜、包括プラン: 30万円〜（助成金活用可能）',
+    technicalSpecs: '個別指導対応, オンライン学習, 実践課題, 就職・転職サポート'
   },
   {
     slug: 'ai-site',
@@ -128,6 +120,33 @@ const SERVICE_PAGES: ServicePageInfo[] = [
     features: ['Triple RAG統合', '自動ブログ生成', 'Fragment ID実装', 'AI検索最適化'],
     pricing: 'スタンダード: 100万円〜、プレミアム: 200万円〜、フルパッケージ: 400万円〜',
     technicalSpecs: 'Next.js 14, OpenAI Embeddings, Supabase Vector, 構造化データ, レリバンスエンジニアリング'
+  },
+  {
+    slug: 'fukugyo',
+    serviceId: 'fukugyo',
+    title: 'AI副業支援サービス',
+    description: 'ChatGPTを活用したSEOライティングや副業ノウハウをサポート。AI時代の新しい働き方を実現する包括的副業支援プラットフォーム。',
+    features: ['ChatGPT活用技術', 'SEOライティング', '副業戦略立案', 'AI活用スキル習得'],
+    pricing: 'ベーシック: 5万円〜、スタンダード: 12万円〜、プレミアム: 25万円〜',
+    technicalSpecs: 'ChatGPT API, SEO最適化ツール, コンテンツ管理システム, 収益分析ダッシュボード'
+  },
+  {
+    slug: 'corporate',
+    serviceId: 'corporate',
+    title: '法人向けAIソリューション',
+    description: '企業のDX推進と生成AI活用を支援する包括的なソリューション。業界別カスタマイズ対応により組織全体のAIリテラシー向上を実現。',
+    features: ['AIリスキリング研修', 'DX推進支援', '業務自動化コンサルティング', 'AI戦略・ガバナンス構築'],
+    pricing: 'AIリスキリング研修: 300万円〜、DX推進支援: 500万円〜、業務自動化: 200万円〜、AI戦略: 800万円〜',
+    technicalSpecs: '業界別カスタマイズ、包括的サポート体制、ROI計算ツール、継続的フォローアップ'
+  },
+  {
+    slug: 'video-generation',
+    serviceId: 'video-generation',
+    title: 'AI動画生成サービス',
+    description: 'Midjourney、Veo 3、Runway MLなどの最新AI動画生成APIを活用し、コンテンツ制作を革新的に効率化するシステムを構築。',
+    features: ['テキスト→動画生成', '画像→動画変換', 'AI画像生成統合', 'バッチ処理システム'],
+    pricing: 'テキスト→動画: 300万円〜、画像→動画: 250万円〜、AI画像統合: 400万円〜、バッチ処理: 600万円〜',
+    technicalSpecs: 'Midjourney API, Veo 3, Runway ML, DALL-E 3, Stable Diffusion, バッチ処理対応'
   }
 ];
 
@@ -367,11 +386,8 @@ export class ContentExtractor {
     const contents: ExtractedContent[] = [];
     const appPath = join(this.basePath, 'app');
     
-    const serviceDirectories = [
-      'ai-agents', 'chatbot-development', 'vector-rag', 'aio-seo',
-      'video-generation', 'hr-solutions', 'system-development',
-      'sns-automation', 'mcp-servers', 'lp', 'ai-site'
-    ];
+    // SERVICE_PAGESから動的にディレクトリリストを生成（重複防止）
+    const serviceDirectories = SERVICE_PAGES.map(page => page.slug);
     
     for (const serviceDir of serviceDirectories) {
       const servicePath = join(appPath, serviceDir);
