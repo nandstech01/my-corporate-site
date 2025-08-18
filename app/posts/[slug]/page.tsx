@@ -51,72 +51,84 @@ interface PageProps {
 async function getPost(slug: string): Promise<Post | null> {
   const supabase = createClient()
   
-  console.log('検索するslug:', slug)
+  console.log('🔍 記事検索開始 - slug:', slug)
   
   // URLデコードを安全に実行
   let decodedSlug: string;
   try {
     decodedSlug = decodeURIComponent(slug);
   } catch (error) {
-    console.error('URL decode error:', error);
+    console.error('❌ URL decode error:', error);
     decodedSlug = slug; // デコードに失敗した場合は元のslugを使用
   }
   
-  console.log('デコード後のslug:', decodedSlug);
-  console.log('元のslugの長さ:', slug.length);
-  console.log('デコード後slugの長さ:', decodedSlug.length);
+  console.log('✅ デコード完了 - 元:', slug, '→ 後:', decodedSlug)
   
-  // 長いslugの場合は部分検索も試行（URL エンコード前後両方チェック）
-  const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
-  console.log('長いslug判定:', isLongSlug);
-  
-  // 長いslugの場合は直接フォールバック検索を実行
-  if (isLongSlug) {
-    console.log('⚠️ 長いslugを検出、直接フォールバック検索を実行');
-    return await performFallbackSearch(supabase, decodedSlug);
-  }
-
   try {
-    // 通常の長さのslugの場合のみ直接検索を実行
-    // まずpostsテーブルから検索
-    const { data: newPost, error: newError } = await supabase
+    // 長いslugの場合は部分検索も試行（URL エンコード前後両方チェック）
+    const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
+    
+    console.log(`🔄 検索実行中 - 長いslug: ${isLongSlug}`)
+    
+    // まず正確なslugで検索（新しいpostsテーブル）
+    let { data: newPost, error: newError } = await supabase
       .from('posts')
       .select('*')
-      .eq('slug', decodedSlug)
       .eq('status', 'published')
+      .eq('slug', decodedSlug)
       .single()
     
-    console.log('postsテーブル検索結果:', newPost, newError)
+    if (newError && newError.code !== 'PGRST116') {
+      console.error('❌ postsテーブル検索エラー:', newError)
+    }
     
-    if (newPost && !newError) {
+    if (newPost) {
+      console.log('✅ 新記事テーブルで発見:', newPost.title)
       return newPost
     }
     
-    // postsテーブルに見つからない場合は、chatgpt_postsテーブルから検索
-    const { data: oldPosts, error: oldError } = await supabase
+    // 新しいテーブルで見つからない場合、古いテーブルを検索
+    let { data: oldPost, error: oldError } = await supabase
       .from('chatgpt_posts')
-      .select(`
-        *,
-        categories:category_id(name, slug)
-      `)
+      .select('*')
+      .eq('status', 'published')
       .eq('slug', decodedSlug)
-      .eq('status', 'published');
+      .single()
     
-    if (oldError) {
-      console.error('chatgpt_posts検索エラー:', oldError);
-      return null;
+    if (oldError && oldError.code !== 'PGRST116') {
+      console.error('❌ chatgpt_postsテーブル検索エラー:', oldError)
     }
     
-    if (oldPosts && oldPosts.length > 0) {
-      return oldPosts[0];
+    if (oldPost) {
+      console.log('✅ 旧記事テーブルで発見:', oldPost.title)
+      return oldPost
     }
     
-  } catch (queryError) {
-    console.error('Database query error:', queryError);
-    return await performFallbackSearch(supabase, decodedSlug);
+    // 長いslugの場合は部分検索を実行
+    if (isLongSlug) {
+      console.log('🔄 長いslugのため部分検索を実行')
+      
+      // 部分検索（両テーブル）
+      const { data: partialResults } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('status', 'published')
+        .or(`slug.ilike.%${decodedSlug.substring(0, 40)}%,slug.ilike.%${slug.substring(0, 40)}%`)
+        .limit(5)
+      
+      if (partialResults && partialResults.length > 0) {
+        console.log('✅ 部分検索で発見:', partialResults[0].title)
+        return partialResults[0]
+      }
+    }
+    
+    console.log('❌ 記事が見つかりませんでした:', decodedSlug)
+    return null
+    
+  } catch (error) {
+    console.error('❌ getPost完全失敗:', error)
+    return null
   }
-  
-  return null;
 }
 
 // フォールバック検索関数
@@ -210,24 +222,34 @@ export async function generateStaticParams() {
   const supabase = createClient()
   
   try {
+    console.log('🔄 SSG: 記事一覧を取得中...')
+    
     // postsテーブルから公開済み記事のslugを取得
-    const { data: newPosts } = await supabase
+    const { data: newPosts, error: newPostsError } = await supabase
       .from('posts')
       .select('slug')
       .eq('status', 'published')
       .order('created_at', { ascending: false })
     
+    if (newPostsError) {
+      console.error('❌ SSG: postsテーブル取得エラー:', newPostsError)
+    }
+    
     // chatgpt_postsテーブルから公開済み記事のslugを取得
-    const { data: oldPosts } = await supabase
+    const { data: oldPosts, error: oldPostsError } = await supabase
       .from('chatgpt_posts')
       .select('slug')
       .eq('status', 'published')
       .order('created_at', { ascending: false })
     
-    // 全slugを結合（重複除去）
+    if (oldPostsError) {
+      console.error('❌ SSG: chatgpt_postsテーブル取得エラー:', oldPostsError)
+    }
+    
+    // 安全にslugを結合（nullチェック追加）
     const allSlugs = [
-      ...(newPosts || []).map(post => ({ slug: post.slug })),
-      ...(oldPosts || []).map(post => ({ slug: post.slug }))
+      ...(newPosts || []).filter(post => post.slug).map(post => ({ slug: post.slug })),
+      ...(oldPosts || []).filter(post => post.slug).map(post => ({ slug: post.slug }))
     ]
     
     // 重複するslugを除去
@@ -235,11 +257,14 @@ export async function generateStaticParams() {
       index === self.findIndex(t => t.slug === item.slug)
     )
     
-    console.log(`🔄 SSG: ${uniqueSlugs.length}件の記事をビルド時に静的生成`)
+    console.log(`✅ SSG: ${uniqueSlugs.length}件の記事をビルド時に静的生成`)
+    console.log('📋 SSG対象記事:', uniqueSlugs.slice(0, 5).map(item => item.slug))
+    
     return uniqueSlugs
     
   } catch (error) {
-    console.error('SSG generateStaticParams error:', error)
+    console.error('❌ SSG: generateStaticParams完全失敗:', error)
+    // エラー時は空配列を返して本番ビルドを続行
     return []
   }
 }
