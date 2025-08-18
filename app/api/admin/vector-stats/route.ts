@@ -69,7 +69,54 @@ export async function GET() {
       last_month: allVectors?.filter(v => new Date(v.created_at) > monthAgo).length || 0
     };
 
-    // 7. 検索性能統計（サンプル）
+    // 7. Fragment ID・ディープリンク統計
+    const { data: fragmentData, error: fragmentError } = await supabaseServiceRole
+      .from('company_vectors')
+      .select('id, content_chunk, section_title, created_at')
+      .eq('content_type', 'fragment-id');
+
+    let fragmentStats = null;
+    if (!fragmentError && fragmentData && fragmentData.length > 0) {
+      // Fragment IDの詳細分析
+      const fragmentDetails: any[] = [];
+      let totalDeepLinks = 0;
+
+      fragmentData.forEach(item => {
+        // Fragment IDの抽出
+        const fragmentMatches = item.content_chunk.match(/Fragment ID: ([a-zA-Z0-9_-]+)/g) || [];
+        const uriMatches = item.content_chunk.match(/完全URI: (https:\/\/[^\s]+)/g) || [];
+
+        fragmentMatches.forEach((match: string, index: number) => {
+          const fragmentId = match.replace('Fragment ID: ', '');
+          const completeURI = uriMatches[index]?.replace('完全URI: ', '') || '';
+          
+          fragmentDetails.push({
+            id: `${item.id}-${index}`,
+            fragmentId,
+            completeURI,
+            source: item.section_title,
+            created_at: item.created_at
+          });
+          totalDeepLinks++;
+        });
+      });
+
+      // 今後のプロジェクト全体ディープリンク計算のため
+      // Corporate (4) + Technical (4) + Service (11) の#companyディープリンクも考慮
+      const projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
+                                  (contentTypeStats.technical || 0) + 
+                                  (contentTypeStats.service || 0);
+
+      fragmentStats = {
+        totalRecords: fragmentData.length,
+        totalDeepLinks: totalDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体
+        blogDeepLinks: totalDeepLinks, // ブログ内のみ
+        projectWideDeepLinks: projectWideDeepLinks, // プロジェクト全体（サービス、企業情報等）
+        fragmentDetails: fragmentDetails.slice(0, 20) // 最大20件表示
+      };
+    }
+
+    // 8. 検索性能統計（サンプル）
     const searchPerformance = {
       maxSimilarity: 0.95,
       avgSimilarity: 0.78,
@@ -84,6 +131,10 @@ export async function GET() {
       // 基本統計
       totalVectors: allVectors?.length || 0,
       vectorsByType: contentTypeStats,
+      searchPerformance,
+      
+      // Fragment ID・ディープリンク統計
+      fragmentStats,
       
       // 詳細統計
       detailedStats: {
@@ -136,9 +187,7 @@ export async function GET() {
           })) || []
         }
       },
-      
-      // 検索性能
-      searchPerformance,
+
       
       // システム情報
       systemInfo: {
