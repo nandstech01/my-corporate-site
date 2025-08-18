@@ -137,6 +137,9 @@ const TermsPage = () => {
       />
 
       <div className="pt-16 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Fragment ID for Entity Map - Hidden from users */}
+        <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+        
         {/* ヘッダーセクション - Fragment ID: terms-header */}
         <section id="terms-header" className="py-16 bg-gradient-to-br from-slate-700 to-blue-800 text-white">
           <div className="max-w-4xl mx-auto px-4 text-center">

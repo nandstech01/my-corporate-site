@@ -202,7 +202,11 @@ export class UnifiedIntegrationSystem {
       const tableOfContents = this.generateTableOfContents(context);
 
       // Fragment IDsを生成
-      const fragmentIds = tableOfContents.map(item => item.id);
+      const tocFragmentIds = tableOfContents.map(item => item.id);
+      
+      // Entity Map Fragment ID（Corporate・Technical専用）を追加
+      const entityMapFragmentIds = this.getEntityMapFragmentIds(context.pageSlug);
+      const fragmentIds = [...tocFragmentIds, ...entityMapFragmentIds];
 
       // Phase 3: hasPartスキーマを生成
       const hasPartSchemas = this.hasPartSystem.generateFragmentBasedSchema(
@@ -881,6 +885,21 @@ export class UnifiedIntegrationSystem {
         certifications: ['AWS Certified', 'Google Cloud Professional']
       }
     };
+  }
+
+  /**
+   * Entity Map Fragment IDsを取得（Corporate・Technical専用）
+   */
+  private getEntityMapFragmentIds(pageSlug: string): string[] {
+    // Corporate・Technical関連ページで`#company`フラグメントIDを使用
+    const corporatePages = ['corporate', 'about', 'reviews', 'sustainability'];
+    const technicalPages = ['privacy', 'terms', 'legal', 'faq'];
+    
+    if (corporatePages.includes(pageSlug) || technicalPages.includes(pageSlug)) {
+      return ['company']; // #company Fragment ID
+    }
+    
+    return [];
   }
 
   /**

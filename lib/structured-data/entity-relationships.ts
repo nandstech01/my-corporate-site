@@ -542,6 +542,138 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       '24時間サポート',
       '専任担当'
     ]
+  },
+
+  // 持続可能性ページ
+  {
+    '@id': 'https://nands.tech/sustainability#company',
+    '@type': 'AboutPage',
+    name: '持続可能性・CSR',
+    pageType: 'Sustainability',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '持続可能性',
+      'CSR',
+      '企業の社会的責任',
+      '環境経営',
+      'SDGs',
+      '社会貢献',
+      'ESG経営',
+      'カーボンニュートラル',
+      'デジタル変革支援',
+      '地域貢献'
+    ],
+    relatedTo: [
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/about#company',
+      'https://nands.tech/reviews#company'
+    ],
+    mentions: [
+      '環境配慮',
+      '社会貢献活動',
+      '持続可能な成長',
+      '責任ある事業運営',
+      'ステークホルダー重視'
+    ]
+  },
+
+  // 法的情報ページ
+  {
+    '@id': 'https://nands.tech/legal#company',
+    '@type': 'AboutPage',
+    name: '法的情報',
+    pageType: 'LegalInformation',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '法的情報',
+      '商標',
+      '著作権',
+      '知的財産',
+      '法令遵守',
+      'コンプライアンス',
+      '事業許可',
+      '認定情報',
+      '免責事項',
+      '準拠法'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#company',
+      'https://nands.tech/terms#company',
+      'https://nands.tech/faq#company'
+    ],
+    mentions: [
+      '法的権利',
+      '責任制限',
+      '知的財産保護',
+      '適用法令',
+      '免責条項'
+    ]
+  },
+
+  // プライバシーポリシーページ
+  {
+    '@id': 'https://nands.tech/privacy#company',
+    '@type': 'AboutPage',
+    name: 'プライバシーポリシー',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'プライバシーポリシー',
+      '個人情報保護',
+      'データ保護',
+      'GDPR',
+      '個人情報取扱い',
+      'Cookie利用',
+      'データ収集',
+      'データ利用目的',
+      'セキュリティ対策',
+      '第三者提供'
+    ],
+    relatedTo: [
+      'https://nands.tech/terms#company',
+      'https://nands.tech/legal#company',
+      'https://nands.tech/corporate#company'
+    ],
+    mentions: [
+      '個人情報保護法',
+      'プライバシー保護',
+      'データセキュリティ',
+      '適正利用',
+      '安全管理措置'
+    ]
+  },
+
+  // 利用規約ページ  
+  {
+    '@id': 'https://nands.tech/terms#company',
+    '@type': 'AboutPage',
+    name: '利用規約',
+    pageType: 'TermsOfService',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '利用規約',
+      'サービス利用条件',
+      '利用者責任',
+      'サービス提供条件',
+      '契約条件',
+      '禁止事項',
+      'サービス変更',
+      '契約解除',
+      '損害賠償',
+      '準拠法・管轄'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#company',
+      'https://nands.tech/legal#company',
+      'https://nands.tech/faq#company'
+    ],
+    mentions: [
+      'サービス利用',
+      '利用条件',
+      '契約関係',
+      '法的拘束力',
+      '利用者同意'
+    ]
   }
 ];
 

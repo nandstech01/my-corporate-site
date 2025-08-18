@@ -277,6 +277,9 @@ export default function SustainabilityPage() {
       ref={pageRef}
       className="relative min-h-screen py-20 bg-green-50 overflow-hidden"
     >
+      {/* Fragment ID for Entity Map - Hidden from users */}
+      <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+      
       {/* WaveSVG: トップの波形 */}
       <WaveSVG />
 
