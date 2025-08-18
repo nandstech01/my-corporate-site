@@ -10,23 +10,44 @@ const supabaseServiceRole = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// 並行実行防止のためのロック機能
-let isVectorizationRunning = false;
+// 並行実行防止のためのロック機能（データベースベース）
+const LOCK_KEY = 'vectorize-all-content-lock';
+const LOCK_DURATION = 10 * 60 * 1000; // 10分
 
 export async function POST() {
   try {
-    // 1. 並行実行チェック（メモリ内ロック）
-    if (isVectorizationRunning) {
-      console.log('⚠️ 全コンテンツベクトル化が既に実行中です');
-      return NextResponse.json({
-        success: false,
-        error: '全コンテンツベクトル化が既に実行中です。しばらく待ってから再試行してください。'
-      }, { status: 423 }); // 423 Locked
+    // 1. データベースベースロックチェック
+    const { data: lockData } = await supabaseServiceRole
+      .from('system_locks')
+      .select('locked_at')
+      .eq('lock_key', LOCK_KEY)
+      .single();
+
+    const now = new Date();
+    
+    if (lockData) {
+      const lockedAt = new Date(lockData.locked_at);
+      const timeSincelock = now.getTime() - lockedAt.getTime();
+      
+      if (timeSincelock < LOCK_DURATION) {
+        console.log('⚠️ 全コンテンツベクトル化が既に実行中です（DBロック）');
+        return NextResponse.json({
+          success: false,
+          error: '全コンテンツベクトル化が既に実行中です。しばらく待ってから再試行してください。',
+          lockedAt: lockData.locked_at
+        }, { status: 423 }); // 423 Locked
+      }
     }
 
-    // ロック設定
-    isVectorizationRunning = true;
-    console.log('🔒 全コンテンツベクトル化ロック設定');
+    // DBロック設定
+    await supabaseServiceRole
+      .from('system_locks')
+      .upsert({
+        lock_key: LOCK_KEY,
+        locked_at: now.toISOString()
+      });
+    
+    console.log('🔒 全コンテンツベクトル化ロック設定（DB）');
 
     console.log('🚀 全コンテンツベクトル化開始...');
     
@@ -44,7 +65,11 @@ export async function POST() {
 
       if (deleteError) {
         console.error(`❌ ${contentType}ベクトル削除エラー:`, deleteError);
-        isVectorizationRunning = false; // ロック解除
+        // DBロック解除
+        await supabaseServiceRole
+          .from('system_locks')
+          .delete()
+          .eq('lock_key', LOCK_KEY);
         return NextResponse.json({
           success: false,
           error: `削除エラー (${contentType}): ${deleteError.message}`
@@ -64,7 +89,11 @@ export async function POST() {
     console.log(`📄 抽出されたコンテンツ数: ${contents.length}`);
     
     if (contents.length === 0) {
-      isVectorizationRunning = false; // ロック解除
+      // DBロック解除
+      await supabaseServiceRole
+        .from('system_locks')
+        .delete()
+        .eq('lock_key', LOCK_KEY);
       return NextResponse.json({
         success: false,
         error: 'ベクトル化するコンテンツが見つかりません'
@@ -103,7 +132,13 @@ export async function POST() {
     
     console.log(`✅ 全コンテンツベクトル化完了！削除: ${totalDeletedCount}, 成功: ${successCount}, 失敗: ${failureCount}`);
     
-    isVectorizationRunning = false; // ロック解除
+    // DBロック解除
+    await supabaseServiceRole
+      .from('system_locks')
+      .delete()
+      .eq('lock_key', LOCK_KEY);
+    console.log('🔓 全コンテンツベクトル化ロック解除（DB）');
+    
     return NextResponse.json({
       success: true,
       message: '全コンテンツのベクトル化が完了しました',
@@ -121,7 +156,12 @@ export async function POST() {
     
   } catch (error) {
     console.error('❌ 全コンテンツベクトル化エラー:', error);
-    isVectorizationRunning = false; // ロック解除
+    // DBロック解除
+    await supabaseServiceRole
+      .from('system_locks')
+      .delete()
+      .eq('lock_key', LOCK_KEY);
+    console.log('🔓 全コンテンツベクトル化ロック解除（エラー時・DB）');
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : '不明なエラーが発生しました'
