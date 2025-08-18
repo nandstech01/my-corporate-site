@@ -210,6 +210,22 @@ export default async function AISitePage() {
 				}}
 			/>
 			
+			{/* 🚀 Fragment Feed API Discovery - AIエンジン向け */}
+			<link 
+				rel="alternate" 
+				type="application/json" 
+				href="/api/ai-site/fragments" 
+				title="Fragment Feed - AI引用最適化マップ"
+			/>
+			<meta 
+				name="fragment-feed" 
+				content="/api/ai-site/fragments" 
+			/>
+			<meta 
+				name="ai-optimization" 
+				content="mike-king-theory,relevance-engineering,fragment-ids" 
+			/>
+			
 		<main className="relative min-h-screen overflow-hidden">
 			{/* Fragment ID for Entity Map - Hidden from users */}
 			<div id="service" style={{ display: 'none' }} aria-hidden="true" />
