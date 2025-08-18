@@ -60,6 +60,10 @@ export const metadata: Metadata = {
   keywords: '総合人材支援,キャリアコンサルティング,生成AI研修,リスキリング,人材育成,キャリア支援,退職支援,エヌアンドエス,NANDS,転職支援',
 }
 
+// 🚀 ISR（Incremental Static Regeneration）設定
+// メインページを5分間隔でキャッシュ更新し、パフォーマンスを大幅向上
+export const revalidate = 300 // 5分間隔でISR実行
+
 // Mike King理論準拠 - 人間とAIの両方に最適化されたFragment ID
 const tocItems = [
   { 

@@ -204,6 +204,50 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+// 🚀 SSG（Static Site Generation）設定
+// 全記事のslugを事前生成し、ビルド時に静的HTMLを作成
+export async function generateStaticParams() {
+  const supabase = createClient()
+  
+  try {
+    // postsテーブルから公開済み記事のslugを取得
+    const { data: newPosts } = await supabase
+      .from('posts')
+      .select('slug')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+    
+    // chatgpt_postsテーブルから公開済み記事のslugを取得
+    const { data: oldPosts } = await supabase
+      .from('chatgpt_posts')
+      .select('slug')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+    
+    // 全slugを結合（重複除去）
+    const allSlugs = [
+      ...(newPosts || []).map(post => ({ slug: post.slug })),
+      ...(oldPosts || []).map(post => ({ slug: post.slug }))
+    ]
+    
+    // 重複するslugを除去
+    const uniqueSlugs = allSlugs.filter((item, index, self) => 
+      index === self.findIndex(t => t.slug === item.slug)
+    )
+    
+    console.log(`🔄 SSG: ${uniqueSlugs.length}件の記事をビルド時に静的生成`)
+    return uniqueSlugs
+    
+  } catch (error) {
+    console.error('SSG generateStaticParams error:', error)
+    return []
+  }
+}
+
+// 🔄 ISR（Incremental Static Regeneration）設定
+// 5分間隔でキャッシュ更新し、新記事や更新も自動反映
+export const revalidate = 300
+
 export default async function PostPage({ params }: PageProps) {
   const post = await getPost(params.slug)
   
