@@ -244,27 +244,52 @@ export class UnifiedStructuredDataSystem {
       }));
     }
 
-    // AI-site専用: FAQ Fragment IDエンティティ統合（tocの有無に関係なく実行）
+    // AI-site専用: FAQ Fragment IDエンティティ統合（Schema.org準拠）
     if (pageData.path === '/ai-site' && AI_SITE_FAQ_ENTITIES.length > 0) {
       // 既存のhasPartがあれば統合、なければ新規作成
       const existingHasParts = baseSchema.hasPart || [];
-      const faqHasParts = AI_SITE_FAQ_ENTITIES.map(faq => ({
-        "@type": "FAQPage",
+      
+      // 正しいFAQ構造化データ: Question+Answer形式
+      const faqQuestions = AI_SITE_FAQ_ENTITIES.map((faq, index) => ({
+        "@type": "Question",
         "@id": faq['@id'],
-        "name": faq.name,
+        "name": faq.name.replace(' - FAQ', ''), // FAQ接尾辞を除去
         "url": faq['@id'],
-        "about": faq.knowsAbout,
-        "mentions": faq.mentions
+        "text": faq.name.replace(' - FAQ', ''),
+        "answerCount": 1,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "@id": `${faq['@id']}-answer`,
+          "text": `${faq.name.replace(' - FAQ', '')}に関する詳細な回答です。${faq.knowsAbout?.join('、')}について説明します。`,
+          "url": faq['@id'],
+          "about": faq.knowsAbout,
+          "mentions": faq.mentions
+        },
+        "mainEntity": {
+          "@type": "Thing",
+          "name": faq.knowsAbout?.[0] || "AIサイト関連質問",
+          "description": faq.mentions?.join('、') || "AI関連の質問"
+        }
+      }));
+
+      // WebPageElementとしてhasPartに追加（Fragment ID対応）
+      const faqWebElements = faqQuestions.map(question => ({
+        "@type": "WebPageElement",
+        "@id": question["@id"],
+        "name": question.name,
+        "url": question.url
       }));
       
-      baseSchema.hasPart = [...existingHasParts, ...faqHasParts];
+      baseSchema.hasPart = [...existingHasParts, ...faqWebElements];
       
-      // FAQ専用の追加スキーマ
+      // 正しいFAQPage構造（単一のFAQPageとして設計）
       baseSchema.mainEntity = {
         "@type": "FAQPage",
         "@id": `${pageUrl}#faq-collection`,
         "name": "AIサイト よくある質問集",
-        "hasPart": faqHasParts
+        "description": "AIサイト、レリバンスエンジニアリング、AI引用最適化に関するよくある質問",
+        "url": `${pageUrl}#faq-title`,
+        "mainEntity": faqQuestions
       };
 
       // レリバンスエンジニアリング専門家・原田賢治の権威性構造化データ
