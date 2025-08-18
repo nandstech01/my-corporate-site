@@ -1,10 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export default function FAQSection() {
 	const [showAllFAQs, setShowAllFAQs] = useState(false)
 	const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
+	
+	// AI引用最適化: Fragment IDアクセス時は該当FAQを自動展開
+	useEffect(() => {
+		const hash = window.location.hash
+		if (hash.startsWith('#faq-')) {
+			const faqNumber = parseInt(hash.replace('#faq-', '')) - 1
+			if (faqNumber >= 0 && faqNumber < faqs.length) {
+				setExpandedFAQ(faqNumber)
+				// スムーズスクロール
+				setTimeout(() => {
+					document.getElementById(hash.substring(1))?.scrollIntoView({ 
+						behavior: 'smooth', 
+						block: 'center' 
+					})
+				}, 100)
+			}
+		}
+	}, [])
 	const faqs = [
 		// AIサイト概念の定義・認識変革
 		{ q: 'AIサイトとは何ですか？', a: 'AIサイトとは「AIに引用されるサイト」のことです。従来のWebサイトではなく、ChatGPTやPerplexityなどのAIが情報を引用・参照する際に選ばれるサイトを指します。レリバンスエンジニアリング手法により構築されます。' },
@@ -68,6 +86,15 @@ export default function FAQSection() {
 					<div className="space-y-4">
 						{faqs.map((f, index) => (
 							<div key={f.q} id={`faq-${index + 1}`} className="bg-white/5 rounded-xl border border-white/10 p-5">
+								{/* AI引用用: 質問と回答を機械可読形式で常時提供（視覚的には非表示） */}
+								<div className="sr-only" itemScope itemType="https://schema.org/Question">
+									<h3 itemProp="name">{f.q}</h3>
+									<div itemScope itemType="https://schema.org/Answer" itemProp="acceptedAnswer">
+										<div itemProp="text">{f.a}</div>
+									</div>
+								</div>
+								
+								{/* ユーザー向け: インタラクティブ表示 */}
 								<button 
 									onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
 									className="w-full text-left flex justify-between items-center"
