@@ -239,7 +239,7 @@ export default async function AISitePage() {
 			<AIHeader />
 			
 			{/* Table of Contents（メインページ同様のおしゃれなナビゲーション） */}
-			<div className="bg-black py-3 border-b border-gray-800">
+			<div className="bg-black py-1 border-b border-gray-800">
 				<div className="container mx-auto px-4">
 					<TableOfContents items={aiSiteTocItems} compact={true} />
 				</div>

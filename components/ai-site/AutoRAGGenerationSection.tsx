@@ -107,7 +107,7 @@ const stats = [
 export default function AutoRAGGenerationSection() {
 
   return (
-    <section id="auto-rag-generation" className="py-20 bg-gradient-to-br from-slate-900 via-gray-900 to-black">
+    <section id="auto-rag-generation" className="pt-12 pb-20 bg-gradient-to-br from-slate-900 via-gray-900 to-black">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
