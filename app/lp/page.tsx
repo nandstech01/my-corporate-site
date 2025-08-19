@@ -19,7 +19,7 @@ import { generateUnifiedPageData } from '@/lib/structured-data/unified-integrati
 import { getUnifiedSupabaseClient } from '@/lib/supabase/unified-client'
 
 // ISR 設定（5分ごとに再検証）
-export const revalidate = 300
+export const revalidate = 600 // 10分間隔でISR実行（キャッシュ効率向上）
 
 // タイプライター（クライアント）
 const TextType = dynamic(() => import('@/components/common/TextType'), { ssr: false })
@@ -115,22 +115,27 @@ type Post = {
 async function getLatestPosts(): Promise<Post[]> {
   const supabase = getUnifiedSupabaseClient();
   try {
-    const { data: newPosts } = await supabase
-      .from('posts')
-      .select('id,title,slug,meta_description,thumbnail_url,created_at')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // 🚀 パフォーマンス最適化: 並列クエリ実行
+    const [newPostsResult, oldPostsResult] = await Promise.all([
+      // postsテーブル（RAG記事）- 最小限のフィールドのみ
+      supabase
+        .from('posts')
+        .select('id, title, slug, meta_description, thumbnail_url, created_at')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6), // 最初から6件に制限
 
-    const { data: oldPosts } = await supabase
-      .from('chatgpt_posts')
-      .select(`
-        id,title,slug,excerpt,thumbnail_url,featured_image,created_at,is_chatgpt_special,
-        categories ( name, slug )
-      `)
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      // chatgpt_postsテーブル（ChatGPT記事）- 最小限のフィールドのみ  
+      supabase
+        .from('chatgpt_posts')
+        .select('id, title, slug, excerpt, thumbnail_url, featured_image, created_at, is_chatgpt_special, categories(name, slug)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6) // 最初から6件に制限
+    ]);
+
+    const { data: newPosts } = newPostsResult;
+    const { data: oldPosts } = oldPostsResult;
 
     const formattedNew: Post[] = (newPosts || []).map(p => ({
       id: p.id.toString(),
@@ -171,23 +176,27 @@ async function getLatestPosts(): Promise<Post[]> {
 export default async function LPPage() {
   const posts = await getLatestPosts();
 
-  // 統一構造化データ（Mike King理論準拠）
-  const pageData = await generateUnifiedPageData({
-    pageSlug: 'lp',
-    pageTitle: '人材開発支援助成金75%還付でAIモードも怖くない',
-    keywords: [
-      '人材開発支援助成金',
-      'AI研修',
-      'リスキリング',
-      'SNS自動運用',
-      'レリバンスエンジニアリング',
-      'GEO最適化',
-      'AI検索表示率向上',
-    ],
-    category: '法人向けAI研修',
-    enableAISearchDetection: true,
-    enableTrustSignals: true,
-  });
+  // 🚀 条件付き構造化データ生成（開発環境では軽量化）
+  let pageData = null;
+  if (process.env.NODE_ENV === 'production') {
+    // 統一構造化データ（Mike King理論準拠）- 本番環境のみ
+    pageData = await generateUnifiedPageData({
+      pageSlug: 'lp',
+      pageTitle: '人材開発支援助成金75%還付でAIモードも怖くない',
+      keywords: [
+        '人材開発支援助成金',
+        'AI研修',
+        'リスキリング',
+        'SNS自動運用',
+        'レリバンスエンジニアリング',
+        'GEO最適化',
+        'AI検索表示率向上',
+      ],
+      category: '法人向けAI研修',
+      enableAISearchDetection: true,
+      enableTrustSignals: true,
+    });
+  }
 
   // LP固有の教育プログラムスキーマ（表示は変えず、検索向けに情報付与）
   const lpProgramSchema = {
@@ -271,21 +280,26 @@ export default async function LPPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd, null, 2) }}
       />
 
-      {/* 統一構造化データ */}
-      {pageData?.structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.structuredData, null, 2) }}
-        />
-      )}
+      {/* 🚀 条件付きScript読み込み（開発環境では軽量化） */}
+      {process.env.NODE_ENV === 'production' && (
+        <>
+          {/* 統一構造化データ */}
+          {pageData?.structuredData && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.structuredData, null, 2) }}
+            />
+          )}
 
-      {/* GEO最適化 hasPart（AI検索対策） */}
-      {pageData?.geoOptimizedHasPart && (
-        <script
-          id="geo-optimized-haspart-lp"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.geoOptimizedHasPart.jsonLd, null, 2) }}
-        />
+          {/* GEO最適化 hasPart（AI検索対策） */}
+          {pageData?.geoOptimizedHasPart && (
+            <script
+              id="geo-optimized-haspart-lp"
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(pageData.geoOptimizedHasPart.jsonLd, null, 2) }}
+            />
+          )}
+        </>
       )}
 
       {/* LP固有の教育プログラム スキーマ */}
@@ -293,6 +307,23 @@ export default async function LPPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(lpProgramSchema, null, 2) }}
       />
+
+      {/* 🚀 開発環境用軽量スキーマ */}
+      {process.env.NODE_ENV === 'development' && (
+        <script
+          id="dev-minimal-lp-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              "name": "人材開発支援助成金75%還付でAIモードも怖くない",
+              "url": "https://nands.tech/lp",
+              "description": "人材開発支援助成金で75%還付！SNS自動運用＆コンサル・システム開発で実証済み。"
+            }, null, 2)
+          }}
+        />
+      )}
 
       <main className="relative min-h-screen overflow-hidden">
       {/* Fragment ID for Entity Map - Hidden from users */}
