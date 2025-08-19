@@ -137,7 +137,8 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 			transition={{ duration: 0.18 }}
 			ref={backdropRef}
 			onClick={(e) => { if (e.target === backdropRef.current) handleClose() }}
-			className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+			style={{ zIndex: 9999 }}
 			role="dialog"
 			aria-modal="true"
 		>
@@ -146,7 +147,7 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 				animate={{ y: 0, scale: 1, opacity: 1 }}
 				exit={{ y: 24, scale: 0.98, opacity: 0 }}
 				transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-				className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/20 to-purple-600/20 shadow-[0_30px_100px_rgba(34,211,238,0.25)]"
+				className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/20 to-purple-600/20 shadow-[0_30px_100px_rgba(34,211,238,0.25)] z-[10000]"
 			>
 				<div className="rounded-2xl bg-gradient-to-br from-gray-900 via-slate-900 to-black flex flex-col h-full">
 					{/* ヘッダー */}
