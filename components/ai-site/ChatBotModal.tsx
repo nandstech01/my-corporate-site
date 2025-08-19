@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import TextType from '../common/TextType'
 
@@ -23,6 +24,12 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 	const [showInitialOptions, setShowInitialOptions] = useState(true)
 	const [hasStarted, setHasStarted] = useState(false)
 	const [thinkingDots, setThinkingDots] = useState('')
+	const [mounted, setMounted] = useState(false)
+
+	// クライアントサイドでのマウント確認
+	useEffect(() => {
+		setMounted(true)
+	}, [])
 
 	// thinking dots アニメーション
 	useEffect(() => {
@@ -127,9 +134,9 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 		callOpenAI(option)
 	}
 
-	if (!open) return null
+	if (!open || !mounted) return null
 
-	return (
+	const modalContent = (
 		<motion.div
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
@@ -137,8 +144,15 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 			transition={{ duration: 0.18 }}
 			ref={backdropRef}
 			onClick={(e) => { if (e.target === backdropRef.current) handleClose() }}
-			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
-			style={{ zIndex: 9999 }}
+			className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+			style={{ 
+				zIndex: 99999,
+				position: 'fixed',
+				top: 0,
+				left: 0,
+				right: 0,
+				bottom: 0
+			}}
 			role="dialog"
 			aria-modal="true"
 		>
@@ -147,7 +161,8 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 				animate={{ y: 0, scale: 1, opacity: 1 }}
 				exit={{ y: 24, scale: 0.98, opacity: 0 }}
 				transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-				className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/20 to-purple-600/20 shadow-[0_30px_100px_rgba(34,211,238,0.25)] z-[10000]"
+				className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl p-[1px] bg-gradient-to-br from-cyan-400/30 via-blue-500/20 to-purple-600/20 shadow-[0_30px_100px_rgba(34,211,238,0.25)]"
+				style={{ zIndex: 99999 }}
 			>
 				<div className="rounded-2xl bg-gradient-to-br from-gray-900 via-slate-900 to-black flex flex-col h-full">
 					{/* ヘッダー */}
@@ -327,4 +342,7 @@ export default function ChatBotModal({ open, onClose }: ChatBotModalProps) {
 			</motion.div>
 		</motion.div>
 	)
+
+	// ポータルを使用してbodyに直接マウント
+	return createPortal(modalContent, document.body)
 } 
