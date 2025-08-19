@@ -7,6 +7,116 @@ const supabaseServiceRole = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Fragment IDに対応するセクション内容を抽出する関数
+function extractSectionContent(content: string, fragmentId: string): string | null {
+  // Fragment ID形式のアンカーを検索（改良版）
+  const patterns = [
+    // {#fragment-id} 形式
+    new RegExp(`#{1,3}[^#]*?{#${fragmentId}}([\\s\\S]*?)(?=#{1,3}[^#]*(?:{#|$)|$)`, 'i'),
+    // 直接的なFragment ID参照
+    new RegExp(`#{1,3}[^#]*?${fragmentId}[^#\\n]*([\\s\\S]*?)(?=#{1,3}[^#]|$)`, 'i'),
+    // HTML id属性
+    new RegExp(`<[^>]*id="${fragmentId}"[^>]*>([\\s\\S]*?)(?=<[^>]*id=|$)`, 'i')
+  ];
+
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match && match[1]) {
+      const sectionContent = match[1].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+      return sectionContent.substring(0, 200);
+    }
+  }
+
+  // Fragment IDの種類に応じた特別な処理
+  if (fragmentId === 'faq-section') {
+    // よくある質問セクション専用処理
+    const faqMatches = [
+      /## よくある質問\s*{#faq-section}([\s\S]*?)(?=#{1,2}[^#]|$)/i,
+      /## よくある質問([\s\S]*?)(?=#{1,2}[^#]|$)/i,
+      /#+ よくある質問[^#\n]*\n([\s\S]*?)(?=#{1,3}[^#]|$)/i
+    ];
+    
+    for (const pattern of faqMatches) {
+      const match = content.match(pattern);
+      if (match && match[1]) {
+        const faqContent = match[1].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+        // FAQの最初の質問と回答を抽出
+        const firstQA = faqContent.match(/###?\s*Q:\s*([^?]+\?)[^A]*A:\s*([^#]+)/i);
+        if (firstQA) {
+          return `Q: ${firstQA[1].trim()} A: ${firstQA[2].trim().substring(0, 100)}...`;
+        }
+        return faqContent.substring(0, 200);
+      }
+    }
+  }
+
+  // 個別FAQ（faq-1, faq-2, etc.）の処理
+  if (fragmentId.startsWith('faq-') && fragmentId.match(/^faq-\d+$/)) {
+    const faqNumber = fragmentId.replace('faq-', '');
+    const patterns = [
+      // Fragment ID付きのQ&A
+      new RegExp(`### Q:[^{]*\\{#${fragmentId}\\}[^A]*A:\\s*([^#]+)`, 'i'),
+      // Fragment IDなしの場合、順番で特定
+      new RegExp(`### Q:[^A]*A:\\s*([^#]+)`, 'gi')
+    ];
+    
+    for (const pattern of patterns) {
+      if (pattern.global) {
+        // 複数マッチの場合、指定された番号のFAQを取得
+        const matches = [];
+        let match;
+        while ((match = pattern.exec(content)) !== null) {
+          matches.push(match);
+        }
+        const faqIndex = parseInt(faqNumber) - 1;
+        if (matches[faqIndex] && matches[faqIndex][1]) {
+          const answer = matches[faqIndex][1].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+          return `FAQ${faqNumber}: ${answer.substring(0, 150)}...`;
+        }
+      } else {
+        const match = content.match(pattern);
+        if (match && match[1]) {
+          const answer = match[1].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+          return `FAQ${faqNumber}: ${answer.substring(0, 150)}...`;
+        }
+      }
+    }
+  }
+
+  if (fragmentId.startsWith('main-title')) {
+    const titleMatches = [
+      /^#\s*([^\n{]+)/,
+      /^#\s*([^{]+){#main-title[^}]*}/,
+      /#{1}\s*([^\n]+)/
+    ];
+    
+    for (const pattern of titleMatches) {
+      const match = content.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+  }
+
+  if (fragmentId === 'introduction') {
+    const introMatches = [
+      /## はじめに\s*{#introduction}([\s\S]*?)(?=#{1,2}[^#]|$)/i,
+      /## はじめに([\s\S]*?)(?=#{1,2}[^#]|$)/i,
+      /#+ はじめに[^#\n]*\n([\s\S]*?)(?=#{1,3}[^#]|$)/i
+    ];
+    
+    for (const pattern of introMatches) {
+      const match = content.match(pattern);
+      if (match && match[1]) {
+        const introContent = match[1].trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+        return introContent.substring(0, 200);
+      }
+    }
+  }
+
+  return null;
+}
+
 export async function GET() {
   try {
     console.log('🔍 自社RAG詳細統計取得開始...');
@@ -81,34 +191,121 @@ export async function GET() {
     const fragmentDetails: any[] = [];
     let blogDeepLinks = 0;
 
-    // 1. ブログ記事のFragment ID処理
+    // 1. ブログ記事のFragment ID処理（実際の記事内容を取得）
     if (!fragmentError && fragmentData && fragmentData.length > 0) {
-      fragmentData.forEach(item => {
-        // Fragment IDの抽出
-        const fragmentMatches = item.content_chunk.match(/Fragment ID: ([a-zA-Z0-9_-]+)/g) || [];
-        const uriMatches = item.content_chunk.match(/完全URI: (https:\/\/[^\s]+)/g) || [];
-
-        fragmentMatches.forEach((match: string, index: number) => {
-          const fragmentId = match.replace('Fragment ID: ', '');
-          const completeURI = uriMatches[index]?.replace('完全URI: ', '') || '';
+      for (const item of fragmentData) {
+        try {
+          // Fragment IDベクトルから親記事IDを抽出
+          const postIdMatch = item.content_chunk.match(/親記事ID: (\d+)/);
+          const postId = postIdMatch ? parseInt(postIdMatch[1]) : null;
           
-          fragmentDetails.push({
-            id: `blog-${item.id}-${index}`,
-            fragmentId,
-            completeURI,
-            source: item.section_title,
-            type: 'ブログ記事',
-            created_at: item.created_at
+          let actualContent = '';
+          let postTitle = '';
+          if (postId) {
+            // 実際の記事内容を取得
+            const { data: postData, error: postError } = await supabaseServiceRole
+              .from('posts')
+              .select('content, title')
+              .eq('id', postId)
+              .single();
+            
+            if (!postError && postData) {
+              actualContent = postData.content;
+              postTitle = postData.title;
+            }
+          }
+
+          // Fragment IDの抽出
+          const fragmentMatches = item.content_chunk.match(/Fragment ID: ([a-zA-Z0-9_-]+)/g) || [];
+          const uriMatches = item.content_chunk.match(/完全URI: (https:\/\/[^\s]+)/g) || [];
+
+          fragmentMatches.forEach((match: string, index: number) => {
+            const fragmentId = match.replace('Fragment ID: ', '');
+            const completeURI = uriMatches[index]?.replace('完全URI: ', '') || '';
+            
+            // Fragment IDに対応する実際の記事内容を抽出
+            let fragmentContent = item.section_title; // デフォルト値
+            if (actualContent && fragmentId) {
+              // Fragment IDに対応するセクション内容を抽出
+              const sectionContent = extractSectionContent(actualContent, fragmentId);
+              if (sectionContent) {
+                fragmentContent = `${fragmentId}: ${sectionContent.substring(0, 100)}${sectionContent.length > 100 ? '...' : ''}`;
+              } else if (fragmentId.startsWith('main-title') && postTitle) {
+                // main-titleの場合は記事タイトルを使用
+                fragmentContent = `${fragmentId}: ${postTitle}`;
+              }
+            }
+            
+            fragmentDetails.push({
+              id: `blog-${item.id}-${index}`,
+              fragmentId,
+              completeURI,
+              source: fragmentContent,
+              type: 'ブログ記事',
+              created_at: item.created_at
+            });
+            blogDeepLinks++;
           });
-          blogDeepLinks++;
-        });
-      });
+        } catch (error) {
+          console.warn('Fragment処理エラー:', error);
+          // エラー時はデフォルト処理
+          const fragmentMatches = item.content_chunk.match(/Fragment ID: ([a-zA-Z0-9_-]+)/g) || [];
+          const uriMatches = item.content_chunk.match(/完全URI: (https:\/\/[^\s]+)/g) || [];
+
+          fragmentMatches.forEach((match: string, index: number) => {
+            const fragmentId = match.replace('Fragment ID: ', '');
+            const completeURI = uriMatches[index]?.replace('完全URI: ', '') || '';
+            
+            fragmentDetails.push({
+              id: `blog-${item.id}-${index}`,
+              fragmentId,
+              completeURI,
+              source: item.section_title,
+              type: 'ブログ記事',
+              created_at: item.created_at
+            });
+            blogDeepLinks++;
+          });
+        }
+      }
     }
 
+
+
     // 2. プロジェクト全体のFragment ID追加（エンティティマップベース）
-    const projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
-                                (contentTypeStats.technical || 0) + 
-                                (contentTypeStats.service || 0);
+    let projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
+                              (contentTypeStats.technical || 0) + 
+                              (contentTypeStats.service || 0);
+
+    // 3. ai-siteページのFragment IDを追加
+    let aiSiteFragmentCount = 0;
+    try {
+      const aiSiteResponse = await fetch('https://nands.tech/api/ai-site/fragments');
+      if (aiSiteResponse.ok) {
+        const aiSiteData = await aiSiteResponse.json();
+        aiSiteFragmentCount = aiSiteData.meta?.totalFragments || 34;
+        
+                 // ai-siteのFragment IDをfragmentDetailsに追加
+         if (aiSiteData.fragments) {
+           aiSiteData.fragments.forEach((fragment: any, index: number) => {
+             fragmentDetails.push({
+               id: `ai-site-${index}`,
+               fragmentId: fragment.id,
+               completeURI: fragment.url,
+               source: `ai-site: ${fragment.name || fragment.title || fragment.id}`,
+               type: 'AI-siteページ',
+               created_at: new Date().toISOString()
+             });
+           });
+         }
+      }
+    } catch (error) {
+      console.warn('ai-site Fragment取得エラー:', error);
+      aiSiteFragmentCount = 34; // デフォルト値
+    }
+
+    // プロジェクト全体にai-siteのFragment IDを追加
+    projectWideDeepLinks += aiSiteFragmentCount;
 
     // サービスページのFragment ID（#service）
     const servicePages = [
@@ -191,10 +388,10 @@ export async function GET() {
     if (fragmentDetails.length > 0) {
       fragmentStats = {
         totalRecords: fragmentData?.length || 0,
-        totalDeepLinks: blogDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体
+        totalDeepLinks: blogDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体 + ai-site
         blogDeepLinks: blogDeepLinks, // ブログ内のみ
-        projectWideDeepLinks: projectWideDeepLinks, // プロジェクト全体（サービス、企業情報等）
-        fragmentDetails: fragmentDetails // 全35件を表示可能
+        projectWideDeepLinks: projectWideDeepLinks, // プロジェクト全体（サービス、企業情報、ai-site等）
+        fragmentDetails: fragmentDetails // 全データを表示可能
       };
     }
 

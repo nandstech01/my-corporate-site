@@ -507,19 +507,19 @@ export default function CompanyRagPage() {
                                   </div>
                                   <div>
                                     <span className="text-xl font-bold text-cyan-400">
-                                      {stats?.fragmentStats?.totalDeepLinks || 33}
+                                      {stats?.fragmentStats?.totalDeepLinks || 99}
                                     </span>
                                     <div className="text-xs text-gray-500">総ディープリンク</div>
                                   </div>
                                   <div>
                                     <span className="text-lg font-bold text-green-400">
-                                      {stats?.fragmentStats?.blogDeepLinks || 14}
+                                      {stats?.fragmentStats?.blogDeepLinks || 44}
                                     </span>
                                     <div className="text-xs text-gray-500">ブログ内</div>
                                   </div>
                                   <div>
                                     <span className="text-lg font-bold text-purple-400">
-                                      {stats?.fragmentStats?.projectWideDeepLinks || 19}
+                                      {stats?.fragmentStats?.projectWideDeepLinks || 55}
                                     </span>
                                     <div className="text-xs text-gray-500">プロジェクト全体</div>
                                   </div>

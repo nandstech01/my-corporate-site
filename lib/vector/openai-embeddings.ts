@@ -11,6 +11,8 @@ export interface VectorData {
     section?: string;
     wordCount: number;
     createdAt: string;
+    serviceId?: string; // 追加
+    category?: string; // 追加
   };
   embedding: number[];
 }
@@ -108,6 +110,9 @@ export class OpenAIEmbeddings {
               section: i > 0 ? `section-${i}` : undefined,
               wordCount: chunks[i].split(/\s+/).length,
               createdAt: new Date().toISOString(),
+              // 重要: service_idを追加
+              serviceId: content.metadata.serviceId,
+              category: content.metadata.category
             },
             embedding: embeddings[i],
           });

@@ -53,7 +53,7 @@ export class SupabaseVectorStore {
           created_at: vectorData.metadata.createdAt
         },
         fragment_id: this.generateFragmentId(vectorData.id),
-        service_id: this.extractServiceId(vectorData.metadata.url),
+        service_id: vectorData.metadata.serviceId || this.extractServiceId(vectorData.metadata.url),
         relevance_score: 1.0
       } as any; // 型チェックを回避
 
@@ -68,7 +68,7 @@ export class SupabaseVectorStore {
         return { success: false, error: error.message };
       }
 
-      console.log(`✅ ベクトル保存成功: ID ${data.id}`);
+      console.log(`✅ ベクトル保存成功: ID ${data.id}, service_id: ${supabaseData.service_id}`);
       return { success: true, id: data.id };
 
     } catch (error) {
@@ -336,9 +336,35 @@ export class SupabaseVectorStore {
   }
 
   private extractServiceId(url: string): string | undefined {
-    // URL からサービスIDを抽出
-    const serviceMatch = url.match(/\/(ai-agents|aio-seo|chatbot-development|hr-solutions|mcp-servers|sns-automation|system-development|vector-rag|video-generation)\//);
-    return serviceMatch ? serviceMatch[1] : undefined;
+    // URL からサービスIDを抽出（改善版）
+    const cleanUrl = url.replace(/^\/+|\/+$/g, ''); // 前後のスラッシュを削除
+    
+    // 全14サービスのパターンマッチング
+    const servicePatterns = [
+      'ai-agents', 'aio-seo', 'chatbot-development', 'hr-solutions', 
+      'mcp-servers', 'sns-automation', 'system-development', 'vector-rag',
+      'video-generation', 'lp', 'ai-site', 'fukugyo', 'corporate'
+    ];
+    
+    // 直接一致する場合
+    if (servicePatterns.includes(cleanUrl)) {
+      return cleanUrl;
+    }
+    
+    // パスの最初の部分をチェック
+    const pathParts = cleanUrl.split('/');
+    const firstPart = pathParts[0];
+    
+    if (servicePatterns.includes(firstPart)) {
+      return firstPart;
+    }
+    
+    // 技術ファイルの場合は structured-data として扱う
+    if (cleanUrl.includes('structured-data') || cleanUrl.includes('technical')) {
+      return 'structured-data';
+    }
+    
+    return undefined;
   }
 
   private generateFragmentId(originalId: string): string {
