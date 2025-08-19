@@ -14,14 +14,32 @@ import {
   PlayIcon,
   TrashIcon,
   UserGroupIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ChevronDownIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import VoiceAgentButton from './VoiceAgent/VoiceAgentButton';
 import VoiceAgentModalV2 from './VoiceAgent/VoiceAgentModalV2';
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  onItemClick?: () => void;
+}
+
+export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
   const pathname = usePathname();
   const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
+    '記事管理': true,
+    'トリプルRAG': true,
+    'パートナー管理': false
+  });
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuName]: !prev[menuName]
+    }));
+  };
 
   const navigation = [
     {
@@ -117,60 +135,75 @@ export default function AdminSidebar() {
       <div className="h-16"></div>
       
       {/* ロゴエリア */}
-      <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-purple-600 to-blue-600">
-        <Link href="/admin/dashboard" className="text-xl font-bold text-white">
+      <div className="flex items-center justify-center h-12 sm:h-16 px-4 bg-gradient-to-r from-purple-600 to-blue-600">
+        <Link href="/admin/dashboard" className="text-lg sm:text-xl font-bold text-white" onClick={onItemClick}>
           <span className="flex items-center space-x-2">
-            <BoltIcon className="w-6 h-6" />
-            <span>NANDS Admin</span>
+            <BoltIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="hidden sm:inline">NANDS Admin</span>
+            <span className="sm:hidden">NANDS</span>
           </span>
         </Link>
       </div>
 
       {/* 音声AIエージェント */}
-      <div className="px-4 py-4 border-b border-gray-800">
+      <div className="px-4 py-3 sm:py-4 border-b border-gray-800">
         <VoiceAgentButton 
           onActivate={() => setIsVoiceAgentOpen(true)}
         />
       </div>
 
       {/* ナビゲーション */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 sm:space-y-2 overflow-y-auto">
         {navigation.map((item) => (
           <div key={item.name}>
             {item.children ? (
               // サブメニューがある場合
               <div className="space-y-1">
-                <div className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                  <item.icon className="w-5 h-5 mr-3 text-gray-400" />
-                  {item.name}
-                </div>
-                <div className="ml-8 space-y-1">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={`${
-                        child.current
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg transform scale-105'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      } flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:shadow-md`}
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
-                </div>
+                <button
+                  onClick={() => toggleMenu(item.name)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center">
+                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 text-gray-400" />
+                    <span className="text-xs sm:text-sm">{item.name}</span>
+                  </div>
+                  {expandedMenus[item.name] ? (
+                    <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+                {expandedMenus[item.name] && (
+                  <div className="ml-6 sm:ml-8 space-y-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onItemClick}
+                        className={`${
+                          child.current
+                            ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        } block px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200`}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               // 通常のメニューアイテム
               <Link
                 href={item.href}
+                onClick={onItemClick}
                 className={`${
                   item.current
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg transform scale-105'
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                } flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:shadow-md`}
+                } flex items-center px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200`}
               >
-                <item.icon className="w-5 h-5 mr-3" />
+                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
                 {item.name}
               </Link>
             )}
@@ -179,10 +212,10 @@ export default function AdminSidebar() {
       </nav>
 
       {/* フッター情報 */}
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-3 sm:p-4 border-t border-gray-800">
         <div className="text-xs text-gray-500 text-center">
-          <p className="text-purple-400 font-semibold">NANDS Admin Panel</p>
-          <p className="mt-1 text-gray-400">Triple RAG v2.0.0</p>
+          <p className="text-purple-400 font-semibold text-xs sm:text-sm">NANDS Admin</p>
+          <p className="mt-1 text-gray-400 text-xs">Triple RAG v2.0.0</p>
         </div>
       </div>
 

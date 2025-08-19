@@ -640,7 +640,7 @@ export default function ContentGenerationPage() {
   return (
     <div className="text-white">
       {/* ヘッダー */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-xl mb-6">
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 sm:p-6 rounded-xl mb-4 sm:mb-6">
         <div className="flex items-center space-x-3 mb-4">
           <SparklesIcon className="w-8 h-8" />
           <h1 className="text-3xl font-bold">コンテンツ生成管理</h1>

@@ -334,17 +334,17 @@ export default function CompanyRagPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* ヘッダー */}
-      <div className="bg-gradient-to-r from-blue-600 to-green-600 p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <CubeIcon className="w-8 h-8" />
-          <h1 className="text-3xl font-bold">自社RAG システム</h1>
+      <div className="bg-gradient-to-r from-blue-600 to-green-600 p-4 sm:p-6 mt-4 lg:mt-8">
+        <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+          <CubeIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+          <h1 className="text-2xl sm:text-3xl font-bold">自社RAG システム</h1>
         </div>
-        <p className="text-blue-100">
+        <p className="text-blue-100 text-sm sm:text-base">
           27個のベクトルデータによる自社コンテンツ検索システム（検索成功率100%）
         </p>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* 統計情報 */}
         <div className="mb-4">
           <div className="flex items-center justify-between">
@@ -359,48 +359,48 @@ export default function CompanyRagPage() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center space-x-3">
-              <DocumentTextIcon className="w-8 h-8 text-green-400" />
-              <div>
-                <p className="text-2xl font-bold text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <DocumentTextIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {vectorLoading ? '...' : stats?.totalVectors || 0}
                 </p>
-                <p className="text-gray-400">総ベクトル数</p>
+                <p className="text-sm sm:text-base text-gray-400 truncate">総ベクトル数</p>
               </div>
             </div>
           </div>
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center space-x-3">
-              <ChartBarIcon className="w-8 h-8 text-blue-400" />
-              <div>
-                <p className="text-2xl font-bold text-white">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {vectorLoading ? '...' : stats?.searchPerformance?.maxSimilarity ? (stats.searchPerformance.maxSimilarity * 100).toFixed(1) + '%' : '82.2%'}
                 </p>
-                <p className="text-gray-400">最大類似度</p>
+                <p className="text-sm sm:text-base text-gray-400 truncate">最大類似度</p>
               </div>
             </div>
           </div>
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center space-x-3">
-              <CheckCircleIcon className="w-8 h-8 text-purple-400" />
-              <div>
-                <p className="text-2xl font-bold text-white">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <CheckCircleIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {vectorLoading ? '...' : stats?.searchPerformance?.successRate ? (stats.searchPerformance.successRate * 100).toFixed(0) + '%' : '100%'}
                 </p>
-                <p className="text-gray-400">検索成功率</p>
+                <p className="text-sm sm:text-base text-gray-400 truncate">検索成功率</p>
               </div>
             </div>
           </div>
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center space-x-3">
-              <CubeIcon className="w-8 h-8 text-orange-400" />
-              <div>
-                <p className="text-2xl font-bold text-white">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <CubeIcon className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {vectorLoading ? '...' : stats?.vectorsByType ? Object.keys(stats.vectorsByType).length : 4}
                 </p>
-                <p className="text-gray-400">コンテンツ種類</p>
+                <p className="text-sm sm:text-base text-gray-400 truncate">コンテンツ種類</p>
               </div>
             </div>
           </div>
@@ -794,25 +794,25 @@ export default function CompanyRagPage() {
         <VectorCleanupManager />
 
         {/* ベクトル検索テスト */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <MagnifyingGlassIcon className="w-5 h-5 mr-2" />
+        <div className="bg-gray-800 rounded-xl p-4 sm:p-6 mb-6 border border-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+            <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             ベクトル検索テスト
           </h2>
           
-          <div className="flex space-x-3 mb-4">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-4">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="検索クエリを入力..."
-              className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 disabled:opacity-50 transition-all duration-200"
+              className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 disabled:opacity-50 transition-all duration-200 text-sm sm:text-base font-medium"
             >
               {loading ? '検索中...' : '検索'}
             </button>
@@ -997,7 +997,7 @@ export default function CompanyRagPage() {
             onClick={handleServiceRegenerate}
             disabled={serviceRegenerating}
             className={`
-              w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg font-medium transition-all duration-200 
+              w-full flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg font-medium transition-all duration-200 
               ${serviceRegenerating 
                 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                 : 'bg-gradient-to-r from-red-600 via-orange-600 to-red-700 text-white hover:from-red-700 hover:via-orange-700 hover:to-red-800 shadow-lg hover:shadow-red-500/25'
@@ -1006,19 +1006,23 @@ export default function CompanyRagPage() {
           >
             {serviceRegenerating ? (
               <>
-                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span className="text-lg">再ベクトル化実行中...</span>
-                <span className="text-sm opacity-75">処理完了までお待ちください</span>
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="text-base sm:text-lg">再ベクトル化実行中...</span>
+                </div>
+                <span className="text-xs sm:text-sm opacity-75 text-center">処理完了までお待ちください</span>
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span className="text-lg">全コンテンツ再ベクトル化を実行</span>
-                <span className="text-sm opacity-75">service / corporate / technical / structured-data</span>
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="text-base sm:text-lg">全コンテンツ再ベクトル化を実行</span>
+                </div>
+                <span className="text-xs sm:text-sm opacity-75 text-center">service / corporate / technical / structured-data</span>
               </>
             )}
           </button>
