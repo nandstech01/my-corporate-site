@@ -61,8 +61,12 @@ export const metadata: Metadata = {
 }
 
 // 🚀 ISR（Incremental Static Regeneration）設定
-// メインページを5分間隔でキャッシュ更新し、パフォーマンスを大幅向上
-export const revalidate = 300 // 5分間隔でISR実行
+// 完全SSG化する場合は下記をコメントアウト
+export const revalidate = 600 // 10分間隔でISR実行（キャッシュ効率向上）
+
+// 🚀 完全SSG化オプション（さらなる高速化）
+// export const dynamic = 'force-static' // 完全静的生成を強制
+// export const revalidate = false // キャッシュを無効化してSSG専用に
 
 // Mike King理論準拠 - 人間とAIの両方に最適化されたFragment ID
 const tocItems = [
@@ -152,52 +156,35 @@ async function getLatestPosts(): Promise<Post[]> {
   const supabase = createClient();
   
   try {
-    // postsテーブルから記事を取得（RAG記事）
-    const { data: newPosts, error: newError } = await supabase
-      .from('posts')
-      .select(`
-        id,
-        title,
-        slug,
-        meta_description,
-        thumbnail_url,
-        created_at
-      `)
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // 🚀 パフォーマンス最適化: 並列クエリ実行
+    const [newPostsResult, oldPostsResult] = await Promise.all([
+      // postsテーブル（RAG記事）- 最小限のフィールドのみ
+      supabase
+        .from('posts')
+        .select('id, title, slug, meta_description, thumbnail_url, created_at')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6), // 最初から6件に制限
 
-    if (newError) {
-      console.error('Error fetching new posts:', newError);
+      // chatgpt_postsテーブル（ChatGPT記事）- 最小限のフィールドのみ
+      supabase
+        .from('chatgpt_posts')
+        .select('id, title, slug, excerpt, thumbnail_url, featured_image, created_at, is_chatgpt_special, categories(name, slug)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6) // 最初から6件に制限
+    ]);
+
+    // エラーハンドリング（ログ出力を最小化）
+    if (newPostsResult.error) {
+      console.error('Posts fetch error:', newPostsResult.error.message);
+    }
+    if (oldPostsResult.error) {
+      console.error('ChatGPT posts fetch error:', oldPostsResult.error.message);
     }
 
-    // chatgpt_postsテーブルから記事を取得（ChatGPT記事）
-    const { data: oldPosts, error: oldError } = await supabase
-      .from('chatgpt_posts')
-      .select(`
-        id,
-        title,
-        slug,
-        excerpt,
-        thumbnail_url,
-        featured_image,
-        created_at,
-        is_chatgpt_special,
-        categories (
-          name,
-          slug
-        )
-      `)
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (oldError) {
-      console.error('Error fetching old posts:', oldError);
-    }
-
-    // データを統一フォーマットに変換
-    const formattedNewPosts: Post[] = (newPosts || []).map(post => ({
+    // 🚀 高速データ変換（処理最適化）
+    const formattedNewPosts: Post[] = (newPostsResult.data || []).map(post => ({
       id: post.id.toString(),
       title: post.title,
       slug: post.slug,
@@ -208,13 +195,12 @@ async function getLatestPosts(): Promise<Post[]> {
       table_type: 'posts' as const
     }));
 
-    const formattedOldPosts: Post[] = (oldPosts || []).map(post => {
+    const formattedOldPosts: Post[] = (oldPostsResult.data || []).map(post => {
+      // 🚀 画像URL処理最適化
       const imageUrl = post.thumbnail_url || post.featured_image;
-      const finalImageUrl = imageUrl 
-        ? imageUrl.startsWith('http') 
-          ? imageUrl 
-          : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
-        : null;
+      const finalImageUrl = imageUrl && !imageUrl.startsWith('http') 
+        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
+        : imageUrl;
       
       return {
         id: post.id.toString(),
@@ -230,21 +216,50 @@ async function getLatestPosts(): Promise<Post[]> {
       };
     });
 
-    // 両方のテーブルの記事を合体して日付順でソート
+    // 🚀 最適化されたソート・制限処理
     const allPosts = [...formattedNewPosts, ...formattedOldPosts];
     allPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-    // 最大6件に制限
     return allPosts.slice(0, 6);
+
   } catch (error) {
-    console.error('Error in getLatestPosts:', error);
+    console.error('getLatestPosts error:', error);
     return [];
   }
 }
 
 export default async function Home() {
+  // 🚀 重い処理を条件付きで実行（開発環境では簡略化）
   const posts = await getLatestPosts();
   const structuredData = getStructuredData();
+  
+  // 🚀 AI検索最適化処理を簡略化（本番環境のみフル実行）
+  let aiEnhancedData, aiSearchReport, aiEnhancedStructuredDataJSON;
+  
+  if (process.env.NODE_ENV === 'production') {
+    // 本番環境: フル機能実行
+    [aiEnhancedData, aiSearchReport] = await Promise.all([
+      generateCompleteAIEnhancedUnifiedPageData(
+        {
+          pageSlug: '',
+          pageTitle: 'エヌアンドエス | AI・システム開発・リスキリング研修',
+          keywords: ['AI', 'システム開発', 'リスキリング', 'レリバンスエンジニアリング', 'RAG', 'ChatGPT'],
+          category: 'corporate'
+        },
+        ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
+      ),
+      Promise.resolve(null) // aiSearchReport生成をスキップ
+    ]);
+    aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
+  } else {
+    // 開発環境: 軽量版実行
+    aiEnhancedData = {
+      aiSearchOptimization: { targetEngines: [], readinessScore: 0.95 },
+      detailedKnowsAbout: {},
+      enhancedMentions: {},
+      fragmentIdEnhancement: {}
+    };
+    aiEnhancedStructuredDataJSON = '{}';
+  }
   
   // 【LLMO最強実装】Google Gemini LLM + AI Overviews最適化
   // Mike King理論完全準拠 + 2024年Google最新ガイドライン対応
@@ -769,23 +784,6 @@ export default async function Home() {
     }
   };
 
-  // AI検索エンジン最適化データ生成
-  const aiEnhancedData = await generateCompleteAIEnhancedUnifiedPageData(
-    {
-      pageSlug: '',
-      pageTitle: 'エヌアンドエス | AI・システム開発・リスキリング研修',
-      keywords: ['AI', 'システム開発', 'リスキリング', 'レリバンスエンジニアリング', 'RAG', 'ChatGPT'],
-      category: 'corporate'
-    },
-    ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
-  );
-
-  // AI検索最適化レポート
-  const aiSearchReport = generateEnhancedAISearchReport(aiEnhancedData);
-
-  // AI検索最適化構造化データ
-  const aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
-
   // Mike King理論完全準拠 - 高度なFragment ID最適化スキーマ（GEO・LLMO・AIO対策）
   const fragmentIdOptimizationSchema = {
     "@context": "https://schema.org",
@@ -941,6 +939,91 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(llmoOptimizedData) }}
       />
+
+      {/* 🚀 条件付きScript読み込み（開発環境では軽量化） */}
+      {process.env.NODE_ENV === 'production' && (
+        <>
+          <Script
+            id="schema-org-16-organization"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(latestOrganizationSchema, null, 2),
+            }}
+          />
+
+          <Script
+            id="ai-transparency-schema"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'TechArticle',
+                '@id': 'https://nands.tech/#ai-transparency',
+                headline: 'AI技術透明性に関する声明',
+                text: aiTransparencyStatement.statement,
+                digitalSourceType: aiTransparencyStatement.digitalSourceTypes,
+                author: {
+                  '@type': 'Organization',
+                  '@id': 'https://nands.tech/#organization'
+                },
+                publisher: {
+                  '@type': 'Organization', 
+                  '@id': 'https://nands.tech/#organization'
+                },
+                datePublished: '2024-01-01'
+              }, null, 2),
+            }}
+          />
+
+          <Script
+            id="ai-search-optimization-schema"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: aiEnhancedStructuredDataJSON,
+            }}
+          />
+
+          <Script
+            id="ai-search-metadata"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'Dataset',
+                '@id': 'https://nands.tech/#ai-search-metadata',
+                name: 'AI検索エンジン最適化メタデータ',
+                description: 'ChatGPT、Perplexity、Claude、Gemini、DeepSeek等の主要AI検索エンジンに最適化されたメタデータセット。レリバンスエンジニアリング、knowsAbout詳細化、mentions関連エンティティ明示、Fragment ID連携強化を含む包括的なAI検索最適化情報。Schema.org 16.0+準拠で、日本企業のAI検索可視性向上、助成金活用最適化、地域SEO強化を実現する高度な構造化データシステム。',
+                aiSearchOptimization: {
+                  targetEngines: aiEnhancedData.aiSearchOptimization?.targetEngines,
+                  readinessScore: aiEnhancedData.aiSearchOptimization?.readinessScore,
+                  optimizationLevel: 'advanced',
+                  lastOptimized: new Date().toISOString().split('T')[0]
+                },
+                detailedKnowledgeProfile: aiEnhancedData.detailedKnowsAbout,
+                enhancedEntityRelationships: aiEnhancedData.enhancedMentions,
+                fragmentIdOptimization: aiEnhancedData.fragmentIdEnhancement
+              }, null, 2),
+            }}
+          />
+        </>
+      )}
+
+      {/* 🚀 開発環境用軽量構造化データ */}
+      {process.env.NODE_ENV === 'development' && (
+        <Script
+          id="dev-minimal-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: '株式会社エヌアンドエス',
+              url: 'https://nands.tech',
+              description: '生成AI研修・AI Agent開発・退職代行サービスの総合企業'
+            }, null, 2),
+          }}
+        />
+      )}
       
 
 
@@ -996,69 +1079,6 @@ export default async function Home() {
       <section id="contact" className="scroll-mt-20">
         <ContactSection />
       </section>
-
-      <Script
-        id="schema-org-16-organization"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(latestOrganizationSchema, null, 2),
-        }}
-      />
-
-      <Script
-        id="ai-transparency-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'TechArticle',
-            '@id': 'https://nands.tech/#ai-transparency',
-            headline: 'AI技術透明性に関する声明',
-            text: aiTransparencyStatement.statement,
-            digitalSourceType: aiTransparencyStatement.digitalSourceTypes,
-            author: {
-              '@type': 'Organization',
-              '@id': 'https://nands.tech/#organization'
-            },
-            publisher: {
-              '@type': 'Organization', 
-              '@id': 'https://nands.tech/#organization'
-            },
-            datePublished: '2024-01-01'
-          }, null, 2),
-        }}
-      />
-
-      <Script
-        id="ai-search-optimization-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: aiEnhancedStructuredDataJSON,
-        }}
-      />
-
-      <Script
-        id="ai-search-metadata"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Dataset',
-            '@id': 'https://nands.tech/#ai-search-metadata',
-            name: 'AI検索エンジン最適化メタデータ',
-            description: 'ChatGPT、Perplexity、Claude、Gemini、DeepSeek等の主要AI検索エンジンに最適化されたメタデータセット。レリバンスエンジニアリング、knowsAbout詳細化、mentions関連エンティティ明示、Fragment ID連携強化を含む包括的なAI検索最適化情報。Schema.org 16.0+準拠で、日本企業のAI検索可視性向上、助成金活用最適化、地域SEO強化を実現する高度な構造化データシステム。',
-            aiSearchOptimization: {
-              targetEngines: aiEnhancedData.aiSearchOptimization?.targetEngines,
-              readinessScore: aiEnhancedData.aiSearchOptimization?.readinessScore,
-              optimizationLevel: 'advanced',
-              lastOptimized: new Date().toISOString().split('T')[0]
-            },
-            detailedKnowledgeProfile: aiEnhancedData.detailedKnowsAbout,
-            enhancedEntityRelationships: aiEnhancedData.enhancedMentions,
-            fragmentIdOptimization: aiEnhancedData.fragmentIdEnhancement
-          }, null, 2),
-        }}
-      />
     </main>
   )
 } 

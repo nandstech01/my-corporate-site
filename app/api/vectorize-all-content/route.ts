@@ -12,7 +12,7 @@ const supabaseServiceRole = createClient(
 
 // 並行実行防止のためのロック機能（データベースベース）
 const LOCK_KEY = 'vectorize-all-content-lock';
-const LOCK_DURATION = 10 * 60 * 1000; // 10分
+const LOCK_DURATION = 15 * 60 * 1000; // 15分（処理時間を考慮して延長）
 
 export async function POST() {
   try {
@@ -51,12 +51,33 @@ export async function POST() {
 
     console.log('🚀 全コンテンツベクトル化開始...');
     
-    // 2. 既存の重複可能性があるベクトルを削除（重複防止）
+    // 2. 既存の重複可能性があるベクトルを削除（重複防止強化）
     const deleteTypes = ['structured-data', 'service', 'corporate', 'technical'];
     let totalDeletedCount = 0;
     
     for (const contentType of deleteTypes) {
       console.log(`🗑️ 既存の${contentType}ベクトルを削除中...`);
+      
+      // まず既存件数を確認
+      const { data: existingData, error: countError } = await supabaseServiceRole
+        .from('company_vectors')
+        .select('id')
+        .eq('content_type', contentType);
+        
+      if (countError) {
+        console.error(`❌ ${contentType}ベクトル確認エラー:`, countError);
+        continue;
+      }
+      
+      const existingCount = existingData?.length || 0;
+      console.log(`📊 削除対象${contentType}ベクトル: ${existingCount}件`);
+      
+      if (existingCount === 0) {
+        console.log(`ℹ️ ${contentType}ベクトルは既に存在しません`);
+        continue;
+      }
+      
+      // 削除実行
       const { data: deletedData, error: deleteError } = await supabaseServiceRole
         .from('company_vectors')
         .delete()
@@ -79,6 +100,19 @@ export async function POST() {
       const deletedCount = deletedData?.length || 0;
       totalDeletedCount += deletedCount;
       console.log(`✅ ${deletedCount}個の既存${contentType}ベクトルを削除`);
+      
+      // 削除確認
+      const { data: remainingData } = await supabaseServiceRole
+        .from('company_vectors')
+        .select('id')
+        .eq('content_type', contentType);
+        
+      const remainingCount = remainingData?.length || 0;
+      if (remainingCount > 0) {
+        console.warn(`⚠️ ${contentType}ベクトル削除後に${remainingCount}件残存`);
+      } else {
+        console.log(`✅ ${contentType}ベクトル完全削除確認`);
+      }
     }
 
     console.log(`🎯 総削除件数: ${totalDeletedCount}件`);

@@ -35,7 +35,7 @@ export class SupabaseVectorStore {
   }
 
   /**
-   * 単一のベクトルデータを保存
+   * 単一のベクトルデータを保存（重複防止機能付き）
    */
   async saveVector(vectorData: VectorData): Promise<{ success: boolean; id?: number; error?: string }> {
     try {
@@ -56,6 +56,27 @@ export class SupabaseVectorStore {
         service_id: vectorData.metadata.serviceId || this.extractServiceId(vectorData.metadata.url),
         relevance_score: 1.0
       } as any; // 型チェックを回避
+
+      // 重複チェック（service系のみ）
+      if (supabaseData.content_type === 'service' && supabaseData.service_id) {
+        const { data: existingData, error: checkError } = await this.supabase
+          .from('company_vectors')
+          .select('id, created_at')
+          .eq('content_type', 'service')
+          .eq('service_id', supabaseData.service_id)
+          .limit(1);
+
+        if (checkError) {
+          console.warn(`⚠️ 重複チェックエラー (${supabaseData.service_id}):`, checkError);
+        } else if (existingData && existingData.length > 0) {
+          console.log(`ℹ️ サービス ${supabaseData.service_id} は既に存在します (ID: ${existingData[0].id})`);
+          return { 
+            success: false, 
+            error: `重複: サービス ${supabaseData.service_id} は既に存在します`,
+            id: existingData[0].id 
+          };
+        }
+      }
 
       const { data, error } = await this.supabase
         .from('company_vectors')
