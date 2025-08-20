@@ -16,7 +16,8 @@ import {
   UserGroupIcon,
   CurrencyDollarIcon,
   ChevronDownIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline';
 import VoiceAgentButton from './VoiceAgent/VoiceAgentButton';
 import VoiceAgentModalV2 from './VoiceAgent/VoiceAgentModalV2';
@@ -92,6 +93,36 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
           name: 'RAG削除管理',
           href: '/admin/rag-cleanup',
           current: pathname === '/admin/rag-cleanup'
+        },
+        {
+          name: 'ディープリンク計測',
+          href: '/admin/deeplink-analytics/overview',
+          current: pathname === '/admin/deeplink-analytics/overview'
+        },
+        {
+          name: '類似度追跡',
+          href: '/admin/deeplink-analytics/similarity',
+          current: pathname === '/admin/deeplink-analytics/similarity'
+        },
+        {
+          name: 'AI引用計測',
+          href: '/admin/deeplink-analytics/quotations',
+          current: pathname === '/admin/deeplink-analytics/quotations'
+        },
+        {
+          name: 'SNS・動画統合',
+          href: '/admin/deeplink-analytics/sns-integration',
+          current: pathname === '/admin/deeplink-analytics/sns-integration'
+        },
+        {
+          name: '自動最適化',
+          href: '/admin/deeplink-analytics/optimization',
+          current: pathname === '/admin/deeplink-analytics/optimization'
+        },
+        {
+          name: '🤖 AI検索アクセス検出',
+          href: '/admin/deeplink-analytics/ai-detection',
+          current: pathname === '/admin/deeplink-analytics/ai-detection'
         }
       ]
     },

@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from "next/font/google";
 import Header from './components/common/Header';
 import Footer from '../src/components/common/Footer';
+import AIDetectionTracker from '../components/common/AIDetectionTracker';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 
@@ -207,6 +208,9 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
+        
+        {/* AI引用自動検出トラッカー */}
+        <AIDetectionTracker />
         
         {/* 組織情報の構造化データ */}
         <Script
