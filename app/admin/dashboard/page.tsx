@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
+// 動的レンダリングを強制
+export const dynamic = 'force-dynamic';
 import { supabase } from '@/lib/supabase/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';

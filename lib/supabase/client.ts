@@ -10,12 +10,12 @@ let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 export const supabase = (() => {
   if (!supabaseInstance) {
     supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-        persistSession: false,
+      auth: {
+        persistSession: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         autoRefreshToken: true,
         detectSessionInUrl: false
-  }
+      }
     });
   }
   return supabaseInstance;

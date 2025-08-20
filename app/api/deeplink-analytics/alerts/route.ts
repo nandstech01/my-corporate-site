@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase接続設定
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { supabase } from '@/lib/supabase/client';
 
 // アラートデータの型定義
 interface Alert {
@@ -260,11 +254,16 @@ async function detectPerformanceAnomalies(): Promise<Alert[]> {
       conversionCounts: number[]
     }>();
 
-    (analyticsData || []).forEach((item: any) => {
+    (analyticsData || []).forEach((item: {
+      fragment_id: string;
+      complete_uri: string;
+      click_count: number | null;
+      conversion_count: number | null;
+    }) => {
       const existing = fragmentPerformance.get(item.fragment_id) || {
         uri: item.complete_uri,
-        clickCounts: [],
-        conversionCounts: []
+        clickCounts: [] as number[],
+        conversionCounts: [] as number[]
       };
       
       existing.clickCounts.push(item.click_count || 0);
@@ -356,7 +355,12 @@ async function detectConversionDropAlerts(): Promise<Alert[]> {
     const recentConversions = new Map<string, { conversions: number, clicks: number, uri: string }>();
     const previousConversions = new Map<string, { conversions: number, clicks: number }>();
 
-    (recentData || []).forEach((item: any) => {
+    (recentData || []).forEach((item: {
+      fragment_id: string;
+      complete_uri: string;
+      click_count: number | null;
+      conversion_count: number | null;
+    }) => {
       recentConversions.set(item.fragment_id, {
         conversions: item.conversion_count || 0,
         clicks: item.click_count || 0,
@@ -364,7 +368,11 @@ async function detectConversionDropAlerts(): Promise<Alert[]> {
       });
     });
 
-    (previousData || []).forEach((item: any) => {
+    (previousData || []).forEach((item: {
+      fragment_id: string;
+      click_count: number | null;
+      conversion_count: number | null;
+    }) => {
       previousConversions.set(item.fragment_id, {
         conversions: item.conversion_count || 0,
         clicks: item.click_count || 0

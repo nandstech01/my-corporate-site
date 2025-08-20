@@ -1,11 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase接続設定
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // 🎯 統合ディープリンク統計データの型定義（145件対応）
 interface UnifiedDeepLinkStats {
@@ -66,7 +59,8 @@ export async function GET(request: NextRequest) {
     console.log('🔍 ディープリンク計測概要データ取得開始（145件対応）:', { days });
 
     // 🎯 統合APIからデータ取得（145件すべて）
-    const unifiedResponse = await fetch(`http://localhost:3000/api/deeplink-analytics/unified?days=${days}`, {
+    const baseUrl = request.nextUrl.origin;
+    const unifiedResponse = await fetch(`${baseUrl}/api/deeplink-analytics/unified?days=${days}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
