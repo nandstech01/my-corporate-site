@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+// セキュリティ脆弱性のため react-syntax-highlighter を削除
+// 代替案として基本的なコードブロック表示を使用
 import type { Plugin } from 'unified';
 
 // TypeScript Window拡張
@@ -183,14 +183,11 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             code({className, children}) {
               const match = /language-(\w+)/.exec(className || '');
               return match ? (
-                <SyntaxHighlighter
-                  style={oneDark as any}
-                  language={match[1]}
-                  PreTag="div"
-                  className="my-6 rounded-lg"
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                <pre className="my-6 rounded-lg bg-gray-900 text-gray-100 p-4 overflow-x-auto">
+                  <code className={`language-${match[1]} font-mono text-sm`}>
+                    {String(children).replace(/\n$/, '')}
+                  </code>
+                </pre>
               ) : (
                 <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-sm">
                   {children}
