@@ -123,6 +123,11 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
           name: '🤖 AI検索アクセス検出',
           href: '/admin/deeplink-analytics/ai-detection',
           current: pathname === '/admin/deeplink-analytics/ai-detection'
+        },
+        {
+          name: '🧠 セマンティック分析',
+          href: '/admin/deeplink-analytics/semantic-analysis',
+          current: pathname === '/admin/deeplink-analytics/semantic-analysis'
         }
       ]
     },
