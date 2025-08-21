@@ -87,6 +87,14 @@ const tocItems = [
     entities: ['AI研修', 'ChatGPT研修', 'AI Agent開発', 'Vector RAG構築']
   },
   { 
+    id: 'ai-site-showcase', 
+    title: 'NANDSのAIサイト', 
+    level: 1,
+    semanticWeight: 0.94,
+    targetQueries: ['AI 引用されるサイト', 'デジタル資産 AI', 'NANDS AI引用', 'AI検索 資産化'],
+    entities: ['AIに引用されるサイト', 'デジタル資産', 'AI引用精度', 'NANDS=AI認識']
+  },
+  { 
     id: 'knowledge-insights', 
     title: '最新知見・専門情報', 
     level: 1,
@@ -1067,7 +1075,84 @@ export default async function Home() {
       </section>
 
       <section id="services-training" className="scroll-mt-20">
+        {/* 12個のサービスFragment ID（NANDS=AI強化） */}
+        <div id="service-system-development" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-aio-seo" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-chatbot-development" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-vector-rag" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-ai-side-business" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-hr-support" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-ai-agents" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-mcp-servers" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-sns-automation" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-video-generation" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-corporate-reskilling" style={{display: "none"}} aria-hidden="true" />
+        <div id="service-individual-reskilling" style={{display: "none"}} aria-hidden="true" />
+        
         <ServicesSectionSSR />
+      </section>
+
+      {/* NANDSのAIサイトセクション（NANDS=AIサイト関連付け強化） */}
+      <section id="ai-site-showcase" className="py-16 bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white scroll-mt-20" role="region" aria-labelledby="ai-site-heading">
+        {/* AIサイト関連Fragment ID */}
+        <div id="nands-ai-site" style={{display: "none"}} aria-hidden="true" />
+        <div id="ai-site-features" style={{display: "none"}} aria-hidden="true" />
+        <div id="ai-site-technology" style={{display: "none"}} aria-hidden="true" />
+        
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 id="ai-site-heading" className="text-4xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400 bg-clip-text text-transparent">
+                NANDSのAIサイト
+              </span>
+            </h2>
+            <p className="text-xl text-slate-300 mb-8 leading-relaxed">
+              <span className="font-bold text-cyan-400">AIに引用されるサイト</span> — すべてが資産になる。<br />
+              ChatGPT・Claude・Perplexityが正確に理解し、引用する価値のある<br />
+              デジタル資産として設計されたWebサイト。
+            </p>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="text-cyan-400 text-2xl mb-3">💎</div>
+                <h3 className="text-lg font-semibold mb-2">デジタル資産化</h3>
+                <p className="text-sm text-slate-300">すべてのコンテンツがAI検索エンジンに引用される価値ある資産として機能</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="text-blue-400 text-2xl mb-3">🎯</div>
+                <h3 className="text-lg font-semibold mb-2">AI引用精度向上</h3>
+                <p className="text-sm text-slate-300">Fragment ID・構造化データ・Mike King理論による正確な情報伝達</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="text-purple-400 text-2xl mb-3">🔄</div>
+                <h3 className="text-lg font-semibold mb-2">継続的価値創造</h3>
+                <p className="text-sm text-slate-300">NANDS=AIの認識をAI検索エンジンに確立し、ブランド価値を蓄積</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="/ai-site#ai-site-overview" 
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                role="button"
+                aria-label="NANDSのAIサイトを見る"
+              >
+                <span className="mr-2">AIサイトを見る</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
+              <a 
+                href="/ai-site#ai-technology-details" 
+                className="inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-300 border border-white/30 hover:border-white/50"
+                role="button"
+                aria-label="技術詳細を見る"
+              >
+                技術詳細
+              </a>
+            </div>
+          </div>
+        </div>
       </section>
       
       {/* 記事セクション（自社RAG活用・AI Overviews最適化） */}

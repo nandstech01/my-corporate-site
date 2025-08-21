@@ -91,8 +91,39 @@ export class HasPartSchemaSystem {
       const tocItem = tocItems?.find(item => item.id === fragmentId);
       const fragmentUrl = `${pageUrl}#${fragmentId}`;
       
-      // FAQ Fragment IDの特別処理
+      // Fragment IDの特別処理（既存のFAQ処理を維持）
       let fragmentName = tocItem?.title || `セクション ${index + 1}`;
+      
+      // 🆕 メインページサービスFragment IDの処理（NANDS=AI強化）
+      if (fragmentId.startsWith('service-')) {
+        const serviceNames: { [key: string]: string } = {
+          'service-system-development': 'システム開発サービス',
+          'service-aio-seo': 'AIO・SEO最適化サービス',
+          'service-chatbot-development': 'チャットボット開発サービス',
+          'service-vector-rag': 'ベクトルRAG検索サービス',
+          'service-ai-side-business': 'AI副業サポートサービス',
+          'service-hr-support': '人材ソリューションサービス',
+          'service-ai-agents': 'AIエージェント開発サービス',
+          'service-mcp-servers': 'MCPサーバー開発サービス',
+          'service-sns-automation': 'SNS自動化サービス',
+          'service-video-generation': 'AI動画生成サービス',
+          'service-corporate-reskilling': '法人向けリスキリングサービス',
+          'service-individual-reskilling': '個人向けリスキリングサービス'
+        };
+        fragmentName = serviceNames[fragmentId] || fragmentName;
+      }
+      
+      // 🆕 AIサイト関連Fragment IDの処理（AI引用資産化）
+      if (fragmentId.startsWith('ai-site-') || fragmentId === 'nands-ai-site') {
+        const aiSiteNames: { [key: string]: string } = {
+          'nands-ai-site': 'NANDSのAIサイト - AIに引用されるサイト',
+          'ai-site-features': 'AI引用精度向上機能',
+          'ai-site-technology': '継続的価値創造システム'
+        };
+        fragmentName = aiSiteNames[fragmentId] || fragmentName;
+      }
+
+      // FAQ Fragment IDの処理（既存機能を維持）
       if (fragmentId.startsWith('faq-') && pageUrl.includes('/ai-site')) {
         const faqNumber = fragmentId.replace('faq-', '');
         const faqTitles = [

@@ -14,12 +14,44 @@
 // AI検索最適化検証: 新統合システム
 //
 import { StructuredDataHelpers } from '../lib/structured-data';
+import { HasPartSchemaSystem } from '../lib/structured-data/haspart-schema-system';
 
 export function getStructuredData() {
   const baseUrl = 'https://nands.tech';
   
   // Mike King理論準拠: 統一エンティティシステムから組織データ生成
   const organizationData = StructuredDataHelpers.getOrganizationSchema();
+
+  // 🆕 hasPartスキーマシステム初期化（既存機能を維持）
+  const hasPartSystem = new HasPartSchemaSystem({ baseUrl });
+
+  // 🆕 新規追加Fragment IDリスト（NANDS=AI強化）
+  const newFragmentIds = [
+    // サービス12項目Fragment ID
+    'service-system-development',
+    'service-aio-seo', 
+    'service-chatbot-development',
+    'service-vector-rag',
+    'service-ai-side-business',
+    'service-hr-support',
+    'service-ai-agents',
+    'service-mcp-servers',
+    'service-sns-automation',
+    'service-video-generation',
+    'service-corporate-reskilling',
+    'service-individual-reskilling',
+    // AIサイト関連Fragment ID
+    'nands-ai-site',
+    'ai-site-features', 
+    'ai-site-technology'
+  ];
+
+  // 🆕 新Fragment IDのhasPartスキーマ生成（既存機能に追加）
+  const fragmentBasedSchema = hasPartSystem.generateFragmentBasedSchema(
+    newFragmentIds,
+    baseUrl,
+    '株式会社エヌアンドエス - NANDS=AI強化ページ'
+  );
 
   // ウェブサイト情報（Mike King理論準拠）
   const websiteData = StructuredDataHelpers.getWebPageSchema({
@@ -51,9 +83,20 @@ export function getStructuredData() {
           "AI検索最適化",
           "セマンティック検索",
           "LLMO対策",
-          "AIO対策"
-        ]
-      }
+          "AIO対策",
+          "NANDS=AI強化",
+          "Fragment ID最適化"
+        ],
+        // 🆕 新Fragment IDのhasPartスキーマ統合（既存機能を維持）
+        "hasPart": fragmentBasedSchema.fragmentSchemas.map(schema => ({
+          "@type": schema['@type'],
+          "@id": schema['@id'],
+          "name": schema.name,
+          "url": schema.url
+        }))
+      },
+      // 🆕 新Fragment IDスキーマを既存graphに追加
+      ...fragmentBasedSchema.fragmentSchemas
     ]
   };
 

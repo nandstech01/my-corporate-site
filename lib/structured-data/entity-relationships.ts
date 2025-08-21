@@ -454,6 +454,160 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     ]
   } as ServiceEntity,
 
+  // 🆕 メインページサービスFragment IDエンティティ（12個追加 - NANDS=AI強化）
+  {
+    '@id': 'https://nands.tech/#service-system-development',
+    '@type': 'WebPageElement',
+    name: 'システム開発サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['システム開発', 'NANDS', 'AI統合', 'Web開発'],
+    relatedTo: ['https://nands.tech/system-development#service'],
+    mentions: ['AI', 'システム開発', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-aio-seo',
+    '@type': 'WebPageElement',
+    name: 'AIO・SEO最適化サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIO対策', 'SEO', 'NANDS', 'AI検索最適化'],
+    relatedTo: ['https://nands.tech/aio-seo#service'],
+    mentions: ['AI', 'SEO', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-chatbot-development',
+    '@type': 'WebPageElement',
+    name: 'チャットボット開発サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['チャットボット', 'ChatGPT', 'NANDS', 'AI開発'],
+    relatedTo: ['https://nands.tech/chatbot-development#service'],
+    mentions: ['AI', 'チャットボット', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-vector-rag',
+    '@type': 'WebPageElement',
+    name: 'ベクトルRAG検索サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['ベクトルRAG', 'AI検索', 'NANDS', 'OpenAI'],
+    relatedTo: ['https://nands.tech/vector-rag#service'],
+    mentions: ['AI', 'RAG', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-ai-side-business',
+    '@type': 'WebPageElement',
+    name: 'AI副業サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI副業', 'ChatGPT', 'NANDS', '副業支援'],
+    relatedTo: ['https://nands.tech/fukugyo#service'],
+    mentions: ['AI', '副業', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-hr-support',
+    '@type': 'WebPageElement',
+    name: '人材ソリューションサービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['人材ソリューション', 'HR', 'NANDS', 'AI活用'],
+    relatedTo: ['https://nands.tech/hr-solutions#service'],
+    mentions: ['AI', '人材', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-ai-agents',
+    '@type': 'WebPageElement',
+    name: 'AIエージェントサービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIエージェント', 'Mastra', 'NANDS', 'AI自動化'],
+    relatedTo: ['https://nands.tech/ai-agents#service'],
+    mentions: ['AI', 'エージェント', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-mcp-servers',
+    '@type': 'WebPageElement',
+    name: 'MCPサーバーサービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['MCPサーバー', 'MCP', 'NANDS', 'AI統合'],
+    relatedTo: ['https://nands.tech/mcp-servers#service'],
+    mentions: ['AI', 'MCP', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-sns-automation',
+    '@type': 'WebPageElement',
+    name: 'SNS自動化サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['SNS自動化', 'AI投稿', 'NANDS', 'マーケティング'],
+    relatedTo: ['https://nands.tech/sns-automation#service'],
+    mentions: ['AI', 'SNS', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-video-generation',
+    '@type': 'WebPageElement',
+    name: '動画生成サービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['動画生成', 'AI動画', 'NANDS', 'コンテンツ制作'],
+    relatedTo: ['https://nands.tech/video-generation#service'],
+    mentions: ['AI', '動画', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-corporate-reskilling',
+    '@type': 'WebPageElement',
+    name: '法人向けリスキリングサービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['法人研修', 'リスキリング', 'NANDS', 'DX推進'],
+    relatedTo: ['https://nands.tech/corporate#service'],
+    mentions: ['AI', '研修', 'NANDS']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#service-individual-reskilling',
+    '@type': 'WebPageElement',
+    name: '個人向けリスキリングサービス（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['個人研修', 'リスキリング', 'NANDS', 'キャリア支援'],
+    relatedTo: ['https://nands.tech/reskilling#service'],
+    mentions: ['AI', '研修', 'NANDS']
+  } as ServiceEntity,
+
+  // 🆕 NANDSのAIサイト関連Fragment IDエンティティ（3個追加 - AI引用資産化強化）
+  {
+    '@id': 'https://nands.tech/#nands-ai-site',
+    '@type': 'WebPageElement',
+    name: 'NANDSのAIサイト（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIに引用されるサイト', 'デジタル資産', 'NANDS', 'AI検索エンジン対応'],
+    relatedTo: ['https://nands.tech/ai-site#ai-site-overview'],
+    mentions: ['NANDS', 'AI引用', 'デジタル資産']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#ai-site-features',
+    '@type': 'WebPageElement',
+    name: 'AI引用精度向上機能（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI引用精度', 'Fragment ID', 'NANDS', '構造化データ'],
+    relatedTo: ['https://nands.tech/ai-site#ai-site-features'],
+    mentions: ['NANDS', 'AI引用', '精度向上']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#ai-site-technology',
+    '@type': 'WebPageElement',
+    name: '継続的価値創造システム（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['価値創造', 'NANDS=AI認識', 'NANDS', 'ブランド資産化'],
+    relatedTo: ['https://nands.tech/ai-site#ai-technology-details'],
+    mentions: ['NANDS', '価値創造', 'ブランド資産']
+  } as ServiceEntity,
+
 ];
 
 /**
