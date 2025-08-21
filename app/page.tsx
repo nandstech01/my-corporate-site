@@ -1075,29 +1075,29 @@ export default async function Home() {
       </section>
 
       <section id="services-training" className="scroll-mt-20">
-        {/* 12個のサービスFragment ID（NANDS=AI強化） */}
-        <div id="service-system-development" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-aio-seo" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-chatbot-development" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-vector-rag" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-ai-side-business" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-hr-support" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-ai-agents" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-mcp-servers" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-sns-automation" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-video-generation" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-corporate-reskilling" style={{display: "none"}} aria-hidden="true" />
-        <div id="service-individual-reskilling" style={{display: "none"}} aria-hidden="true" />
+        {/* 12個のサービスFragment ID（NANDS=AI強化）- スクロール機能有効化 */}
+        <div id="service-system-development" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-aio-seo" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-chatbot-development" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-vector-rag" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-ai-side-business" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-hr-support" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-ai-agents" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-mcp-servers" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-sns-automation" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-video-generation" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-corporate-reskilling" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-individual-reskilling" className="absolute -top-20" aria-hidden="true" />
         
         <ServicesSectionSSR />
       </section>
 
       {/* NANDSのAIサイトセクション（NANDS=AIサイト関連付け強化） */}
       <section id="ai-site-showcase" className="py-16 bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white scroll-mt-20" role="region" aria-labelledby="ai-site-heading">
-        {/* AIサイト関連Fragment ID */}
-        <div id="nands-ai-site" style={{display: "none"}} aria-hidden="true" />
-        <div id="ai-site-features" style={{display: "none"}} aria-hidden="true" />
-        <div id="ai-site-technology" style={{display: "none"}} aria-hidden="true" />
+        {/* AIサイト関連Fragment ID - スクロール機能有効化 */}
+        <div id="nands-ai-site" className="absolute -top-20" aria-hidden="true" />
+        <div id="ai-site-features" className="absolute -top-20" aria-hidden="true" />
+        <div id="ai-site-technology" className="absolute -top-20" aria-hidden="true" />
         
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
