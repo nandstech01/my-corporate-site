@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
     const corporateFragments = generateCorporateFragments();
     const technicalFragments = generateTechnicalFragments();
     const realFragments = await getRealFragmentIds(); // 実際のFragment IDを取得
+    const mainPageFragments = generateMainPageFragments(); // 🎯 メインページFragment ID追加
 
     // 4. メモリ内統合処理（データベースは一切変更しない）
     const fragmentMap = new Map();
@@ -147,7 +148,7 @@ export async function GET(request: NextRequest) {
     });
 
     // AI-siteの静的Fragment IDを統合
-    [...aiSiteFragments, ...serviceFragments, ...corporateFragments, ...technicalFragments, ...realFragments].forEach(fragment => {
+    [...aiSiteFragments, ...serviceFragments, ...corporateFragments, ...technicalFragments, ...realFragments, ...mainPageFragments].forEach(fragment => {
       // 🎯 静的フラグメントにも適切な類似度を設定
       let staticSimilarity = 0.85; // デフォルト値
       
@@ -415,6 +416,52 @@ async function generateAISiteFragments() {
     }
   }
   
+  return fragments;
+}
+
+/**
+ * メインページの静的Fragment ID生成（今回追加分）
+ */
+function generateMainPageFragments(): any[] {
+  // サービス12項目のFragment ID
+  const mainPageServices = [
+    'service-system-development', 'service-aio-seo', 'service-chatbot-development',
+    'service-vector-rag', 'service-ai-side-business', 'service-hr-support',
+    'service-ai-agents', 'service-mcp-servers', 'service-sns-automation',
+    'service-video-generation', 'service-corporate-reskilling', 'service-individual-reskilling'
+  ];
+
+  // AIサイト3項目のFragment ID
+  const mainPageAISite = [
+    'nands-ai-site', 'ai-site-features', 'ai-site-technology'
+  ];
+
+  const fragments: any[] = [];
+
+  // サービス12項目を追加
+  mainPageServices.forEach(fragmentId => {
+    fragments.push({
+      fragmentId,
+      completeURI: `https://nands.tech/#${fragmentId}`,
+      pagePath: '/',
+      contentType: 'main-page-service',
+      sectionTitle: `メインページ - ${fragmentId.replace('service-', '')}`,
+      createdAt: new Date().toISOString()
+    });
+  });
+
+  // AIサイト3項目を追加
+  mainPageAISite.forEach(fragmentId => {
+    fragments.push({
+      fragmentId,
+      completeURI: `https://nands.tech/#${fragmentId}`,
+      pagePath: '/',
+      contentType: 'main-page-ai-site',
+      sectionTitle: `メインページ - ${fragmentId}`,
+      createdAt: new Date().toISOString()
+    });
+  });
+
   return fragments;
 }
 
