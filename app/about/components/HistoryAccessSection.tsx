@@ -56,11 +56,8 @@ export default function HistoryAccessSection() {
 
   return (
     <>
-      {/* Fragment ID for Entity Map - Hidden from users */}
-      <div id="history-access" style={{ display: 'none' }} aria-hidden="true" />
-      
       {/* ai-site風ブラック×シアン統一デザイン */}
-      <section className="relative py-24 bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
+      <section id="history-access" className="relative py-24 bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
         {/* Galaxy 3D背景（ai-siteと同様） */}
         <div className="absolute inset-0 z-0">
           <Galaxy 

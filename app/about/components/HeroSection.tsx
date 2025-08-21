@@ -7,11 +7,8 @@ const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { ssr: false });
 export default function HeroSection() {
   return (
     <>
-      {/* Fragment ID for Entity Map - Hidden from users */}
-      <div id="hero" style={{ display: 'none' }} aria-hidden="true" />
-      
       {/* メインビジュアル - ai-site風ブラック×シアン統一 */}
-      <section className="relative h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
+      <section id="hero" className="relative h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
         {/* Galaxy 3D背景（ai-siteと完全同一設定） */}
         <div className="absolute inset-0 z-0">
           <Galaxy

@@ -3,10 +3,7 @@ import React from 'react';
 export default function RepresentativeSNSSection() {
   return (
     <>
-      {/* Fragment ID for Entity Map - Hidden from users */}
-      <div id="representative-linkedin" style={{ display: 'none' }} aria-hidden="true" />
-      
-      <section className="py-16 bg-gradient-to-br from-blue-600 to-indigo-700">
+      <section id="representative-linkedin" className="py-16 bg-gradient-to-br from-blue-600 to-indigo-700">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">

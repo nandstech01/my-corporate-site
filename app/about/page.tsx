@@ -155,8 +155,7 @@ export default function AboutPage() {
           </div>
         </div>
         
-        {/* 既存の Fragment ID for Entity Map - Hidden from users（互換性維持） */}
-        <div id="company" style={{ display: 'none' }} aria-hidden="true" />
+        {/* Fragment ID 'company' は削除 - 各セクションに個別設定済み */}
         
         <main>
           {/* Heroセクション - 最重要コンテンツを最初に表示 */}
