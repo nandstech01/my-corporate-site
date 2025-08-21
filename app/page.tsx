@@ -374,9 +374,10 @@ export default async function Home() {
           "レリバンスエンジニアリング", "LLMO対策", "AI Overviews最適化", "構造化データ", 
           "SEO対策", "Schema.org実装", "Google Gemini LLM対応", "ベクターRAG",
           
-          // 地域特化
-          "滋賀県AI研修", "関西地方DX推進", "大津市企業支援", "滋賀県人材育成",
-          "関西地方生成AI導入", "滋賀県リスキリング支援",
+          // 全国対応・地域展開
+          "全国AI研修", "全国DX推進", "全国企業支援", "全国人材育成", "全国リスキリング支援",
+          "関西地方重点展開", "関東地方展開", "中部地方展開", "九州地方展開", "東北地方展開",
+          "オンライン研修", "リモートサポート", "全国出張対応",
           
           // サービス詳細
           "AI Agent開発", "Chatbot開発", "Vector RAG構築", "MCP Servers開発",
@@ -384,11 +385,12 @@ export default async function Home() {
           "System Development", "Corporate Solutions"
         ],
         
-        // 【サービス地域】LocalBusiness最適化
+        // 【サービス地域】全国対応最適化
         "areaServed": [
         {
           "@type": "Country",
-          "name": "日本"
+          "name": "日本",
+          "description": "全国対応・オンライン研修・リモートサポート完全対応"
         },
         {
             "@type": "State", 
@@ -398,13 +400,38 @@ export default async function Home() {
         {
           "@type": "Place",
             "name": "関西地方",
-            "description": "大阪府・京都府・兵庫県・奈良県・和歌山県への展開"
+            "description": "大阪府・京都府・兵庫県・奈良県・和歌山県への重点展開"
         },
         {
-            "@type": "City",
-            "name": "大津市",
-            "description": "本社所在地としてローカル企業支援"
-          }
+          "@type": "Place",
+            "name": "関東地方",
+            "description": "東京都・神奈川県・埼玉県・千葉県・茨城県・栃木県・群馬県への展開"
+        },
+        {
+          "@type": "Place",
+            "name": "中部地方",
+            "description": "愛知県・静岡県・岐阜県・三重県・長野県・山梨県・新潟県・富山県・石川県・福井県への展開"
+        },
+        {
+          "@type": "Place",
+            "name": "九州地方",
+            "description": "福岡県・佐賀県・長崎県・熊本県・大分県・宮崎県・鹿児島県・沖縄県への展開"
+        },
+        {
+          "@type": "Place",
+            "name": "東北地方",
+            "description": "青森県・岩手県・宮城県・秋田県・山形県・福島県への展開"
+        },
+        {
+          "@type": "Place",
+            "name": "中国・四国地方",
+            "description": "広島県・岡山県・山口県・鳥取県・島根県・香川県・愛媛県・徳島県・高知県への展開"
+        },
+        {
+          "@type": "Place",
+            "name": "北海道",
+            "description": "北海道全域への展開"
+        }
         ],
         
         // 【外部リンク】信頼性強化

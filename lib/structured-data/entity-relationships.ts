@@ -510,10 +510,328 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       'DX推進'
     ]
   },
+  // 🆕 aboutページ新Fragment IDエンティティ（6個追加）
+  {
+    '@id': 'https://nands.tech/about#hero',
+    '@type': 'AboutPage',
+    name: 'NANDS - Business Concept - メインビジュアル',
+    pageType: 'HeroSection',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'NANDS',
+      'Business Concept',
+      '全ての働く人を次のステージへ',
+      'AI技術で働く人の次のステージを支援',
+      '企業ビジョン',
+      'メインメッセージ',
+      '企業理念',
+      'ブランドコンセプト'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#mission-vision',
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/#organization'
+    ],
+    mentions: [
+      'NANDS',
+      'Business Concept',
+      '次のステージ',
+      'AI技術',
+      '働く人'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#mission-vision',
+    '@type': 'AboutPage',
+    name: 'Mission & Vision - 企業使命とビジョン',
+    pageType: 'MissionVision',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Mission',
+      'Vision',
+      '働く人々の可能性を解放し',
+      'キャリアの新たな地平を切り拓く',
+      '2030年',
+      '日本の働き方を革新する',
+      'リーディングカンパニーへ',
+      'キャリア革新',
+      '企業変革',
+      '社会貢献',
+      'キャリアトランスフォーメーション',
+      'デジタルトランスフォーメーション',
+      'AIリテラシ向上',
+      'グローバル競争力'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#hero',
+      'https://nands.tech/about#enterprise-ai',
+      'https://nands.tech/#organization'
+    ],
+    mentions: [
+      'Mission',
+      'Vision',
+      '2030年',
+      'リーディングカンパニー',
+      'DX推進',
+      'AI活用'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#enterprise-ai',
+    '@type': 'AboutPage',
+    name: 'Enterprise AI Solutions - 企業向けAIソリューション',
+    pageType: 'EnterpriseAI',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Enterprise AI Solutions',
+      'AI導入コンサルティング',
+      '企業向けAI研修プログラム',
+      'AI組織構築支援',
+      'AI活用戦略の策定',
+      '業務プロセスの分析・改善',
+      'ROI評価とコスト最適化',
+      '経営者向けAI戦略研修',
+      '実務者向けAIツール活用研修',
+      '開発者向け技術研修',
+      'AI人材の採用支援',
+      '組織体制の設計',
+      '社内AI活用推進体制の構築',
+      '導入実績・成果',
+      '滋賀拠点エリア',
+      '2008年設立年',
+      '全国サービス展開'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#mission-vision',
+      'https://nands.tech/about#business',
+      'https://nands.tech/ai-agents#service',
+      'https://nands.tech/system-development#service'
+    ],
+    mentions: [
+      'AI導入コンサルティング',
+      '企業向けAI研修',
+      'AI組織構築',
+      'ROI評価',
+      'AI戦略',
+      'AI人材育成'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#business',
+    '@type': 'AboutPage',
+    name: 'Business - 事業内容',
+    pageType: 'BusinessOverview',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Business',
+      'キャリア変革支援事業',
+      '生成AI活用リスキリング研修',
+      'キャリアコンサルティング',
+      'キャリアサポート事業',
+      '退職支援事業「退職あんしん代行」',
+      'システム開発事業',
+      'SNSコンサル事業',
+      'メディア運営事業',
+      '事業コンセプト',
+      'キャリアの新たな地平を切り拓く',
+      '実践的なスキル開発支援',
+      '個々のニーズに寄り添った丁寧なキャリア支援',
+      '安心・確実な転職・退職プロセスのサポート'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#enterprise-ai',
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/reskilling#service',
+      'https://nands.tech/system-development#service'
+    ],
+    mentions: [
+      'リスキリング研修',
+      'キャリアコンサルティング',
+      '退職支援',
+      'システム開発',
+      'SNSコンサル',
+      'メディア運営'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#company-message',
+    '@type': 'AboutPage',
+    name: 'Company & Message - 会社概要・代表メッセージ',
+    pageType: 'CompanyMessage',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Company',
+      'Message',
+      '株式会社エヌアンドエス',
+      '原田 賢治',
+      '代表取締役',
+      '2008年4月設立',
+      '本社',
+      '〒520-0025 滋賀県大津市皇子ヶ丘２丁目１０番２５−３００４号',
+      '東京支社',
+      '〒150-0043 東京都渋谷区道玄坂１丁目１０番８号渋谷道玄坂東急ビル2F-C',
+      '生成AI活用リスキリング研修事業',
+      'キャリアコンサルティング事業',
+      'システム開発事業',
+      '退職支援事業',
+      'SNSコンサル事業',
+      'メディア運営事業',
+      'contact@nands.tech',
+      '0120-558-551',
+      '寄り添い続ける！',
+      '代表メッセージ',
+      'テクノロジーの進化と人間味のあるサポート'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#business',
+      'https://nands.tech/about#history-access',
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/#organization'
+    ],
+    mentions: [
+      '株式会社エヌアンドエス',
+      '原田賢治',
+      '2008年設立',
+      '滋賀県大津市',
+      '東京支社',
+      '代表メッセージ',
+      '寄り添い続ける'
+    ]
+  },
+  {
+    '@id': 'https://nands.tech/about#history-access',
+    '@type': 'AboutPage',
+    name: 'History & Access - 企業沿革・アクセス情報',
+    pageType: 'HistoryAccess',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'History',
+      'Access',
+      '企業沿革',
+      'アクセス情報',
+      '2008年4月株式会社エヌアンドエス設立',
+      'デジタルマーケティング事業進出',
+      '人材育成事業本格開始',
+      '転職サポート事業開始',
+      '事業方針刷新',
+      'AIコンサルティング事業開始',
+      'メディア・SNS事業開始',
+      'AI事業本部設立',
+      '退職支援事業開始',
+      '本社',
+      '〒520-0025 滋賀県大津市皇子が丘２丁目10−25−3004号',
+      'NANDSTECH',
+      'AI・テクノロジー',
+      'マーケティング・支援',
+      'リスキリング・企業情報',
+      '無料相談・お問い合わせ',
+      'contact@nands.tech',
+      '0120-558-551'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/about#hero',
+      'https://nands.tech/corporate#company',
+      'https://nands.tech/#organization'
+    ],
+    mentions: [
+      '企業沿革',
+      '2008年設立',
+      'デジタルマーケティング',
+      'AIコンサルティング',
+      'AI事業本部',
+      '滋賀県大津市',
+      'NANDSTECH'
+    ]
+  },
+
+  // 🆕 SNS統合Fragment IDエンティティ（2個追加）
+  {
+    '@id': 'https://nands.tech/about#company-official-x',
+    '@type': 'AboutPage',
+    name: '公式SNS - X (Twitter)アカウント',
+    pageType: 'SocialMediaSection',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '@NANDS_AI',
+      '公式Xアカウント',
+      'AI技術動向',
+      'サービス情報',
+      '業界インサイト',
+      'レリバンスエンジニアリング発信',
+      'Mike King理論解説',
+      'AI検索最適化情報',
+      'Fragment ID活用',
+      'AI引用精度向上',
+      'リスキリング研修案内',
+      '企業公式発信'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/about#representative-linkedin',
+      'https://nands.tech/#organization',
+      'https://x.com/NANDS_AI'
+    ],
+    mentions: [
+      'X',
+      'Twitter',
+      '公式SNS',
+      'NANDS_AI',
+      'AI技術動向',
+      'サービス情報',
+      '業界インサイト',
+      'レリバンスエンジニアリング',
+      'Mike King理論'
+    ]
+  },
+
+  {
+    '@id': 'https://nands.tech/about#representative-linkedin',
+    '@type': 'AboutPage',
+    name: '代表LinkedIn - 原田賢治個人アカウント',
+    pageType: 'PersonalSocialMediaSection',
+    provider: { '@id': 'https://nands.tech/author/harada-kenji' },
+    knowsAbout: [
+      '原田賢治LinkedIn',
+      'B2B専門性',
+      '業界インサイト',
+      '経営視点',
+      'レリバンスエンジニアリング専門家',
+      'AI検索最適化専門家',
+      'Mike King理論実装者',
+      '企業DX支援',
+      '関西地域AI推進',
+      'ビジネスネットワーキング',
+      'AI時代キャリア戦略',
+      'AIリテラシー向上',
+      '実践的リスキリング研修',
+      '企業経営者連携'
+    ],
+    relatedTo: [
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/about#company-official-x',
+      'https://nands.tech/author/harada-kenji',
+      'https://nands.tech/#organization',
+      'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/'
+    ],
+    mentions: [
+      'LinkedIn',
+      '原田賢治',
+      '代表取締役',
+      'B2B専門性',
+      '業界インサイト',
+      '経営視点',
+      'レリバンスエンジニアリング',
+      'AI検索最適化',
+      '企業DX',
+      '関西地域'
+    ]
+  },
+  // 🔄 既存エンティティ（統合・調整済み）
   {
     '@id': 'https://nands.tech/about#company',
     '@type': 'AboutPage',
-    name: '会社概要・代表者紹介',
+    name: '会社概要・代表者紹介（統合ページ）',
     pageType: 'AboutUs',
     provider: { '@id': 'https://nands.tech/#organization' },
     knowsAbout: [
@@ -541,6 +859,12 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       'コンサルティング'
     ],
     relatedTo: [
+      'https://nands.tech/about#hero',
+      'https://nands.tech/about#mission-vision',
+      'https://nands.tech/about#enterprise-ai',
+      'https://nands.tech/about#business',
+      'https://nands.tech/about#company-message',
+      'https://nands.tech/about#history-access',
       'https://nands.tech/corporate#company',
       'https://nands.tech/reviews#company',
       'https://nands.tech/ai-agents#service',
