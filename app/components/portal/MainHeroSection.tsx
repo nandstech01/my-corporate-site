@@ -76,7 +76,7 @@ export default function MainHeroSection() {
                           {/* ヒーローテキスト - スマホ版 */}
               <div className="block sm:hidden text-center mb-12 -mt-8">
                 <h1 className="text-7xl font-bold tracking-tight -mt-44 mb-8 relative z-50">
-                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent animate-pulse">
+                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
                     NANDS
                   </span>
                 </h1>
@@ -97,7 +97,7 @@ export default function MainHeroSection() {
                           {/* ヒーローテキスト - デスクトップ版フル表示 */}
               <div className="hidden sm:block text-center mb-8">
                 <div className="text-7xl md:text-9xl font-bold tracking-tight -mt-44 mb-12 relative z-50">
-                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent animate-pulse">
+                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
                     NANDS
                   </span>
                 </div>
@@ -141,11 +141,11 @@ export default function MainHeroSection() {
               )}
             </p>
 
-            {/* CTAボタン - ロゴマーク色統一（水色背景・黒文字） */}
-            <div className="mb-8">
+            {/* CTAボタン - NANDSと同じ水色×白グラデーション・最前面配置 */}
+            <div className="mb-8 relative z-50">
               <a
                 href="#services"
-                className="inline-flex items-center px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-black font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-400 via-white to-cyan-300 hover:from-cyan-500 hover:via-gray-100 hover:to-cyan-400 text-black font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative z-50"
                 role="button"
                 aria-label="サービス一覧を表示"
               >
