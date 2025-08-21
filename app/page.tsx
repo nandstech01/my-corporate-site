@@ -60,9 +60,9 @@ export const metadata: Metadata = {
   keywords: '総合人材支援,キャリアコンサルティング,生成AI研修,リスキリング,人材育成,キャリア支援,退職支援,エヌアンドエス,NANDS,転職支援',
 }
 
-// 🚀 ISR（Incremental Static Regeneration）設定
-// 完全SSG化する場合は下記をコメントアウト
-export const revalidate = 600 // 10分間隔でISR実行（キャッシュ効率向上）
+// 🚀 ISR（Incremental Static Regeneration）設定最適化
+// ai-site同等の高速化設定
+export const revalidate = 300 // 5分間隔でISR実行（ai-site同等の高速化）
 
 // 🚀 完全SSG化オプション（さらなる高速化）
 // export const dynamic = 'force-static' // 完全静的生成を強制
