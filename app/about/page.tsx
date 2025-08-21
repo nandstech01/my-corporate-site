@@ -152,9 +152,9 @@ export default function AboutPage() {
         <div className="bg-black py-4 border-b border-gray-800 mt-16">
           <div className="container mx-auto px-4">
             <TableOfContents items={aboutPageTocItems} compact={true} />
-          </div>
-        </div>
-        
+              </div>
+              </div>
+
         {/* Fragment ID 'company' は削除 - 各セクションに個別設定済み */}
         
         <main>
@@ -329,8 +329,8 @@ export default function AboutPage() {
               ]
             })
           }}
-        />
-      </div>
+              />
+            </div>
     </>
   );
 }

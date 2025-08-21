@@ -431,7 +431,7 @@ export default async function Home() {
           "@type": "Place",
             "name": "北海道",
             "description": "北海道全域への展開"
-        }
+          }
         ],
         
         // 【外部リンク】信頼性強化

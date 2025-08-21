@@ -104,6 +104,7 @@ export default function CompanyRagPage() {
   const [serviceRegenerating, setServiceRegenerating] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<{ [key: string]: boolean }>({});
   const [showAllFragments, setShowAllFragments] = useState(false);
+  const [isVectorizing, setIsVectorizing] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -863,6 +864,94 @@ export default function CompanyRagPage() {
               className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-all duration-200"
             >
               {vectorLoading ? '読み込み中...' : '統計更新'}
+            </button>
+          </div>
+        </div>
+
+        {/* aboutページ専用ベクトル化（新規セクション） */}
+        <div className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 rounded-xl p-6 border border-blue-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-blue-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">aboutページ専用ベクトル化</h2>
+              <p className="text-sm text-gray-400">Fragment ID付き最新企業情報の個別ベクトル化</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">機能説明</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2">✅ ベクトル化される内容</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• #hero - NANDS Business Concept</li>
+                  <li>• #mission-vision - ミッション・ビジョン</li>
+                  <li>• #enterprise-ai - エンタープライズAI</li>
+                  <li>• #business - 事業内容（13サービス）</li>
+                  <li>• #company-message - 代表メッセージ</li>
+                  <li>• #history-access - 企業沿革・アクセス</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">🎯 期待される効果</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• ChatGPTが正しい住所情報を引用</li>
+                  <li>• Fragment ID付き精密な引用開始</li>
+                  <li>• 最新の代表メッセージ反映</li>
+                  <li>• AI検索での企業情報精度向上</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="text-sm text-gray-300">
+              <p>⚡ 処理時間: 約30秒 | 💰 コスト: 約$0.50 | 🔄 安全性: 高（aboutページのみ対象）</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsVectorizing(true);
+                try {
+                  const response = await fetch('/api/vectorize-about-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`aboutページベクトル化完了！\n${result.results.totalVectorized}個のセクションをベクトル化しました。`);
+                    loadVectorStats(); // 統計更新
+                  } else {
+                    alert(`エラー: ${result.error}`);
+                  }
+                } catch (error) {
+                  alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } finally {
+                  setIsVectorizing(false);
+                }
+              }}
+              disabled={isVectorizing}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              {isVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>ベクトル化中...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>aboutページをベクトル化</span>
+                </>
+              )}
             </button>
           </div>
         </div>

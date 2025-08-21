@@ -1,15 +1,18 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-// Galaxy背景をLazy Load（ai-siteと同様）
-const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { ssr: false });
+// Galaxy背景をLazy Load（SSR安全な実装）
+const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { 
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-black" />
+});
 
 export default function HeroSection() {
   return (
     <>
       {/* メインビジュアル - ai-site風ブラック×シアン統一 */}
       <section id="hero" className="relative h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
-        {/* Galaxy 3D背景（ai-siteと完全同一設定） */}
+        {/* Galaxy 3D背景（SSR安全な実装） */}
         <div className="absolute inset-0 z-0">
           <Galaxy
             mouseRepulsion

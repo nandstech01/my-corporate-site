@@ -1,8 +1,11 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-// SSG/ISR対応：Galaxyのみdynamic import
-const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { ssr: false });
+// Galaxy背景をLazy Load（SSR安全な実装）
+const Galaxy = dynamic(() => import('@/components/lp/Galaxy'), { 
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-slate-900 to-black" />
+});
 
 export default function HistoryAccessSection() {
   // 既存の企業沿革データ（100%維持）
@@ -58,19 +61,19 @@ export default function HistoryAccessSection() {
     <>
       {/* ai-site風ブラック×シアン統一デザイン */}
       <section id="history-access" className="relative py-24 bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
-        {/* Galaxy 3D背景（ai-siteと同様） */}
+        {/* Galaxy 3D背景（SSR安全な実装） */}
         <div className="absolute inset-0 z-0">
-          <Galaxy 
-            mouseRepulsion 
-            mouseInteraction 
-            density={0.4} 
-            glowIntensity={0.12} 
-            saturation={0.0} 
-            hueShift={190} 
-            twinkleIntensity={0.06} 
-            rotationSpeed={0.01} 
-            transparent 
-            loading="lazy" 
+          <Galaxy
+            mouseRepulsion
+            mouseInteraction
+            density={0.4}
+            glowIntensity={0.12}
+            saturation={0.0}
+            hueShift={190}
+            twinkleIntensity={0.06}
+            rotationSpeed={0.01}
+            transparent
+            loading="lazy"
           />
         </div>
         
