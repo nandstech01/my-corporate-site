@@ -170,6 +170,12 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
   ],
   socialMedia: [
     {
+      platform: 'X',
+      url: 'https://x.com/NANDS_AI',
+      verified: false,
+      description: '株式会社エヌアンドエス公式X（Twitter）アカウント - AI技術動向・サービス情報・業界インサイト発信'
+    },
+    {
       platform: 'GitHub',
       url: 'https://github.com/nands-tech',
       verified: false,
@@ -188,7 +194,7 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
       platform: 'LinkedIn',
       url: 'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/',
       verified: false,
-      description: '原田賢治 - 株式会社エヌアンドエス代表取締役'
+      description: '原田賢治 - 株式会社エヌアンドエス代表取締役 - B2B専門性・業界インサイト・経営視点発信'
     }
   ],
   image: 'https://nands.tech/images/author/harada-kenji.jpg',

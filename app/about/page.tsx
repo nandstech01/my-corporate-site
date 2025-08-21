@@ -10,8 +10,8 @@ import EnterpriseAISection from './components/EnterpriseAISection';
 import BusinessSection from './components/BusinessSection';
 import CompanyMessageSection from './components/CompanyMessageSection';
 import HistoryAccessSection from './components/HistoryAccessSection';
-// import OfficialSNSSection from './components/OfficialSNSSection';
-// import RepresentativeSNSSection from './components/RepresentativeSNSSection';
+import OfficialSNSSection from './components/OfficialSNSSection';
+import RepresentativeSNSSection from './components/RepresentativeSNSSection';
 
 // SSG/ISR設定
 export const revalidate = 3600; // 1時間間隔でISR実行
@@ -59,10 +59,26 @@ const aboutPageTocItems: TOCItem[] = [
     entities: ['株式会社エヌアンドエス', '原田賢治', '代表メッセージ', '寄り添い続ける', '2008年設立']
   },
   { 
+    id: 'company-official-x', 
+    title: 'Official SNS - X (Twitter)', 
+    level: 1,
+    semanticWeight: 0.86,
+    targetQueries: ['公式SNS', 'X', 'Twitter', 'NANDS_AI', 'AI技術動向'],
+    entities: ['X', 'Twitter', '公式SNS', 'NANDS_AI', 'AI技術動向', 'サービス情報', '業界インサイト']
+  },
+  { 
+    id: 'representative-linkedin', 
+    title: 'Representative LinkedIn - 原田賢治', 
+    level: 1,
+    semanticWeight: 0.84,
+    targetQueries: ['代表LinkedIn', '原田賢治', 'B2B専門性', '業界インサイト', 'レリバンスエンジニアリング'],
+    entities: ['LinkedIn', '原田賢治', 'B2B専門性', '業界インサイト', '経営視点', 'レリバンスエンジニアリング']
+  },
+  { 
     id: 'history-access', 
     title: 'History & Access - 企業沿革', 
     level: 1,
-    semanticWeight: 0.88,
+    semanticWeight: 0.82,
     targetQueries: ['企業沿革', '2008年設立', 'アクセス情報', '滋賀県大津市', '東京支社'],
     entities: ['企業沿革', '2008年設立', 'アクセス情報', '滋賀県大津市', '東京支社', 'NANDSTECH']
   }
@@ -158,9 +174,11 @@ export default function AboutPage() {
           {/* Company & Message - #company-message */}
           <CompanyMessageSection />
           
-          {/* 一時的にコメントアウト - SSG対応のため */}
-          {/* <OfficialSNSSection /> */}
-          {/* <RepresentativeSNSSection /> */}
+          {/* Official SNS - X (Twitter) - #company-official-x */}
+          <OfficialSNSSection />
+          
+          {/* Representative SNS - LinkedIn - #representative-linkedin */}
+          <RepresentativeSNSSection />
           
           {/* History & Access - #history-access */}
           <HistoryAccessSection />

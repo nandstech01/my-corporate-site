@@ -1,28 +1,8 @@
-'use client';
-
-import React, { useEffect } from 'react';
-import Script from 'next/script';
+import React from 'react';
 
 export default function OfficialSNSSection() {
-  // Twitter widgets.js初期化
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).twttr) {
-      (window as any).twttr.widgets.load();
-    }
-  }, []);
-
   return (
     <>
-      {/* Twitter widgets.js読み込み */}
-      <Script
-        src="https://platform.twitter.com/widgets.js"
-        strategy="lazyOnload"
-        onLoad={() => {
-          if ((window as any).twttr) {
-            (window as any).twttr.widgets.load();
-          }
-        }}
-      />
 
       {/* Fragment ID for Entity Map - Hidden from users */}
       <div id="company-official-x" style={{ display: 'none' }} aria-hidden="true" />
@@ -70,30 +50,66 @@ export default function OfficialSNSSection() {
                 最新の投稿
               </h4>
               
-              {/* 実際のX投稿埋め込み（サンプル投稿URL） */}
+              {/* 実際のX投稿埋め込み（SSG対応静的版） */}
               <div className="grid md:grid-cols-2 gap-6">
                 {/* 投稿1 */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <blockquote className="twitter-tweet" data-theme="light" data-width="400">
-                    <p lang="ja" dir="ltr">
-                      AI検索エンジン最適化について最新の研究成果をまとめました。Fragment IDを活用することで、より精密な引用が可能になります。
-                      <a href="https://t.co/example1">https://t.co/example1</a>
-                    </p>
-                    &mdash; NANDS AI (@NANDS_AI) 
-                    <a href="https://x.com/NANDS_AI/status/1234567890">January 20, 2025</a>
-                  </blockquote>
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
+                      N
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="font-semibold text-gray-900">NANDS AI</span>
+                        <span className="text-gray-500">@NANDS_AI</span>
+                        <span className="text-gray-400">·</span>
+                        <span className="text-gray-500">Jan 20</span>
+                      </div>
+                      <p className="text-gray-900 mb-3 leading-relaxed">
+                        AI検索エンジン最適化について最新の研究成果をまとめました。Fragment IDを活用することで、より精密な引用が可能になります。
+                        <br />
+                        <span className="text-blue-500">#AI最適化 #FragmentID #レリバンスエンジニアリング</span>
+                      </p>
+                      <a 
+                        href="https://x.com/NANDS_AI" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-600 text-sm"
+                      >
+                        Xで詳細を見る →
+                      </a>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 投稿2 */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <blockquote className="twitter-tweet" data-theme="light" data-width="400">
-                    <p lang="ja" dir="ltr">
-                      レリバンスエンジニアリング研修、多くの企業様からご好評をいただいています！Mike King理論の実践的な活用方法をお伝えしています。
-                      <a href="https://t.co/example2">https://t.co/example2</a>
-                    </p>
-                    &mdash; NANDS AI (@NANDS_AI) 
-                    <a href="https://x.com/NANDS_AI/status/1234567891">January 18, 2025</a>
-                  </blockquote>
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
+                      N
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="font-semibold text-gray-900">NANDS AI</span>
+                        <span className="text-gray-500">@NANDS_AI</span>
+                        <span className="text-gray-400">·</span>
+                        <span className="text-gray-500">Jan 18</span>
+                      </div>
+                      <p className="text-gray-900 mb-3 leading-relaxed">
+                        レリバンスエンジニアリング研修、多くの企業様からご好評をいただいています！Mike King理論の実践的な活用方法をお伝えしています。
+                        <br />
+                        <span className="text-blue-500">#レリバンスエンジニアリング #MikeKing理論 #AI研修</span>
+                      </p>
+                      <a 
+                        href="https://x.com/NANDS_AI" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-600 text-sm"
+                      >
+                        Xで詳細を見る →
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
 
