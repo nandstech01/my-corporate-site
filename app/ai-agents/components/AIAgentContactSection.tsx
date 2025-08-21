@@ -243,7 +243,7 @@ export default function AIAgentContactSection() {
                   </svg>
                   <div>
                     <div className="font-medium text-gray-900">本社所在地</div>
-                    <div className="text-gray-600">〒520-0802<br />滋賀県大津市馬場二丁目10-19</div>
+                    <div className="text-gray-600">〒520-0025<br />滋賀県大津市皇子が丘２丁目10−25−3004号</div>
                   </div>
                 </div>
 

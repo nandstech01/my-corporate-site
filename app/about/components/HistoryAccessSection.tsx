@@ -137,9 +137,8 @@ export default function HistoryAccessSection() {
                   <div className="border-l-4 border-cyan-400 pl-6">
                     <h4 className="text-lg font-bold text-cyan-300 mb-2">住所</h4>
                     <p className="text-cyan-100 leading-relaxed">
-                      〒520-0802<br/>
-                      滋賀県大津市馬場2丁目12-61<br/>
-                      大津祭曳山展示館3F
+                      〒520-0025<br/>
+                      滋賀県大津市皇子が丘２丁目10−25−3004号
                     </p>
                   </div>
                   <div className="border-l-4 border-green-400 pl-6">
