@@ -956,6 +956,95 @@ export default function CompanyRagPage() {
           </div>
         </div>
 
+        {/* メインページ専用ベクトル化（新規セクション） */}
+        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-purple-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-purple-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h2a2 2 0 012 2v0H8v0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">メインページ専用ベクトル化</h2>
+              <p className="text-sm text-gray-400">Fragment ID付きサービス15項目の個別ベクトル化</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">機能説明</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2">✅ ベクトル化される内容</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• 12個のサービス項目（service-*）</li>
+                  <li>• 3個のAIサイト項目（nands-ai-site等）</li>
+                  <li>• 各Fragment IDの詳細説明</li>
+                  <li>• サービス特徴・技術スタック</li>
+                  <li>• AI引用最適化コンテンツ</li>
+                  <li>• Complete URI付きディープリンク</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">🎯 期待される効果</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• メインページサービスのAI引用精度向上</li>
+                  <li>• Fragment ID基盤のRAG検索対応</li>
+                  <li>• NANDS=AIサイト認識強化</li>
+                  <li>• 87件 → 102件のベクトル増加</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="text-sm text-gray-300">
+              <p>⚡ 処理時間: 約45秒 | 💰 コスト: 約$0.75 | 🔄 安全性: 高（メインページのみ対象）</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsVectorizing(true);
+                try {
+                  const response = await fetch('/api/vectorize-main-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`メインページベクトル化完了！\n${result.results.totalVectorized}個のFragment IDをベクトル化しました。`);
+                    loadVectorStats(); // 統計更新
+                  } else {
+                    alert(`エラー: ${result.error}`);
+                  }
+                } catch (error) {
+                  alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } finally {
+                  setIsVectorizing(false);
+                }
+              }}
+              disabled={isVectorizing}
+              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              {isVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>ベクトル化中...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>メインページをベクトル化</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* 全コンテンツ再ベクトル化（独立セクション） */}
         <div className="bg-gradient-to-br from-red-900/30 to-orange-900/30 rounded-xl p-6 border border-red-700/50 mt-8">
           <div className="flex items-center space-x-3 mb-4">
