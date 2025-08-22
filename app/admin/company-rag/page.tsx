@@ -961,7 +961,7 @@ export default function CompanyRagPage() {
           <div className="flex items-center space-x-3 mb-4">
             <div className="p-2 bg-purple-600/20 rounded-lg">
               <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h2a2 2 0 012 2v0H8v0z" />
               </svg>
             </div>
@@ -1039,6 +1039,94 @@ export default function CompanyRagPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   <span>メインページをベクトル化</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* ディープリンク同期（新規セクション） */}
+        <div className="bg-gradient-to-br from-emerald-900/30 to-teal-900/30 rounded-xl p-6 border border-emerald-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-emerald-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">ディープリンク同期</h2>
+              <p className="text-sm text-gray-400">メインページFragment IDをディープリンク計測システムに同期</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">機能説明</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2">✅ 同期される内容</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• 15個のメインページFragment ID</li>
+                  <li>• deeplink_analyticsテーブルへの登録</li>
+                  <li>• Complete URI生成</li>
+                  <li>• 初期計測データ設定</li>
+                  <li>• 類似度スコア設定（0.88）</li>
+                  <li>• AI引用計測対応準備</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">🎯 期待される効果</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• ディープリンク: 151 → 166件（+15件）</li>
+                  <li>• メインページのクリック計測開始</li>
+                  <li>• AI引用検出システム対応</li>
+                  <li>• 管理画面での詳細分析可能</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="text-sm text-gray-300">
+              <p>⚡ 処理時間: 約15秒 | 💰 コスト: 無料 | 🔄 安全性: 高（既存データ保護）</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsVectorizing(true);
+                try {
+                  const response = await fetch('/api/sync-main-page-deeplinks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`ディープリンク同期完了！\n${result.results.totalSynced}個のFragment IDを同期しました。\n新規追加: ${result.results.insertedCount}個, 更新: ${result.results.updatedCount}個`);
+                    loadVectorStats(); // 統計更新
+                  } else {
+                    alert(`エラー: ${result.error}`);
+                  }
+                } catch (error) {
+                  alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } finally {
+                  setIsVectorizing(false);
+                }
+              }}
+              disabled={isVectorizing}
+              className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              {isVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>同期中...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>ディープリンクを同期</span>
                 </>
               )}
             </button>
