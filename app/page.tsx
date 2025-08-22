@@ -9,6 +9,7 @@ import PostsGridAnimations from '@/components/common/PostsGridAnimations'
 import Script from 'next/script'
 import { getStructuredData } from './structured-data'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 
 import FAQSection from './components/portal/FAQSection'
 import TableOfContents from '@/components/common/TableOfContents'
@@ -1114,23 +1115,47 @@ export default async function Home() {
             
             <div className="grid md:grid-cols-3 gap-6 mb-12">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="text-cyan-400 text-2xl mb-3">💎</div>
+                <div className="mb-3 flex justify-center">
+                  <Image 
+                    src="/images/icons/ai-site/digital-asset-cyan.png"
+                    alt="デジタル資産化アイコン"
+                    width={128}
+                    height={128}
+                    className="w-32 h-32"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">デジタル資産化</h3>
                 <p className="text-sm text-slate-300">すべてのコンテンツがAI検索エンジンに引用される価値ある資産として機能</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="text-blue-400 text-2xl mb-3">🎯</div>
+                <div className="mb-3 flex justify-center">
+                  <Image 
+                    src="/images/icons/ai-site/ai-targeting-cyan.png"
+                    alt="AI引用精度向上アイコン"
+                    width={128}
+                    height={128}
+                    className="w-32 h-32"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">AI引用精度向上</h3>
                 <p className="text-sm text-slate-300">Fragment ID・構造化データ・Mike King理論による正確な情報伝達</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="text-purple-400 text-2xl mb-3">🔄</div>
+                <div className="mb-3 flex justify-center">
+                  <Image 
+                    src="/images/icons/ai-site/value-cycle-cyan.png"
+                    alt="継続的価値創造アイコン"
+                    width={128}
+                    height={128}
+                    className="w-32 h-32"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">継続的価値創造</h3>
                 <p className="text-sm text-slate-300">NANDS=AIの認識をAI検索エンジンに確立し、ブランド価値を蓄積</p>
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <a 
                 href="/ai-site#ai-site-overview" 
                 className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -1141,14 +1166,6 @@ export default async function Home() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </a>
-              <a 
-                href="/ai-site#ai-technology-details" 
-                className="inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-300 border border-white/30 hover:border-white/50"
-                role="button"
-                aria-label="技術詳細を見る"
-              >
-                技術詳細
               </a>
             </div>
           </div>
