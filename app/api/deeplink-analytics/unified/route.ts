@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('deeplink_analytics')
       .select('*')
-      .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+      .order('created_at', { ascending: false });
+      // .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()); // 一時的に無効化
 
     if (analyticsError) {
       console.error('❌ 計測データ取得エラー:', analyticsError);
