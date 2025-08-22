@@ -328,7 +328,7 @@ export async function POST() {
         const embedding = await embeddings.embedSingle(fragmentData.content);
         
         const vectorData = {
-          id: `main-${fragmentData.fragmentId}-${Date.now()}`,
+          id: `${fragmentData.fragmentId}-${Date.now()}`, // main-を削除
           content: fragmentData.content,
           embedding: embedding,
           metadata: {
@@ -339,8 +339,11 @@ export async function POST() {
             createdAt: new Date().toISOString(),
             section: fragmentData.fragmentId,
             category: fragmentData.category,
-            page: 'main'
-          }
+            page: 'main',
+            fragment_id: fragmentData.fragmentId // 実際のFragment IDを追加
+          },
+          fragment_id: fragmentData.fragmentId, // 実際のFragment IDを正しく設定
+          content_type: 'fragment-id' // content_typeも明示的に設定
         };
         
         const result = await vectorStore.saveVector(vectorData);
