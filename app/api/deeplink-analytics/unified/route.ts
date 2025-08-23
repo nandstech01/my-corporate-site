@@ -437,6 +437,13 @@ function generateMainPageFragments(): any[] {
     'nands-ai-site', 'ai-site-features', 'ai-site-technology'
   ];
 
+  // 🆕 FAQ 8項目のFragment ID（AI引用FAQ最適化）
+  const mainPageFAQ = [
+    'faq-main-reskilling', 'faq-main-system-dev', 'faq-main-pricing',
+    'faq-main-remote', 'faq-main-aio', 'faq-main-ai-site-definition',
+    'faq-main-ai-site-features', 'faq-main-ai-site-benefits'
+  ];
+
   const fragments: any[] = [];
 
   // サービス12項目を追加
@@ -447,7 +454,8 @@ function generateMainPageFragments(): any[] {
       pagePath: '/',
       contentType: 'main-page-service',
       sectionTitle: `メインページ - ${fragmentId.replace('service-', '')}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      similarityScore: 0.88
     });
   });
 
@@ -458,8 +466,22 @@ function generateMainPageFragments(): any[] {
       completeURI: `https://nands.tech/#${fragmentId}`,
       pagePath: '/',
       contentType: 'main-page-ai-site',
-      sectionTitle: `メインページ - ${fragmentId}`,
-      createdAt: new Date().toISOString()
+      sectionTitle: `メインページ - ${fragmentId.replace('ai-site-', 'AIサイト-')}`,
+      createdAt: new Date().toISOString(),
+      similarityScore: 0.89
+    });
+  });
+
+  // 🆕 FAQ 8項目を追加（AI引用FAQ最適化）
+  mainPageFAQ.forEach(fragmentId => {
+    fragments.push({
+      fragmentId,
+      completeURI: `https://nands.tech/#${fragmentId}`,
+      pagePath: '/',
+      contentType: 'main-page-faq',
+      sectionTitle: `メインページFAQ - ${fragmentId.replace('faq-main-', '')}`,
+      createdAt: new Date().toISOString(),
+      similarityScore: 0.87
     });
   });
 

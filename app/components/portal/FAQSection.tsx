@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDownIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -37,6 +37,21 @@ const faqs: FAQItem[] = [
     category: "マーケティング・支援",
     question: 'AIO対策や人材ソリューションの効果はどの程度期待できますか？',
     answer: 'AIO対策では検索順位の向上とAI検索での露出増加、人材ソリューションでは採用効率の大幅改善を実現しています。具体的な効果は業界や現状により異なるため、まずは無料診断をお受けください。'
+  },
+  {
+    category: "AIサイト・ブランディング",
+    question: 'AIサイトとは何ですか？',
+    answer: 'AIに引用されるサイトのことです。ChatGPTやClaude、Perplexityなどで検索された際に、あなたの会社のコンテンツが正確に引用される仕組みを持つサイトを指します。従来の「AIサイト＝AI技術を使ったサイト」とは異なり、「AI検索エンジンに引用される価値あるサイト」という新しい概念です。'
+  },
+  {
+    category: "AIサイト・ブランディング", 
+    question: 'NANDSのAIサイトの特徴は何ですか？',
+    answer: 'あなたのサイトをAIサイト化する際の特徴として、Fragment ID実装、構造化データ最適化、Mike King理論による完全なAI引用最適化を行います。これにより、すべてのコンテンツにFragment IDが付与され、AI検索エンジンがあなたの会社の情報を正確に引用できる仕組みを構築できます。'
+  },
+  {
+    category: "AIサイト・ブランディング",
+    question: 'AIサイトのメリットは何ですか？',
+    answer: 'あなたの会社がAIサイト化することで、AI検索エンジンでの引用率が大幅に向上し、すべてのコンテンツがデジタル資産として機能します。ChatGPT、Claude、Perplexityなどで検索された際に、あなたの会社の情報が正確に引用され、継続的にブランド認知度と信頼性が向上していきます。'
   }
 ];
 
@@ -46,6 +61,60 @@ const FAQSection: React.FC = () => {
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  // Fragment ID生成関数
+  const getFragmentId = (index: number, category: string) => {
+    if (category === "リスキリング・研修") return "faq-main-reskilling";
+    if (category === "AI・テクノロジー") return "faq-main-system-dev"; 
+    if (category === "料金・契約") return "faq-main-pricing";
+    if (category === "サポート") return "faq-main-remote";
+    if (category === "マーケティング・支援") return "faq-main-aio";
+    if (category === "AIサイト・ブランディング") {
+      const aiSiteIds = ["faq-main-ai-site-definition", "faq-main-ai-site-features", "faq-main-ai-site-benefits"];
+      const aiSiteIndex = index - 5; // AIサイトFAQは6番目以降
+      return aiSiteIds[aiSiteIndex] || `faq-main-ai-site-${aiSiteIndex + 1}`;
+    }
+    return `faq-main-${index + 1}`;
+  };
+
+  // 🆕 ディープリンク対応：URLハッシュ検出でFAQを自動展開
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        // 該当するFAQインデックスを検索
+        const targetIndex = faqs.findIndex((faq, index) => {
+          const fragmentId = getFragmentId(index, faq.category);
+          return fragmentId === hash;
+        });
+        
+        if (targetIndex !== -1) {
+          // 該当FAQを開く
+          setOpenIndex(targetIndex);
+          
+          // スムーズスクロール（少し遅延を入れて確実にスクロール）
+          setTimeout(() => {
+            const element = document.getElementById(hash);
+            if (element) {
+              element.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+              });
+            }
+          }, 200);
+        }
+      }
+    };
+
+    // 初回ロード時とハッシュ変更時に実行
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   // FAQ構造化データは各ページで管理（重複防止）
 
@@ -92,14 +161,23 @@ const FAQSection: React.FC = () => {
 
         {/* FAQ項目 */}
         <div className="max-w-4xl mx-auto">
-          {faqs.map((faq, index) => (
-            <motion.div
-              key={index}
-              className="mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
+          {faqs.map((faq, index) => {
+            const fragmentId = getFragmentId(index, faq.category);
+
+            return (
+              <motion.div
+                key={index}
+                className="mb-4 relative"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                {/* 🆕 Fragment ID - AI検索最適化 */}
+                <div 
+                  id={fragmentId} 
+                  className="absolute -top-16 h-px w-full" 
+                  aria-hidden="true"
+                />
               <motion.button
                 onClick={() => toggleFAQ(index)}
                 className="flex justify-between items-start w-full text-left p-6 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -147,7 +225,8 @@ const FAQSection: React.FC = () => {
                 )}
               </AnimatePresence>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTAセクション */}
@@ -159,29 +238,17 @@ const FAQSection: React.FC = () => {
         >
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg max-w-2xl mx-auto">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
-              他にもご質問がございますか？
+              他にご質問はございませんか？
             </h3>
             <p className="text-gray-600 mb-6">
-              より詳しいFAQページもご用意しております。<br />
-              お気軽にお問い合わせください。
+              お気軽にお問い合わせください。専門スタッフが丁寧にお答えいたします。
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/faq"
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                <QuestionMarkCircleIcon className="w-5 h-5 mr-2" />
-                FAQ一覧を見る
-              </Link>
-              
-              <Link
-                href="#contact"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300"
-              >
-                お問い合わせ
-              </Link>
-            </div>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-full hover:from-blue-700 hover:to-cyan-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              お問い合わせ
+            </Link>
           </div>
         </motion.div>
       </div>

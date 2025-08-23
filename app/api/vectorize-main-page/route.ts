@@ -9,7 +9,7 @@ const supabaseServiceRole = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// メインページの15個のFragment ID専用コンテンツ定義
+// メインページの23個のFragment ID専用コンテンツ定義（15個 + FAQ 8個）
 const MAIN_PAGE_CONTENT = {
   // サービス12項目
   'service-system-development': {
@@ -53,199 +53,199 @@ const MAIN_PAGE_CONTENT = {
     title: 'チャットボット開発サービス',
     content: `チャットボット開発サービス - NANDS
     
-    企業の顧客対応を革新する高性能AIチャットボット開発サービスです。
+    AIチャットボットの企画・開発・運用を一貫してサポートします。
     
     特徴:
-    - OpenAI GPT統合
-    - 自然言語処理技術
+    - OpenAI GPT連携
+    - 自然言語処理最適化
+    - カスタマーサポート自動化
+    - 社内問い合わせ効率化
     - 多言語対応
-    - CRM連携
-    - 24時間自動対応
     
-    カスタマーサポート業務の効率化と顧客満足度向上を実現します。`,
+    業務効率化と顧客満足度向上を同時に実現するAIソリューションです。`,
     completeURI: 'https://nands.tech/#service-chatbot-development',
     category: 'service'
   },
   'service-vector-rag': {
     fragmentId: 'service-vector-rag',
-    title: 'ベクトルRAGシステム開発',
-    content: `ベクトルRAGシステム開発 - NANDS
+    title: 'ベクトルRAG検索システム',
+    content: `ベクトルRAG検索システム - NANDS
     
-    企業データを活用した高精度検索・回答システム開発サービスです。
+    企業の膨大な情報資産を活用するAI検索システムです。
     
     特徴:
-    - Supabase Vector統合
-    - OpenAI Embeddings活用
-    - セマンティック検索
-    - 自社データ学習
-    - リアルタイム回答生成
+    - セマンティック検索機能
+    - 文書の自動ベクトル化
+    - 高精度な類似検索
+    - マルチモーダル対応
+    - リアルタイム更新
     
-    社内ナレッジを AI が理解し、従業員の業務効率を飛躍的に向上させます。`,
+    社内ナレッジの活用効率を劇的に向上させるソリューションです。`,
     completeURI: 'https://nands.tech/#service-vector-rag',
     category: 'service'
   },
   'service-ai-side-business': {
     fragmentId: 'service-ai-side-business',
-    title: 'AI副業・フリーランス支援',
-    content: `AI副業・フリーランス支援サービス - NANDS
+    title: 'AI副業支援サービス',
+    content: `AI副業支援サービス - NANDS
     
-    AI技術を活用した副業・フリーランス活動支援サービスです。
+    AIスキルを活用した副業・フリーランス活動を全面支援します。
     
     特徴:
-    - AI副業スキル習得支援
-    - フリーランス案件マッチング
-    - 副業収入最大化コンサルティング
+    - プロンプトエンジニアリング研修
     - AI活用ビジネスモデル構築
-    - 継続収入システム開発
+    - 案件マッチング支援
+    - 収益化コンサルティング
+    - コミュニティ運営
     
-    働き方の多様化を AI 技術でサポートし、新しいキャリアを創造します。`,
+    AI時代の新しい働き方を実現するキャリア支援サービスです。`,
     completeURI: 'https://nands.tech/#service-ai-side-business',
     category: 'service'
   },
   'service-hr-support': {
     fragmentId: 'service-hr-support',
-    title: 'HR支援・退職代行サービス',
-    content: `HR支援・退職代行サービス - NANDS
+    title: 'HR・人材ソリューション',
+    content: `HR・人材ソリューション - NANDS
     
-    人事業務効率化と労働者支援を両立する総合HRサービスです。
+    採用から退職まで、人事業務のDX化を総合的にサポートします。
     
     特徴:
-    - 15年の退職代行実績
-    - 労働法専門知識
-    - 円満退職サポート
-    - 転職活動支援
-    - メンタルヘルスケア
+    - AI面接システム
+    - 人材マッチング最適化
+    - 退職代行サービス
+    - キャリアコンサルティング
+    - 労務管理効率化
     
-    労働者の権利を守り、新しいキャリアへの円滑な移行を支援します。`,
+    人事部門の業務効率化と従業員満足度向上を実現します。`,
     completeURI: 'https://nands.tech/#service-hr-support',
     category: 'service'
   },
   'service-ai-agents': {
     fragmentId: 'service-ai-agents',
-    title: 'AIエージェント開発サービス',
-    content: `AIエージェント開発サービス - NANDS
+    title: 'AIエージェント開発',
+    content: `AIエージェント開発 - NANDS
     
-    業務自動化を実現する高性能AIエージェント開発サービスです。
+    自律的に動作するAIエージェントの設計・開発サービスです。
     
     特徴:
-    - マルチモーダルAI対応
-    - 業務プロセス自動化
-    - スケジュール調整AI
-    - データ分析エージェント
-    - 顧客対応自動化
+    - マルチエージェントシステム
+    - タスク自動実行
+    - 学習機能搭載
+    - API連携対応
+    - スケーラブル設計
     
-    人間の意思決定をサポートし、業務効率を革新的に向上させます。`,
+    複雑な業務プロセスを自動化する次世代AIソリューションです。`,
     completeURI: 'https://nands.tech/#service-ai-agents',
     category: 'service'
   },
   'service-mcp-servers': {
     fragmentId: 'service-mcp-servers',
-    title: 'MCPサーバー開発サービス',
-    content: `MCPサーバー開発サービス - NANDS
+    title: 'MCPサーバー開発',
+    content: `MCPサーバー開発 - NANDS
     
-    最新のMCP（Model Context Protocol）対応サーバー開発サービスです。
+    Model Context Protocol対応のサーバー開発・運用サービスです。
     
     特徴:
-    - Claude Desktop統合
-    - カスタムツール開発
-    - セキュアな接続プロトコル
-    - スケーラブル設計
-    - リアルタイムデータ連携
+    - Claude/ChatGPT連携
+    - カスタムプロトコル実装
+    - 高性能データ処理
+    - セキュリティ強化
+    - 運用監視体制
     
-    AI モデルとの効率的な連携を実現し、企業システムを次世代に進化させます。`,
+    AI時代の新しいサーバーアーキテクチャを提供します。`,
     completeURI: 'https://nands.tech/#service-mcp-servers',
     category: 'service'
   },
   'service-sns-automation': {
     fragmentId: 'service-sns-automation',
-    title: 'SNS自動化システム',
-    content: `SNS自動化システム - NANDS
+    title: 'SNS自動化ツール',
+    content: `SNS自動化ツール - NANDS
     
-    SNS運用を効率化する革新的な自動化システム開発サービスです。
+    SNSマーケティングの効率化を実現する自動化ソリューションです。
     
     特徴:
-    - 自動投稿スケジューリング
-    - コンテンツ生成AI
+    - 投稿スケジューリング
+    - コンテンツ自動生成
     - エンゲージメント分析
-    - インフルエンサー管理
-    - ROI最適化
+    - トレンド連動投稿
+    - マルチプラットフォーム対応
     
-    SNS マーケティングの効果を最大化し、ブランド価値向上を実現します。`,
+    SNS運用の工数削減と効果最大化を同時に実現します。`,
     completeURI: 'https://nands.tech/#service-sns-automation',
     category: 'service'
   },
   'service-video-generation': {
     fragmentId: 'service-video-generation',
-    title: 'AI動画生成サービス',
-    content: `AI動画生成サービス - NANDS
+    title: '動画生成・編集サービス',
+    content: `動画生成・編集サービス - NANDS
     
-    最新AI技術を活用した動画コンテンツ自動生成サービスです。
+    AI技術を活用した動画コンテンツの企画・制作・編集サービスです。
     
     特徴:
-    - テキストから動画生成
-    - 音声合成・字幕自動付与
+    - AI動画生成
+    - 自動字幕生成
+    - 多言語音声合成
+    - エフェクト自動適用
     - ブランド統一デザイン
-    - 多様な形式対応
-    - 高品質レンダリング
     
-    動画制作の工数を大幅削減し、効果的なビジュアルコンテンツを量産できます。`,
+    高品質な動画コンテンツを効率的に制作できるソリューションです。`,
     completeURI: 'https://nands.tech/#service-video-generation',
     category: 'service'
   },
   'service-corporate-reskilling': {
     fragmentId: 'service-corporate-reskilling',
-    title: '法人向けAIリスキリング研修',
-    content: `法人向けAIリスキリング研修 - NANDS
+    title: '法人向けリスキリング',
+    content: `法人向けリスキリング - NANDS
     
-    企業のDX推進を支援する包括的なAIリスキリング研修サービスです。
+    企業のDX推進を支援する包括的なリスキリングプログラムです。
     
     特徴:
-    - 階層別カスタマイズ研修
-    - 実践的AI活用手法
-    - 業界特化カリキュラム
-    - 成果測定・フォローアップ
-    - 組織変革支援
+    - カスタマイズ研修プログラム
+    - 実践的スキル習得
+    - 助成金活用サポート
+    - 成果測定・分析
+    - 継続的フォローアップ
     
-    全社員のAIリテラシー向上により、企業の競争力を持続的に強化します。`,
+    従業員のスキルアップと企業競争力向上を実現します。`,
     completeURI: 'https://nands.tech/#service-corporate-reskilling',
     category: 'service'
   },
   'service-individual-reskilling': {
     fragmentId: 'service-individual-reskilling',
-    title: '個人向けAIリスキリング研修',
-    content: `個人向けAIリスキリング研修 - NANDS
+    title: '個人向けリスキリング',
+    content: `個人向けリスキリング - NANDS
     
-    個人のキャリア成長を支援するAIスキル習得研修サービスです。
+    個人のキャリアアップを支援するパーソナライズ学習プログラムです。
     
     特徴:
-    - パーソナライズ学習プラン
-    - 実務直結スキル習得
-    - キャリアチェンジ支援
-    - 認定資格取得サポート
-    - 継続学習フォローアップ
+    - 個別学習プラン設計
+    - AI活用スキル習得
+    - 転職・昇進サポート
+    - 実務プロジェクト体験
+    - メンタリング制度
     
-    AI 時代に必要なスキルを身につけ、個人の市場価値を向上させます。`,
+    AI時代に求められるスキルを効率的に習得できます。`,
     completeURI: 'https://nands.tech/#service-individual-reskilling',
     category: 'service'
   },
-  
-  // AIサイト関連3項目
+
+  // AIサイト3項目
   'nands-ai-site': {
     fragmentId: 'nands-ai-site',
-    title: 'NANDS AI サイト',
-    content: `NANDS AI サイト - AIに引用されるサイト
+    title: 'NANDSのAIサイト',
+    content: `NANDSのAIサイト - AI引用最適化の実践例
     
-    NANDSはAI検索エンジンに正確に引用される「AIサイト」の先駆者です。
+    当サイト自体がAI検索エンジンに引用される設計を実装しています。
     
-    特徴:
-    - Mike King理論完全実装
-    - レリバンスエンジニアリング適用
-    - すべてのコンテンツが資産化
-    - ChatGPT/Claude引用対応
-    - Fragment ID完全対応
+    実装機能:
+    - 完全な構造化データ対応
+    - Fragment ID による詳細リンク
+    - セマンティック検索最適化
+    - AI引用トラッキング
+    - レリバンスエンジニアリング実装
     
-    「AIに引用されるサイト = すべてが資産になる」というコンセプトを体現し、
-    AI検索時代の新しいウェブサイトのあり方を提示しています。`,
+    「AIサイト＝AIに引用されるサイト」の概念を体現し、
+    すべてのコンテンツが検索可能な資産として機能しています。`,
     completeURI: 'https://nands.tech/#nands-ai-site',
     category: 'ai-site'
   },
@@ -286,6 +286,132 @@ const MAIN_PAGE_CONTENT = {
     AI検索エンジンが理解しやすい情報アーキテクチャを構築しています。`,
     completeURI: 'https://nands.tech/#ai-site-technology',
     category: 'ai-site'
+  },
+
+  // 🆕 FAQ 8項目を追加
+  'faq-main-reskilling': {
+    fragmentId: 'faq-main-reskilling',
+    title: 'リスキリング研修FAQ',
+    content: `エヌアンドエスのリスキリング研修はどのようなサービスですか？
+    
+    当社のリスキリング研修は、最新の生成AI技術を活用したカリキュラムで、デジタルスキルの習得から実践的な業務活用まで幅広くサポートします。企業の業種・規模に合わせたカスタマイズプランも提供しています。
+    
+    特徴:
+    - 生成AI技術活用カリキュラム
+    - デジタルスキル習得サポート
+    - 実践的業務活用指導
+    - 企業カスタマイズプラン
+    - 業種・規模対応`,
+    completeURI: 'https://nands.tech/#faq-main-reskilling',
+    category: 'faq'
+  },
+  'faq-main-system-dev': {
+    fragmentId: 'faq-main-system-dev',
+    title: 'システム開発・AI導入FAQ',
+    content: `システム開発やAIソリューションの導入期間はどのくらいですか？
+    
+    プロジェクトの規模や要件により異なりますが、チャットボット開発は2-4週間、ベクトルRAG検索システムは4-8週間、フルスタックシステム開発は2-6ヶ月程度が目安となります。お客様のご要望に応じて柔軟に対応いたします。
+    
+    導入期間目安:
+    - チャットボット開発: 2-4週間
+    - ベクトルRAG検索システム: 4-8週間
+    - フルスタックシステム開発: 2-6ヶ月
+    - 柔軟な対応可能`,
+    completeURI: 'https://nands.tech/#faq-main-system-dev',
+    category: 'faq'
+  },
+  'faq-main-pricing': {
+    fragmentId: 'faq-main-pricing',
+    title: '料金体系FAQ',
+    content: `サービスの料金体系はどのようになっていますか？
+    
+    プロジェクトの内容や規模に応じてお見積もりいたします。リスキリング研修は助成金活用により最大80%の補助が可能です。まずは無料相談にてご要望をお聞かせください。
+    
+    料金特徴:
+    - プロジェクト規模対応見積もり
+    - リスキリング研修助成金活用
+    - 最大80%補助可能
+    - 無料相談サービス`,
+    completeURI: 'https://nands.tech/#faq-main-pricing',
+    category: 'faq'
+  },
+  'faq-main-remote': {
+    fragmentId: 'faq-main-remote',
+    title: '地方対応FAQ',
+    content: `地方在住でもサービスを利用できますか？
+    
+    はい、全国どこからでもご利用いただけます。オンライン会議システムを活用したリモート対応により、地域に関係なく高品質なサービスを提供しています。必要に応じて現地での打ち合わせも可能です。
+    
+    地方対応特徴:
+    - 全国対応可能
+    - オンライン会議システム活用
+    - リモート高品質サービス
+    - 現地打ち合わせ対応`,
+    completeURI: 'https://nands.tech/#faq-main-remote',
+    category: 'faq'
+  },
+  'faq-main-aio': {
+    fragmentId: 'faq-main-aio',
+    title: 'AIO対策・人材ソリューションFAQ',
+    content: `AIO対策や人材ソリューションの効果はどの程度期待できますか？
+    
+    AIO対策では検索順位の向上とAI検索での露出増加、人材ソリューションでは採用効率の大幅改善を実現しています。具体的な効果は業界や現状により異なるため、まずは無料診断をお受けください。
+    
+    期待効果:
+    - 検索順位向上
+    - AI検索露出増加
+    - 採用効率大幅改善
+    - 業界別効果分析
+    - 無料診断サービス`,
+    completeURI: 'https://nands.tech/#faq-main-aio',
+    category: 'faq'
+  },
+  'faq-main-ai-site-definition': {
+    fragmentId: 'faq-main-ai-site-definition',
+    title: 'AIサイト定義FAQ',
+    content: `AIサイトとは何ですか？
+    
+    AIに引用されるサイトのことです。ChatGPTやClaude、Perplexityなどで検索された際に、あなたの会社のコンテンツが正確に引用される仕組みを持つサイトを指します。従来の「AIサイト＝AI技術を使ったサイト」とは異なり、「AI検索エンジンに引用される価値あるサイト」という新しい概念です。
+    
+    AIサイト特徴:
+    - AI検索エンジン引用対応
+    - 正確なコンテンツ引用仕組み
+    - 価値あるサイト概念
+    - 新しいサイト定義`,
+    completeURI: 'https://nands.tech/#faq-main-ai-site-definition',
+    category: 'faq'
+  },
+  'faq-main-ai-site-features': {
+    fragmentId: 'faq-main-ai-site-features',
+    title: 'AIサイト特徴FAQ',
+    content: `NANDSのAIサイトの特徴は何ですか？
+    
+    あなたのサイトをAIサイト化する際の特徴として、Fragment ID実装、構造化データ最適化、Mike King理論による完全なAI引用最適化を行います。これにより、すべてのコンテンツにFragment IDが付与され、AI検索エンジンがあなたの会社の情報を正確に引用できる仕組みを構築できます。
+    
+    AIサイト化特徴:
+    - Fragment ID実装
+    - 構造化データ最適化
+    - Mike King理論適用
+    - 完全AI引用最適化
+    - 正確な情報引用仕組み`,
+    completeURI: 'https://nands.tech/#faq-main-ai-site-features',
+    category: 'faq'
+  },
+  'faq-main-ai-site-benefits': {
+    fragmentId: 'faq-main-ai-site-benefits',
+    title: 'AIサイトメリットFAQ',
+    content: `AIサイトのメリットは何ですか？
+    
+    AIサイト化により、あなたの会社の専門知識や製品情報がAI検索で正確に引用されるようになります。これにより、潜在顧客があなたの業界について質問した際に、あなたの会社が権威ある情報源として認識され、ブランド認知度向上と信頼性確立につながります。さらに、従来のSEOでは難しかった長文検索やニッチなキーワードでの露出も可能になります。
+    
+    AIサイトメリット:
+    - AI検索での正確な引用
+    - 権威ある情報源として認識
+    - ブランド認知度向上
+    - 信頼性確立
+    - 長文・ニッチキーワード対応`,
+    completeURI: 'https://nands.tech/#faq-main-ai-site-benefits',
+    category: 'faq'
   }
 };
 

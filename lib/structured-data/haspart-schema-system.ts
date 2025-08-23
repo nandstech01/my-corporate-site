@@ -118,9 +118,71 @@ export class HasPartSchemaSystem {
         const aiSiteNames: { [key: string]: string } = {
           'nands-ai-site': 'NANDSのAIサイト - AIに引用されるサイト',
           'ai-site-features': 'AI引用精度向上機能',
-          'ai-site-technology': '継続的価値創造システム'
+          'ai-site-technology': 'AI引用技術アーキテクチャ'
         };
         fragmentName = aiSiteNames[fragmentId] || fragmentName;
+      }
+      
+      // 🆕 メインページFAQ Fragment IDの処理（AI引用FAQ最適化）
+      if (fragmentId.startsWith('faq-main-')) {
+        const faqMainNames: { [key: string]: string } = {
+          'faq-main-reskilling': 'リスキリング研修FAQ',
+          'faq-main-system-dev': 'システム開発FAQ', 
+          'faq-main-pricing': '料金体系FAQ',
+          'faq-main-remote': 'リモートサポートFAQ',
+          'faq-main-aio': 'AIO対策FAQ',
+          'faq-main-ai-site-definition': 'AIサイト定義FAQ',
+          'faq-main-ai-site-features': 'NANDSのAIサイト特徴FAQ',
+          'faq-main-ai-site-benefits': 'AIサイトメリットFAQ'
+        };
+        fragmentName = faqMainNames[fragmentId] || fragmentName;
+      }
+
+      // 🆕 /faqページFAQ Fragment IDの処理（全26項目 - レリバンスエンジニアリング強化）
+      if (fragmentId.startsWith('faq-tech-') || fragmentId.startsWith('faq-pricing-') || 
+          fragmentId.startsWith('faq-support-') || fragmentId.startsWith('faq-hr-') || 
+          fragmentId.startsWith('faq-marketing-') || fragmentId.startsWith('faq-ai-site-')) {
+        const faqPageNames: { [key: string]: string } = {
+          // AI・テクノロジーサービス（4個）
+          'faq-tech-1': 'AI技術FAQ - どのようなAI技術を使っていますか？',
+          'faq-tech-2': 'システム連携FAQ - 既存システムとの連携は可能ですか？',
+          'faq-tech-3': 'セキュリティ対策FAQ - セキュリティ対策はどうなっていますか？',
+          'faq-tech-4': 'AIモデルカスタマイズFAQ - AIモデルのカスタマイズは可能ですか？',
+          
+          // 料金・契約（5個）
+          'faq-pricing-1': '料金体系FAQ - 料金体系を教えてください',
+          'faq-pricing-2': '契約期間FAQ - 最小契約期間はありますか？',
+          'faq-pricing-3': '追加開発費用FAQ - 追加機能の開発費用はどうなりますか？',
+          'faq-pricing-4': '支払い方法FAQ - 支払い方法について教えてください',
+          'faq-pricing-5': 'PoC概念実証FAQ - PoC（概念実証）から始められますか？',
+          
+          // サポート・導入（4個）
+          'faq-support-1': '導入期間FAQ - 導入までの期間はどのくらいですか？',
+          'faq-support-2': 'オンサイト導入FAQ - オンサイトでの導入支援はありますか？',
+          'faq-support-3': 'トレーニング研修FAQ - トレーニングや研修はありますか？',
+          'faq-support-4': '24時間サポートFAQ - 24時間サポートは利用できますか？',
+          
+          // 人材・研修（5個）
+          'faq-hr-1': 'AI人材育成FAQ - AI人材の育成支援はありますか？',
+          'faq-hr-2': 'リスキリング研修FAQ - リスキリング研修の内容を教えてください',
+          'faq-hr-3': '研修形式FAQ - 研修の形式はどのようなものですか？',
+          'faq-hr-4': '研修効果測定FAQ - 研修効果の測定はどのように行いますか？',
+          'faq-hr-5': '助成金活用FAQ - 助成金の活用サポートはありますか？',
+          
+          // マーケティング・AIO（4個）
+          'faq-marketing-1': 'AIO対策FAQ - AIO対策とは何ですか？',
+          'faq-marketing-2': 'AIO-SEO違いFAQ - 従来のSEOとの違いは何ですか？',
+          'faq-marketing-3': 'AIO効果測定FAQ - 効果測定はどのように行いますか？',
+          'faq-marketing-4': 'AIO効果期間FAQ - どのくらいの期間で効果が現れますか？',
+          
+          // AIサイト・ブランディング（5個）
+          'faq-ai-site-1': 'AIサイト定義FAQ - AIサイトとは何ですか？',
+          'faq-ai-site-2': 'AIサイト重要性FAQ - なぜAIサイト化が重要なのですか？',
+          'faq-ai-site-3': 'Fragment ID実装FAQ - Fragment IDの実装はどのように行いますか？',
+          'faq-ai-site-4': 'AIサイト化費用FAQ - AIサイト化の費用はどの程度ですか？',
+          'faq-ai-site-5': 'AIサイト効果測定FAQ - AIサイト化の効果測定はどのように行いますか？'
+        };
+        fragmentName = faqPageNames[fragmentId] || fragmentName;
       }
 
       // FAQ Fragment IDの処理（既存機能を維持）

@@ -43,7 +43,23 @@ export function getStructuredData() {
     // AIサイト関連Fragment ID
     'nands-ai-site',
     'ai-site-features', 
-    'ai-site-technology'
+    'ai-site-technology',
+    // 🆕 FAQ関連Fragment ID（AI引用FAQ最適化）
+    'faq-main-reskilling',
+    'faq-main-system-dev',
+    'faq-main-pricing',
+    'faq-main-remote',
+    'faq-main-aio',
+    'faq-main-ai-site-definition',
+    'faq-main-ai-site-features',
+    'faq-main-ai-site-benefits',
+    // 🆕 /faqページFAQ Fragment ID（全26項目 - レリバンスエンジニアリング強化）
+    'faq-tech-1', 'faq-tech-2', 'faq-tech-3', 'faq-tech-4', 'faq-tech-5',
+    'faq-pricing-1', 'faq-pricing-2', 'faq-pricing-3', 'faq-pricing-4',
+    'faq-support-1', 'faq-support-2', 'faq-support-3', 'faq-support-4',
+    'faq-hr-1', 'faq-hr-2', 'faq-hr-3', 'faq-hr-4',
+    'faq-marketing-1', 'faq-marketing-2', 'faq-marketing-3', 'faq-marketing-4',
+    'faq-ai-site-1', 'faq-ai-site-2', 'faq-ai-site-3', 'faq-ai-site-4', 'faq-ai-site-5'
   ];
 
   // 🆕 新Fragment IDのhasPartスキーマ生成（既存機能に追加）

@@ -608,6 +608,361 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     mentions: ['NANDS', '価値創造', 'ブランド資産']
   } as ServiceEntity,
 
+  // 🆕 メインページFAQ Fragment IDエンティティ（8個追加 - AI引用最適化）
+  {
+    '@id': 'https://nands.tech/#faq-main-reskilling',
+    '@type': 'WebPageElement',
+    name: 'リスキリング研修FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['リスキリング研修', 'NANDS', '生成AI技術', 'カスタマイズプラン', 'デジタルスキル'],
+    relatedTo: ['https://nands.tech/reskilling#service', 'https://nands.tech/faq#reskilling'],
+    mentions: ['AI', 'リスキリング', 'NANDS', '研修']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-system-dev',
+    '@type': 'WebPageElement',
+    name: 'システム開発FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['システム開発', 'AIソリューション', 'NANDS', 'チャットボット', 'ベクトルRAG'],
+    relatedTo: ['https://nands.tech/system-development#service', 'https://nands.tech/faq#system-dev'],
+    mentions: ['AI', 'システム開発', 'NANDS', 'RAG']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-pricing',
+    '@type': 'WebPageElement',
+    name: '料金体系FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['料金体系', 'NANDS', '助成金活用', 'プロジェクト見積もり', '無料相談'],
+    relatedTo: ['https://nands.tech/contact#pricing', 'https://nands.tech/faq#pricing'],
+    mentions: ['助成金', '料金', 'NANDS', '無料相談']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-remote',
+    '@type': 'WebPageElement',
+    name: 'リモートサポートFAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['リモート研修', 'NANDS', 'オンラインコンサルティング', '地方対応', '全国サービス'],
+    relatedTo: ['https://nands.tech/contact#remote', 'https://nands.tech/faq#remote'],
+    mentions: ['リモート', 'オンライン', 'NANDS', '全国']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-aio',
+    '@type': 'WebPageElement',
+    name: 'AIO対策FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIO対策', 'NANDS', '人材ソリューション', 'AI検索', '検索順位向上'],
+    relatedTo: ['https://nands.tech/aio-seo#service', 'https://nands.tech/faq#aio'],
+    mentions: ['AIO', 'AI検索', 'NANDS', 'SEO']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-ai-site-definition',
+    '@type': 'WebPageElement',
+    name: 'AIサイト定義FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイト', 'AI引用', 'ChatGPT', 'AI検索エンジン', 'デジタル資産', 'あなたの会社', 'Claude', 'Perplexity'],
+    relatedTo: ['https://nands.tech/ai-site#definition', 'https://nands.tech/faq#ai-site'],
+    mentions: ['AIサイト', 'AI引用', 'ChatGPT', 'Claude', 'Perplexity', 'あなたの会社']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-ai-site-features',
+    '@type': 'WebPageElement',
+    name: 'AIサイト特徴FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイト化', 'Fragment ID', '構造化データ', 'Mike King理論', 'AI引用最適化', 'あなたのサイト', 'あなたの会社'],
+    relatedTo: ['https://nands.tech/ai-site#features', 'https://nands.tech/faq#ai-site'],
+    mentions: ['Fragment ID', 'Mike King', 'AI引用', 'あなたのサイト', 'あなたの会社']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-ai-site-benefits',
+    '@type': 'WebPageElement',
+    name: 'AIサイトメリットFAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイトメリット', 'AI検索引用率向上', 'ブランド認知度向上', 'デジタル資産化', 'あなたの会社', 'Claude', 'Perplexity'],
+    relatedTo: ['https://nands.tech/ai-site#benefits', 'https://nands.tech/faq#ai-site'],
+    mentions: ['AI検索', 'ブランド認知度', 'デジタル資産', 'あなたの会社', 'Claude', 'Perplexity']
+  } as ServiceEntity,
+
+  // 🆕 /faqページFAQ Fragment IDエンティティ（26個追加 - レリバンスエンジニアリング強化）
+  // AI・テクノロジーサービス（5個）
+  {
+    '@id': 'https://nands.tech/faq#faq-tech-1',
+    '@type': 'WebPageElement',
+    name: 'AI技術FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI技術', 'OpenAI GPT-4', 'Claude', 'Gemini', 'RAG', '自然言語処理', '画像認識', '音声処理'],
+    relatedTo: ['https://nands.tech/ai-agents#service', 'https://nands.tech/faq#tech'],
+    mentions: ['OpenAI', 'Claude', 'Gemini', 'RAG', 'AI技術']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-tech-2',
+    '@type': 'WebPageElement',
+    name: 'システム連携FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['システム連携', 'REST API', 'GraphQL', 'Webhook', 'CRM', 'ERP', 'Microsoft 365', 'Google Workspace', 'Salesforce'],
+    relatedTo: ['https://nands.tech/system-development#service', 'https://nands.tech/faq#tech'],
+    mentions: ['API', 'システム連携', 'Microsoft 365', 'Google Workspace', 'Salesforce']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-tech-3',
+    '@type': 'WebPageElement',
+    name: 'セキュリティ対策FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['セキュリティ対策', 'ISO27001', 'データ暗号化', 'AES-256', 'アクセス制御', 'GDPR', '個人情報保護法'],
+    relatedTo: ['https://nands.tech/system-development#security', 'https://nands.tech/faq#tech'],
+    mentions: ['ISO27001', 'セキュリティ', 'GDPR', '個人情報保護']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-tech-4',
+    '@type': 'WebPageElement',
+    name: 'AIモデルカスタマイズFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIモデルカスタマイズ', 'ファインチューニング', 'プロンプトエンジニアリング', '医療AI', '法務AI', '製造業AI'],
+    relatedTo: ['https://nands.tech/ai-agents#customization', 'https://nands.tech/faq#tech'],
+    mentions: ['ファインチューニング', 'プロンプトエンジニアリング', '専門AI', 'カスタマイズ']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-tech-5',
+    '@type': 'WebPageElement',
+    name: '継続サポートFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['継続サポート', 'メンテナンス', 'アップデート', '追加機能開発', '運用サポート'],
+    relatedTo: ['https://nands.tech/contact#support', 'https://nands.tech/faq#tech'],
+    mentions: ['継続サポート', 'メンテナンス', 'アップデート', '運用']
+  } as ServiceEntity,
+  
+  // 料金・契約（4個）
+  {
+    '@id': 'https://nands.tech/faq#faq-pricing-1',
+    '@type': 'WebPageElement',
+    name: '料金体系FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['料金体系', '個別見積もり', '初期開発費用', '月額運用費用', '従量課金', '無料相談'],
+    relatedTo: ['https://nands.tech/contact#pricing', 'https://nands.tech/faq#pricing'],
+    mentions: ['料金体系', '見積もり', '無料相談', 'コスト']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-pricing-2',
+    '@type': 'WebPageElement',
+    name: '契約期間FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['契約期間', '最小契約期間', 'PoC', '概念実証', '短期契約', '柔軟対応'],
+    relatedTo: ['https://nands.tech/contact#contract', 'https://nands.tech/faq#pricing'],
+    mentions: ['契約期間', 'PoC', '概念実証', '柔軟対応']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-pricing-3',
+    '@type': 'WebPageElement',
+    name: '追加機能開発費用FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['追加機能開発', '開発工数', '個別見積もり', '月額保守契約', '機能拡張', '柔軟対応'],
+    relatedTo: ['https://nands.tech/system-development#additional', 'https://nands.tech/faq#pricing'],
+    mentions: ['追加機能', '開発工数', '機能拡張', '保守契約']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-pricing-4',
+    '@type': 'WebPageElement',
+    name: '支払い方法FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['支払い方法', '銀行振込', 'クレジットカード決済', '自動引き落とし', '分割払い', '着手金'],
+    relatedTo: ['https://nands.tech/contact#payment', 'https://nands.tech/faq#pricing'],
+    mentions: ['支払い方法', '銀行振込', 'クレジットカード', '分割払い']
+  } as ServiceEntity,
+  
+  // サポート・導入（4個）
+  {
+    '@id': 'https://nands.tech/faq#faq-support-1',
+    '@type': 'WebPageElement',
+    name: '導入期間FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['導入期間', 'チャットボット開発', 'AIシステム開発', '要件定義', '設計', '開発', 'テスト', 'リリース'],
+    relatedTo: ['https://nands.tech/chatbot-development#timeline', 'https://nands.tech/faq#support'],
+    mentions: ['導入期間', 'チャットボット', 'AIシステム', '開発工程']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-support-2',
+    '@type': 'WebPageElement',
+    name: 'オンサイト導入支援FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['オンサイト導入支援', 'システム設置', '初期設定', '操作研修', '運用開始支援', 'リモートサポート'],
+    relatedTo: ['https://nands.tech/contact#onsite', 'https://nands.tech/faq#support'],
+    mentions: ['オンサイト', '導入支援', '操作研修', 'リモートサポート']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-support-3',
+    '@type': 'WebPageElement',
+    name: 'トレーニング研修FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['トレーニング研修', '操作研修', 'AI活用研修', '技術者向けトレーニング', 'オンライン研修', '録画資料'],
+    relatedTo: ['https://nands.tech/reskilling#training', 'https://nands.tech/faq#support'],
+    mentions: ['トレーニング', '操作研修', 'AI活用研修', 'オンライン研修']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-support-4',
+    '@type': 'WebPageElement',
+    name: '24時間サポートFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['24時間サポート', 'プレミアムサポート', '障害対応', 'システム監視', 'パフォーマンス最適化', 'ミッションクリティカル'],
+    relatedTo: ['https://nands.tech/contact#premium', 'https://nands.tech/faq#support'],
+    mentions: ['24時間サポート', 'プレミアムサポート', '障害対応', 'システム監視']
+  } as ServiceEntity,
+  
+  // 人材・研修（4個）
+  {
+    '@id': 'https://nands.tech/faq#faq-hr-1',
+    '@type': 'WebPageElement',
+    name: 'AI人材育成FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AI人材育成', 'AIリテラシー研修', 'データサイエンティスト育成', 'AI開発者研修', '段階的カリキュラム'],
+    relatedTo: ['https://nands.tech/hr-solutions#ai-training', 'https://nands.tech/faq#hr'],
+    mentions: ['AI人材育成', 'データサイエンティスト', 'AIリテラシー', '人材研修']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-hr-2',
+    '@type': 'WebPageElement',
+    name: 'リスキリング研修内容FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['リスキリング研修', 'デジタルスキル', 'AI機械学習', 'データ分析', 'プログラミング基礎', '助成金活用'],
+    relatedTo: ['https://nands.tech/reskilling#curriculum', 'https://nands.tech/faq#hr'],
+    mentions: ['リスキリング', 'デジタルスキル', '助成金', 'プログラミング']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-hr-3',
+    '@type': 'WebPageElement',
+    name: '研修形式FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['研修形式', 'オンライン研修', '対面研修', 'ハイブリッド研修', 'ライブセッション', 'ハンズオン実習', 'グループワーク'],
+    relatedTo: ['https://nands.tech/reskilling#format', 'https://nands.tech/faq#hr'],
+    mentions: ['オンライン研修', '対面研修', 'ハイブリッド', 'ハンズオン実習']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-hr-4',
+    '@type': 'WebPageElement',
+    name: '研修効果測定FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['研修効果測定', 'スキルアセスメント', '実習課題評価', '修了テスト', '実務適用度調査', 'フォローアップ'],
+    relatedTo: ['https://nands.tech/reskilling#assessment', 'https://nands.tech/faq#hr'],
+    mentions: ['効果測定', 'スキルアセスメント', '実習課題', 'フォローアップ']
+  } as ServiceEntity,
+  
+  // マーケティング・AIO（4個）
+  {
+    '@id': 'https://nands.tech/faq#faq-marketing-1',
+    '@type': 'WebPageElement',
+    name: 'AIO対策定義FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIO対策', 'AI Optimization', 'ChatGPT', 'Claude', 'Perplexity', 'AI検索エンジン', '構造化データ', '技術実装'],
+    relatedTo: ['https://nands.tech/aio-seo#definition', 'https://nands.tech/faq#marketing'],
+    mentions: ['AIO対策', 'ChatGPT', 'Claude', 'Perplexity', 'AI検索']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-marketing-2',
+    '@type': 'WebPageElement',
+    name: 'SEO違いFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['SEO違い', 'Googleアルゴリズム', 'AI言語モデル', 'Fragment ID', 'エンティティ関係性', 'セマンティック最適化'],
+    relatedTo: ['https://nands.tech/aio-seo#comparison', 'https://nands.tech/faq#marketing'],
+    mentions: ['SEO', 'Googleアルゴリズム', 'Fragment ID', 'セマンティック最適化']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-marketing-3',
+    '@type': 'WebPageElement',
+    name: '効果測定FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['効果測定', 'AI検索引用回数', 'ブランド言及頻度', 'トラフィック分析', 'コンバージョン率', 'KPI設定', '競合分析'],
+    relatedTo: ['https://nands.tech/aio-seo#analytics', 'https://nands.tech/faq#marketing'],
+    mentions: ['効果測定', '引用回数', 'トラフィック分析', 'KPI', '競合分析']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-marketing-4',
+    '@type': 'WebPageElement',
+    name: '効果発現期間FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['効果発現期間', '初期効果', '本格的効果', '業界差', 'コンテンツ品質', '競合状況', '継続最適化'],
+    relatedTo: ['https://nands.tech/aio-seo#timeline', 'https://nands.tech/faq#marketing'],
+    mentions: ['効果期間', '初期効果', '継続最適化', '業界差']
+  } as ServiceEntity,
+  
+  // AIサイト・ブランディング（5個）
+  {
+    '@id': 'https://nands.tech/faq#faq-ai-site-1',
+    '@type': 'WebPageElement',
+    name: 'AIサイト定義FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイト定義', 'AI引用', 'ChatGPT', 'Claude', 'Perplexity', 'あなたの会社', 'コンテンツ引用', 'AI検索エンジン'],
+    relatedTo: ['https://nands.tech/ai-site#definition', 'https://nands.tech/faq#ai-site'],
+    mentions: ['AIサイト', 'AI引用', 'ChatGPT', 'Claude', 'Perplexity', 'あなたの会社']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-ai-site-2',
+    '@type': 'WebPageElement',
+    name: 'AIサイト特徴FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイト特徴', 'Fragment ID実装', '構造化データ最適化', 'Mike King理論', 'AI引用最適化', 'あなたのサイト'],
+    relatedTo: ['https://nands.tech/ai-site#features', 'https://nands.tech/faq#ai-site'],
+    mentions: ['Fragment ID', 'Mike King', 'AI引用最適化', 'あなたのサイト']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-ai-site-3',
+    '@type': 'WebPageElement',
+    name: 'AIサイトメリットFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイトメリット', 'AI検索引用率向上', 'デジタル資産化', 'ブランド認知度向上', 'あなたの会社', '信頼性向上'],
+    relatedTo: ['https://nands.tech/ai-site#benefits', 'https://nands.tech/faq#ai-site'],
+    mentions: ['AI検索引用', 'デジタル資産', 'ブランド認知度', 'あなたの会社', '信頼性']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-ai-site-4',
+    '@type': 'WebPageElement',
+    name: '他社AIサイト違いFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['他社AIサイト違い', '真のAIサイト', 'AI技術サイト', 'レリバンスエンジニアリング', 'あなたのサイト', '引用精度向上'],
+    relatedTo: ['https://nands.tech/ai-site#comparison', 'https://nands.tech/faq#ai-site'],
+    mentions: ['真のAIサイト', 'レリバンスエンジニアリング', 'あなたのサイト', '引用精度']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-ai-site-5',
+    '@type': 'WebPageElement',
+    name: 'AIサイト化プロセスFAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['AIサイト化プロセス', 'AI引用最適化', 'Fragment ID実装', '構造化データ統合', 'Mike King理論適用', 'あなたの既存サイト'],
+    relatedTo: ['https://nands.tech/ai-site#process', 'https://nands.tech/faq#ai-site'],
+    mentions: ['AIサイト化', 'Fragment ID実装', 'Mike King理論', 'あなたの既存サイト']
+  } as ServiceEntity,
+
 ];
 
 /**

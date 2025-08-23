@@ -1045,6 +1045,187 @@ export default function CompanyRagPage() {
           </div>
         </div>
 
+        {/* 🆕 構造化データ専用ベクトル化（新規セクション） */}
+        <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 rounded-xl p-6 border border-green-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-green-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">構造化データ専用ベクトル化</h2>
+              <p className="text-sm text-gray-400">lib/structured-data/内の全ファイルを再ベクトル化（Mike King理論準拠システム）</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">対象ファイル（14個）</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-400 mb-2">🔧 システムファイル</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• entity-relationships.ts（エンティティマップ）</li>
+                  <li>• ai-search-optimization.ts（AI検索最適化）</li>
+                  <li>• haspart-schema-system.ts（hasPartスキーマ）</li>
+                  <li>• index.ts（統合システム）</li>
+                  <li>• validation-system.ts（検証システム）</li>
+                  <li>• auto-toc-system.ts（自動目次生成）</li>
+                  <li>• author-trust-system.ts（著者信頼システム）</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">🚀 拡張システム</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• unified-integration-ai-enhanced.ts</li>
+                  <li>• unified-integration-schema16.ts</li>
+                  <li>• semantic-links.ts（セマンティックリンク）</li>
+                  <li>• howto-faq-schema.ts（FAQ Schema）</li>
+                  <li>• schema-org-latest.ts（Schema.org 16.0+）</li>
+                  <li>• mdx-section-system.ts（MDXセクション）</li>
+                  <li>• unified-integration.ts（統合システム）</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="text-sm text-gray-300">
+              <p>⚡ 処理時間: 約60秒 | 💰 コスト: 約$1.20 | 🔄 安全性: 高（構造化データのみ対象）</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsVectorizing(true);
+                try {
+                  const response = await fetch('/api/vectorize-structured-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`構造化データベクトル化完了！\n${result.results.totalVectorized}個のファイルをベクトル化しました。\n\n対象ファイル数: ${result.results.fileList.length}個\n総単語数: ${result.results.fileList.reduce((sum: number, file: any) => sum + file.wordCount, 0)}語\n技術概念数: ${result.results.fileList.reduce((sum: number, file: any) => sum + file.technicalConcepts, 0)}個`);
+                    loadVectorStats(); // 統計更新
+                  } else {
+                    alert(`エラー: ${result.error}`);
+                  }
+                } catch (error) {
+                  alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } finally {
+                  setIsVectorizing(false);
+                }
+              }}
+              disabled={isVectorizing}
+              className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              {isVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>ベクトル化中...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
+                  </svg>
+                  <span>構造化データをベクトル化</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 🆕 FAQページ専用ベクトル化（新規セクション） */}
+        <div className="bg-gradient-to-br from-orange-900/30 to-red-900/30 rounded-xl p-6 border border-orange-700/50 mt-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-orange-600/20 rounded-lg">
+              <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">FAQページ専用ベクトル化</h2>
+              <p className="text-sm text-gray-400">26個のFragment ID付きQAを個別ベクトル化</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-medium text-white mb-3">機能説明</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-orange-400 mb-2">✅ ベクトル化される内容</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• 技術・開発関連FAQ（8個）</li>
+                  <li>• 料金・契約関連FAQ（6個）</li>
+                  <li>• サポート・その他FAQ（6個）</li>
+                  <li>• HR・マーケティング関連FAQ（3個）</li>
+                  <li>• AIサイト関連FAQ（3個）</li>
+                  <li>• 各QAのFragment ID付きディープリンク</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">🎯 期待される効果</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• FAQページのAI引用精度向上</li>
+                  <li>• 個別QAのピンポイント引用対応</li>
+                  <li>• Fragment ID基盤のRAG検索強化</li>
+                  <li>• 127件 → 153件のベクトル増加予定</li>
+                  <li>• ChatGPT/Claude/Gemini引用最適化</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="text-sm text-gray-300">
+              <p>⚡ 処理時間: 約90秒 | 💰 コスト: 約$1.50 | 🔄 安全性: 高（FAQページのみ対象）</p>
+            </div>
+            <button
+              onClick={async () => {
+                setIsVectorizing(true);
+                try {
+                  const response = await fetch('/api/vectorize-faq-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`FAQページベクトル化完了！\n${result.results.totalVectorized}個のQAをベクトル化しました。`);
+                    loadVectorStats(); // 統計更新
+                  } else {
+                    alert(`エラー: ${result.error}`);
+                  }
+                } catch (error) {
+                  alert(`エラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } finally {
+                  setIsVectorizing(false);
+                }
+              }}
+              disabled={isVectorizing}
+              className="px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-red-700 disabled:opacity-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              {isVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>ベクトル化中...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>FAQページをベクトル化</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* ディープリンク同期（新規セクション） */}
         <div className="bg-gradient-to-br from-emerald-900/30 to-teal-900/30 rounded-xl p-6 border border-emerald-700/50 mt-8">
           <div className="flex items-center space-x-3 mb-4">
