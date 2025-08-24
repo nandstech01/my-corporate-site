@@ -136,6 +136,7 @@ export default function PostsPage() {
         console.log('🗑️ 関連RAGベクトルデータの削除開始...');
         
         try {
+          // 1-1. 旧Company Vector削除（互換性維持）
           const { error: vectorDeleteError, count: vectorDeleteCount } = await supabase
             .from('company_vectors')
             .delete({ count: 'exact' })
@@ -143,11 +144,25 @@ export default function PostsPage() {
             .eq('section_title', post.title);
 
           if (vectorDeleteError) {
-            console.error('RAGベクトル削除エラー:', vectorDeleteError);
-            // RAGベクトル削除に失敗してもメイン削除は続行
+            console.error('旧RAGベクトル削除エラー:', vectorDeleteError);
           } else {
-            console.log(`✅ RAGベクトル削除完了: ${vectorDeleteCount}件`);
+            console.log(`✅ 旧RAGベクトル削除完了: ${vectorDeleteCount}件`);
           }
+
+          // 1-2. 新Fragment Vector削除（重要！）
+          const postPath = `/posts/${post.slug}`;
+          const { error: fragmentDeleteError, count: fragmentDeleteCount } = await supabase
+            .from('fragment_vectors')
+            .delete({ count: 'exact' })
+            .eq('page_path', postPath);
+
+          if (fragmentDeleteError) {
+            console.error('Fragment Vector削除エラー:', fragmentDeleteError);
+          } else {
+            console.log(`✅ Fragment Vector削除完了: ${fragmentDeleteCount}件 (${postPath})`);
+          }
+
+          console.log(`🎯 総RAG削除件数: ${(vectorDeleteCount || 0) + (fragmentDeleteCount || 0)}件`);
         } catch (vectorError) {
           console.error('RAGベクトル削除処理でエラー:', vectorError);
           // エラーは記録するが処理は続行

@@ -290,7 +290,7 @@ export async function POST(request: NextRequest) {
       dateFilter: dateFilter,
       latestNewsMode: latestNewsMode,
       summary: {
-        company: searchResults.filter(r => r.source === 'company').length,
+        company: searchResults.filter(r => r.source === 'fragment').length, // Fragment Vector = Company RAG
         trend: searchResults.filter(r => r.source === 'trend').length,
         youtube: searchResults.filter(r => r.source === 'youtube').length,
         total: sortedResults.length,

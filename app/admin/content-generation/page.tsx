@@ -438,14 +438,17 @@ export default function ContentGenerationPage() {
 
     setRagSearchLoading(true);
     try {
-      // 統合RAGエンドポイントを使用
-      const response = await fetch('/api/search-rag', {
+      // 統合RAGエンドポイントを使用（キャッシュバスティング付き）
+      const response = await fetch(`/api/search-rag?t=${Date.now()}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate'
+            },
         body: JSON.stringify({
           query: blogGenerationForm.query,
           sources: blogGenerationForm.selectedRAGs,
-          limit: 5, // 各RAGから5件ずつ取得
+          limit: 10, // 各RAGから10件ずつ取得
           threshold: 0.3,
           dateFilter: blogGenerationForm.dateFilter,
           latestNewsMode: blogGenerationForm.latestNewsMode
@@ -1499,7 +1502,7 @@ export default function ContentGenerationPage() {
                     <div className="bg-blue-600/20 p-3 rounded">
                       <div className="text-blue-400 text-sm">Company RAG</div>
                       <div className="text-xl font-bold text-white">
-                        {ragSearchResults.filter(r => r.source === 'company').length}{isEnglishMode ? ' items' : '件'}
+                        {ragSearchResults.filter(r => r.source === 'fragment').length}{isEnglishMode ? ' items' : '件'}
                       </div>
                     </div>
                     <div className="bg-green-600/20 p-3 rounded">
@@ -1516,8 +1519,8 @@ export default function ContentGenerationPage() {
                     </div>
                   </div>
                   
-                  <div className="max-h-40 overflow-y-auto space-y-2">
-                    {ragSearchResults.slice(0, 5).map((result, index) => (
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {ragSearchResults.slice(0, 10).map((result, index) => (
                       <div key={index} className="p-3 bg-gray-800 rounded text-sm">
                         <div className="flex items-center space-x-2 mb-1">
                           <span className={`px-2 py-1 text-xs rounded ${
