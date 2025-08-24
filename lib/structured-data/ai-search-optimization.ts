@@ -66,10 +66,10 @@ export interface DetailedMentions {
   entity: string;
   
   /** エンティティタイプ */
-  entityType: 'Technology' | 'Methodology' | 'Organization' | 'Person' | 'Product' | 'Service' | 'Concept';
+  entityType: 'Technology' | 'Methodology' | 'Organization' | 'Person' | 'Product' | 'Service' | 'Concept' | 'LegalDocument' | 'Policy' | 'Compliance' | 'SecurityMeasure' | 'Terms';
   
   /** 言及の文脈・関係性 */
-  context: 'implements' | 'uses' | 'integrates' | 'optimizes' | 'teaches' | 'provides' | 'collaborates';
+  context: 'implements' | 'uses' | 'integrates' | 'optimizes' | 'teaches' | 'provides' | 'collaborates' | 'ensures' | 'defines' | 'specifies' | 'maintains';
   
   /** 重要度スコア (1-10) */
   importance: number;
@@ -1422,199 +1422,200 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
   },
 
   // =============================================================================
-  // メインページFAQ Fragment IDs（新規追加）
+  // メインページFAQ Fragment IDs（DB形式に修正）
   // =============================================================================
   {
-    id: 'faq-main-reskilling',
-    sectionName: 'リスキリング研修FAQ',
+    id: 'faq-main-1',
+    sectionName: 'NANDSの主要サービスについて',
     targetQueries: [
-      'リスキリング研修 内容',
-      'AI研修 カリキュラム',
-      '企業向け研修 効果',
-      'デジタル人材育成'
+      'NANDSサービス',
+      '主要サービス',
+      'AI技術',
+      'デジタルソリューション'
     ],
     entities: [
       {
-        entity: 'リスキリング研修',
-        entityType: 'Service',
+        entity: 'NANDS',
+        entityType: 'Organization',
         context: 'provides',
         importance: 9,
-        relatedKnowledge: ['AI研修', 'デジタル人材育成', '企業研修'],
-        searchIntents: ['リスキリング とは', 'AI研修 効果'],
-        coOccurringTerms: ['デジタルトランスフォーメーション', 'DX', '人材育成']
-      }
-    ],
-    semanticWeight: 0.88,
-    hierarchyLevel: 3,
-    relatedFragments: ['service-reskilling', 'service-hr-support']
-  },
-  {
-    id: 'faq-main-system-dev',
-    sectionName: 'システム開発FAQ',
-    targetQueries: [
-      'システム開発 流れ',
-      'AI開発 期間',
-      'カスタム開発 費用',
-      'システム構築 手順'
-    ],
-    entities: [
-      {
-        entity: 'システム開発',
-        entityType: 'Service',
-        context: 'provides',
-        importance: 9,
-        relatedKnowledge: ['AI開発', 'カスタム開発', 'システム構築'],
-        searchIntents: ['システム開発 流れ', 'AI開発 期間'],
-        coOccurringTerms: ['要件定義', '設計', '実装', 'テスト']
-      }
-    ],
-    semanticWeight: 0.87,
-    hierarchyLevel: 3,
-    relatedFragments: ['service-system-development', 'service-ai-agents']
-  },
-  {
-    id: 'faq-main-pricing',
-    sectionName: '料金体系FAQ',
-    targetQueries: [
-      '料金 見積もり',
-      'コスト 相場',
-      '価格 体系',
-      '費用 内訳'
-    ],
-    entities: [
-      {
-        entity: '料金体系',
-        entityType: 'Service',
-        context: 'provides',
-        importance: 8,
-        relatedKnowledge: ['見積もり', 'コスト計算', '価格設定'],
-        searchIntents: ['料金 相場', '費用 見積もり'],
-        coOccurringTerms: ['初期費用', '月額費用', '成果報酬']
-      }
-    ],
-    semanticWeight: 0.85,
-    hierarchyLevel: 3,
-    relatedFragments: ['service-consulting', 'corporate-pricing']
-  },
-  {
-    id: 'faq-main-remote',
-    sectionName: 'リモート対応FAQ',
-    targetQueries: [
-      'リモート 対応',
-      'オンライン 研修',
-      '遠隔 サポート',
-      'リモートワーク 支援'
-    ],
-    entities: [
-      {
-        entity: 'リモート対応',
-        entityType: 'Service',
-        context: 'provides',
-        importance: 7,
-        relatedKnowledge: ['オンライン研修', '遠隔サポート', 'リモートワーク'],
-        searchIntents: ['リモート 研修', 'オンライン サポート'],
-        coOccurringTerms: ['Zoom', 'Teams', 'オンライン会議']
-      }
-    ],
-    semanticWeight: 0.82,
-    hierarchyLevel: 3,
-    relatedFragments: ['service-hr-support', 'service-consulting']
-  },
-  {
-    id: 'faq-main-aio',
-    sectionName: 'AIO対策FAQ',
-    targetQueries: [
-      'AIO対策 方法',
-      'AI検索 最適化',
-      'Google AI Overviews',
-      'LLMO 対策'
-    ],
-    entities: [
-      {
-        entity: 'AIO対策',
-        entityType: 'Service',
-        context: 'implements',
-        importance: 9,
-        relatedKnowledge: ['AI検索最適化', 'LLMO', 'レリバンスエンジニアリング'],
-        searchIntents: ['AIO対策 とは', 'AI検索 最適化 方法'],
-        coOccurringTerms: ['Mike King理論', 'Google AI Overviews', 'Perplexity']
-      }
-    ],
-    semanticWeight: 0.92,
-    hierarchyLevel: 3,
-    relatedFragments: ['ai-search-optimization-overview', 'relevance-engineering']
-  },
-  {
-    id: 'faq-main-ai-site-definition',
-    sectionName: 'AIサイト定義FAQ',
-    targetQueries: [
-      'AIサイト とは',
-      'AI引用 サイト',
-      'AIに引用される方法',
-      'AI検索 対応サイト'
-    ],
-    entities: [
-      {
-        entity: 'AIサイト',
-        entityType: 'Concept',
-        context: 'implements',
-        importance: 10,
-        relatedKnowledge: ['AI引用', 'AI検索対応', 'レリバンスエンジニアリング'],
-        searchIntents: ['AIサイト 意味', 'AI引用 条件'],
-        coOccurringTerms: ['ChatGPT', 'Perplexity', 'Claude', 'AI検索エンジン']
-      }
-    ],
-    semanticWeight: 0.95,
-    hierarchyLevel: 2,
-    relatedFragments: ['nands-ai-site', 'ai-search-optimization-overview']
-  },
-  {
-    id: 'faq-main-ai-site-features',
-    sectionName: 'AIサイト特徴FAQ',
-    targetQueries: [
-      'AIサイト 特徴',
-      'AI引用 メリット',
-      'AIサイト 効果',
-      'AI検索 利点'
-    ],
-    entities: [
-      {
-        entity: 'AIサイト特徴',
-        entityType: 'Concept',
-        context: 'implements',
-        importance: 9,
-        relatedKnowledge: ['AI引用メリット', 'AI検索効果', 'ブランディング効果'],
-        searchIntents: ['AIサイト メリット', 'AI引用 効果'],
-        coOccurringTerms: ['信頼性向上', 'ブランド認知', 'SEO効果']
+        relatedKnowledge: ['AIエージェント', 'ベクトルRAG', 'AIO SEO', 'チャットボット'],
+        searchIntents: ['NANDSサービス', 'AI技術'],
+        coOccurringTerms: ['デジタルソリューション', 'AI', 'システム開発']
       }
     ],
     semanticWeight: 0.90,
     hierarchyLevel: 3,
-    relatedFragments: ['faq-main-ai-site-definition', 'ai-site-benefits']
+    relatedFragments: ['service-ai-agents', 'service-vector-rag']
   },
   {
-    id: 'faq-main-ai-site-benefits',
-    sectionName: 'AIサイト利益FAQ',
+    id: 'faq-main-2',
+    sectionName: 'AI検索最適化について',
     targetQueries: [
-      'AIサイト 利益',
-      'AI引用 ビジネス効果',
-      'AIサイト ROI',
-      'AI検索 売上効果'
+      'AI検索最適化',
+      'AIO',
+      'ChatGPT',
+      'Claude',
+      'Perplexity'
     ],
     entities: [
       {
-        entity: 'AIサイト利益',
-        entityType: 'Concept',
+        entity: 'AI検索最適化',
+        entityType: 'Service',
         context: 'provides',
         importance: 9,
-        relatedKnowledge: ['ビジネス効果', 'ROI向上', '売上増加'],
-        searchIntents: ['AIサイト 効果測定', 'AI引用 ROI'],
-        coOccurringTerms: ['売上向上', 'コンバージョン', 'ブランド価値']
+        relatedKnowledge: ['AIO', 'Fragment ID', 'Mike King理論', '構造化データ'],
+        searchIntents: ['AI検索最適化とは', 'AIO SEO'],
+        coOccurringTerms: ['ChatGPT', 'Claude', 'Perplexity', 'AI引用']
       }
     ],
-    semanticWeight: 0.89,
+    semanticWeight: 0.95,
     hierarchyLevel: 3,
-    relatedFragments: ['faq-main-ai-site-features', 'corporate-roi']
+    relatedFragments: ['service-aio-seo', 'ai-search-optimization-overview']
+  },
+  {
+    id: 'faq-main-3',
+    sectionName: 'Fragment IDシステムについて',
+    targetQueries: [
+      'Fragment ID',
+      'AI検索引用',
+      'Mike King理論',
+      '構造化データ'
+    ],
+    entities: [
+      {
+        entity: 'Fragment ID',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['AI検索引用', 'Mike King理論', '構造化データ', 'Complete URI'],
+        searchIntents: ['Fragment IDとは', 'AI引用'],
+        coOccurringTerms: ['Mike King', 'AI引用', '構造化データ', 'ディープリンク']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 3,
+    relatedFragments: ['ai-site-fragment-id', 'faq-fragment-id']
+  },
+  {
+    id: 'faq-main-4',
+    sectionName: 'ベクトルRAGシステムについて',
+    targetQueries: [
+      'ベクトルRAG',
+      'RAG',
+      'セマンティック検索',
+      'AI検索'
+    ],
+    entities: [
+      {
+        entity: 'ベクトルRAG',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['RAG', 'セマンティック検索', 'AI検索', '知識資産'],
+        searchIntents: ['ベクトルRAGとは', 'RAG システム'],
+        coOccurringTerms: ['RAG', 'ベクトル', 'AI検索', 'セマンティック']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 3,
+    relatedFragments: ['service-vector-rag', 'faq-vector-rag']
+  },
+  {
+    id: 'faq-main-5',
+    sectionName: 'AIエージェント開発について',
+    targetQueries: [
+      'AIエージェント',
+      '自律的AI',
+      'マルチエージェント',
+      'AI自動化'
+    ],
+    entities: [
+      {
+        entity: 'AIエージェント',
+        entityType: 'Technology',
+        context: 'provides',
+        importance: 9,
+        relatedKnowledge: ['自律的AI', 'マルチエージェント', 'AI自動化', 'タスク実行'],
+        searchIntents: ['AIエージェントとは', '自律的AI'],
+        coOccurringTerms: ['AIエージェント', '自律的', '自動化', 'AI']
+      }
+    ],
+    semanticWeight: 0.93,
+    hierarchyLevel: 3,
+    relatedFragments: ['service-ai-agents', 'faq-ai-agents']
+  },
+  {
+    id: 'faq-main-6',
+    sectionName: '導入期間・費用について',
+    targetQueries: [
+      '導入期間',
+      '費用',
+      'プロジェクト規模',
+      '見積もり'
+    ],
+    entities: [
+      {
+        entity: '導入期間',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['費用', 'プロジェクト規模', 'チャットボット開発', '見積もり'],
+        searchIntents: ['導入期間', '費用'],
+        coOccurringTerms: ['導入期間', '費用', 'チャットボット', 'プロジェクト']
+      }
+    ],
+    semanticWeight: 0.85,
+    hierarchyLevel: 3,
+    relatedFragments: ['contact-pricing', 'faq-pricing']
+  },
+  {
+    id: 'faq-main-7',
+    sectionName: '導入後サポート体制について',
+    targetQueries: [
+      'サポート体制',
+      '24時間監視',
+      '月次レポート',
+      '定期メンテナンス'
+    ],
+    entities: [
+      {
+        entity: 'サポート体制',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['24時間監視', '月次レポート', '定期メンテナンス', '機能追加'],
+        searchIntents: ['サポート体制', '24時間'],
+        coOccurringTerms: ['サポート', '24時間', 'メンテナンス', 'レポート']
+      }
+    ],
+    semanticWeight: 0.87,
+    hierarchyLevel: 3,
+    relatedFragments: ['contact-support', 'faq-support']
+  },
+  {
+    id: 'faq-main-8',
+    sectionName: 'セキュリティ対策について',
+    targetQueries: [
+      'セキュリティ対策',
+      'AES-256暗号化',
+      '多要素認証',
+      'アクセス制御'
+    ],
+    entities: [
+      {
+        entity: 'セキュリティ対策',
+        entityType: 'Service',
+        context: 'implements',
+        importance: 8,
+        relatedKnowledge: ['AES-256暗号化', '多要素認証', 'アクセス制御', 'データ保護'],
+        searchIntents: ['セキュリティ対策', '暗号化'],
+        coOccurringTerms: ['セキュリティ', '暗号化', '認証', 'データ保護']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 3,
+    relatedFragments: ['security-measures', 'faq-security']
   },
 
   // =============================================================================
@@ -1642,7 +1643,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     ],
     semanticWeight: 0.91,
     hierarchyLevel: 2,
-    relatedFragments: ['faq-main-system-dev', 'service-ai-agents']
+    relatedFragments: ['faq-main-1', 'service-ai-agents']
   },
   {
     id: 'service-aio-seo',
@@ -1666,7 +1667,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     ],
     semanticWeight: 0.95,
     hierarchyLevel: 2,
-    relatedFragments: ['faq-main-aio', 'ai-search-optimization-overview']
+    relatedFragments: ['faq-main-2', 'ai-search-optimization-overview']
   },
   {
     id: 'service-chatbot-development',
@@ -1762,7 +1763,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     ],
     semanticWeight: 0.85,
     hierarchyLevel: 2,
-    relatedFragments: ['service-corporate-reskilling', 'faq-main-remote']
+    relatedFragments: ['service-corporate-reskilling', 'faq-main-7']
   },
   {
     id: 'service-ai-agents',
@@ -1882,7 +1883,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     ],
     semanticWeight: 0.89,
     hierarchyLevel: 2,
-    relatedFragments: ['faq-main-reskilling', 'service-hr-support']
+    relatedFragments: ['faq-main-1', 'service-hr-support']
   },
   {
     id: 'service-individual-reskilling',
@@ -2755,6 +2756,626 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     semanticWeight: 0.87,
     hierarchyLevel: 2,
     relatedFragments: ['faq-29', 'contact', 'faq-13']
+  },
+
+  // ===== 法的文書Fragment IDs =====
+  // プライバシーポリシーページ
+  {
+    id: 'privacy-header',
+    sectionName: 'プライバシーポリシー - ヘッダー',
+    targetQueries: [
+      'プライバシーポリシー',
+      '個人情報保護',
+      'AI DX時代 個人情報',
+      '安心安全 データ管理'
+    ],
+    entities: [
+      {
+        entity: 'プライバシーポリシー',
+        entityType: 'LegalDocument',
+        context: 'provides',
+        importance: 9,
+        relatedKnowledge: ['個人情報保護', 'AI・DX時代対応', '安心安全管理'],
+        searchIntents: ['プライバシーポリシー 確認', '個人情報 取扱い'],
+        coOccurringTerms: ['個人情報保護', 'データ保護', 'セキュリティ', 'GDPR']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 1,
+    relatedFragments: ['privacy-policy', 'privacy-compliance', 'privacy-security']
+  },
+  {
+    id: 'privacy-policy',
+    sectionName: 'プライバシーポリシー - 基本方針',
+    targetQueries: [
+      '個人情報保護 基本方針',
+      '法令遵守 個人情報',
+      'Cookie使用 ポリシー',
+      '個人情報 安全管理'
+    ],
+    entities: [
+      {
+        entity: '個人情報保護基本方針',
+        entityType: 'Policy',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['個人情報保護法', '適正取得利用', '安全管理措置'],
+        searchIntents: ['個人情報 取扱い方針', 'Cookie 利用方針'],
+        coOccurringTerms: ['個人情報保護法', '関連法令', '適正取扱い', 'Cookie']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 2,
+    relatedFragments: ['privacy-header', 'privacy-compliance', 'privacy-cookies']
+  },
+  {
+    id: 'privacy-compliance',
+    sectionName: 'プライバシーポリシー - 法令遵守',
+    targetQueries: [
+      '個人情報保護法 遵守',
+      'ガイドライン 対応',
+      '適正 個人情報取得',
+      '法令 個人情報管理'
+    ],
+    entities: [
+      {
+        entity: '個人情報保護法遵守',
+        entityType: 'Compliance',
+        context: 'ensures',
+        importance: 8,
+        relatedKnowledge: ['個人情報保護法', '政省令', 'ガイドライン'],
+        searchIntents: ['法令遵守 個人情報', '適正取扱い 方法'],
+        coOccurringTerms: ['個人情報保護法', '政省令', 'ガイドライン', '適正取扱い']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['privacy-policy', 'privacy-security', 'legal-compliance']
+  },
+  {
+    id: 'privacy-security',
+    sectionName: 'プライバシーポリシー - 安全管理',
+    targetQueries: [
+      '個人情報 安全管理',
+      '漏洩防止 対策',
+      '不正アクセス 防止',
+      '技術的 安全管理措置'
+    ],
+    entities: [
+      {
+        entity: '個人情報安全管理',
+        entityType: 'SecurityMeasure',
+        context: 'implements',
+        importance: 8,
+        relatedKnowledge: ['安全管理措置', '漏洩防止', '従業員教育'],
+        searchIntents: ['個人情報 セキュリティ', '安全管理 方法'],
+        coOccurringTerms: ['安全管理措置', '漏洩防止', '不正アクセス防止', '継続改善']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['privacy-compliance', 'privacy-disclosure', 'privacy-cookies']
+  },
+  {
+    id: 'privacy-disclosure',
+    sectionName: 'プライバシーポリシー - 開示・訂正・削除',
+    targetQueries: [
+      '個人情報 開示請求',
+      '個人情報 訂正請求',
+      '個人情報 削除請求',
+      '本人確認 手続き'
+    ],
+    entities: [
+      {
+        entity: '個人情報開示対応',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 7,
+        relatedKnowledge: ['開示請求', '訂正削除', '本人確認', '法令対応'],
+        searchIntents: ['個人情報 開示方法', '訂正削除 手続き'],
+        coOccurringTerms: ['開示請求', '訂正請求', '削除請求', '本人確認']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['privacy-security', 'privacy-cookies', 'terms-usage']
+  },
+  {
+    id: 'privacy-cookies',
+    sectionName: 'プライバシーポリシー - Cookie使用',
+    targetQueries: [
+      'Cookie 使用方針',
+      'ブラウザ設定 Cookie',
+      'サービス改善 Cookie',
+      'Cookie 制限拒否'
+    ],
+    entities: [
+      {
+        entity: 'Cookie使用方針',
+        entityType: 'Policy',
+        context: 'defines',
+        importance: 7,
+        relatedKnowledge: ['Cookie利用', 'ブラウザ設定', 'サービス改善'],
+        searchIntents: ['Cookie とは', 'Cookie 設定方法'],
+        coOccurringTerms: ['Cookie', 'ブラウザ設定', 'サービス改善', '利便性向上']
+      }
+    ],
+    semanticWeight: 0.84,
+    hierarchyLevel: 2,
+    relatedFragments: ['privacy-disclosure', 'privacy-policy', 'terms-usage']
+  },
+
+  // 利用規約ページ
+  {
+    id: 'terms-header',
+    sectionName: '利用規約 - ヘッダー',
+    targetQueries: [
+      '利用規約',
+      'サービス利用規約',
+      'AI研修 利用規約',
+      'DX支援 利用規約'
+    ],
+    entities: [
+      {
+        entity: 'サービス利用規約',
+        entityType: 'LegalDocument',
+        context: 'defines',
+        importance: 8,
+        relatedKnowledge: ['AI研修サービス', 'DX支援サービス', 'キャリア支援'],
+        searchIntents: ['利用規約 確認', 'サービス 利用条件'],
+        coOccurringTerms: ['利用規約', 'AI研修', 'DX支援', 'キャリア支援']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 1,
+    relatedFragments: ['terms-usage', 'privacy-header', 'legal-header']
+  },
+  {
+    id: 'terms-usage',
+    sectionName: '利用規約 - 利用条件',
+    targetQueries: [
+      'サービス利用条件',
+      'AI研修 利用条件',
+      '利用者義務',
+      '禁止行為 利用規約'
+    ],
+    entities: [
+      {
+        entity: 'サービス利用条件',
+        entityType: 'Terms',
+        context: 'specifies',
+        importance: 8,
+        relatedKnowledge: ['利用者義務', '禁止行為', '適正利用'],
+        searchIntents: ['利用条件 詳細', '利用者 義務'],
+        coOccurringTerms: ['利用条件', '利用者義務', '禁止事項', '適正利用']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['terms-header', 'privacy-policy', 'legal-compliance']
+  },
+
+  // 法的情報ページ
+  {
+    id: 'legal-header',
+    sectionName: '法的情報 - ヘッダー',
+    targetQueries: [
+      '法的情報',
+      '特定商取引法 表記',
+      'コンプライアンス',
+      '透明性 企業経営'
+    ],
+    entities: [
+      {
+        entity: '法的情報',
+        entityType: 'LegalDocument',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['特定商取引法', 'コンプライアンス', 'Trust Layer'],
+        searchIntents: ['法的情報 確認', '特定商取引法 表記'],
+        coOccurringTerms: ['法的情報', '特定商取引法', 'コンプライアンス', '透明性']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 1,
+    relatedFragments: ['legal-compliance', 'privacy-header', 'terms-header']
+  },
+  {
+    id: 'legal-compliance',
+    sectionName: '法的情報 - 法令遵守',
+    targetQueries: [
+      '法令遵守',
+      'コンプライアンス体制',
+      '社会的責任',
+      '適用法令 遵守'
+    ],
+    entities: [
+      {
+        entity: 'コンプライアンス体制',
+        entityType: 'Compliance',
+        context: 'maintains',
+        importance: 8,
+        relatedKnowledge: ['法令遵守', '社会的責任', 'コンプライアンス維持'],
+        searchIntents: ['コンプライアンス とは', '法令遵守 体制'],
+        coOccurringTerms: ['法令遵守', '社会的責任', 'コンプライアンス体制', '規則遵守']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['legal-header', 'privacy-compliance', 'terms-usage']
+  },
+
+  // ===== ブログ記事著者Fragment ID =====
+  {
+    id: 'author-profile',
+    sectionName: '著者プロフィール - 原田賢治',
+    targetQueries: [
+      '原田賢治',
+      '代表取締役',
+      'AI技術責任者',
+      'レリバンスエンジニアリング専門家',
+      'Mike King理論 専門家',
+      'AI研修講師',
+      'NANDS代表',
+      'AI検索最適化 専門家',
+      'Triple RAG 開発者',
+      'ベクトル検索 専門家'
+    ],
+    entities: [
+      {
+        entity: '原田賢治プロフィール',
+        entityType: 'Person',
+        context: 'provides',
+        importance: 10,
+        relatedKnowledge: ['レリバンスエンジニアリング', 'Mike King理論', 'AI検索最適化', 'Triple RAG', 'ベクトル検索システム', 'AI研修', 'DX支援', 'システム開発'],
+        searchIntents: ['原田賢治 プロフィール', 'NANDS 代表', 'AI専門家 経歴', 'レリバンスエンジニアリング 専門家'],
+        coOccurringTerms: ['原田賢治', 'NANDS', 'レリバンスエンジニアリング', 'Mike King理論', 'AI検索最適化', 'ChatGPT', 'Perplexity', 'GEO対策', 'AI研修', 'Triple RAG', 'ベクトル検索システム', '自動記事生成システム']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 2,
+    relatedFragments: ['main-title', 'service-ai-search-optimization', 'service-corporate-training']
+  },
+  
+  // =============================================================================
+  // 🎯 Aboutページ Fragment IDs（8個） - 企業情報・代表者情報
+  // =============================================================================
+  
+  {
+    id: 'hero',
+    sectionName: 'NANDS - Business Concept',
+    targetQueries: [
+      'NANDS とは',
+      '株式会社エヌアンドエス',
+      'Business Concept',
+      '次のステージ'
+    ],
+    entities: [
+      {
+        entity: 'NANDS',
+        entityType: 'Organization',
+        context: 'provides',
+        importance: 10,
+        relatedKnowledge: ['株式会社エヌアンドエス', 'Business Concept', 'AI技術', '働く人'],
+        searchIntents: ['NANDS とは', '株式会社エヌアンドエス 会社概要'],
+        coOccurringTerms: ['エヌアンドエス', 'AI技術', '働く人', '次のステージ']
+      }
+    ],
+    semanticWeight: 0.98,
+    hierarchyLevel: 1,
+    relatedFragments: ['mission-vision', 'company-message']
+  },
+  
+  {
+    id: 'mission-vision',
+    sectionName: 'Mission & Vision - 企業使命とビジョン',
+    targetQueries: [
+      '企業使命',
+      'ビジョン',
+      '2030年',
+      'リーディングカンパニー',
+      'DX推進'
+    ],
+    entities: [
+      {
+        entity: 'Mission & Vision',
+        entityType: 'Concept',
+        context: 'defines',
+        importance: 9,
+        relatedKnowledge: ['2030年', 'リーディングカンパニー', 'DX推進', 'AI活用'],
+        searchIntents: ['NANDS ミッション', 'エヌアンドエス ビジョン', '2030年 目標'],
+        coOccurringTerms: ['Mission', 'Vision', '2030年', 'リーディングカンパニー', 'DX推進']
+      }
+    ],
+    semanticWeight: 0.96,
+    hierarchyLevel: 1,
+    relatedFragments: ['hero', 'enterprise-ai']
+  },
+  
+  {
+    id: 'enterprise-ai',
+    sectionName: 'Enterprise AI Solutions - 企業向けAI',
+    targetQueries: [
+      'AI導入コンサルティング',
+      '企業向けAI研修',
+      'AI組織構築',
+      'ROI評価'
+    ],
+    entities: [
+      {
+        entity: 'Enterprise AI Solutions',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 9,
+        relatedKnowledge: ['AI導入コンサルティング', '企業向けAI研修', 'AI組織構築', 'ROI評価', 'AI戦略'],
+        searchIntents: ['企業 AI導入 支援', 'AI研修 法人向け', 'AI組織構築 コンサルティング'],
+        coOccurringTerms: ['AI導入', 'AI研修', 'AI組織構築', 'ROI評価', 'AI戦略']
+      }
+    ],
+    semanticWeight: 0.94,
+    hierarchyLevel: 1,
+    relatedFragments: ['mission-vision', 'business']
+  },
+  
+  {
+    id: 'business',
+    sectionName: 'Business - 事業内容',
+    targetQueries: [
+      '事業内容',
+      'リスキリング研修',
+      'キャリアコンサルティング',
+      '退職支援'
+    ],
+    entities: [
+      {
+        entity: '事業内容',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 9,
+        relatedKnowledge: ['リスキリング研修', 'キャリアコンサルティング', '退職支援', 'システム開発', 'SNSコンサル', 'メディア運営'],
+        searchIntents: ['NANDS 事業内容', 'エヌアンドエス サービス', 'リスキリング研修 内容'],
+        coOccurringTerms: ['リスキリング', 'キャリアコンサルティング', '退職支援', 'システム開発']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 1,
+    relatedFragments: ['enterprise-ai', 'company-message']
+  },
+  
+  {
+    id: 'company-message',
+    sectionName: 'Company & Message - 会社概要',
+    targetQueries: [
+      '会社概要',
+      '代表メッセージ',
+      '原田賢治',
+      '寄り添い続ける'
+    ],
+    entities: [
+      {
+        entity: '株式会社エヌアンドエス',
+        entityType: 'Organization',
+        context: 'provides',
+        importance: 10,
+        relatedKnowledge: ['原田賢治', '2008年設立', '滋賀県大津市', '東京支社', '代表メッセージ', '寄り添い続ける'],
+        searchIntents: ['株式会社エヌアンドエス 会社概要', '原田賢治 代表', 'NANDS 代表メッセージ'],
+        coOccurringTerms: ['株式会社エヌアンドエス', '原田賢治', '2008年設立', '代表メッセージ']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 1,
+    relatedFragments: ['business', 'history-access']
+  },
+  
+  {
+    id: 'history-access',
+    sectionName: 'History & Access - 企業沿革',
+    targetQueries: [
+      '企業沿革',
+      '2008年設立',
+      'デジタルマーケティング',
+      'AIコンサルティング',
+      'AI事業本部'
+    ],
+    entities: [
+      {
+        entity: '企業沿革',
+        entityType: 'Concept',
+        context: 'defines',
+        importance: 8,
+        relatedKnowledge: ['2008年設立', 'デジタルマーケティング', 'AIコンサルティング', 'AI事業本部', '滋賀県大津市', '東京支社'],
+        searchIntents: ['NANDS 沿革', 'エヌアンドエス 歴史', '会社設立 2008年'],
+        coOccurringTerms: ['企業沿革', '2008年設立', 'AI事業本部', '滋賀県大津市']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 2,
+    relatedFragments: ['company-message', 'company-official-x']
+  },
+  
+  {
+    id: 'company-official-x',
+    sectionName: 'Official SNS - X (Twitter)',
+    targetQueries: [
+      '公式SNS',
+      'NANDS_AI',
+      'X Twitter',
+      'AI技術動向'
+    ],
+    entities: [
+      {
+        entity: '公式SNS',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 7,
+        relatedKnowledge: ['X', 'Twitter', 'NANDS_AI', 'AI技術動向', 'サービス情報', '業界インサイト'],
+        searchIntents: ['NANDS 公式SNS', 'NANDS_AI Twitter', 'エヌアンドエス X'],
+        coOccurringTerms: ['X', 'Twitter', 'NANDS_AI', 'AI技術動向']
+      }
+    ],
+    semanticWeight: 0.86,
+    hierarchyLevel: 2,
+    relatedFragments: ['history-access', 'representative-linkedin']
+  },
+  
+  {
+    id: 'representative-linkedin',
+    sectionName: 'Representative LinkedIn - 原田賢治',
+    targetQueries: [
+      '原田賢治 LinkedIn',
+      'B2B専門性',
+      '業界インサイト',
+      '経営視点',
+      'レリバンスエンジニアリング専門家'
+    ],
+    entities: [
+      {
+        entity: '原田賢治',
+        entityType: 'Person',
+        context: 'provides',
+        importance: 9,
+        relatedKnowledge: ['LinkedIn', 'B2B専門性', '業界インサイト', '経営視点', 'レリバンスエンジニアリング'],
+        searchIntents: ['原田賢治 LinkedIn', 'NANDS 代表 プロフィール', 'レリバンスエンジニアリング 専門家'],
+        coOccurringTerms: ['原田賢治', 'LinkedIn', 'B2B専門性', 'レリバンスエンジニアリング']
+      }
+    ],
+    semanticWeight: 0.84,
+    hierarchyLevel: 2,
+    relatedFragments: ['company-official-x', 'company-message']
+  },
+  
+  // =============================================================================
+  // 🤖 AI-Siteページ Fragment IDs（35個） - AI引用最適化専用ページ
+  // =============================================================================
+  
+  {
+    id: 'main-title-ai-site',
+    sectionName: 'AIサイト｜24時間365日無人営業マン',
+    targetQueries: [
+      'AIサイト',
+      '無人営業マン',
+      '24時間365日',
+      'AI引用される',
+      'Triple RAG'
+    ],
+    entities: [
+      {
+        entity: 'AIサイト',
+        entityType: 'Product',
+        context: 'provides',
+        importance: 10,
+        relatedKnowledge: ['24時間365日', '無人営業マン', 'AI引用', 'Triple RAG', 'Fragment ID'],
+        searchIntents: ['AIサイト とは', 'AI引用される サイト', '無人営業マン システム'],
+        coOccurringTerms: ['AIサイト', '無人営業マン', 'AI引用', 'Triple RAG']
+      }
+    ],
+    semanticWeight: 0.95,
+    hierarchyLevel: 1,
+    relatedFragments: ['mechanism-title', 'features-title', 'pricing-title']
+  },
+  
+  {
+    id: 'mechanism-title',
+    sectionName: 'AI引用の仕組み',
+    targetQueries: [
+      'AI引用 仕組み',
+      'Mike King理論',
+      'Fragment ID',
+      '構造化データ',
+      'ベクトル検索'
+    ],
+    entities: [
+      {
+        entity: 'Mike King理論',
+        entityType: 'Methodology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['Fragment ID', '構造化データ', 'AI引用最適化', 'レリバンスエンジニアリング'],
+        searchIntents: ['Mike King理論 とは', 'AI引用最適化 方法', 'Fragment ID 仕組み'],
+        coOccurringTerms: ['Mike King理論', 'Fragment ID', 'AI引用最適化']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 2,
+    relatedFragments: ['faq-2', 'faq-3', 'features-title']
+  },
+  
+  {
+    id: 'features-title',
+    sectionName: '機能一覧 - Triple RAG & Fragment ID',
+    targetQueries: [
+      'Triple RAG',
+      'Fragment ID',
+      '自動ブログ生成',
+      'ベクトル検索',
+      'AI最適化'
+    ],
+    entities: [
+      {
+        entity: 'Triple RAG',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['Company RAG', 'Trend RAG', 'YouTube RAG', 'ベクトル検索', '自動生成'],
+        searchIntents: ['Triple RAG とは', 'RAGシステム 機能', 'AI検索 最適化'],
+        coOccurringTerms: ['Triple RAG', 'Fragment ID', 'ベクトル検索', 'AI最適化']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 2,
+    relatedFragments: ['faq-7', 'faq-9', 'pricing-title']
+  },
+  
+  {
+    id: 'pricing-title',
+    sectionName: '料金プラン',
+    targetQueries: [
+      'AIサイト 料金',
+      'IT補助金',
+      '導入費用',
+      'プラン 比較',
+      'コストパフォーマンス'
+    ],
+    entities: [
+      {
+        entity: 'IT補助金',
+        entityType: 'Policy',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['AI導入', '補助金活用', 'DX推進', '中小企業支援'],
+        searchIntents: ['IT補助金 AIサイト', '補助金 AI導入', 'DX補助金 活用方法'],
+        coOccurringTerms: ['IT補助金', 'AI導入', 'DX推進', 'コスト削減']
+      }
+    ],
+    semanticWeight: 0.88,
+    hierarchyLevel: 2,
+    relatedFragments: ['faq-18', 'faq-19', 'main-title-ai-site']
+  },
+  
+  {
+    id: 'faq-title',
+    sectionName: 'よくある質問',
+    targetQueries: [
+      'AIサイト FAQ',
+      'よくある質問',
+      'AI引用 質問',
+      'Fragment ID 質問',
+      'Triple RAG 質問'
+    ],
+    entities: [
+      {
+        entity: 'FAQ',
+        entityType: 'Service',
+        context: 'provides',
+        importance: 8,
+        relatedKnowledge: ['AIサイト', 'Fragment ID', 'AI引用', 'Mike King理論', 'Triple RAG'],
+        searchIntents: ['AIサイト よくある質問', 'Fragment ID FAQ', 'AI引用 疑問'],
+        coOccurringTerms: ['FAQ', 'AIサイト', 'Fragment ID', 'AI引用']
+      }
+    ],
+    semanticWeight: 0.85,
+    hierarchyLevel: 2,
+    relatedFragments: ['faq-1', 'faq-2', 'faq-3', 'faq-4', 'faq-5']
   }
 ];
 

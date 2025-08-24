@@ -1075,20 +1075,20 @@ export default async function Home() {
         <HeroSectionSSR />
       </section>
 
-      <section id="services-training" className="scroll-mt-20">
+      <section id="services-training" className="scroll-mt-20 relative">
         {/* 12個のサービスFragment ID（NANDS=AI強化）- スクロール機能有効化 */}
-        <div id="service-system-development" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-aio-seo" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-chatbot-development" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-vector-rag" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-ai-side-business" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-hr-support" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-ai-agents" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-mcp-servers" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-sns-automation" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-video-generation" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-corporate-reskilling" className="absolute -top-20" aria-hidden="true" />
-        <div id="service-individual-reskilling" className="absolute -top-20" aria-hidden="true" />
+        <div id="service-system-development" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-aio-seo" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-chatbot-development" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-vector-rag" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-ai-side-business" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-hr-support" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-ai-agents" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-mcp-servers" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-sns-automation" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-video-generation" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-corporate-reskilling" className="absolute -top-24" aria-hidden="true"></div>
+        <div id="service-individual-reskilling" className="absolute -top-24" aria-hidden="true"></div>
         
         <ServicesSectionSSR />
       </section>
@@ -1201,7 +1201,7 @@ export default async function Home() {
         <FeaturedSection />
       </section>
 
-      <section id="faq-support" className="scroll-mt-20">
+      <section id="faq-support" className="scroll-mt-20 relative">
         <FAQSection />
       </section>
 

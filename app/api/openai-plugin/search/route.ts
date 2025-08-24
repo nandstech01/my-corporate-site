@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAllEntities } from '@/lib/structured-data/entity-relationships';
+import { FragmentVectorStore } from '@/lib/vector/fragment-vector-store';
 import OpenAI from 'openai';
 
 /**
@@ -14,7 +15,7 @@ interface SearchResult {
   content: string;
   url: string;
   fragmentId?: string;
-  source: 'company' | 'trend' | 'youtube' | 'blog' | 'service';
+  source: 'company' | 'trend' | 'youtube' | 'blog' | 'service' | 'fragment';
   confidence: number;
   lastModified: string;
 }
@@ -157,6 +158,36 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             });
           }
         }
+      }
+    }
+
+    // 🆕 【NEW】Fragment Vector専用検索
+    if (source === 'all' || source === 'fragment') {
+      try {
+        const fragmentVectorStore = new FragmentVectorStore();
+        const fragmentResults = await fragmentVectorStore.searchSimilarFragments(queryVector, {
+          limit: Math.min(limit, 10),
+          threshold: 0.5
+        });
+
+        if (fragmentResults && fragmentResults.length > 0) {
+          fragmentResults.forEach((result) => {
+            results.push({
+              title: `Fragment: ${result.content_title}`,
+              content: result.content.substring(0, 200) + '...',
+              url: result.complete_uri,
+              fragmentId: result.fragment_id,
+              source: 'fragment',
+              confidence: result.similarity,
+              lastModified: result.created_at || new Date().toISOString()
+            });
+          });
+
+          console.log(`✅ Fragment Vector検索完了: ${fragmentResults.length}件`);
+        }
+      } catch (fragmentError) {
+        console.error('❌ Fragment Vector検索エラー:', fragmentError);
+        // Fragment Vector検索のエラーは全体の処理を止めない
       }
     }
 

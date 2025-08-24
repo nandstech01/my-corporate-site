@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
+import { FragmentVectorizer } from '@/lib/vector/fragment-vectorizer';
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system';
 import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema';
 import { UnifiedStructuredDataSystem } from '@/lib/structured-data/index';
@@ -1070,6 +1071,44 @@ ${fragmentIds.map((id: string, index: number) => {
           }
         } else {
           console.log('⚠️ Fragment IDが抽出されなかったため、ベクトル化をスキップ');
+        }
+
+        // 🆕 【NEW】Fragment ID専用テーブルへの自動ベクトル化
+        try {
+          console.log('🚀 Fragment ID専用テーブル自動ベクトル化開始...');
+          
+          const fragmentVectorizer = new FragmentVectorizer();
+          const fragmentResult = await fragmentVectorizer.extractAndVectorizeFromMarkdown(
+            blogData.content,
+            {
+              post_id: savedPost.id,
+              post_title: blogData.title,
+              slug: slug,
+              page_path: `/posts/${slug}`,
+              category: categorySlug,
+              seo_keywords: blogData.seo_keywords,
+              rag_sources: ragData.map(item => item.source)
+            }
+          );
+
+          if (fragmentResult.success) {
+            console.log('✅ Fragment ID専用テーブルベクトル化完了');
+            console.log(`  📊 抽出Fragment数: ${fragmentResult.extractedFragments.length}個`);
+            console.log(`  📊 ベクトル化成功: ${fragmentResult.vectorizedCount}個`);
+            console.log(`  🎯 Fragment ID詳細:`);
+            fragmentResult.extractedFragments.forEach((fragment, index) => {
+              console.log(`    ${index + 1}. ${fragment.fragment_id} (${fragment.content_type})`);
+            });
+          } else {
+            console.warn('⚠️ Fragment ID専用テーブルベクトル化でエラーが発生しました');
+            fragmentResult.errors.forEach(error => {
+              console.warn(`  - ${error}`);
+            });
+          }
+
+        } catch (fragmentVectorizerError) {
+          console.error('❌ Fragment ID専用ベクトル化エラー:', fragmentVectorizerError);
+          // Fragment ID専用ベクトル化のエラーは既存システムに影響しない
         }
 
       } catch (error) {

@@ -10,6 +10,7 @@ import { RefreshCw } from 'lucide-react'
 import { UnifiedStructuredDataSystem } from '@/lib/structured-data'
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system'
 import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema'
+import { HARADA_KENJI_PROFILE } from '@/lib/structured-data/author-trust-system'
 
 // BreadcrumbItemの型定義
 interface BreadcrumbItem {
@@ -344,59 +345,7 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   // 著者情報（Google E-E-A-T準拠・ORCID対応）
-  const authorSchema = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "@id": "https://nands.tech/author/harada-kenji",
-    "name": "原田賢治",
-    "givenName": "賢治",
-    "familyName": "原田",
-    "jobTitle": "代表取締役・AI技術責任者",
-    "description": "Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。15年以上のAI・システム開発経験を持つ。",
-    "knowsAbout": [
-      "Relevance Engineering",
-      "Mike King Theory",
-      "AI Search Optimization", 
-      "ChatGPT Optimization",
-      "Perplexity Optimization",
-      "GEO (Generative Engine Optimization)",
-      "Vector RAG Systems",
-      "AI Agent Development",
-      "企業AI研修",
-      "生成AI活用コンサルティング",
-      "退職代行サービス",
-      "AI技術コンサルティング"
-    ],
-    "affiliation": {
-      "@type": "Organization",
-      "@id": "https://nands.tech/#organization",
-      "name": "株式会社エヌアンドエス"
-    },
-    "worksFor": {
-      "@type": "Organization",
-      "@id": "https://nands.tech/#organization",
-      "name": "株式会社エヌアンドエス"
-    },
-    "url": "https://nands.tech/about",
-    "image": "https://nands.tech/images/author/harada-kenji.jpg",
-    "sameAs": [
-      "https://orcid.org/0009-0007-2241-9100",
-      "https://x.com/NANDS_AI",
-      "https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/"
-    ],
-    "expertise": "AI Search Optimization, Relevance Engineering, Generative AI Business Integration, 退職代行サービス",
-    "hasCredential": [
-      {
-        "@type": "EducationalOccupationalCredential",
-        "name": "AI・システム開発15年以上の実務経験"
-      }
-    ],
-    "nationality": {
-      "@type": "Country",
-      "name": "日本"
-    },
-    "knowsLanguage": ["ja", "en"]
-  }
+  const authorSchema = HARADA_KENJI_PROFILE
 
   // Mike King理論準拠: BlogPosting + hasPart + AIO LLMO最適化（Google 2024年ガイドライン対応）
   const enhancedStructuredData = {
@@ -760,8 +709,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )} */}
 
-        {/* 著者セクション */}
-        <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6">
+        {/* 著者セクション - Fragment ID付き */}
+        <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6" id="author-profile">
           <h2 className="text-xl font-bold mb-4 text-gray-800">著者について</h2>
           <div className="flex items-start gap-6">
             <div className="flex-shrink-0">

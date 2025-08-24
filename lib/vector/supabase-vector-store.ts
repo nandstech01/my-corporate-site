@@ -57,23 +57,40 @@ export class SupabaseVectorStore {
         relevance_score: 1.0
       } as any; // 型チェックを回避
 
-      // 重複チェック（service系のみ）
+      // 重複チェック（service系のみ - Fragment ID優先チェック）
       if (supabaseData.content_type === 'service' && supabaseData.service_id) {
-        const { data: existingData, error: checkError } = await this.supabase
+        // 1. fragment_vectorsで重複チェック（優先）
+        const { data: fragmentExists, error: fragmentCheckError } = await this.supabase
+          .from('fragment_vectors')
+          .select('fragment_id, created_at')
+          .eq('page_path', `/${supabaseData.service_id}`)
+          .limit(1);
+
+        if (!fragmentCheckError && fragmentExists && fragmentExists.length > 0) {
+          console.log(`ℹ️ サービス ${supabaseData.service_id} はFragment Vectorに既に存在します (ID: ${fragmentExists[0].fragment_id})`);
+          return { 
+            success: false, 
+            error: `重複: サービス ${supabaseData.service_id} はFragment Vectorに既に存在します`,
+            id: fragmentExists[0].fragment_id 
+          };
+        }
+
+        // 2. company_vectorsで重複チェック（フォールバック）
+        const { data: companyExists, error: companyCheckError } = await this.supabase
           .from('company_vectors')
           .select('id, created_at')
           .eq('content_type', 'service')
           .eq('service_id', supabaseData.service_id)
           .limit(1);
 
-        if (checkError) {
-          console.warn(`⚠️ 重複チェックエラー (${supabaseData.service_id}):`, checkError);
-        } else if (existingData && existingData.length > 0) {
-          console.log(`ℹ️ サービス ${supabaseData.service_id} は既に存在します (ID: ${existingData[0].id})`);
+        if (companyCheckError) {
+          console.warn(`⚠️ 重複チェックエラー (${supabaseData.service_id}):`, companyCheckError);
+        } else if (companyExists && companyExists.length > 0) {
+          console.log(`ℹ️ サービス ${supabaseData.service_id} はCompany Vectorに既に存在します (ID: ${companyExists[0].id})`);
           return { 
             success: false, 
-            error: `重複: サービス ${supabaseData.service_id} は既に存在します`,
-            id: existingData[0].id 
+            error: `重複: サービス ${supabaseData.service_id} はCompany Vectorに既に存在します`,
+            id: companyExists[0].id 
           };
         }
       }
@@ -154,8 +171,24 @@ export class SupabaseVectorStore {
     try {
       console.log(`🔍 ベクトル検索開始 - クエリ次元: ${queryEmbedding.length}, 閾値: ${threshold}`);
       
-      // 全てのベクトルを取得してJavaScriptでコサイン類似度を計算
-      const { data, error } = await this.supabase
+      // 1. fragment_vectorsから取得（優先）
+      const { data: fragmentData, error: fragmentError } = await this.supabase
+        .from('fragment_vectors')
+        .select(`
+          fragment_id,
+          page_path,
+          content_type,
+          content_title,
+          content,
+          embedding,
+          complete_uri,
+          category,
+          created_at
+        `)
+        .order('created_at', { ascending: false });
+
+      // 2. company_vectorsから取得（フォールバック）
+      const { data: companyData, error: companyError } = await this.supabase
         .from('company_vectors')
         .select(`
           id,
@@ -172,6 +205,46 @@ export class SupabaseVectorStore {
           updated_at
         `)
         .order('id', { ascending: true });
+
+      // データを統合
+      const allData: any[] = [];
+      
+      // Fragment Vectorsを統一形式に変換
+      if (!fragmentError && fragmentData) {
+        fragmentData.forEach(fv => {
+          allData.push({
+            id: fv.fragment_id,
+            page_slug: fv.page_path,
+            content_type: fv.content_type,
+            section_title: fv.content_title,
+            content_chunk: fv.content,
+            embedding: fv.embedding,
+            metadata: { url: fv.complete_uri, title: fv.content_title },
+            fragment_id: fv.fragment_id,
+            service_id: fv.category,
+            relevance_score: 1.0,
+            created_at: fv.created_at,
+            updated_at: fv.created_at,
+            source: 'fragment_vectors'
+          });
+        });
+      }
+
+      // Company Vectorsを追加（重複除去）
+      if (!companyError && companyData) {
+        const fragmentPagePaths = new Set(fragmentData?.map(fv => fv.page_path) || []);
+        companyData.forEach(cv => {
+          if (!fragmentPagePaths.has(cv.page_slug)) {
+            allData.push({
+              ...cv,
+              source: 'company_vectors'
+            });
+          }
+        });
+      }
+
+      const data = allData;
+      const error = fragmentError && companyError ? fragmentError : null;
 
       if (error) {
         console.error('ベクトル検索エラー:', error);

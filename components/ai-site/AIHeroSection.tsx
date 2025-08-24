@@ -28,6 +28,8 @@ export default function AIHeroSection() {
 
 	return (
 		<section className="relative sm:min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black overflow-hidden">
+			{/* Fragment ID for AI Citation */}
+			<div id="main-title-ai-site" className="absolute -top-20" aria-hidden="true"></div>
 			<div className="absolute inset-0 z-0">
 				<Galaxy mouseRepulsion mouseInteraction density={1.0} glowIntensity={0.3} saturation={0.0} hueShift={190} twinkleIntensity={0.2} rotationSpeed={0.03} transparent loading="lazy" />
 			</div>

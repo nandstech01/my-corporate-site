@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     const { 
       query, 
-      sources, 
+      sources = ['company'], 
       limit = 10, 
       threshold = 0.3,
       dateFilter = 'all',
@@ -73,48 +73,48 @@ export async function POST(request: NextRequest) {
 
     const searchResults: SearchResult[] = [];
 
-    // Company RAG検索
+    // Fragment Vector RAG検索（旧Company RAGの置き換え）
     if (adjustedSources.includes('company')) {
       try {
-        let companyQuery = supabaseServiceRole
-          .rpc('match_company_vectors', {
-            query_embedding: queryEmbedding,
+        const { data: fragmentResults, error: fragmentError } = await supabaseServiceRole
+          .rpc('match_fragment_vectors', {
+            query_embedding: `[${queryEmbedding.join(',')}]`,
             match_threshold: threshold,
-            match_count: limit
+            match_count: limit,
+            filter_page_path: null,
+            filter_content_type: null
           });
 
-        // 日付フィルタを適用（Company RAGでは生成記事の日付をチェック）
-        if (dateThreshold && !latestNewsMode) {
-          // Company RAGの場合、作成日時でフィルタ
-          companyQuery = companyQuery.filter('created_at', 'gte', dateThreshold);
-        }
-
-        const { data: companyResults, error: companyError } = await companyQuery;
-
-        if (companyError) {
-          console.error('Company RAG検索エラー:', companyError);
+        if (fragmentError) {
+          console.error('Fragment Vector RAG検索エラー:', fragmentError);
         } else {
-          const formattedResults: SearchResult[] = (companyResults || []).map((result: any) => ({
+          const formattedResults: SearchResult[] = (fragmentResults || []).map((result: any) => ({
             id: result.id,
-            content: result.content_chunk || result.content || '', // content_chunkを優先的に使用
-            source: 'company',
+            content: result.content || '',
+            source: 'fragment',
             score: result.similarity,
             metadata: {
-              ...result.metadata,
-              page_slug: result.page_slug,
-              content_type: result.content_type,
-              section_title: result.section_title,
+              type: 'fragment',
               fragment_id: result.fragment_id,
-              service_id: result.service_id,
-              relevance_score: result.relevance_score,
-              created_at: result.created_at
+              complete_uri: result.complete_uri,
+              page_path: result.page_path,
+              content_title: result.content_title,
+              content_type: result.content_type,
+              category: result.category,
+              semantic_weight: result.semantic_weight,
+              target_queries: result.target_queries,
+              related_entities: result.related_entities,
+              url: result.complete_uri,
+              created_at: result.created_at,
+              search_timestamp: new Date().toISOString(),
+              ...result.metadata
             }
           }));
           searchResults.push(...formattedResults);
-          console.log(`📄 Company RAG: ${formattedResults.length}件取得`);
+          console.log(`📄 Fragment Vector RAG: ${formattedResults.length}件取得`);
         }
       } catch (error) {
-        console.error('Company RAG検索エラー:', error);
+        console.error('Fragment Vector RAG検索エラー:', error);
       }
     }
 

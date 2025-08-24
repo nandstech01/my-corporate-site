@@ -891,15 +891,30 @@ export class UnifiedIntegrationSystem {
    * Entity Map Fragment IDsを取得（Corporate・Technical専用）
    */
   private getEntityMapFragmentIds(pageSlug: string): string[] {
-    // Corporate・Technical関連ページで`#company`フラグメントIDを使用
-    const corporatePages = ['corporate', 'about', 'reviews', 'sustainability'];
-    const technicalPages = ['privacy', 'terms', 'legal', 'faq'];
+    // 各ページの実際のFragment IDを返す
+    const fragmentIdMapping: Record<string, string[]> = {
+      // メインページ（Fragment IDベクトル対応）
+      '': ['faq-main-1', 'faq-main-2', 'faq-main-3', 'faq-main-4', 'faq-main-5', 'faq-main-6', 'faq-main-7', 'faq-main-8', 'service-system-development', 'service-aio-seo', 'service-ai-side-business', 'service-chatbot-development', 'service-corporate-reskilling', 'service-individual-reskilling', 'service-ai-agents', 'service-mcp-servers', 'service-sns-automation', 'service-video-generation', 'service-hr-support', 'service-vector-rag'],
+      
+      // Corporate関連ページ
+      'corporate': ['company'],
+      'about': ['hero', 'mission-vision', 'enterprise-ai', 'business', 'company-message', 'company-official-x', 'representative-linkedin', 'history-access'],
+      'reviews': ['company'],
+      'sustainability': ['company'],
+      
+      // 法的文書ページ（新Fragment ID対応）
+      'privacy': ['privacy-header', 'privacy-policy', 'privacy-compliance', 'privacy-security', 'privacy-disclosure', 'privacy-cookies'],
+      'terms': ['terms-header', 'terms-usage'],
+      'legal': ['legal-header', 'legal-compliance'],
+      
+      // FAQ関連
+      'faq': ['faq-tech-1', 'faq-tech-2', 'faq-tech-3', 'faq-tech-4', 'faq-pricing-1', 'faq-pricing-2', 'faq-pricing-3', 'faq-pricing-4', 'faq-pricing-5', 'faq-support-1', 'faq-support-2', 'faq-support-3', 'faq-support-4', 'faq-support-5', 'faq-hr-1', 'faq-hr-2', 'faq-hr-3', 'faq-hr-4', 'faq-hr-5', 'faq-marketing-1', 'faq-marketing-2', 'faq-marketing-3', 'faq-marketing-4'],
+      
+      // ブログ記事関連（著者Fragment ID対応）
+      'posts': ['author-profile']
+    };
     
-    if (corporatePages.includes(pageSlug) || technicalPages.includes(pageSlug)) {
-      return ['company']; // #company Fragment ID
-    }
-    
-    return [];
+    return fragmentIdMapping[pageSlug] || [];
   }
 
   /**

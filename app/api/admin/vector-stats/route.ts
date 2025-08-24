@@ -256,125 +256,81 @@ export async function GET() {
 
 
 
-    // 2. プロジェクト全体のFragment ID追加（エンティティマップベース）
-    let projectWideDeepLinks = (contentTypeStats.corporate || 0) + 
-                              (contentTypeStats.technical || 0) + 
-                              (contentTypeStats.service || 0);
+    // 2. Fragment Vectors テーブルからの実際のFragment ID取得
+    let fragmentVectorStats = {
+      totalRecords: 0,
+      totalDeepLinks: 0,
+      blogDeepLinks: 0,
+      projectWideDeepLinks: 0
+    };
 
-    // 3. ai-siteページのFragment IDを追加
-    let aiSiteFragmentCount = 0;
     try {
-      const aiSiteResponse = await fetch('https://nands.tech/api/ai-site/fragments');
-      if (aiSiteResponse.ok) {
-        const aiSiteData = await aiSiteResponse.json();
-        aiSiteFragmentCount = aiSiteData.meta?.totalFragments || 34;
+      console.log('🔍 Fragment Vectors テーブルから統計取得中...');
+      
+      // Fragment Vectors テーブルの全統計
+      const { data: fragmentVectors, error: fragmentError } = await supabaseServiceRole
+        .from('fragment_vectors')
+        .select('id, fragment_id, complete_uri, page_path, content_title, content_type, created_at');
+
+      if (!fragmentError && fragmentVectors) {
+        fragmentVectorStats.totalRecords = fragmentVectors.length;
+        fragmentVectorStats.totalDeepLinks = fragmentVectors.length;
         
-                 // ai-siteのFragment IDをfragmentDetailsに追加
-         if (aiSiteData.fragments) {
-           aiSiteData.fragments.forEach((fragment: any, index: number) => {
-             fragmentDetails.push({
-               id: `ai-site-${index}`,
-               fragmentId: fragment.id,
-               completeURI: fragment.url,
-               source: `ai-site: ${fragment.name || fragment.title || fragment.id}`,
-               type: 'AI-siteページ',
-               created_at: new Date().toISOString()
-             });
-           });
-         }
+        // ページパス別統計
+        const pagePathCounts: Record<string, number> = {};
+        const contentTypeCounts: Record<string, number> = {};
+        
+        fragmentVectors.forEach(item => {
+          // ページパス統計
+          pagePathCounts[item.page_path] = (pagePathCounts[item.page_path] || 0) + 1;
+          
+          // コンテンツタイプ統計
+          contentTypeCounts[item.content_type] = (contentTypeCounts[item.content_type] || 0) + 1;
+          
+          // ブログ記事のFragment ID数
+          if (item.page_path.startsWith('/posts/')) {
+            fragmentVectorStats.blogDeepLinks++;
+          }
+          
+          // Fragment詳細データに追加
+          fragmentDetails.push({
+            id: `fv-${item.id}`,
+            fragmentId: item.fragment_id,
+            completeURI: item.complete_uri,
+            source: `${item.page_path}: ${item.content_title}`,
+            type: `${item.content_type} (${item.page_path})`,
+            created_at: item.created_at
+          });
+        });
+        
+        // プロジェクト全体のFragment ID数（ブログ以外）
+        fragmentVectorStats.projectWideDeepLinks = fragmentVectorStats.totalDeepLinks - fragmentVectorStats.blogDeepLinks;
+        
+        console.log(`✅ Fragment Vectors統計取得完了:`);
+        console.log(`  - 総Fragment ID数: ${fragmentVectorStats.totalRecords}`);
+        console.log(`  - ブログFragment ID数: ${fragmentVectorStats.blogDeepLinks}`);
+        console.log(`  - プロジェクトFragment ID数: ${fragmentVectorStats.projectWideDeepLinks}`);
+        console.log(`  - ページパス別:`, pagePathCounts);
+        console.log(`  - コンテンツタイプ別:`, contentTypeCounts);
+        
+      } else {
+        console.warn('⚠️ Fragment Vectors取得エラー:', fragmentError);
       }
+      
     } catch (error) {
-      console.warn('ai-site Fragment取得エラー:', error);
-      aiSiteFragmentCount = 34; // デフォルト値
+      console.warn('⚠️ Fragment Vectors統計取得失敗:', error);
     }
 
-    // プロジェクト全体にai-siteのFragment IDを追加
-    projectWideDeepLinks += aiSiteFragmentCount;
+    // 注意: 古いcompany_vectorsベースのFragment ID生成コードを削除
+    // 現在はfragment_vectorsテーブルから実際のデータを取得するため不要
 
-    // サービスページのFragment ID（#service）
-    const servicePages = [
-      'AIエージェント開発サービス', 'システム開発サービス', 'AIO SEO対策サービス',
-      'ベクトルRAGシステム開発', 'AIチャットボット開発', 'AI動画生成サービス',
-      'HR支援ソリューション', 'SNS自動化システム', 'MCPサーバー開発',
-      '個人向けAIリスキリング研修', 'AIサイト開発（Triple RAG統合）',
-      'AI副業支援サービス', '法人向けAIソリューション'
-    ];
-
-    // 企業情報ページのFragment ID（#company）
-    const corporatePages = [
-      '企業情報', '会社概要', '持続可能性', 'お客様の声'
-    ];
-
-    // 技術情報ページのFragment ID（#company）
-    const technicalPages = [
-      'よくある質問', '法的情報', 'プライバシーポリシー', '利用規約'
-    ];
-
-    // プロジェクト全体Fragment IDを追加
-    servicePages.slice(0, contentTypeStats.service || 0).forEach((serviceName, index) => {
-      const slug = serviceName === 'AIエージェント開発サービス' ? 'ai-agents' :
-                   serviceName === 'システム開発サービス' ? 'system-development' :
-                   serviceName === 'AIO SEO対策サービス' ? 'aio-seo' :
-                   serviceName === 'ベクトルRAGシステム開発' ? 'vector-rag' :
-                   serviceName === 'AIチャットボット開発' ? 'chatbot-development' :
-                   serviceName === 'AI動画生成サービス' ? 'video-generation' :
-                   serviceName === 'HR支援ソリューション' ? 'hr-solutions' :
-                   serviceName === 'SNS自動化システム' ? 'sns-automation' :
-                   serviceName === 'MCPサーバー開発' ? 'mcp-servers' :
-                   serviceName === '個人向けAIリスキリング研修' ? 'reskilling' :
-                   serviceName === 'AIサイト開発（Triple RAG統合）' ? 'ai-site' :
-                   serviceName === 'AI副業支援サービス' ? 'fukugyo' :
-                   'service';
-
-      fragmentDetails.push({
-        id: `service-${index}`,
-        fragmentId: 'service',
-        completeURI: `https://nands.tech/${slug}#service`,
-        source: serviceName,
-        type: 'サービスページ',
-        created_at: new Date().toISOString()
-      });
-    });
-
-    corporatePages.slice(0, contentTypeStats.corporate || 0).forEach((pageName, index) => {
-      const slug = pageName === '企業情報' ? 'corporate' :
-                   pageName === '会社概要' ? 'about' :
-                   pageName === '持続可能性' ? 'sustainability' :
-                   'reviews';
-
-      fragmentDetails.push({
-        id: `corporate-${index}`,
-        fragmentId: 'company',
-        completeURI: `https://nands.tech/${slug}#company`,
-        source: pageName,
-        type: '企業情報ページ',
-        created_at: new Date().toISOString()
-      });
-    });
-
-    technicalPages.slice(0, contentTypeStats.technical || 0).forEach((pageName, index) => {
-      const slug = pageName === 'よくある質問' ? 'faq' :
-                   pageName === '法的情報' ? 'legal' :
-                   pageName === 'プライバシーポリシー' ? 'privacy' :
-                   'terms';
-
-      fragmentDetails.push({
-        id: `technical-${index}`,
-        fragmentId: 'company',
-        completeURI: `https://nands.tech/${slug}#company`,
-        source: pageName,
-        type: '技術情報ページ',
-        created_at: new Date().toISOString()
-      });
-    });
-
-    // Fragment ID統計の構築
+    // Fragment ID統計の構築（Fragment Vectors テーブルベース）
     if (fragmentDetails.length > 0) {
       fragmentStats = {
-        totalRecords: fragmentData?.length || 0,
-        totalDeepLinks: blogDeepLinks + projectWideDeepLinks, // ブログ + プロジェクト全体 + ai-site
-        blogDeepLinks: blogDeepLinks, // ブログ内のみ
-        projectWideDeepLinks: projectWideDeepLinks, // プロジェクト全体（サービス、企業情報、ai-site等）
+        totalRecords: fragmentVectorStats.totalRecords,
+        totalDeepLinks: fragmentVectorStats.totalDeepLinks,
+        blogDeepLinks: fragmentVectorStats.blogDeepLinks,
+        projectWideDeepLinks: fragmentVectorStats.projectWideDeepLinks,
         fragmentDetails: fragmentDetails // 全データを表示可能
       };
     }

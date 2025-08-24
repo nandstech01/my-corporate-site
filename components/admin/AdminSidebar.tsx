@@ -17,7 +17,8 @@ import {
   CurrencyDollarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  LinkIcon
+  LinkIcon,
+  CircleStackIcon
 } from '@heroicons/react/24/outline';
 import VoiceAgentButton from './VoiceAgent/VoiceAgentButton';
 import VoiceAgentModalV2 from './VoiceAgent/VoiceAgentModalV2';
@@ -32,6 +33,7 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
     '記事管理': true,
     'トリプルRAG': true,
+    'Fragment ID管理': true,
     'パートナー管理': false
   });
 
@@ -131,6 +133,28 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
         }
       ]
     },
+    {
+      name: 'Fragment ID管理',
+      icon: CircleStackIcon,
+      children: [
+        {
+          name: '🔗 ベクトルリンク可視化',
+          href: '/admin/fragment-vectors',
+          current: pathname === '/admin/fragment-vectors'
+        },
+        {
+          name: '📊 Fragment ID統計',
+          href: '/admin/fragment-stats',
+          current: pathname === '/admin/fragment-stats'
+        },
+        {
+          name: '🗂️ Fragment ID一覧',
+          href: '/admin/fragment-list',
+          current: pathname === '/admin/fragment-list'
+        }
+      ]
+    },
+
     {
       name: 'レビュー管理',
       href: '/admin/reviews',

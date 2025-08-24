@@ -81,10 +81,34 @@ export class VectorSemanticLinksSystem {
   }
 
   /**
-   * 現在ページのベクトルデータ取得
+   * 現在ページのベクトルデータ取得（Fragment ID優先 + company_vectorsフォールバック）
    */
   private async getCurrentPageVector(pageSlug: string): Promise<any> {
-    const { data, error } = await this.supabase
+    // 1. まずfragment_vectorsから検索（優先）
+    const { data: fragmentData, error: fragmentError } = await this.supabase
+      .from('fragment_vectors')
+      .select('fragment_id, page_path, content, embedding, complete_uri, content_title')
+      .eq('page_path', pageSlug)
+      .limit(1)
+      .single();
+
+    if (!fragmentError && fragmentData) {
+      console.log(`✅ Fragment Vector取得成功: ${fragmentData.fragment_id}`);
+      // fragment_vectorsのデータをcompany_vectors形式に変換
+      return {
+        id: fragmentData.fragment_id,
+        page_slug: fragmentData.page_path,
+        content_chunk: fragmentData.content,
+        embedding: fragmentData.embedding,
+        metadata: {
+          title: fragmentData.content_title,
+          url: fragmentData.complete_uri
+        }
+      };
+    }
+
+    // 2. フォールバック: company_vectorsから検索
+    const { data: companyData, error: companyError } = await this.supabase
       .from('company_vectors')
       .select('id, page_slug, content_chunk, embedding, metadata')
       .eq('page_slug', pageSlug)
@@ -92,12 +116,13 @@ export class VectorSemanticLinksSystem {
       .limit(1)
       .single();
 
-    if (error) {
-      console.error(`ベクトル取得エラー (${pageSlug}):`, error);
+    if (companyError) {
+      console.error(`ベクトル取得エラー (${pageSlug}):`, companyError);
       return null;
     }
 
-    return data;
+    console.log(`⚡ Company Vector取得成功（フォールバック）: ${companyData.id}`);
+    return companyData;
   }
 
   /**
@@ -121,23 +146,62 @@ export class VectorSemanticLinksSystem {
   }
 
   /**
-   * 類似度計算とキャッシュ保存
+   * 類似度計算とキャッシュ保存（Fragment ID優先 + company_vectorsフォールバック）
    */
   private async calculateAndCacheSimilarities(
     sourceId: string, 
     sourceEmbedding: number[]
   ): Promise<CachedSimilarity[]> {
-    // 全ベクトルデータ取得（現在ページ以外）
-    const { data: allVectors, error } = await this.supabase
+    // 1. fragment_vectorsから取得（優先）
+    const { data: fragmentVectors, error: fragmentError } = await this.supabase
+      .from('fragment_vectors')
+      .select('fragment_id, page_path, content_title, embedding, complete_uri')
+      .neq('page_path', sourceId);
+
+    // 2. company_vectorsから取得（フォールバック）
+    const { data: companyVectors, error: companyError } = await this.supabase
       .from('company_vectors')
       .select('id, page_slug, content_type, section_title, embedding, metadata')
       .neq('page_slug', sourceId)
       .in('content_type', ['service', 'corporate', 'generated_blog']);
 
-    if (error || !allVectors) {
-      console.error('全ベクトル取得エラー:', error);
+    // データを統合（fragment_vectorsを優先）
+    const allVectors: any[] = [];
+    
+    // Fragment Vectorsを統一形式に変換して追加
+    if (!fragmentError && fragmentVectors) {
+      fragmentVectors.forEach(fv => {
+        allVectors.push({
+          id: fv.fragment_id,
+          page_slug: fv.page_path,
+          content_type: 'fragment',
+          section_title: fv.content_title,
+          embedding: fv.embedding,
+          metadata: { url: fv.complete_uri, title: fv.content_title },
+          source: 'fragment_vectors'
+        });
+      });
+    }
+
+    // Company Vectorsを追加（Fragment Vectorsで重複していないもののみ）
+    if (!companyError && companyVectors) {
+      const fragmentPagePaths = new Set(fragmentVectors?.map(fv => fv.page_path) || []);
+      companyVectors.forEach(cv => {
+        if (!fragmentPagePaths.has(cv.page_slug)) {
+          allVectors.push({
+            ...cv,
+            source: 'company_vectors'
+          });
+        }
+      });
+    }
+
+    if (allVectors.length === 0) {
+      console.error('ベクトル取得エラー - fragment:', fragmentError, 'company:', companyError);
       return [];
     }
+
+    console.log(`📊 統合ベクトル取得完了: Fragment ${fragmentVectors?.length || 0}件 + Company ${companyVectors?.length || 0}件 = 総計 ${allVectors.length}件`);
 
     const similarities: CachedSimilarity[] = [];
     const cacheData = [];

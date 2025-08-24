@@ -608,86 +608,86 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     mentions: ['NANDS', '価値創造', 'ブランド資産']
   } as ServiceEntity,
 
-  // 🆕 メインページFAQ Fragment IDエンティティ（8個追加 - AI引用最適化）
+  // 🆕 メインページFAQ Fragment IDエンティティ（新形式に更新 - fragment_vectorsと整合）
   {
-    '@id': 'https://nands.tech/#faq-main-reskilling',
+    '@id': 'https://nands.tech/#faq-main-1',
     '@type': 'WebPageElement',
-    name: 'リスキリング研修FAQ（メインページFragment ID）',
+    name: 'NANDSの主要サービスFAQ（メインページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['リスキリング研修', 'NANDS', '生成AI技術', 'カスタマイズプラン', 'デジタルスキル'],
-    relatedTo: ['https://nands.tech/reskilling#service', 'https://nands.tech/faq#reskilling'],
-    mentions: ['AI', 'リスキリング', 'NANDS', '研修']
+    knowsAbout: ['AIエージェント開発', 'ベクトルRAG', 'チャットボット開発', 'AIO SEO', 'リスキリング研修'],
+    relatedTo: ['https://nands.tech/ai-agents#service', 'https://nands.tech/vector-rag#service'],
+    mentions: ['AI', 'RAG', 'NANDS', 'チャットボット']
   } as ServiceEntity,
   {
-    '@id': 'https://nands.tech/#faq-main-system-dev',
+    '@id': 'https://nands.tech/#faq-main-2',
     '@type': 'WebPageElement',
-    name: 'システム開発FAQ（メインページFragment ID）',
+    name: 'AI検索最適化FAQ（メインページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['システム開発', 'AIソリューション', 'NANDS', 'チャットボット', 'ベクトルRAG'],
-    relatedTo: ['https://nands.tech/system-development#service', 'https://nands.tech/faq#system-dev'],
-    mentions: ['AI', 'システム開発', 'NANDS', 'RAG']
-  } as ServiceEntity,
-  {
-    '@id': 'https://nands.tech/#faq-main-pricing',
-    '@type': 'WebPageElement',
-    name: '料金体系FAQ（メインページFragment ID）',
-    serviceType: 'FragmentAnchor',
-    provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['料金体系', 'NANDS', '助成金活用', 'プロジェクト見積もり', '無料相談'],
-    relatedTo: ['https://nands.tech/contact#pricing', 'https://nands.tech/faq#pricing'],
-    mentions: ['助成金', '料金', 'NANDS', '無料相談']
-  } as ServiceEntity,
-  {
-    '@id': 'https://nands.tech/#faq-main-remote',
-    '@type': 'WebPageElement',
-    name: 'リモートサポートFAQ（メインページFragment ID）',
-    serviceType: 'FragmentAnchor',
-    provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['リモート研修', 'NANDS', 'オンラインコンサルティング', '地方対応', '全国サービス'],
-    relatedTo: ['https://nands.tech/contact#remote', 'https://nands.tech/faq#remote'],
-    mentions: ['リモート', 'オンライン', 'NANDS', '全国']
-  } as ServiceEntity,
-  {
-    '@id': 'https://nands.tech/#faq-main-aio',
-    '@type': 'WebPageElement',
-    name: 'AIO対策FAQ（メインページFragment ID）',
-    serviceType: 'FragmentAnchor',
-    provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['AIO対策', 'NANDS', '人材ソリューション', 'AI検索', '検索順位向上'],
+    knowsAbout: ['AI検索最適化', 'AIO', 'ChatGPT', 'Claude', 'Perplexity', 'Fragment ID'],
     relatedTo: ['https://nands.tech/aio-seo#service', 'https://nands.tech/faq#aio'],
-    mentions: ['AIO', 'AI検索', 'NANDS', 'SEO']
+    mentions: ['AIO', 'AI検索', 'ChatGPT', 'Claude', 'Perplexity']
   } as ServiceEntity,
   {
-    '@id': 'https://nands.tech/#faq-main-ai-site-definition',
+    '@id': 'https://nands.tech/#faq-main-3',
     '@type': 'WebPageElement',
-    name: 'AIサイト定義FAQ（メインページFragment ID）',
+    name: 'Fragment IDシステムFAQ（メインページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['AIサイト', 'AI引用', 'ChatGPT', 'AI検索エンジン', 'デジタル資産', 'あなたの会社', 'Claude', 'Perplexity'],
-    relatedTo: ['https://nands.tech/ai-site#definition', 'https://nands.tech/faq#ai-site'],
-    mentions: ['AIサイト', 'AI引用', 'ChatGPT', 'Claude', 'Perplexity', 'あなたの会社']
+    knowsAbout: ['Fragment ID', 'AI検索引用', 'Mike King理論', '構造化データ', 'Complete URI'],
+    relatedTo: ['https://nands.tech/ai-site#fragment-id', 'https://nands.tech/faq#fragment-id'],
+    mentions: ['Fragment ID', 'Mike King', 'AI引用', '構造化データ']
   } as ServiceEntity,
   {
-    '@id': 'https://nands.tech/#faq-main-ai-site-features',
+    '@id': 'https://nands.tech/#faq-main-4',
     '@type': 'WebPageElement',
-    name: 'AIサイト特徴FAQ（メインページFragment ID）',
+    name: 'ベクトルRAGシステムFAQ（メインページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['AIサイト化', 'Fragment ID', '構造化データ', 'Mike King理論', 'AI引用最適化', 'あなたのサイト', 'あなたの会社'],
-    relatedTo: ['https://nands.tech/ai-site#features', 'https://nands.tech/faq#ai-site'],
-    mentions: ['Fragment ID', 'Mike King', 'AI引用', 'あなたのサイト', 'あなたの会社']
+    knowsAbout: ['ベクトルRAG', 'RAG', 'セマンティック検索', 'AI検索', '知識資産'],
+    relatedTo: ['https://nands.tech/vector-rag#service', 'https://nands.tech/faq#vector-rag'],
+    mentions: ['RAG', 'ベクトル', 'AI検索', 'セマンティック']
   } as ServiceEntity,
   {
-    '@id': 'https://nands.tech/#faq-main-ai-site-benefits',
+    '@id': 'https://nands.tech/#faq-main-5',
     '@type': 'WebPageElement',
-    name: 'AIサイトメリットFAQ（メインページFragment ID）',
+    name: 'AIエージェント開発FAQ（メインページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['AIサイトメリット', 'AI検索引用率向上', 'ブランド認知度向上', 'デジタル資産化', 'あなたの会社', 'Claude', 'Perplexity'],
-    relatedTo: ['https://nands.tech/ai-site#benefits', 'https://nands.tech/faq#ai-site'],
-    mentions: ['AI検索', 'ブランド認知度', 'デジタル資産', 'あなたの会社', 'Claude', 'Perplexity']
+    knowsAbout: ['AIエージェント', '自律的AI', 'マルチエージェント', 'AI自動化', 'タスク実行'],
+    relatedTo: ['https://nands.tech/ai-agents#service', 'https://nands.tech/faq#ai-agents'],
+    mentions: ['AIエージェント', '自律的', '自動化', 'AI']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-6',
+    '@type': 'WebPageElement',
+    name: 'サービス導入期間・費用FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['導入期間', '費用', 'プロジェクト規模', 'チャットボット開発', '見積もり'],
+    relatedTo: ['https://nands.tech/contact#pricing', 'https://nands.tech/faq#pricing'],
+    mentions: ['導入期間', '費用', 'チャットボット', 'プロジェクト']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-7',
+    '@type': 'WebPageElement',
+    name: '導入後サポート体制FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['サポート体制', '24時間監視', '月次レポート', '定期メンテナンス', '機能追加'],
+    relatedTo: ['https://nands.tech/contact#support', 'https://nands.tech/faq#support'],
+    mentions: ['サポート', '24時間', 'メンテナンス', 'レポート']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/#faq-main-8',
+    '@type': 'WebPageElement',
+    name: 'セキュリティ対策FAQ（メインページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['セキュリティ対策', 'AES-256暗号化', '多要素認証', 'アクセス制御', 'データ保護'],
+    relatedTo: ['https://nands.tech/security#measures', 'https://nands.tech/faq#security'],
+    mentions: ['セキュリティ', '暗号化', '認証', 'データ保護']
   } as ServiceEntity,
 
   // 🆕 /faqページFAQ Fragment IDエンティティ（26個追加 - レリバンスエンジニアリング強化）
@@ -732,16 +732,7 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     relatedTo: ['https://nands.tech/ai-agents#customization', 'https://nands.tech/faq#tech'],
     mentions: ['ファインチューニング', 'プロンプトエンジニアリング', '専門AI', 'カスタマイズ']
   } as ServiceEntity,
-  {
-    '@id': 'https://nands.tech/faq#faq-tech-5',
-    '@type': 'WebPageElement',
-    name: '継続サポートFAQ（/faqページFragment ID）',
-    serviceType: 'FragmentAnchor',
-    provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['継続サポート', 'メンテナンス', 'アップデート', '追加機能開発', '運用サポート'],
-    relatedTo: ['https://nands.tech/contact#support', 'https://nands.tech/faq#tech'],
-    mentions: ['継続サポート', 'メンテナンス', 'アップデート', '運用']
-  } as ServiceEntity,
+
   
   // 料金・契約（4個）
   {
@@ -783,6 +774,16 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     knowsAbout: ['支払い方法', '銀行振込', 'クレジットカード決済', '自動引き落とし', '分割払い', '着手金'],
     relatedTo: ['https://nands.tech/contact#payment', 'https://nands.tech/faq#pricing'],
     mentions: ['支払い方法', '銀行振込', 'クレジットカード', '分割払い']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-pricing-5',
+    '@type': 'WebPageElement',
+    name: 'PoC概念実証FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['PoC', '概念実証', 'プロトタイプ', 'スモールスタート', 'リスク軽減', '段階的導入'],
+    relatedTo: ['https://nands.tech/contact#consultation', 'https://nands.tech/faq#pricing'],
+    mentions: ['PoC', '概念実証', 'プロトタイプ', 'スモールスタート']
   } as ServiceEntity,
   
   // サポート・導入（4個）
@@ -867,6 +868,16 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     knowsAbout: ['研修効果測定', 'スキルアセスメント', '実習課題評価', '修了テスト', '実務適用度調査', 'フォローアップ'],
     relatedTo: ['https://nands.tech/reskilling#assessment', 'https://nands.tech/faq#hr'],
     mentions: ['効果測定', 'スキルアセスメント', '実習課題', 'フォローアップ']
+  } as ServiceEntity,
+  {
+    '@id': 'https://nands.tech/faq#faq-hr-5',
+    '@type': 'WebPageElement',
+    name: '助成金活用FAQ（/faqページFragment ID）',
+    serviceType: 'FragmentAnchor',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: ['助成金活用', '人材開発支援助成金', 'IT導入補助金', 'DX推進補助金', '申請サポート', '書類作成支援'],
+    relatedTo: ['https://nands.tech/reskilling#subsidy', 'https://nands.tech/faq#hr'],
+    mentions: ['助成金', '人材開発支援助成金', 'IT導入補助金', '申請サポート']
   } as ServiceEntity,
   
   // マーケティング・AIO（4個）
@@ -1001,7 +1012,6 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       'ガバナンス'
     ],
     relatedTo: [
-      'https://nands.tech/about#company',
       'https://nands.tech/sustainability#company',
       'https://nands.tech/reviews#company',
       'https://nands.tech/faq#company'
@@ -1336,60 +1346,6 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       '関西地域'
     ]
   },
-  // 🔄 既存エンティティ（統合・調整済み）
-  {
-    '@id': 'https://nands.tech/about#company',
-    '@type': 'AboutPage',
-    name: '会社概要・代表者紹介（統合ページ）',
-    pageType: 'AboutUs',
-    provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: [
-      '会社概要',
-      '代表者紹介',
-      '原田賢治',
-      '経歴',
-      '専門分野',
-      '資格',
-      '実績',
-      '著書',
-      '講演',
-      'AI研究',
-      'レリバンスエンジニアリング研究',
-      'SEO専門',
-      'GEO対策',
-      'AI検索最適化',
-      'プロンプトエンジニアリング',
-      '生成AI活用',
-      'ChatGPT専門',
-      'Perplexity最適化',
-      'Claude活用',
-      '企業研修',
-      '人材育成',
-      'コンサルティング'
-    ],
-    relatedTo: [
-      'https://nands.tech/about#hero',
-      'https://nands.tech/about#mission-vision',
-      'https://nands.tech/about#enterprise-ai',
-      'https://nands.tech/about#business',
-      'https://nands.tech/about#company-message',
-      'https://nands.tech/about#history-access',
-      'https://nands.tech/corporate#company',
-      'https://nands.tech/reviews#company',
-      'https://nands.tech/ai-agents#service',
-      'https://nands.tech/aio-seo#service'
-    ],
-    mentions: [
-      'Mike King理論',
-      'iPullRank',
-      'SEOコンサルタント',
-      'AI研究者',
-      '関西SEO',
-      '滋賀県AI',
-      'AI人材育成',
-      'DXコンサルタント'
-    ]
-  },
   {
     '@id': 'https://nands.tech/reviews#company',
     '@type': 'ReviewPage',
@@ -1422,7 +1378,6 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     ],
     relatedTo: [
       'https://nands.tech/corporate#company',
-      'https://nands.tech/about#company',
       'https://nands.tech/faq#company',
       'https://nands.tech/ai-agents#service'
     ],
@@ -1469,9 +1424,8 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     ],
     relatedTo: [
       'https://nands.tech/corporate#company',
-      'https://nands.tech/about#company',
       'https://nands.tech/reviews#company',
-      'https://nands.tech/legal#company'
+      'https://nands.tech/legal#legal-header'
     ],
     mentions: [
       '無料相談',
@@ -1506,7 +1460,6 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     ],
     relatedTo: [
       'https://nands.tech/corporate#company',
-      'https://nands.tech/about#company',
       'https://nands.tech/reviews#company'
     ],
     mentions: [
@@ -1518,102 +1471,307 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     ]
   },
 
-  // 法的情報ページ
+  // 法的情報ページ - ヘッダー
   {
-    '@id': 'https://nands.tech/legal#company',
+    '@id': 'https://nands.tech/legal#legal-header',
     '@type': 'AboutPage',
-    name: '法的情報',
+    name: '法的情報 - ヘッダー',
     pageType: 'LegalInformation',
     provider: { '@id': 'https://nands.tech/#organization' },
     knowsAbout: [
       '法的情報',
-      '商標',
-      '著作権',
-      '知的財産',
-      '法令遵守',
+      '特定商取引法表記',
       'コンプライアンス',
-      '事業許可',
-      '認定情報',
-      '免責事項',
-      '準拠法'
+      '透明性の高い企業経営',
+      'Trust Layer',
+      '法的文書管理'
     ],
     relatedTo: [
-      'https://nands.tech/privacy#company',
-      'https://nands.tech/terms#company',
-      'https://nands.tech/faq#company'
+      'https://nands.tech/legal#legal-compliance',
+      'https://nands.tech/privacy#privacy-header',
+      'https://nands.tech/terms#terms-header'
     ],
     mentions: [
-      '法的権利',
-      '責任制限',
-      '知的財産保護',
-      '適用法令',
-      '免責条項'
+      '法的情報',
+      '株式会社エヌアンドエス',
+      '特定商取引法',
+      'コンプライアンス',
+      '透明性'
     ]
   },
 
-  // プライバシーポリシーページ
+  // 法的情報ページ - 法令遵守
   {
-    '@id': 'https://nands.tech/privacy#company',
+    '@id': 'https://nands.tech/legal#legal-compliance',
+    '@type': 'AboutPage', 
+    name: '法的情報 - 法令遵守',
+    pageType: 'LegalInformation',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '法令遵守',
+      'コンプライアンス体制',
+      '社会的責任',
+      '適用法令',
+      '社会規範',
+      'コンプライアンス維持'
+    ],
+    relatedTo: [
+      'https://nands.tech/legal#legal-header',
+      'https://nands.tech/privacy#privacy-compliance',
+      'https://nands.tech/terms#terms-usage'
+    ],
+    mentions: [
+      '法令遵守',
+      '社会的責任',
+      'コンプライアンス体制',
+      '規則遵守',
+      '社会規範'
+    ]
+  },
+
+  // プライバシーポリシーページ - ヘッダー
+  {
+    '@id': 'https://nands.tech/privacy#privacy-header',
     '@type': 'AboutPage',
-    name: 'プライバシーポリシー',
+    name: 'プライバシーポリシー - ヘッダー',
     pageType: 'PrivacyPolicy',
     provider: { '@id': 'https://nands.tech/#organization' },
     knowsAbout: [
       'プライバシーポリシー',
       '個人情報保護',
-      'データ保護',
-      'GDPR',
-      '個人情報取扱い',
-      'Cookie利用',
-      'データ収集',
-      'データ利用目的',
-      'セキュリティ対策',
-      '第三者提供'
+      'AI・DX時代の個人情報管理',
+      '安心・安全',
+      '個人情報保護方針',
+      '最終更新日'
     ],
     relatedTo: [
-      'https://nands.tech/terms#company',
-      'https://nands.tech/legal#company',
-      'https://nands.tech/corporate#company'
+      'https://nands.tech/privacy#privacy-policy',
+      'https://nands.tech/terms#terms-header',
+      'https://nands.tech/legal#legal-header'
     ],
     mentions: [
-      '個人情報保護法',
-      'プライバシー保護',
-      'データセキュリティ',
-      '適正利用',
-      '安全管理措置'
+      'プライバシーポリシー',
+      '個人情報保護',
+      'AI・DX時代',
+      '株式会社エヌアンドエス',
+      '個人情報保護方針'
     ]
   },
 
-  // 利用規約ページ  
+  // プライバシーポリシーページ - 基本方針
   {
-    '@id': 'https://nands.tech/terms#company',
+    '@id': 'https://nands.tech/privacy#privacy-policy',
     '@type': 'AboutPage',
-    name: '利用規約',
+    name: 'プライバシーポリシー - 基本方針',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '個人情報保護基本方針',
+      '法令遵守',
+      '個人情報の安全管理',
+      '開示・訂正・削除',
+      'Cookie使用',
+      '外部サイトリンク',
+      '個人情報保護法',
+      '適正な取得・利用・管理'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#privacy-header',
+      'https://nands.tech/privacy#privacy-compliance',
+      'https://nands.tech/privacy#privacy-security'
+    ],
+    mentions: [
+      '個人情報保護法',
+      '関連法令',
+      '適正な個人情報取扱い',
+      '安全管理',
+      'Cookie利用'
+    ]
+  },
+
+  // プライバシーポリシーページ - 法令遵守
+  {
+    '@id': 'https://nands.tech/privacy#privacy-compliance',
+    '@type': 'AboutPage',
+    name: 'プライバシーポリシー - 法令遵守',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '個人情報保護法',
+      '関連政省令',
+      'ガイドライン',
+      '関係法令遵守',
+      '適正な個人情報取得',
+      '適正な個人情報利用',
+      '適正な個人情報管理',
+      '適正な個人情報提供'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#privacy-policy',
+      'https://nands.tech/privacy#privacy-security',
+      'https://nands.tech/legal#legal-compliance'
+    ],
+    mentions: [
+      '個人情報保護法',
+      '政省令',
+      'ガイドライン',
+      '法令遵守',
+      '適正取扱い'
+    ]
+  },
+
+  // プライバシーポリシーページ - 安全管理
+  {
+    '@id': 'https://nands.tech/privacy#privacy-security',
+    '@type': 'AboutPage',
+    name: 'プライバシーポリシー - 安全管理',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '個人情報安全管理',
+      '漏洩防止',
+      '滅失防止',
+      '毀損防止',
+      '不正アクセス防止',
+      '技術的安全管理措置',
+      '組織的安全管理措置',
+      '従業員教育',
+      '継続的改善'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#privacy-compliance',
+      'https://nands.tech/privacy#privacy-disclosure',
+      'https://nands.tech/privacy#privacy-cookies'
+    ],
+    mentions: [
+      '安全管理措置',
+      '漏洩防止',
+      '不正アクセス防止',
+      '従業員周知',
+      '継続改善'
+    ]
+  },
+
+  // プライバシーポリシーページ - 開示・訂正・削除
+  {
+    '@id': 'https://nands.tech/privacy#privacy-disclosure',
+    '@type': 'AboutPage',
+    name: 'プライバシーポリシー - 開示・訂正・削除',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      '個人情報開示',
+      '個人情報訂正',
+      '個人情報追加',
+      '個人情報削除',
+      '利用停止',
+      '消去',
+      '本人確認',
+      '法令に基づく対応'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#privacy-security',
+      'https://nands.tech/privacy#privacy-cookies',
+      'https://nands.tech/terms#terms-usage'
+    ],
+    mentions: [
+      '開示請求',
+      '訂正請求',
+      '削除請求',
+      '本人確認',
+      '法令対応'
+    ]
+  },
+
+  // プライバシーポリシーページ - Cookie使用
+  {
+    '@id': 'https://nands.tech/privacy#privacy-cookies',
+    '@type': 'AboutPage',
+    name: 'プライバシーポリシー - Cookie使用',
+    pageType: 'PrivacyPolicy',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'Cookie使用',
+      '利用者利便性向上',
+      '利用状況分析',
+      'サービス改善',
+      'ブラウザ設定',
+      'Cookie制限',
+      'Cookie拒否'
+    ],
+    relatedTo: [
+      'https://nands.tech/privacy#privacy-disclosure',
+      'https://nands.tech/privacy#privacy-policy',
+      'https://nands.tech/terms#terms-usage'
+    ],
+    mentions: [
+      'Cookie',
+      'ブラウザ設定',
+      '利用状況分析',
+      'サービス改善',
+      '利便性向上'
+    ]
+  },
+
+  // 利用規約ページ - ヘッダー
+  {
+    '@id': 'https://nands.tech/terms#terms-header',
+    '@type': 'AboutPage',
+    name: '利用規約 - ヘッダー',
     pageType: 'TermsOfService',
     provider: { '@id': 'https://nands.tech/#organization' },
     knowsAbout: [
       '利用規約',
-      'サービス利用条件',
-      '利用者責任',
-      'サービス提供条件',
-      '契約条件',
+      'サービス利用規約',
+      'AI研修サービス',
+      'DX支援サービス',
+      'キャリア支援サービス',
+      '利用条件',
       '禁止事項',
-      'サービス変更',
-      '契約解除',
-      '損害賠償',
-      '準拠法・管轄'
+      '責任制限'
     ],
     relatedTo: [
-      'https://nands.tech/privacy#company',
-      'https://nands.tech/legal#company',
-      'https://nands.tech/faq#company'
+      'https://nands.tech/terms#terms-usage',
+      'https://nands.tech/privacy#privacy-header',
+      'https://nands.tech/legal#legal-header'
     ],
     mentions: [
-      'サービス利用',
+      '利用規約',
+      '株式会社エヌアンドエス',
+      'AI研修',
+      'DX支援',
+      'キャリア支援'
+    ]
+  },
+
+  // 利用規約ページ - 利用条件
+  {
+    '@id': 'https://nands.tech/terms#terms-usage',
+    '@type': 'AboutPage',
+    name: '利用規約 - 利用条件',
+    pageType: 'TermsOfService',
+    provider: { '@id': 'https://nands.tech/#organization' },
+    knowsAbout: [
+      'サービス利用条件',
+      'AI研修利用条件',
+      'DX支援利用条件',
+      'キャリア支援利用条件',
+      '利用者義務',
+      '禁止行為',
+      '適正利用',
+      '基本条件'
+    ],
+    relatedTo: [
+      'https://nands.tech/terms#terms-header',
+      'https://nands.tech/privacy#privacy-policy',
+      'https://nands.tech/legal#legal-compliance'
+    ],
+    mentions: [
       '利用条件',
-      '契約関係',
-      '法的拘束力',
-      '利用者同意'
+      '利用者義務',
+      '禁止事項',
+      'AI研修利用',
+      'DX支援利用'
     ]
   }
 ];

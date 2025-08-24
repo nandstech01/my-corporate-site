@@ -1,39 +1,11 @@
-import React from 'react';
-import { Metadata } from 'next';
+'use client';
+
+import React, { useEffect } from 'react';
 
 // Mike King理論準拠 - Trust Layer実装
-// 利用規約ページ SSR化 + TermsOfService構造化データ + Fragment ID対応
+// 利用規約ページ CSR化 + TermsOfService構造化データ + Fragment ID対応
 
-export const metadata: Metadata = {
-  title: "利用規約 | 株式会社エヌアンドエス - AI・DX時代のキャリア支援企業",
-  description: "株式会社エヌアンドエスの利用規約。ポータルサイト、副業支援、法人向けAI導入支援、リスキリング研修サービスに関する利用条件を明記。Trust Layer完全対応。",
-  keywords: "利用規約,エヌアンドエス,NANDS,AI研修,DX支援,キャリアサポート,Trust Layer",
-  openGraph: {
-    title: "利用規約 | 株式会社エヌアンドエス",
-    description: "AI・DX時代のキャリア支援サービスに関する利用規約。透明性の高い契約条件を提供。",
-    url: "https://nands.tech/terms",
-    siteName: "株式会社エヌアンドエス",
-    images: [
-      {
-        url: "https://nands.tech/images/legal-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "株式会社エヌアンドエス 利用規約"
-      }
-    ],
-    locale: "ja_JP",
-    type: "website"
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "利用規約 | 株式会社エヌアンドエス",
-    description: "AI・DX時代のキャリア支援サービスに関する利用規約。透明性の高い契約条件。",
-    images: ["https://nands.tech/images/legal-og.jpg"]
-  },
-  alternates: {
-    canonical: "https://nands.tech/terms"
-  }
-};
+// Note: metadata export removed for client component
 
 // サービス定義データ
 const services = [
@@ -100,6 +72,57 @@ const termsItems = [
 ];
 
 const TermsPage = () => {
+  // メタデータ設定
+  useEffect(() => {
+    document.title = "利用規約 | 株式会社エヌアンドエス - AI・DX時代のキャリア支援企業";
+    
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', "株式会社エヌアンドエスの利用規約。ポータルサイト、副業支援、法人向けAI導入支援、リスキリング研修サービスに関する利用条件を明記。Trust Layer完全対応。");
+    }
+  }, []);
+
+  // Fragment IDスクロール処理
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const targetId = hash.substring(1); // # を除去
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          // ヘッダーの高さを考慮してオフセット調整
+          const headerOffset = 80;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+
+          // 一時的なハイライト効果
+          targetElement.style.backgroundColor = '#dbeafe';
+          targetElement.style.transition = 'background-color 0.5s ease';
+          setTimeout(() => {
+            targetElement.style.backgroundColor = '';
+          }, 2000);
+        }
+      }
+    };
+
+    // 初期ロード時のハッシュ処理
+    if (window.location.hash) {
+      setTimeout(handleHashChange, 100);
+    }
+
+    // ハッシュ変更の監視
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   // TermsOfService構造化データ
   const termsSchema = {
     "@context": "https://schema.org",
@@ -187,8 +210,8 @@ const TermsPage = () => {
           </div>
         </section>
 
-        {/* 主要条項 - Fragment ID: terms-main */}
-        <section id="terms-main" className="py-16">
+        {/* 主要条項 - Fragment ID: terms-usage */}
+        <section id="terms-usage" className="py-16">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-slate-800 mb-6">主要条項</h2>

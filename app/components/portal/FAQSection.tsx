@@ -58,51 +58,74 @@ const faqs: FAQItem[] = [
 const FAQSection: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  // Fragment IDマッピング（データベースのfragment_vectorsテーブルと一致）
+  const getFragmentId = (index: number): string => {
+    return `faq-main-${index + 1}`;
+  };
+
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  // Fragment ID生成関数
-  const getFragmentId = (index: number, category: string) => {
-    if (category === "リスキリング・研修") return "faq-main-reskilling";
-    if (category === "AI・テクノロジー") return "faq-main-system-dev"; 
-    if (category === "料金・契約") return "faq-main-pricing";
-    if (category === "サポート") return "faq-main-remote";
-    if (category === "マーケティング・支援") return "faq-main-aio";
-    if (category === "AIサイト・ブランディング") {
-      const aiSiteIds = ["faq-main-ai-site-definition", "faq-main-ai-site-features", "faq-main-ai-site-benefits"];
-      const aiSiteIndex = index - 5; // AIサイトFAQは6番目以降
-      return aiSiteIds[aiSiteIndex] || `faq-main-ai-site-${aiSiteIndex + 1}`;
-    }
-    return `faq-main-${index + 1}`;
-  };
+  // Fragment IDはpage.tsxで管理（重複回避のため削除）
 
   // 🆕 ディープリンク対応：URLハッシュ検出でFAQを自動展開
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
+      console.log('🔗 Hash change detected:', hash);
+      
       if (hash) {
         // 該当するFAQインデックスを検索
         const targetIndex = faqs.findIndex((faq, index) => {
-          const fragmentId = getFragmentId(index, faq.category);
+          const fragmentId = getFragmentId(index);
           return fragmentId === hash;
         });
+        
+        console.log('📍 Target index found:', targetIndex, 'for hash:', hash);
         
         if (targetIndex !== -1) {
           // 該当FAQを開く
           setOpenIndex(targetIndex);
+          console.log('✅ FAQ opened:', targetIndex);
           
           // スムーズスクロール（少し遅延を入れて確実にスクロール）
           setTimeout(() => {
             const element = document.getElementById(hash);
+            console.log('🎯 Element found:', element);
+            
             if (element) {
-              element.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start',
-                inline: 'nearest'
+              // ヘッダー高さを考慮したオフセット調整
+              const headerOffset = 120; // より大きなオフセット
+              const elementPosition = element.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+              
+              console.log('📐 Scroll position calculated:', {
+                elementPosition,
+                pageYOffset: window.pageYOffset,
+                headerOffset,
+                offsetPosition
               });
+              
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+              
+              // 追加で要素にフォーカス効果を一時的に追加（視覚的フィードバック）
+              element.style.background = 'linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))';
+              element.style.borderLeft = '4px solid rgb(59, 130, 246)';
+              element.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.3)';
+              element.style.transition = 'all 0.3s ease';
+              
+              setTimeout(() => {
+                element.style.background = '';
+                element.style.borderLeft = '';
+                element.style.boxShadow = '';
+                element.style.transition = '';
+              }, 2000);
             }
-          }, 200);
+          }, 500); // より長い遅延
         }
       }
     };
@@ -126,12 +149,12 @@ const FAQSection: React.FC = () => {
 
   return (
     <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/50 relative overflow-hidden">
-      
-      {/* 背景装飾 */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-400/10 rounded-full blur-3xl"></div>
-      </div>
+        
+        {/* 背景装飾 */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-400/10 rounded-full blur-3xl"></div>
+        </div>
 
       <div className="container mx-auto px-4 relative">
         {/* ヘッダーセクション */}
@@ -162,7 +185,7 @@ const FAQSection: React.FC = () => {
         {/* FAQ項目 */}
         <div className="max-w-4xl mx-auto">
           {faqs.map((faq, index) => {
-            const fragmentId = getFragmentId(index, faq.category);
+            const fragmentId = getFragmentId(index);
 
             return (
               <motion.div
@@ -172,12 +195,8 @@ const FAQSection: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                {/* 🆕 Fragment ID - AI検索最適化 */}
-                <div 
-                  id={fragmentId} 
-                  className="absolute -top-16 h-px w-full" 
-                  aria-hidden="true"
-                />
+                {/* Fragment IDアンカー要素 */}
+                <div id={fragmentId} className="absolute -top-20" aria-hidden="true"></div>
               <motion.button
                 onClick={() => toggleFAQ(index)}
                 className="flex justify-between items-start w-full text-left p-6 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group"
