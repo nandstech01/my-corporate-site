@@ -132,7 +132,7 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
       title: 'Triple RAGベクトル検索システム構築',
       issuer: '自社開発プロジェクト',
       year: 2024,
-      description: '法律データベース372項目・企業エンティティ111社データを統合した高度なベクトル検索システム。o1-mini + DALL-E 3連携で5000-7000文字記事を自動生成'
+              description: '法律データベース372項目・企業エンティティ111社データを統合した高度なベクトル検索システム。GPT-5 mini + DALL-E 3連携で5000-7000文字記事を自動生成'
     },
     {
       type: 'experience',

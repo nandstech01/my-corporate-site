@@ -457,7 +457,7 @@ ${companyContent.length > 0 ? companyContent.map((content: any, index: number) =
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -576,7 +576,7 @@ ${relatedPostsContext}
 
     try {
       const response = await openai.chat.completions.create({
-        model: 'o1-mini',
+        model: 'gpt-5-mini',
         messages: [{ role: 'user', content: prompt }]
       });
 
@@ -669,7 +669,7 @@ ${relatedPostsContext}
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -761,7 +761,7 @@ async function generateHowToSections({
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -813,7 +813,7 @@ async function generateDataTables({
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -906,7 +906,7 @@ ${relatedPostsContext}
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -1018,7 +1018,7 @@ SEOキーワード:
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'o1-mini',
+      model: 'gpt-5-mini',
       messages: [{ role: 'user', content: prompt }]
     });
 
