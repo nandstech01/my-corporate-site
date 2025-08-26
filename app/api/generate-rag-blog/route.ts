@@ -686,7 +686,7 @@ ${relatedFragmentLinks.map((link, index) => `${index + 1}. ${link}`).join('\n')}
         // サムネイルの使用回数を更新
         const { error: incrementError } = await supabaseServiceRole
           .rpc('increment_thumbnail_usage', {
-            thumbnail_id_param: availableThumbnail.id
+            thumbnail_id: availableThumbnail.id
           });
 
         if (incrementError) {

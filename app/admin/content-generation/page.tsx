@@ -263,6 +263,13 @@ export default function ContentGenerationPage() {
   const [ragSearchLoading, setRagSearchLoading] = useState(false);
   const [blogGenerationLoading, setBlogGenerationLoading] = useState(false);
   
+  // 🧠 智的RAG最適化システム統合（Phase 3）
+  const [intelligentOptimizationEnabled, setIntelligentOptimizationEnabled] = useState(false);
+  const [ragAnalysisResult, setRagAnalysisResult] = useState<any>(null);
+  const [optimizationLoading, setOptimizationLoading] = useState(false);
+  const [suggestedQuery, setSuggestedQuery] = useState('');
+  const [suggestedCategory, setSuggestedCategory] = useState('');
+  
   // 🆕 キーワード機能追加
   const [isEnglishMode, setIsEnglishMode] = useState(false);
   const [keywordSuggestions, setKeywordSuggestions] = useState<string[]>([]);
@@ -542,6 +549,80 @@ export default function ContentGenerationPage() {
     } finally {
       setBlogGenerationLoading(false);
     }
+  };
+
+  // 🧠 智的RAG分析実行（新機能）
+  const analyzeRAGForOptimization = async () => {
+    if (!intelligentOptimizationEnabled) return;
+    
+    setOptimizationLoading(true);
+    try {
+      console.log('🧠 智的RAG最適化分析開始...');
+      
+      const response = await fetch('/api/analyze-rag-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          options: {
+            analyzeTrendRAG: blogGenerationForm.selectedRAGs.includes('trend'),
+            analyzeYouTubeRAG: blogGenerationForm.selectedRAGs.includes('youtube'),
+            analyzeFragmentRAG: blogGenerationForm.selectedRAGs.includes('company'),
+            requireCoherence: true,
+            enableDeepAnalysis: true,
+            targetAudience: isEnglishMode ? 'global' : 'japanese',
+            contentStyle: 'business'
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setRagAnalysisResult(result);
+        setSuggestedQuery(result.optimalParameters?.query || '');
+        setSuggestedCategory(result.optimalParameters?.category || '');
+        
+        console.log('✅ 智的RAG最適化完了');
+        console.log(`📈 提案クエリ: "${result.optimalParameters?.query}"`);
+        console.log(`📂 提案カテゴリ: "${result.optimalParameters?.category}"`);
+        console.log(`⭐ 整合性スコア: ${(result.optimalParameters?.coherenceScore * 100).toFixed(1)}%`);
+      } else {
+        throw new Error('智的RAG分析に失敗しました');
+      }
+    } catch (error) {
+      console.error('Intelligent optimization error:', error);
+      alert(isEnglishMode ? 
+        'An error occurred during intelligent optimization' : 
+        '智的最適化でエラーが発生しました'
+      );
+    } finally {
+      setOptimizationLoading(false);
+    }
+  };
+
+  // 🧠 最適化提案の適用（新機能）
+  const applyOptimizedParameters = () => {
+    if (suggestedQuery) {
+      setBlogGenerationForm(prev => ({ ...prev, query: suggestedQuery }));
+    }
+    if (suggestedCategory) {
+      // カテゴリスラグから適切な事業カテゴリを特定
+      const matchingBusiness = businesses.find(business => 
+        business.categories?.some((cat: any) => cat.slug === suggestedCategory)
+      );
+      if (matchingBusiness) {
+        setBlogGenerationForm(prev => ({
+          ...prev,
+          businessCategory: matchingBusiness.slug,
+          categorySlug: suggestedCategory
+        }));
+      }
+    }
+    
+    console.log('✅ 最適化パラメータを適用しました');
+    alert(isEnglishMode ? 
+      'Optimized parameters applied successfully!' : 
+      '最適化パラメータを適用しました！'
+    );
   };
 
   // コンテンツを記事に変換
@@ -995,6 +1076,144 @@ export default function ContentGenerationPage() {
           
           {showRAGBlogGeneration && (
             <div className="p-6 space-y-6">
+              
+              {/* 🧠 智的RAG最適化セクション（新機能） */}
+              <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-700/50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-lg">🧠</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        {isEnglishMode ? 'Intelligent RAG Optimization' : '智的RAG最適化システム'}
+                      </h3>
+                      <p className="text-sm text-indigo-200">
+                        {isEnglishMode ? 
+                          'GPT-5 mini powered analysis (85% cost savings)' : 
+                          'GPT-5 mini搭載の高精度分析（85%コスト削減）'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={intelligentOptimizationEnabled}
+                      onChange={(e) => setIntelligentOptimizationEnabled(e.target.checked)}
+                      className="w-5 h-5 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-white font-medium">
+                      {isEnglishMode ? 'Enable' : '有効化'}
+                    </span>
+                  </label>
+                </div>
+                
+                {intelligentOptimizationEnabled && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-800/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-indigo-300 mb-2">
+                          🎯 {isEnglishMode ? 'Optimization Features' : '最適化機能'}
+                        </h4>
+                        <ul className="text-xs text-gray-300 space-y-1">
+                          <li>• {isEnglishMode ? 'Auto query generation' : '最適クエリ自動生成'}</li>
+                          <li>• {isEnglishMode ? 'Smart category selection' : '智的カテゴリ選択'}</li>
+                          <li>• {isEnglishMode ? 'Semantic coherence check' : 'セマンティック整合性チェック'}</li>
+                          <li>• {isEnglishMode ? 'RAG content analysis' : 'RAG内容深層分析'}</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-gray-800/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-green-300 mb-2">
+                          💰 {isEnglishMode ? 'Cost Optimization' : 'コスト最適化'}
+                        </h4>
+                        <div className="text-xs text-gray-300 space-y-1">
+                          <div>• GPT-5 mini: 85% {isEnglishMode ? 'cost reduction' : 'コスト削減'}</div>
+                          <div>• {isEnglishMode ? 'High accuracy maintained' : '高精度維持'}</div>
+                          <div>• {isEnglishMode ? 'Enterprise-grade performance' : 'エンタープライズ級性能'}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={analyzeRAGForOptimization}
+                        disabled={optimizationLoading || blogGenerationForm.selectedRAGs.length === 0}
+                        className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                      >
+                        <span className="text-lg">🔍</span>
+                        <span className="text-sm font-medium">
+                          {optimizationLoading ? 
+                            (isEnglishMode ? 'Analyzing...' : '分析中...') : 
+                            (isEnglishMode ? 'Analyze RAG Content' : 'RAGデータ分析')
+                          }
+                        </span>
+                      </button>
+                      
+                      {ragAnalysisResult && (
+                        <button
+                          onClick={applyOptimizedParameters}
+                          className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                        >
+                          <span className="text-lg">✨</span>
+                          <span className="text-sm font-medium">
+                            {isEnglishMode ? 'Apply Suggestions' : '提案を適用'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* 分析結果表示 */}
+                    {ragAnalysisResult && (
+                      <div className="bg-gray-800/70 rounded-lg p-4 border border-gray-700">
+                        <h4 className="text-sm font-medium text-yellow-300 mb-3">
+                          📊 {isEnglishMode ? 'Analysis Results' : '分析結果'}
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">
+                              {isEnglishMode ? 'Suggested Query' : '提案クエリ'}
+                            </label>
+                            <div className="bg-gray-700 rounded p-2 text-sm text-white">
+                              {suggestedQuery || (isEnglishMode ? 'No suggestion' : '提案なし')}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">
+                              {isEnglishMode ? 'Suggested Category' : '提案カテゴリ'}
+                            </label>
+                            <div className="bg-gray-700 rounded p-2 text-sm text-white">
+                              {suggestedCategory || (isEnglishMode ? 'No suggestion' : '提案なし')}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {ragAnalysisResult.optimalParameters?.coherenceScore && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-400">
+                              {isEnglishMode ? 'Coherence Score:' : '整合性スコア:'}
+                            </span>
+                            <div className="flex-1 bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${(ragAnalysisResult.optimalParameters.coherenceScore * 100)}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-white font-medium">
+                              {(ragAnalysisResult.optimalParameters.coherenceScore * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* 検索設定 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
