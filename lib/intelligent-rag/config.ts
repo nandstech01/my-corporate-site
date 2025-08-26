@@ -14,9 +14,9 @@ export const GPT5_MINI_CONFIG: GPT5MiniConfig = {
   model: 'gpt-5-mini',
   temperature: 1.0,      // GPT-5 miniはデフォルト値(1.0)のみサポート
   max_tokens: 4000,      // 中程度の出力
-  top_p: 0.9,           // 品質と多様性のバランス
-  frequency_penalty: 0.1, // 若干の重複抑制
-  presence_penalty: 0.1,  // 若干の新規性促進
+  // top_p: GPT-5 miniではサポートされていません
+  // frequency_penalty: GPT-5 miniではサポートされていません  
+  // presence_penalty: GPT-5 miniではサポートされていません
   caching_enabled: true   // 90%コスト削減活用
 };
 

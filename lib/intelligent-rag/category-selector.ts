@@ -222,8 +222,8 @@ ${categoriesInput}
           }
         ],
         temperature: 1.0, // GPT-5 miniはデフォルト値(1.0)のみサポート
-        max_completion_tokens: 2000,
-        top_p: GPT5_MINI_CONFIG.top_p
+        max_completion_tokens: 2000
+        // top_p: GPT-5 miniではサポートされていません
       });
 
       // 使用統計更新

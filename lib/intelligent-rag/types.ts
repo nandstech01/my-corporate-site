@@ -208,9 +208,9 @@ export interface GPT5MiniConfig {
   model: 'gpt-5-mini';
   temperature: number;
   max_tokens: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
+  top_p?: number;              // GPT-5 miniではサポートされていません
+  frequency_penalty?: number;  // GPT-5 miniではサポートされていません
+  presence_penalty?: number;   // GPT-5 miniではサポートされていません
   caching_enabled: boolean;
 }
 

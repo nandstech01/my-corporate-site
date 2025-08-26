@@ -253,8 +253,8 @@ export class RAGContentAnalyzer {
           }
         ],
         temperature: GPT5_MINI_CONFIG.temperature,
-        max_completion_tokens: GPT5_MINI_CONFIG.max_tokens,
-        top_p: GPT5_MINI_CONFIG.top_p
+        max_completion_tokens: GPT5_MINI_CONFIG.max_tokens
+        // top_p: GPT-5 miniではサポートされていません
       });
 
       // 使用統計更新
