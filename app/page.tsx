@@ -39,6 +39,9 @@ import {
   generateEnhancedAISearchReport
 } from '@/lib/structured-data/unified-integration-ai-enhanced';
 
+// キャッシュシステムは一時的にコメントアウト
+// import { getFastAIEnhancedPageData } from '@/lib/cache/ai-enhanced-cache'
+
 export const metadata: Metadata = {
   title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
   description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。2008年の設立以来、時代に寄り添ったソリューションを提供しています。',
@@ -61,9 +64,8 @@ export const metadata: Metadata = {
   keywords: '総合人材支援,キャリアコンサルティング,生成AI研修,リスキリング,人材育成,キャリア支援,退職支援,エヌアンドエス,NANDS,転職支援',
 }
 
-// 🚀 ISR（Incremental Static Regeneration）設定最適化
-// ai-site同等の高速化設定
-export const revalidate = 300 // 5分間隔でISR実行（ai-site同等の高速化）
+// 🚀 高速化ISR設定（30分間隔に変更）
+export const revalidate = 1800 // 30分間隔
 
 // 🚀 完全SSG化オプション（さらなる高速化）
 // export const dynamic = 'force-static' // 完全静的生成を強制
@@ -237,30 +239,53 @@ async function getLatestPosts(): Promise<Post[]> {
 }
 
 export default async function Home() {
-  // 🚀 重い処理を条件付きで実行（開発環境では簡略化）
+  console.log('🏠 Home page rendering started...');
+  const renderStartTime = Date.now();
+
+  // 🚀 並列処理最適化（1段階目）
   const posts = await getLatestPosts();
   const structuredData = getStructuredData();
   
-  // 🚀 AI検索最適化処理を簡略化（本番環境のみフル実行）
+  // 🚀 AI検索最適化処理を軽量化（キャッシュシステムは後で統合）
   let aiEnhancedData, aiSearchReport, aiEnhancedStructuredDataJSON;
   
   if (process.env.NODE_ENV === 'production') {
-    // 本番環境: フル機能実行
-    [aiEnhancedData, aiSearchReport] = await Promise.all([
-      generateCompleteAIEnhancedUnifiedPageData(
-        {
-          pageSlug: '',
-          pageTitle: 'エヌアンドエス | AI・システム開発・リスキリング研修',
-          keywords: ['AI', 'システム開発', 'リスキリング', 'レリバンスエンジニアリング', 'RAG', 'ChatGPT'],
-          category: 'corporate'
-        },
-        ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
-      ),
-      Promise.resolve(null) // aiSearchReport生成をスキップ
-    ]);
-    aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
+    // 本番環境: 軽量版実行（キャッシュは後で実装）
+    console.log('🚀 Production: Using lightweight AI Enhanced data...');
+    
+    // 軽量版のAI強化データ
+    aiEnhancedData = {
+      aiSearchOptimization: { 
+        targetEngines: ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek'], 
+        readinessScore: 0.95,
+        optimizations: {
+          chatgpt: { fragmentIds: [], semanticLinks: [] },
+          perplexity: { citationOptimization: [] },
+          claude: { entityRelationships: [] },
+          gemini: { structuredDataEnhancement: [] },
+          deepSeek: { reasoningOptimization: [] }
+        }
+      },
+      detailedKnowsAbout: {
+        primaryServices: ['AI開発', 'システム開発', 'リスキリング研修'],
+        technologies: ['ChatGPT', 'RAG', 'ベクトル検索'],
+        industries: ['製造業', '金融', 'ヘルスケア']
+      },
+      enhancedMentions: {
+        organizationMentions: [],
+        serviceMentions: [],
+        technologyMentions: []
+      },
+      fragmentIdEnhancement: {
+        totalFragments: 0,
+        optimizedFragments: []
+      }
+    };
+    aiEnhancedStructuredDataJSON = JSON.stringify(aiEnhancedData);
+    aiSearchReport = null;
   } else {
     // 開発環境: 軽量版実行
+    console.log('🔧 Development: Using lightweight AI Enhanced data...');
     aiEnhancedData = {
       aiSearchOptimization: { targetEngines: [], readinessScore: 0.95 },
       detailedKnowsAbout: {},
@@ -269,6 +294,9 @@ export default async function Home() {
     };
     aiEnhancedStructuredDataJSON = '{}';
   }
+  
+  const renderDuration = Date.now() - renderStartTime;
+  console.log(`🏠 Home page rendered in ${renderDuration}ms`);
   
   // 【LLMO最強実装】Google Gemini LLM + AI Overviews最適化
   // Mike King理論完全準拠 + 2024年Google最新ガイドライン対応
