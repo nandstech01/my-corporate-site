@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     const aiEngine = searchParams.get('ai_engine');
     const fragmentId = searchParams.get('fragment_id');
 
-    // 1. AI引用履歴の基本データ取得
+    // 1. AI引用履歴の基本データ取得（実データのみ - サンプルデータ除外）
     let query = supabase
       .from('ai_quotation_history')
       .select(`
@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
         detected_at,
         created_at
       `)
+      .neq('detected_source', 'manual') // サンプルデータ（manual）を除外し、実データ（auto-detection）のみ取得
       .gte('detected_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
       .order('detected_at', { ascending: false });
 
