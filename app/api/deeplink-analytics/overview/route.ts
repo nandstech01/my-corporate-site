@@ -88,10 +88,11 @@ export async function GET(request: NextRequest) {
       console.error('❌ Analytics データ取得エラー:', analyticsError);
     }
 
-    // 🎯 AI引用データ
+    // 🎯 AI引用データ（実データのみ - サンプルデータ除外）
     const { data: quotationData, error: quotationError } = await supabase
       .from('ai_quotation_history')
-      .select('*');
+      .select('*')
+      .neq('detected_source', 'manual'); // サンプルデータ（manual）を除外し、実データ（auto-detection）のみ取得
 
     if (quotationError) {
       console.error('❌ AI引用データ取得エラー:', quotationError);
