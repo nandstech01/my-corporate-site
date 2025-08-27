@@ -30,7 +30,6 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
   const [activeHeading, setActiveHeading] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
   const faqCounterRef = useRef<number>(0); // FAQ質問カウンター
-  const usedIdsRef = useRef<Set<string>>(new Set()); // 重複ID防止
 
   // 見出しから目次を生成
   useEffect(() => {
@@ -159,18 +158,9 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   .replace(/\s+/g, '-');
               }
               
-              // 🔧 重複ID防止処理
-              let uniqueId = id;
-              let counter = 1;
-              while (usedIdsRef.current.has(uniqueId)) {
-                uniqueId = `${id}-${counter}`;
-                counter++;
-              }
-              usedIdsRef.current.add(uniqueId);
-              
               return (
                 <h2 
-                  id={uniqueId}
+                  id={id}
                   className="not-prose bg-gray-50 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 border-l-4 border-cyan-400"
                 >
                   {displayText}
@@ -197,18 +187,9 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   .replace(/\s+/g, '-');
               }
               
-              // 🔧 重複ID防止処理
-              let uniqueId = id;
-              let counter = 1;
-              while (usedIdsRef.current.has(uniqueId)) {
-                uniqueId = `${id}-${counter}`;
-                counter++;
-              }
-              usedIdsRef.current.add(uniqueId);
-              
               return (
                 <h3 
-                  id={uniqueId}
+                  id={id}
                   className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700"
                 >
                   {displayText}
@@ -242,18 +223,9 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                 }
               }
               
-              // 🔧 重複ID防止処理
-              let uniqueId = id;
-              let counter = 1;
-              while (usedIdsRef.current.has(uniqueId)) {
-                uniqueId = `${id}-${counter}`;
-                counter++;
-              }
-              usedIdsRef.current.add(uniqueId);
-              
               return (
                 <h4 
-                  id={uniqueId}
+                  id={id}
                   className="mt-6 mb-3 text-lg font-bold text-gray-700 border-b border-gray-300 pb-1"
                 >
                   {displayText}
