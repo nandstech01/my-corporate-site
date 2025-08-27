@@ -4,6 +4,39 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import MarkdownContent from '@/components/blog/MarkdownContent'
+import TOCComponent from '@/components/blog/TOCComponent'
+
+// 関連情報抽出関数
+interface RelatedInfoLink {
+  title: string;
+  url: string;
+  type: 'related' | 'faq';
+}
+
+function extractRelatedInfo(content: string): RelatedInfoLink[] {
+  let relatedInfoSection = content.match(/###\s*📚\s*関連情報[\s\S]*?(?=\n##|\n---|\n$)/i);
+  
+  if (!relatedInfoSection) {
+    const altPattern = content.match(/📚\s*関連情報[\s\S]*$/i);
+    if (!altPattern) return [];
+    relatedInfoSection = altPattern;
+  }
+
+  const links = relatedInfoSection[0].match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/g);
+  if (!links) return [];
+
+  const result: RelatedInfoLink[] = [];
+  for (const link of links) {
+    const match = link.match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/);
+    if (match) {
+      const title = match[1];
+      const url = match[2];
+      const type: 'related' | 'faq' = title.includes('よくある質問') ? 'faq' : 'related';
+      result.push({ title, url, type });
+    }
+  }
+  return result;
+}
 import Script from 'next/script'
 import Breadcrumbs from '@/app/components/common/Breadcrumbs'
 import { RefreshCw } from 'lucide-react'
@@ -285,12 +318,20 @@ export default async function PostPage({ params }: PageProps) {
   
   // Mike King理論準拠: 統合構造化データシステム初期化
   const structuredDataSystem = new UnifiedStructuredDataSystem('https://nands.tech')
-  const autoTOCSystem = new AutoTOCSystem()
+  const autoTOCSystem = new AutoTOCSystem({
+    minLevel: 1,  // H1から含める
+    maxLevel: 3   // H3まで含める
+  })
   const howToFAQSystem = new HowToFAQSchemaSystem()
 
   // 記事内容からTOC抽出（見出し分析）
   const tocData = autoTOCSystem.generateTOCFromHTML(post.content)
+  console.log('🔧 generateTOCFromHTML結果:', tocData);
+  console.log('📋 tocData.toc:', tocData.toc);
   const hasFragmentIds = tocData.toc.length > 0
+
+  // 関連情報抽出
+  const relatedInfo = extractRelatedInfo(post.content)
 
   // 記事内容からFAQ・HOW TO自動抽出
   const faqData = howToFAQSystem.extractFAQFromContent(post.content)
@@ -542,7 +583,38 @@ export default async function PostPage({ params }: PageProps) {
       "url": `https://nands.tech/posts/${params.slug}#step-${index + 1}`
     }))
   } : null
-  
+
+  // 関連情報を抽出する関数
+  interface RelatedInfoLink {
+    title: string;
+    url: string;
+    type: 'related' | 'faq';
+  }
+
+  function extractRelatedInfo(content: string): RelatedInfoLink[] {
+    let relatedInfoSection = content.match(/###\s*📚\s*関連情報[\s\S]*?(?=\n##|\n---|\n$)/i);
+    if (!relatedInfoSection) {
+      const altPattern = content.match(/📚\s*関連情報[\s\S]*$/i);
+      if (!altPattern) return [];
+      relatedInfoSection = altPattern;
+    }
+
+    const links = relatedInfoSection[0].match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/g);
+    if (!links) return [];
+
+    const result: RelatedInfoLink[] = [];
+    for (const link of links) {
+      const match = link.match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/);
+      if (match) {
+        const title = match[1];
+        const url = match[2];
+        const type: 'related' | 'faq' = title.includes('よくある質問') ? 'faq' : 'related';
+        result.push({ title, url, type });
+      }
+    }
+    return result;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Mike King理論準拠: 統合構造化データ */}
@@ -649,28 +721,17 @@ export default async function PostPage({ params }: PageProps) {
             </div>
         )}
 
-        {/* TOC表示（Fragment ID付き） */}
-        {tocData.toc.length > 0 && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">目次</h2>
-            <ul className="space-y-2">
-              {tocData.toc.map((item: any, index: number) => (
-                <li key={index} style={{ marginLeft: `${(item.level - 1) * 1.5}rem` }}>
-                  <a 
-                    href={`#${item.anchor || item.id}`}
-                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
-                  >
-                    {item.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* TOC表示（Fragment ID付き・水色デザイン） */}
+        <TOCComponent toc={tocData.toc} relatedInfo={relatedInfo} />
 
         {post.content && (
           <div className="mt-8">
-            <MarkdownContent content={post.content} />
+            <MarkdownContent content={post.content
+              .replace(/###\s*📚\s*関連情報[\s\S]*$/i, '')
+              .replace(/📚\s*関連情報[\s\S]*$/i, '')
+              .replace(/---\s*$/i, '')
+              .trim()
+            } />
           </div>
         )}
 

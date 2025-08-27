@@ -51,7 +51,17 @@ export class AutoTOCSystem {
     fragmentIds: string[];
     enhancedContent: string;
   } {
-    const headings = this.extractHeadingsFromHTML(htmlContent);
+    // HTMLかMarkdownかを判定
+    const isMarkdown = !htmlContent.includes('<h1') && !htmlContent.includes('<h2') && 
+                      (htmlContent.includes('##') || htmlContent.includes('###'));
+    
+    console.log('📋 コンテンツ形式判定:', isMarkdown ? 'Markdown' : 'HTML');
+    
+    // 適切な解析メソッドを選択
+    const headings = isMarkdown ? 
+      this.extractHeadingsFromMarkdown(htmlContent) : 
+      this.extractHeadingsFromHTML(htmlContent);
+    
     const fragments = this.createFragments(headings);
     
     // 🎯 NEW: H1タイトルのFragment ID化（Mike King理論準拠）
@@ -128,6 +138,49 @@ export class AutoTOCSystem {
     
     console.log(`📊 抽出されたヘッダー数: ${headings.length}個`);
     console.log(`🎯 Fragment ID付きヘッダー数: ${headings.filter(h => h.id).length}個`);
+
+    return headings;
+  }
+
+  /**
+   * Markdownからヘッダー要素を抽出
+   * 🎯 Fragment ID形式 {#id} を正しく認識するように実装
+   */
+  private extractHeadingsFromMarkdown(markdownContent: string): Array<{
+    level: number;
+    text: string;
+    id?: string;
+  }> {
+    // 🎯 Markdown見出し形式に対応した正規表現: ## タイトル {#fragment-id}
+    const headingRegex = /^(#{1,6})\s+(.+?)(?:\s*\{#([^}]+)\})?\s*$/gm;
+    const headings: Array<{level: number, text: string, id?: string}> = [];
+    let match;
+
+    while ((match = headingRegex.exec(markdownContent)) !== null) {
+      const level = match[1].length; // # の数でレベル判定
+      const text = match[2].trim();
+      const fragmentId = match[3]; // {#id} 部分
+      
+      if (fragmentId) {
+        // Fragment ID付きヘッダー
+        headings.push({
+          level,
+          text,
+          id: fragmentId
+        });
+        
+        console.log(`🔍 Markdown Fragment ID検出: "${text}" → #${fragmentId}`);
+      } else {
+        // 通常のヘッダー（Fragment IDなし）
+        headings.push({
+          level,
+          text
+        });
+      }
+    }
+    
+    console.log(`📊 Markdown抽出ヘッダー数: ${headings.length}個`);
+    console.log(`🎯 Markdown Fragment ID付きヘッダー数: ${headings.filter(h => h.id).length}個`);
 
     return headings;
   }

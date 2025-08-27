@@ -116,66 +116,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      {/* 目次 */}
-      {toc.length > 0 && (
-        <div className="mb-10">
-          <div className="bg-cyan-400 text-gray-900 py-3 px-4 flex items-center justify-between">
-            <h3 className="text-lg font-medium flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-              目次
-            </h3>
-            <button 
-              onClick={() => setIsTocOpen(!isTocOpen)} 
-              className="text-gray-900 focus:outline-none"
-            >
-              {isTocOpen ? '−' : '＋'}
-            </button>
-          </div>
-
-          <div 
-            className={`border border-gray-200 border-t-0 rounded-b-lg bg-white overflow-hidden transition-all duration-300 ${isTocOpen ? 'max-h-96' : 'max-h-0'}`}
-          >
-            <ul className="py-4 px-2">
-              {toc.filter(item => item.level === 2).map((item, index) => (
-                <li 
-                  key={`toc-${item.id}-${index}`}
-                  className="mb-3 last:mb-1"
-                >
-                  <a
-                    href={`#${item.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToHeading(item.id);
-                    }}
-                    className={`flex items-center hover:text-cyan-500 text-sm transition-colors py-1.5 ${
-                      activeHeading === item.id 
-                        ? 'text-cyan-500 font-medium'
-                        : 'text-gray-700'
-                    }`}
-                  >
-                    <span className="flex-shrink-0 w-7 h-7 rounded-md bg-cyan-400 text-white flex items-center justify-center mr-3 font-semibold">
-                      {index + 1}
-                    </span>
-                    <span className="line-clamp-1">{item.text}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {toc.filter(item => item.level === 2).length > 8 && (
-              <div className="text-center pb-3">
-                <button
-                  onClick={() => setIsTocOpen(!isTocOpen)}
-                  className="text-sm text-blue-600 hover:text-blue-800 px-4 py-1 rounded-full border border-blue-200 hover:border-blue-400 transition-colors"
-                >
-                  {isTocOpen ? '折りたたむ' : 'もっと見る'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 目次はページレベルで表示するため、ここでは削除 */}
       
       <div ref={contentRef} className="prose max-w-none prose-lg prose-img:rounded-lg">
         <ReactMarkdown
