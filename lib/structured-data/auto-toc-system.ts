@@ -64,15 +64,15 @@ export class AutoTOCSystem {
     
     const fragments = this.createFragments(headings);
     
-    // 🎯 NEW: H1タイトルのFragment ID化（Mike King理論準拠）
-    const enhancedFragments = this.addH1FragmentId(fragments, htmlContent);
+    // H1タイトルのFragment ID化を無効化（記事生成時の重複回避）
+    // const enhancedFragments = this.addH1FragmentId(fragments, htmlContent);
     
-    const toc = this.buildTOCHierarchy(enhancedFragments);
-    const enhancedContent = this.injectFragmentIds(htmlContent, enhancedFragments);
+    const toc = this.buildTOCHierarchy(fragments);
+    const enhancedContent = this.injectFragmentIds(htmlContent, fragments);
 
     return {
       toc,
-      fragmentIds: enhancedFragments.map(f => f.id),
+      fragmentIds: fragments.map(f => f.id),
       enhancedContent
     };
   }
