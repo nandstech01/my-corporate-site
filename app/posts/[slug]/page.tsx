@@ -727,8 +727,6 @@ export default async function PostPage({ params }: PageProps) {
         {post.content && (
           <div className="mt-8">
             <MarkdownContent content={post.content
-              .replace(/###\s*📚\s*関連情報[\s\S]*$/i, '')
-              .replace(/📚\s*関連情報[\s\S]*$/i, '')
               .replace(/---\s*$/i, '')
               .trim()
             } />
