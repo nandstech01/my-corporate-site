@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
 
     // 🎯 メトリクス計算
     let totalClicks = 0;
-    let totalAIQuotations = 0;
+    let totalAIQuotations = quotations.length; // 🔧 修正: 実際のAI引用レコード数をそのままカウント
     let similaritySum = 0;
     const contentTypeBreakdown: { [key: string]: number } = {};
     const topPerformingFragments: any[] = [];
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
       const similarityScore = fragment.semantic_weight || 0.85; // デフォルト値のみ
       
       totalClicks += clickCount;
-      totalAIQuotations += aiQuotationCount;
+      // totalAIQuotations += aiQuotationCount; // 🔧 削除: 重複カウントを防止
       similaritySum += similarityScore;
 
       // コンテンツタイプ集計
