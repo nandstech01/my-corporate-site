@@ -346,13 +346,17 @@ export class AutoTOCSystem {
    * 基本Fragment ID生成（既存システム互換）
    */
   private generateBasicFragmentId(text: string): string {
-    return text
+    // 日本語文字、英数字、絵文字を保持し、特殊記号のみ削除
+    const result = text
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
+      .replace(/[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF📚-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .substring(0, 50);
+    
+    // 空文字列の場合はデフォルト値を返す
+    return result || 'section';
   }
 
   /**

@@ -44,7 +44,11 @@ export default function TOCComponent({ toc, relatedInfo = [] }: TOCComponentProp
     return flattened;
   };
 
-  const flatToc = flattenTOC(toc).filter(item => item.id && item.id.trim() !== '');
+  const flatToc = flattenTOC(toc).filter(item => 
+    item.id && 
+    item.id.trim() !== '' && 
+    !item.title.includes('📚 関連情報')
+  );
   console.log('🔄 フラット化後TOC:', flatToc);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
