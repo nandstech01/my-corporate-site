@@ -170,6 +170,42 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 
+                    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {
+                  // フォールバック: システム設定をチェック
+                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  }
+                }
+                
+                // システムテーマ変更をリアルタイムで監視
+                const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                const handleThemeChange = (e) => {
+                  if (!localStorage.getItem('theme')) {
+                    if (e.matches) {
+                      document.documentElement.classList.add('dark');
+                    } else {
+                      document.documentElement.classList.remove('dark');
+                    }
+                  }
+                };
+                
+                mediaQuery.addEventListener('change', handleThemeChange);
+              })();
+            `
+          }}
+        />
         {/* DNS-Prefetch */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />

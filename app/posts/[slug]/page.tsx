@@ -616,7 +616,7 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-white dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
       {/* Mike King理論準拠: 統合構造化データ */}
       <Script
         id="structured-data-article"
@@ -677,17 +677,17 @@ export default async function PostPage({ params }: PageProps) {
         {/* カテゴリタグ */}
         {post.categories && post.categories.length > 0 && (
           <div className="mb-4">
-            <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
+            <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm font-medium">
               {post.categories[0].name}
             </span>
           </div>
         )}
 
         {/* 記事タイトル - Fragment ID対応 */}
-        <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">{post.title}</h1>
+        <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{post.title}</h1>
         
         {/* 記事メタ情報 */}
-        <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600">
+        <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
           <div className="flex items-center gap-1">
             <RefreshCw size={10} className="sm:w-3 sm:h-3" />
             <span className="hidden sm:inline">最終更新: </span>
@@ -769,8 +769,8 @@ export default async function PostPage({ params }: PageProps) {
         )} */}
 
         {/* 著者セクション - Fragment ID付き */}
-        <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6" id="author-profile">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">著者について</h2>
+        <div className="mt-12 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6" id="author-profile">
+          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">著者について</h2>
           <div className="flex items-start gap-6">
             <div className="flex-shrink-0">
               <Image
@@ -783,9 +783,9 @@ export default async function PostPage({ params }: PageProps) {
               />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">原田賢治</h3>
-              <p className="text-sm text-gray-600 mb-3">代表取締役・AI技術責任者</p>
-              <p className="text-gray-700 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">原田賢治</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">代表取締役・AI技術責任者</p>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。
                 15年以上のAI・システム開発経験を持ち、全国で企業のDX・AI活用、退職代行サービスを支援。
               </p>
@@ -833,7 +833,7 @@ export default async function PostPage({ params }: PageProps) {
               <Link 
                 key={index} 
                 href={`/search?keyword=${encodeURIComponent(keyword)}`}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm transition-colors"
+                className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full text-sm transition-colors"
               >
                 #{keyword}
               </Link>

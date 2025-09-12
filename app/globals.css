@@ -958,6 +958,12 @@ section[id]:target {
   background: linear-gradient(to right, #22d3ee, #d1d5db);
 }
 
+/* Dark mode support for h3 gradient underline */
+.dark .h3-gradient-underline::after {
+  /* Gradient from brand color (cyan-500) to gray-600 for dark mode */
+  background: linear-gradient(to right, #06b6d4, #4b5563);
+}
+
 /* Example for a sharper split if needed (uncomment to use) */
 /*
 .h3-gradient-underline::after {

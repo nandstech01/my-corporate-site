@@ -117,7 +117,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
     <div className="relative max-w-4xl mx-auto">
       {/* 目次はページレベルで表示するため、ここでは削除 */}
       
-      <div ref={contentRef} className="prose max-w-none prose-lg prose-img:rounded-lg">
+      <div ref={contentRef} className="prose dark:prose-invert max-w-none prose-lg prose-img:rounded-lg">
         <ReactMarkdown
           components={{
             code({className, children}) {
@@ -129,7 +129,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   </code>
                 </pre>
               ) : (
-                <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-sm">
+                <code className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-1 py-0.5 rounded font-mono text-sm">
                   {children}
                 </code>
               );
@@ -161,7 +161,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h2 
                   id={id}
-                  className="not-prose bg-gray-50 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 border-l-4 border-cyan-400"
+                  className="not-prose bg-gray-50 dark:bg-gray-800 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 dark:text-gray-100 border-l-4 border-cyan-400 dark:border-cyan-500"
                 >
                   {displayText}
                 </h2>
@@ -190,7 +190,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h3 
                   id={id}
-                  className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700"
+                  className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700 dark:text-gray-200"
                 >
                   {displayText}
                 </h3>
@@ -226,7 +226,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return (
                 <h4 
                   id={id}
-                  className="mt-6 mb-3 text-lg font-bold text-gray-700 border-b border-gray-300 pb-1"
+                  className="mt-6 mb-3 text-lg font-bold text-gray-700 dark:text-gray-200 border-b border-gray-300 dark:border-gray-600 pb-1"
                 >
                   {displayText}
                 </h4>

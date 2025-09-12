@@ -11,7 +11,7 @@ interface MDXContentProviderProps {
 export const MDXContentProvider: React.FC<MDXContentProviderProps> = ({ children }) => {
   return (
     <MDXProvider components={mdxComponents}>
-      <div className="prose max-w-none prose-lg prose-img:rounded-lg mdx-content">
+      <div className="prose dark:prose-invert max-w-none prose-lg prose-img:rounded-lg mdx-content">
         {children}
       </div>
     </MDXProvider>

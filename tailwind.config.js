@@ -104,6 +104,103 @@ module.exports = {
             },
           },
         },
+        invert: {
+          css: {
+            '--tw-prose-body': '#d1d5db',
+            '--tw-prose-headings': '#f9fafb',
+            '--tw-prose-lead': '#9ca3af',
+            '--tw-prose-links': '#60a5fa',
+            '--tw-prose-bold': '#f9fafb',
+            '--tw-prose-counters': '#d1d5db',
+            '--tw-prose-bullets': '#d1d5db',
+            '--tw-prose-hr': '#374151',
+            '--tw-prose-quotes': '#f3f4f6',
+            '--tw-prose-quote-borders': '#374151',
+            '--tw-prose-captions': '#9ca3af',
+            '--tw-prose-code': '#f9fafb',
+            '--tw-prose-pre-code': '#d1d5db',
+            '--tw-prose-pre-bg': '#1f2937',
+            '--tw-prose-th-borders': '#374151',
+            '--tw-prose-td-borders': '#4b5563',
+            color: '#d1d5db',
+            p: {
+              color: 'var(--tw-prose-body)',
+            },
+            h1: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h2: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h3: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h4: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h5: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h6: {
+              color: 'var(--tw-prose-headings)',
+            },
+            strong: {
+              color: 'var(--tw-prose-bold)',
+            },
+            b: {
+              color: 'var(--tw-prose-bold)',
+            },
+            em: {
+              color: 'var(--tw-prose-body)',
+            },
+            a: {
+              color: 'var(--tw-prose-links)',
+              '&:hover': {
+                color: '#3b82f6',
+              },
+            },
+            code: {
+              color: 'var(--tw-prose-code)',
+            },
+            'ol > li': {
+              color: 'var(--tw-prose-body)',
+            },
+            'ul > li': {
+              color: 'var(--tw-prose-body)',
+            },
+            'ol > li::marker': {
+              color: 'var(--tw-prose-counters)',
+            },
+            'ul > li::marker': {
+              color: 'var(--tw-prose-bullets)',
+            },
+            li: {
+              color: 'var(--tw-prose-body)',
+            },
+            'li::marker': {
+              color: 'var(--tw-prose-counters)',
+            },
+            blockquote: {
+              color: 'var(--tw-prose-quotes)',
+              borderLeftColor: 'var(--tw-prose-quote-borders)',
+            },
+            table: {
+              color: 'var(--tw-prose-body)',
+            },
+            thead: {
+              color: 'var(--tw-prose-headings)',
+            },
+            'thead th': {
+              color: 'var(--tw-prose-headings)',
+            },
+            'tbody td': {
+              color: 'var(--tw-prose-body)',
+            },
+            figcaption: {
+              color: 'var(--tw-prose-captions)',
+            },
+          },
+        },
       },
     },
   },
