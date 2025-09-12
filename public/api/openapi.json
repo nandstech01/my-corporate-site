@@ -276,6 +276,23 @@
               "type": "string"  
             },
             "description": "専門分野"
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "type": "string",
+                "description": "電話番号"
+              },
+              "email": {
+                "type": "string",
+                "description": "メールアドレス"
+              },
+              "website": {
+                "type": "string",
+                "description": "ウェブサイトURL"
+              }
+            }
           }
         }
       },

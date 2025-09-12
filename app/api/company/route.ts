@@ -56,6 +56,7 @@ export async function GET() {
         }
       ],
       contact: {
+        phone: '0120-407-638',
         email: 'info@nands.tech',
         website: 'https://nands.tech',
         social: {
