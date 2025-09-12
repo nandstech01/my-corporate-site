@@ -168,7 +168,7 @@ const Footer: React.FC = () => {
               </p>
               <div className="space-y-2 text-sm text-gray-400">
                 <p>📍 滋賀県大津市皇子が丘２丁目10−25−3004号</p>
-                <p>📞 0120-558-551</p>
+                <p>📞 0120-407-638</p>
                 <p>📧 contact@nands.tech</p>
               </div>
             </motion.div>
@@ -257,7 +257,7 @@ const Footer: React.FC = () => {
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition-colors"
               >
                 <span>📞</span>
-                <span>0120-558-551</span>
+                <span>0120-407-638</span>
               </a>
               <a
                 href="mailto:contact@nands.tech"

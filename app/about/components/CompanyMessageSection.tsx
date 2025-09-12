@@ -129,7 +129,7 @@ export default function CompanyMessageSection() {
                 <div className="border-l-4 border-purple-400 pl-6">
                   <h4 className="text-lg font-bold text-purple-400 mb-2">連絡先</h4>
                   <p className="text-cyan-100">
-                    電話：0120-558-551<br/>
+                    電話：0120-407-638<br/>
                     メール：contact@nands.tech
                   </p>
                 </div>

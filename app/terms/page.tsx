@@ -133,7 +133,7 @@ const TermsPage = () => {
       "@type": "Organization",
       "name": "株式会社エヌアンドエス",
       "url": "https://nands.tech",
-      "telephone": "0120-558-551",
+      "telephone": "0120-407-638",
       "email": "contact@nands.tech"
     },
     "datePublished": "2024-11-15",
@@ -295,10 +295,10 @@ const TermsPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="tel:0120-558-551"
+                href="tel:0120-407-638"
                 className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-colors"
               >
-                📞 0120-558-551
+                📞 0120-407-638
               </a>
               <a 
                 href="mailto:contact@nands.tech"

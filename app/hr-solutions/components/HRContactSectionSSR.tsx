@@ -396,8 +396,8 @@ export default function HRContactSectionSSR() {
                       </svg>
                       <div>
                         <p className="text-blue-100 font-medium">HR業界緊急対応サポート</p>
-                        <a href="tel:+81-120-558-551" className="text-blue-300 hover:text-blue-200 transition-colors">
-                          0120-558-551
+                                                  <a href="tel:+81-120-407-638" className="text-blue-300 hover:text-blue-200 transition-colors">
+                          0120-407-638
                         </a>
                         <p className="text-blue-400 text-sm">専用ライン（平日9-18時）</p>
                       </div>
@@ -522,7 +522,7 @@ export default function HRContactSectionSSR() {
               JavaScriptが無効になっている場合は、以下の方法でお問い合わせください：
             </p>
             <ul className="text-yellow-700 space-y-2">
-              <li>• 電話: <a href="tel:+81-120-558-551" className="font-semibold">0120-558-551</a></li>
+                                  <li>• 電話: <a href="tel:+81-120-407-638" className="font-semibold">0120-407-638</a></li>
               <li>• メール: <a href="mailto:contact@nands.tech" className="font-semibold">contact@nands.tech</a></li>
               <li>• 営業時間: 平日 9:00-18:00</li>
             </ul>

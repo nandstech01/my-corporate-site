@@ -276,7 +276,7 @@ export default function MCPContactSection() {
                   </svg>
                   <div>
                     <div className="font-medium text-gray-900">電話番号</div>
-                    <div className="text-gray-600">0120-558-551</div>
+                    <div className="text-gray-600">0120-407-638</div>
                   </div>
                 </div>
 

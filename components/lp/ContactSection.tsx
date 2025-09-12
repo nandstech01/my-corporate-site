@@ -296,7 +296,7 @@ export default function ContactSection() {
                 </h3>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-amber-400 mb-2">
-                    0120-558-551
+                    0120-407-638
                   </div>
                   <p className="text-gray-400 text-sm mb-4">
                     平日 9:00〜18:00（土日祝除く）

@@ -105,7 +105,7 @@ const PrivacyPage = () => {
       "@type": "Organization",
       "name": "株式会社エヌアンドエス",
       "url": "https://nands.tech",
-      "telephone": "0120-558-551",
+      "telephone": "0120-407-638",
       "email": "contact@nands.tech",
       "address": {
         "@type": "PostalAddress",
@@ -280,7 +280,7 @@ const PrivacyPage = () => {
                       <div className="space-y-3 text-slate-700">
                         <p><strong>会社名：</strong>株式会社エヌアンドエス</p>
                         <p><strong>住所：</strong>〒520-0025<br />滋賀県大津市皇子が丘２丁目10−25−3004号</p>
-                        <p><strong>電話：</strong><a href="tel:0120-558-551" className="text-blue-600 hover:underline">0120-558-551</a></p>
+                        <p><strong>電話：</strong><a href="tel:0120-407-638" className="text-blue-600 hover:underline">0120-407-638</a></p>
                         <p><strong>メール：</strong><a href="mailto:contact@nands.tech" className="text-blue-600 hover:underline">contact@nands.tech</a></p>
                       </div>
                     </div>
@@ -310,10 +310,10 @@ const PrivacyPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="tel:0120-558-551"
+                href="tel:0120-407-638"
                 className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-colors"
               >
-                📞 0120-558-551
+                📞 0120-407-638
               </a>
               <a 
                 href="mailto:contact@nands.tech"

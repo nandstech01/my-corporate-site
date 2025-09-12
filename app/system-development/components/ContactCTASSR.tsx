@@ -199,7 +199,7 @@ export default function ContactCTASSR() {
                 href="tel:+81-120-558-551"
                 className="px-6 py-3 bg-white/20 border border-white/30 text-white font-bold hover:bg-white/30 transition-all duration-300"
               >
-                📞 0120-558-551
+                📞 0120-407-638
               </a>
               <a
                 href="mailto:contact@nands.tech"

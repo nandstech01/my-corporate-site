@@ -234,8 +234,8 @@ export default function AIOContactSectionSSR() {
                 AI検索結果で順位急落・ペナルティを受けた場合の緊急対応も承ります
               </p>
               <div className="space-y-2">
-                <a href="tel:+81-120-558-551" className="block text-red-600 font-semibold hover:text-red-800">
-                                  📞 0120-558-551（緊急対応）
+                                  <a href="tel:+81-120-407-638" className="block text-red-600 font-semibold hover:text-red-800">
+                                  📞 0120-407-638（緊急対応）
                 </a>
                 <a href="mailto:contact@nands.tech" className="block text-red-600 font-semibold hover:text-red-800">
                 📧 contact@nands.tech

@@ -344,7 +344,7 @@ export default async function Home() {
         "contactPoint": [
           {
         "@type": "ContactPoint",
-        "telephone": "0120-558-551",
+        "telephone": "0120-407-638",
         "contactType": "customer service",
             "email": "contact@nands.tech",
             "availableLanguage": ["Japanese", "English"],

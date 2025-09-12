@@ -1267,7 +1267,7 @@ const AboutPage = () => {
                   label: "お問い合わせ",
                   contacts: [
                     { type: "メール", value: "contact@nands.tech" },
-                    { type: "電話", value: "0120-558-551" }
+                    { type: "電話", value: "0120-407-638" }
                   ]
                 }
               ].map((item, index) => (

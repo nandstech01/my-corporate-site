@@ -434,7 +434,7 @@ export default function BlogContent() {
                 <h4 className="text-xl font-bold text-gray-900 mb-2">
                   お電話でのご相談
                 </h4>
-                <p className="blog-contact-value">0120-558-551</p>
+                <p className="blog-contact-value">0120-407-638</p>
               </a>
 
               {/* LINE相談 */}

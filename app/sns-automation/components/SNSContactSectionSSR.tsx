@@ -401,7 +401,7 @@ export default function SNSContactSectionSSR() {
                     </div>
                     <div>
                       <h4 className="text-white font-semibold mb-1">電話</h4>
-                      <p className="text-gray-300">0120-558-551</p>
+                      <p className="text-gray-300">0120-407-638</p>
                       <p className="text-sm text-gray-400 mt-1">SNS専用ライン 平日 9:00-18:00</p>
                     </div>
                   </div>
@@ -516,7 +516,7 @@ export default function SNSContactSectionSSR() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               <div className="bg-gray-800 p-6 rounded border">
                 <h4 className="font-semibold mb-2">お電話でのご相談</h4>
-                <p className="text-purple-400 text-lg font-bold">0120-558-551</p>
+                <p className="text-purple-400 text-lg font-bold">0120-407-638</p>
                 <p className="text-sm">SNS専用ライン 平日 9:00-18:00</p>
               </div>
               <div className="bg-gray-800 p-6 rounded border">

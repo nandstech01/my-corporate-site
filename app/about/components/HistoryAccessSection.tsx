@@ -108,7 +108,7 @@ export default function HistoryAccessSection() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-black/30 border border-cyan-400/30 rounded-lg p-6">
                 <h4 className="text-lg font-bold text-cyan-300 mb-3">電話</h4>
-                <p className="text-cyan-100">0120-558-551</p>
+                <p className="text-cyan-100">0120-407-638</p>
               </div>
               
               <div className="bg-black/30 border border-cyan-400/30 rounded-lg p-6">

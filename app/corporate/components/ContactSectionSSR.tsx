@@ -406,8 +406,8 @@ export default function ContactSectionSSR() {
                   競合他社に遅れを取る前に、迅速なAI導入で競争優位を確保します
                 </p>
                 <div className="space-y-2">
-                  <a href="tel:+81-120-558-551" className="block text-red-300 font-semibold hover:text-red-100 transition-colors">
-                    📞 0120-558-551（緊急対応）
+                                      <a href="tel:+81-120-407-638" className="block text-red-300 font-semibold hover:text-red-100 transition-colors">
+                    📞 0120-407-638（緊急対応）
                   </a>
                   <a href="mailto:contact@nands.tech" className="block text-red-300 font-semibold hover:text-red-100 transition-colors">
                     📧 contact@nands.tech
@@ -509,7 +509,7 @@ export default function ContactSectionSSR() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               <div className="bg-white/10 p-6 rounded border">
                 <h4 className="font-semibold mb-2">お電話でのご相談</h4>
-                <p className="text-blue-300 text-lg font-bold">0120-558-551</p>
+                <p className="text-blue-300 text-lg font-bold">0120-407-638</p>
                 <p className="text-sm">平日 9:00-18:00</p>
               </div>
               <div className="bg-white/10 p-6 rounded border">

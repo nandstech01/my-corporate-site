@@ -40,7 +40,7 @@ const commercialTransactionInfo = {
   companyName: "株式会社エヌアンドエス",
   representative: "原田 賢治",
   address: "〒520-0025 滋賀県大津市皇子が丘２丁目10−25−3004号",
-  phone: "0120-558-551",
+      phone: "0120-407-638",
   email: "contact@nands.tech",
   businessHours: "平日 10:00～19:00（土日祝日を除く）",
   website: "https://nands.tech"
@@ -91,7 +91,7 @@ const LegalPage = () => {
       "@type": "Organization",
       "name": "株式会社エヌアンドエス",
       "url": "https://nands.tech",
-      "telephone": "0120-558-551",
+      "telephone": "0120-407-638",
       "email": "contact@nands.tech",
       "address": {
         "@type": "PostalAddress",
@@ -273,7 +273,7 @@ const LegalPage = () => {
                     <div>
                       <h4 className="text-lg font-bold text-slate-800 mb-4">内部通報窓口</h4>
                       <div className="space-y-3 text-slate-700">
-                        <p><strong>電話：</strong><a href="tel:0120-558-551" className="text-blue-600 hover:underline">0120-558-551</a></p>
+                        <p><strong>電話：</strong><a href="tel:0120-407-638" className="text-blue-600 hover:underline">0120-407-638</a></p>
                         <p><strong>メール：</strong><a href="mailto:contact@nands.tech" className="text-blue-600 hover:underline">contact@nands.tech</a></p>
                         <p><strong>郵送：</strong>〒520-0025<br />滋賀県大津市皇子が丘２丁目10−25−3004号<br />株式会社エヌアンドエス コンプライアンス窓口 宛</p>
                       </div>
@@ -315,10 +315,10 @@ const LegalPage = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <a 
-                href="tel:0120-558-551"
+                href="tel:0120-407-638"
                 className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-colors"
               >
-                📞 0120-558-551
+                📞 0120-407-638
               </a>
               <a 
                 href="mailto:contact@nands.tech"

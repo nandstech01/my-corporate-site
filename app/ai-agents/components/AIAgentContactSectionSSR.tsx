@@ -240,8 +240,8 @@ export default function AIAgentContactSectionSSR() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-600">お電話でのお問い合わせ</p>
-                    <a href="tel:+81-120-558-551" className="text-lg font-semibold text-blue-600 hover:text-blue-800">
-                      0120-558-551
+                                          <a href="tel:+81-120-407-638" className="text-lg font-semibold text-blue-600 hover:text-blue-800">
+                      0120-407-638
                     </a>
                   </div>
                 </div>

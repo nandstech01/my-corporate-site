@@ -105,7 +105,7 @@ export class UnifiedStructuredDataSystem {
       },
       "contactPoint": {
         "@type": "ContactPoint",
-        "telephone": "0120-558-551",
+        "telephone": "0120-407-638",
         "contactType": "customer service",
         "availableLanguage": ["Japanese"],
         "areaServed": ["JP", "関西地方", "滋賀県", "大津市"]

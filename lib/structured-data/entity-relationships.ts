@@ -1196,7 +1196,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       'SNSコンサル事業',
       'メディア運営事業',
       'contact@nands.tech',
-      '0120-558-551',
+      '0120-407-638',
       '寄り添い続ける！',
       '代表メッセージ',
       'テクノロジーの進化と人間味のあるサポート'
@@ -1245,7 +1245,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
       'リスキリング・企業情報',
       '無料相談・お問い合わせ',
       'contact@nands.tech',
-      '0120-558-551'
+      '0120-407-638'
     ],
     relatedTo: [
       'https://nands.tech/about#company-message',

@@ -24,7 +24,7 @@ const Access: React.FC<AccessProps> = ({ animations }) => {
 
   const contact = [
     { label: "メール", value: "contact@nands.tech" },
-    { label: "電話", value: "0120-558-551" }
+    { label: "電話", value: "0120-407-638" }
   ];
 
   return (

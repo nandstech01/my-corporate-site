@@ -107,7 +107,7 @@ const ABOUT_PAGE_CONTENT = {
     営業時間: 平日 9:00-18:00
     
     お問い合わせ:
-    電話: 0120-558-551
+    電話: 0120-407-638
     メール: contact@nands.tech
     Web: https://nands.tech`,
     completeURI: 'https://nands.tech/about#history-access'

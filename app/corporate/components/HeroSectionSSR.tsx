@@ -336,7 +336,7 @@ export default function HeroSectionSSR() {
               ))}
             </div>
             <p className="mt-6">
-              お問い合わせ: <a href="tel:+81-120-558-551" className="text-blue-300 underline">0120-558-551</a> |
+              お問い合わせ: <a href="tel:+81-120-407-638" className="text-blue-300 underline">0120-407-638</a> |
             <a href="mailto:contact@nands.tech" className="text-blue-300 underline ml-2">contact@nands.tech</a>
             </p>
           </div>
