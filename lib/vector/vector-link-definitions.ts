@@ -49,7 +49,7 @@ export interface VectorLinkMetadata {
   pagePath: string;
   
   /** コンテンツタイプ */
-  contentType: 'heading' | 'service' | 'faq' | 'author' | 'section';
+  contentType: 'heading' | 'service' | 'faq' | 'author' | 'section' | 'youtube-short';
   
   /** カテゴリ */
   category: string;

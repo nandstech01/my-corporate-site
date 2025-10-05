@@ -24,6 +24,35 @@ interface FragmentVector {
   metadata: any;
   created_at: string;
   updated_at: string;
+  // YouTube Short 固有フィールド（オプション）
+  script_title?: string;
+  script_hook?: string;
+  script_empathy?: string;
+  script_body?: string;
+  script_cta?: string;
+  script_duration_seconds?: number;
+  visual_instructions?: any;
+  text_overlays?: string[];
+  background_music_suggestion?: string;
+  viral_elements?: string[];
+  virality_score?: number;
+  target_emotion?: string;
+  hook_type?: string;
+  youtube_video_id?: string;
+  youtube_url?: string;
+  embed_url?: string;
+  thumbnail_url?: string;
+  duration_seconds?: number;
+  published_at?: string;
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
+  engagement_rate?: number;
+  ai_optimization_score?: number;
+  related_blog_post_id?: number;
+  blog_slug?: string;
+  status?: string;
+  source?: string; // 'fragment_vectors' | 'youtube_shorts'
 }
 
 interface FragmentStats {
@@ -53,7 +82,7 @@ export default function FragmentVectorsPage() {
     try {
       setLoading(true);
 
-      // Fragment Vectorsデータ取得
+      // 1. Fragment Vectorsデータ取得
       const { data: fragmentsData, error: fragmentsError } = await supabase
         .from('fragment_vectors')
         .select('*')
@@ -61,37 +90,99 @@ export default function FragmentVectorsPage() {
 
       if (fragmentsError) {
         console.error('Fragment Vectors取得エラー:', fragmentsError);
-        return;
       }
 
-      setFragments(fragmentsData || []);
+      // 2. YouTube Shortsデータ取得
+      const { data: youtubeShortsData, error: youtubeShortsError } = await supabase
+        .from('company_youtube_shorts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // 統計情報計算
-      if (fragmentsData) {
-        const stats: FragmentStats = {
-          totalFragments: fragmentsData.length,
-          uniquePages: new Set(fragmentsData.map(f => f.page_path)).size,
-          contentTypes: {},
-          categories: {},
-          pageBreakdown: {}
-        };
-
-        fragmentsData.forEach(fragment => {
-          // コンテンツタイプ別集計
-          stats.contentTypes[fragment.content_type] = 
-            (stats.contentTypes[fragment.content_type] || 0) + 1;
-
-          // カテゴリ別集計
-          stats.categories[fragment.category] = 
-            (stats.categories[fragment.category] || 0) + 1;
-
-          // ページ別集計
-          stats.pageBreakdown[fragment.page_path] = 
-            (stats.pageBreakdown[fragment.page_path] || 0) + 1;
-        });
-
-        setStats(stats);
+      if (youtubeShortsError) {
+        console.error('YouTube Shorts取得エラー:', youtubeShortsError);
       }
+
+      // 3. データ統合（Fragment Vectors形式に変換）
+      const allFragments: FragmentVector[] = [
+        ...(fragmentsData || []).map(f => ({ ...f, source: 'fragment_vectors' as const })),
+        ...(youtubeShortsData || []).map(ys => ({
+          id: ys.id,
+          fragment_id: ys.fragment_id,
+          complete_uri: ys.complete_uri,
+          page_path: ys.page_path,
+          content_title: ys.content_title,
+          content: ys.content,
+          content_type: ys.content_type, // 'youtube-short'
+          category: ys.category,
+          semantic_weight: ys.semantic_weight,
+          target_queries: ys.target_queries || [],
+          related_entities: ys.related_entities || [],
+          metadata: ys.metadata || {},
+          created_at: ys.created_at,
+          updated_at: ys.updated_at,
+          // YouTube Short 固有フィールド
+          script_title: ys.script_title,
+          script_hook: ys.script_hook,
+          script_empathy: ys.script_empathy,
+          script_body: ys.script_body,
+          script_cta: ys.script_cta,
+          script_duration_seconds: ys.script_duration_seconds,
+          visual_instructions: ys.visual_instructions,
+          text_overlays: ys.text_overlays,
+          background_music_suggestion: ys.background_music_suggestion,
+          viral_elements: ys.viral_elements,
+          virality_score: ys.virality_score,
+          target_emotion: ys.target_emotion,
+          hook_type: ys.hook_type,
+          youtube_video_id: ys.video_id,
+          youtube_url: ys.video_url,
+          embed_url: ys.embed_url,
+          thumbnail_url: ys.thumbnail_url,
+          duration_seconds: ys.duration_seconds,
+          published_at: ys.published_at,
+          view_count: ys.view_count,
+          like_count: ys.like_count,
+          comment_count: ys.comment_count,
+          engagement_rate: ys.engagement_rate,
+          ai_optimization_score: ys.ai_optimization_score,
+          related_blog_post_id: ys.related_blog_post_id,
+          blog_slug: ys.blog_slug,
+          status: ys.status,
+          source: 'youtube_shorts' as const
+        }))
+      ];
+
+      setFragments(allFragments);
+
+      // 4. 統計情報計算（統合データから）
+      const stats: FragmentStats = {
+        totalFragments: allFragments.length,
+        uniquePages: new Set(allFragments.map(f => f.page_path)).size,
+        contentTypes: {},
+        categories: {},
+        pageBreakdown: {}
+      };
+
+      allFragments.forEach(fragment => {
+        // コンテンツタイプ別集計
+        stats.contentTypes[fragment.content_type] = 
+          (stats.contentTypes[fragment.content_type] || 0) + 1;
+
+        // カテゴリ別集計
+        stats.categories[fragment.category] = 
+          (stats.categories[fragment.category] || 0) + 1;
+
+        // ページ別集計
+        stats.pageBreakdown[fragment.page_path] = 
+          (stats.pageBreakdown[fragment.page_path] || 0) + 1;
+      });
+
+      setStats(stats);
+
+      console.log('✅ Fragment Vectors読み込み完了');
+      console.log(`  - Fragment Vectors: ${fragmentsData?.length || 0}件`);
+      console.log(`  - YouTube Shorts: ${youtubeShortsData?.length || 0}件`);
+      console.log(`  - 総計: ${allFragments.length}件`);
 
     } catch (error) {
       console.error('データ読み込みエラー:', error);
@@ -302,7 +393,12 @@ export default function FragmentVectorsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        fragment.content_type === 'youtube-short' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {fragment.content_type === 'youtube-short' ? '🎬 ' : ''}
                         {fragment.content_type}
                       </span>
                     </td>
@@ -355,6 +451,17 @@ export default function FragmentVectorsPage() {
               </div>
               
               <div className="space-y-4">
+                {/* タイプバッジ */}
+                {selectedFragment.content_type === 'youtube-short' && (
+                  <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 mb-4">
+                    <h4 className="text-red-400 font-bold text-lg mb-2">🎬 YouTubeショート動画台本</h4>
+                    <div className="text-sm text-gray-300">
+                      ベクトルリンク資産化されたYouTubeショート動画の台本です。
+                      Fragment IDを通じてAI検索エンジンで引用可能です。
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Fragment ID</label>
                   <code className="block bg-gray-700 p-2 rounded text-cyan-400">
@@ -381,12 +488,129 @@ export default function FragmentVectorsPage() {
                   </div>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">コンテンツ内容</label>
-                  <div className="bg-gray-700 p-3 rounded text-gray-200 max-h-40 overflow-y-auto">
-                    {selectedFragment.content}
+                {/* YouTube Short固有: 4フェーズ台本 */}
+                {selectedFragment.content_type === 'youtube-short' && (
+                  <div className="space-y-3 bg-gray-900/50 p-4 rounded-lg">
+                    <h4 className="text-lg font-bold text-yellow-400 mb-3">📝 4フェーズ台本構造</h4>
+                    
+                    <div className="bg-red-900/20 border-l-4 border-red-500 p-3 rounded">
+                      <div className="text-red-400 font-bold text-sm mb-1">⚡ フェーズ1: フック（0-2秒）</div>
+                      <div className="text-gray-200">{selectedFragment.script_hook}</div>
+                      {selectedFragment.hook_type && (
+                        <div className="text-xs text-gray-400 mt-1">タイプ: {selectedFragment.hook_type}</div>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded">
+                      <div className="text-blue-400 font-bold text-sm mb-1">🤝 フェーズ2: 共感（3-5秒）</div>
+                      <div className="text-gray-200">{selectedFragment.script_empathy}</div>
+                    </div>
+
+                    <div className="bg-green-900/20 border-l-4 border-green-500 p-3 rounded">
+                      <div className="text-green-400 font-bold text-sm mb-1">💡 フェーズ3: 本題（5-20秒）</div>
+                      <div className="text-gray-200">{selectedFragment.script_body}</div>
+                    </div>
+
+                    <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-3 rounded">
+                      <div className="text-yellow-400 font-bold text-sm mb-1">🎯 フェーズ4: CTA（ラスト5秒）</div>
+                      <div className="text-gray-200">{selectedFragment.script_cta}</div>
+                    </div>
+
+                    {/* バズ要素 */}
+                    {selectedFragment.viral_elements && selectedFragment.viral_elements.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-sm font-medium text-gray-300 mb-2">🔥 バズる要素</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedFragment.viral_elements.map((element, index) => (
+                            <span key={index} className="bg-orange-600/20 px-3 py-1 rounded text-orange-400 text-sm">
+                              {element}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ターゲット感情 */}
+                    {selectedFragment.target_emotion && (
+                      <div className="mt-2">
+                        <span className="text-sm text-gray-400">ターゲット感情: </span>
+                        <span className="bg-purple-600/20 px-3 py-1 rounded text-purple-400 text-sm">
+                          {selectedFragment.target_emotion}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
+
+                {/* YouTube投稿情報 */}
+                {selectedFragment.content_type === 'youtube-short' && selectedFragment.youtube_video_id && (
+                  <div className="bg-gray-900/50 p-4 rounded-lg">
+                    <h4 className="text-lg font-bold text-red-400 mb-3">📺 YouTube投稿情報</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-gray-400">動画ID: </span>
+                        <code className="text-cyan-400">{selectedFragment.youtube_video_id}</code>
+                      </div>
+                      {selectedFragment.youtube_url && (
+                        <div>
+                          <a 
+                            href={selectedFragment.youtube_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:text-blue-300 text-sm"
+                          >
+                            {selectedFragment.youtube_url}
+                          </a>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div className="bg-gray-700/50 p-2 rounded text-center">
+                          <div className="text-2xl font-bold text-green-400">
+                            {selectedFragment.view_count?.toLocaleString() || '0'}
+                          </div>
+                          <div className="text-xs text-gray-400">再生回数</div>
+                        </div>
+                        <div className="bg-gray-700/50 p-2 rounded text-center">
+                          <div className="text-2xl font-bold text-pink-400">
+                            {selectedFragment.like_count?.toLocaleString() || '0'}
+                          </div>
+                          <div className="text-xs text-gray-400">いいね</div>
+                        </div>
+                        <div className="bg-gray-700/50 p-2 rounded text-center">
+                          <div className="text-2xl font-bold text-yellow-400">
+                            {selectedFragment.engagement_rate ? `${(selectedFragment.engagement_rate * 100).toFixed(2)}%` : '0%'}
+                          </div>
+                          <div className="text-xs text-gray-400">エンゲージメント率</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 関連ブログ記事 */}
+                {selectedFragment.content_type === 'youtube-short' && selectedFragment.blog_slug && (
+                  <div className="bg-blue-900/20 border border-blue-700/30 p-3 rounded">
+                    <div className="text-sm font-medium text-blue-400 mb-2">📝 関連ブログ記事</div>
+                    <a 
+                      href={`https://nands.tech/posts/${selectedFragment.blog_slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      /posts/{selectedFragment.blog_slug}
+                    </a>
+                  </div>
+                )}
+
+                {/* 通常のコンテンツ内容（YouTube Short以外） */}
+                {selectedFragment.content_type !== 'youtube-short' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">コンテンツ内容</label>
+                    <div className="bg-gray-700 p-3 rounded text-gray-200 max-h-40 overflow-y-auto">
+                      {selectedFragment.content}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
