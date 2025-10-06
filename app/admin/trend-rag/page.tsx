@@ -57,6 +57,11 @@ export default function TrendRagPage() {
   const [apiStatus, setApiStatus] = useState<string>('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  
+  // 🔥 YouTubeトレンド分析
+  const [trendKeywords, setTrendKeywords] = useState<any[]>([]);
+  const [trendAnalysisLoading, setTrendAnalysisLoading] = useState(false);
+  const [showTrendKeywords, setShowTrendKeywords] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -100,6 +105,90 @@ export default function TrendRagPage() {
       fetchStats();
     }
   }, [user, authLoading]);
+
+  // 🔥 YouTubeトレンド分析（24時間以内）
+  const analyzeYouTubeTrends = async () => {
+    setTrendAnalysisLoading(true);
+    setShowTrendKeywords(false);
+    
+    try {
+      console.log('🔥 YouTubeトレンド分析開始（過去24時間）...');
+      
+      const response = await fetch('/api/admin/analyze-youtube-trends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error('トレンド分析API呼び出しに失敗しました');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.keywords) {
+        setTrendKeywords(result.keywords);
+        setShowTrendKeywords(true);
+        console.log(`✅ トレンドキーワード取得: ${result.keywords.length}件`);
+        alert(`🔥 ${result.keywords.length}個のトレンドキーワードを抽出しました！\n（過去24時間のAI関連YouTube動画から抽出）\nクリックして自動的にニュース検索・ベクトル化が実行されます。`);
+      } else {
+        throw new Error(result.error || 'トレンド分析に失敗しました');
+      }
+    } catch (error) {
+      console.error('YouTube trend analysis error:', error);
+      alert(`トレンド分析でエラーが発生しました: ${(error as Error).message}`);
+    } finally {
+      setTrendAnalysisLoading(false);
+    }
+  };
+
+  // キーワード選択 → 自動検索 → 自動ベクトル化
+  const handleTrendKeywordSelect = async (keyword: string) => {
+    setSearchQuery(keyword);
+    setShowTrendKeywords(false);
+    
+    // 自動的にニュース検索を実行
+    setLoading(true);
+    setNewsItems([]);
+    setApiStatus('');
+    
+    try {
+      console.log(`🔍 選択されたキーワード「${keyword}」でBrave Search実行...`);
+      
+      const response = await fetch('/api/brave-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: keyword,
+          type: 'news'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.results) {
+        setNewsItems(data.results);
+        setApiStatus(`✅ 成功: ${data.total}件のニュースを取得 → 自動ベクトル化開始...`);
+        console.log(`✅ ${data.total}件のニュースを取得 → 自動ベクトル化開始`);
+        
+        // 自動的にベクトル化を実行
+        await vectorizeNews(data.results);
+        
+        // 統計情報を更新
+        await fetchStats();
+        
+        setApiStatus(`✅ 完了: ${data.total}件のニュースをベクトル化しました`);
+      } else {
+        setApiStatus(`❌ エラー: ${data.error}`);
+        console.error('Brave Search API エラー:', data);
+      }
+
+    } catch (error) {
+      console.error('自動検索・ベクトル化エラー:', error);
+      setApiStatus(`❌ 接続エラー: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Brave Search APIを使用した実際のニュース検索
   const handleSearch = async () => {
@@ -443,6 +532,80 @@ export default function TrendRagPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* 🔥 YouTubeトレンド分析セクション */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 rounded-xl p-6 border-2 border-red-500">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-white">
+              <svg className="h-6 w-6 mr-2 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              YouTubeトレンド自動抽出（AI関連）
+            </h2>
+            <p className="text-gray-300 text-sm mb-4">
+              過去24時間のAI関連YouTube動画から人気キーワードを自動抽出し、Brave Searchでニュース検索・ベクトル化まで自動実行
+            </p>
+            <button
+              onClick={analyzeYouTubeTrends}
+              disabled={trendAnalysisLoading || loading}
+              className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {trendAnalysisLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  YouTubeトレンド分析中...
+                </>
+              ) : (
+                <>🔥 YouTubeトレンド自動抽出</>
+              )}
+            </button>
+            
+            {/* 抽出されたトレンドキーワード表示 */}
+            {showTrendKeywords && trendKeywords.length > 0 && (
+              <div className="mt-6 bg-gray-900 rounded-lg p-4 border border-red-500">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.5 2c-5.629 0-10.212 4.436-10.475 10h-.025v12h21v-12h-.025c-.263-5.564-4.846-10-10.475-10zm7.5 20h-15v-8h15v8zm-15-10c.313-4.424 4.031-8 8.5-8s8.187 3.576 8.5 8h-17zm8.5 0c0 1.33.632 2.51 1.609 3.268-.59 1.07-1.609 1.732-2.609 1.732s-2.019-.662-2.609-1.732c.977-.758 1.609-1.938 1.609-3.268z"/>
+                  </svg>
+                  <h4 className="font-bold text-white">🔥 トレンドキーワード（再生回数順）</h4>
+                  <span className="ml-auto px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                    {trendKeywords.length}件
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 mb-3">
+                  クリックで自動的にニュース検索 → ベクトル化が実行されます
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {trendKeywords.map((keyword, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleTrendKeywordSelect(keyword.keyword)}
+                      disabled={loading}
+                      className="group px-3 py-2 bg-gray-800 hover:bg-gradient-to-r hover:from-red-600 hover:to-orange-600 border border-red-400 hover:border-red-300 rounded-lg transition-all duration-300 text-left disabled:opacity-50"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-white text-sm group-hover:text-white truncate">
+                            {index + 1}. {keyword.keyword}
+                          </p>
+                          <p className="text-xs text-gray-400 group-hover:text-gray-200">
+                            📺 {keyword.videoCount}本 | 👁️ {keyword.viewCount.toLocaleString()}回
+                          </p>
+                        </div>
+                        <svg className="w-4 h-4 text-red-400 group-hover:text-white opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 検索セクション */}

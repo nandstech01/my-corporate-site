@@ -275,6 +275,7 @@ export default function ContentGenerationPage() {
   const [keywordSuggestions, setKeywordSuggestions] = useState<string[]>([]);
   const [showKeywordSuggestions, setShowKeywordSuggestions] = useState(false);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  
 
   // キーワード候補の更新
   const updateKeywordSuggestions = (query: string) => {
