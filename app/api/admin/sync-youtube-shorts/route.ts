@@ -317,7 +317,7 @@ function generateTargetQueries(video: YouTubeShortInfo): string[] {
   });
 
   // 重複除去して最大10件
-  return [...new Set(queries)].slice(0, 10);
+  return Array.from(new Set(queries)).slice(0, 10);
 }
 
 /**
@@ -338,7 +338,7 @@ function extractEntities(video: YouTubeShortInfo): string[] {
   });
 
   // 重複除去
-  return [...new Set(entities)];
+  return Array.from(new Set(entities));
 }
 
 /**

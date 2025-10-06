@@ -226,7 +226,7 @@ function calculateContentQuality(source: TrendSource): {
   if (hasKeywords) score += 30;
   
   // 有効なURL
-  const hasValidURL = source.url && source.url.startsWith('http');
+  const hasValidURL = !!(source.url && source.url.startsWith('http'));
   if (hasValidURL) score += 15;
   
   // 公開日付あり
