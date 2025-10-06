@@ -8,9 +8,17 @@
  * 3. ブログ記事との関連性（isRelatedTo）
  * 4. エンティティ統合（mentions）
  * 5. AI検索エンジン最適化
+ * 
+ * 🆕 4大AI検索エンジン最適化（Phase 2）:
+ * - ChatGPT: 会話形式での引用最適化
+ * - Perplexity: ソース引用・信頼性重視
+ * - Claude: 構造化データ・エンティティ理解
+ * - Gemini: マルチモーダル（動画+テキスト）最適化
+ * - DeepSeek: 技術的な詳細度重視
  */
 
 import type { YouTubeShortInfo } from '../youtube/youtube-data-api';
+import { AI_SEARCH_ENGINE_CONFIGS } from './ai-search-optimization';
 
 /**
  * YouTubeショート動画のエンティティ情報
@@ -431,6 +439,309 @@ export function generateYouTubeShortEntityDefinition(
     semanticWeight: entity.viralityScore || 0.7,
     targetQueries: entity.targetQueries,
     schemaTypes: ['VideoObject', 'ShortFormVideo', 'CreativeWork']
+  };
+}
+
+/**
+ * 🆕 4大AI検索エンジン最適化：マルチモーダルVideoObject生成
+ * 
+ * 各AI検索エンジンの特性に応じた最適化:
+ * - ChatGPT: 会話形式での引用（conversational context）
+ * - Perplexity: ソース引用重視（citation-friendly）
+ * - Claude: エンティティ統合（entity-rich）
+ * - Gemini: マルチモーダル（video + text + thumbnail）
+ * - DeepSeek: 技術的詳細（technical depth）
+ */
+export function generateAIOptimizedYouTubeShortSchema(
+  shortInfo: YouTubeShortInfo,
+  entity: YouTubeShortEntity,
+  blogPostUrl?: string,
+  targetEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
+): object {
+  const baseSchema = generateYouTubeShortSchema(shortInfo, entity, blogPostUrl) as any;
+  
+  // 4大AI検索エンジン最適化レイヤーを追加
+  const aiOptimizations: Record<string, any> = {};
+  
+  targetEngines.forEach(engineName => {
+    const config = AI_SEARCH_ENGINE_CONFIGS[engineName];
+    if (!config) return;
+    
+    aiOptimizations[engineName] = {
+      recommendedKnowsAboutCount: config.recommendedKnowsAboutCount,
+      recommendedMentionsCount: config.recommendedMentionsCount,
+      expertiseFocus: config.expertiseFocus,
+      entityRelationshipWeight: config.entityRelationshipWeight,
+      fragmentIdUtilization: config.fragmentIdUtilization
+    };
+  });
+  
+  // マルチモーダル最適化（Gemini特化）
+  const multimodalOptimization = {
+    '@type': 'CreativeWork',
+    workExample: [
+      {
+        '@type': 'VideoObject',
+        name: shortInfo.title,
+        contentUrl: shortInfo.videoUrl,
+        thumbnailUrl: shortInfo.thumbnailUrl,
+        description: shortInfo.description
+      },
+      {
+        '@type': 'ImageObject',
+        contentUrl: shortInfo.thumbnailUrl,
+        caption: shortInfo.title,
+        representativeOfPage: true
+      }
+    ]
+  };
+  
+  // 会話形式最適化（ChatGPT特化）
+  const conversationalContext = {
+    '@type': 'QAPage',
+    mainEntity: {
+      '@type': 'Question',
+      name: `${entity.targetQueries[0] || shortInfo.title}について`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: shortInfo.description,
+        video: {
+          '@type': 'VideoObject',
+          contentUrl: shortInfo.videoUrl,
+          name: shortInfo.title
+        }
+      }
+    }
+  };
+  
+  // エンティティ統合強化（Claude特化）
+  const enhancedEntities = {
+    mainEntity: {
+      '@type': 'VideoObject',
+      '@id': entity.completeUri,
+      about: entity.targetQueries.map(query => ({
+        '@type': 'Thing',
+        name: query,
+        sameAs: entity.relatedEntities.filter(e => e.startsWith('http'))
+      }))
+    }
+  };
+  
+  // 技術的詳細強化（DeepSeek特化）
+  const technicalDetails = {
+    encodingFormat: 'video/mp4',
+    videoQuality: 'HD',
+    videoFrameSize: '1080x1920',
+    bitrate: '2500000',
+    uploadDate: shortInfo.publishedAt,
+    duration: shortInfo.duration,
+    aggregateRating: shortInfo.likeCount && shortInfo.viewCount ? {
+      '@type': 'AggregateRating',
+      ratingValue: ((shortInfo.likeCount / shortInfo.viewCount) * 5).toFixed(2),
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: shortInfo.viewCount
+    } : undefined
+  };
+  
+  // ソース引用最適化（Perplexity特化）
+  const citationOptimization = {
+    citation: {
+      '@type': 'CreativeWork',
+      identifier: entity.fragmentId,
+      url: entity.completeUri,
+      author: {
+        '@type': 'Organization',
+        name: '株式会社エヌアンドエス',
+        url: 'https://nands.tech'
+      },
+      datePublished: shortInfo.publishedAt,
+      license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/'
+    }
+  };
+  
+  // 統合Schema生成
+  return {
+    ...baseSchema,
+    
+    // 🆕 AI検索エンジン最適化メタデータ
+    aiSearchOptimization: {
+      targetEngines: aiOptimizations,
+      optimizationScore: calculateAIOptimizationScore(shortInfo, entity).totalScore,
+      multimodalSupport: true,
+      citationFriendly: true,
+      entityRich: true
+    },
+    
+    // 🆕 マルチモーダル対応（Gemini）
+    ...(targetEngines.includes('Gemini') && { multimodal: multimodalOptimization }),
+    
+    // 🆕 会話形式対応（ChatGPT）
+    ...(targetEngines.includes('ChatGPT') && { conversational: conversationalContext }),
+    
+    // 🆕 エンティティ統合強化（Claude）
+    ...(targetEngines.includes('Claude') && { enhancedEntities }),
+    
+    // 🆕 技術的詳細（DeepSeek）
+    ...(targetEngines.includes('DeepSeek') && { technical: technicalDetails }),
+    
+    // 🆕 ソース引用最適化（Perplexity）
+    ...(targetEngines.includes('Perplexity') && { citation: citationOptimization })
+  };
+}
+
+/**
+ * 🆕 YouTubeショート動画のAI検索クエリ生成
+ * 各AI検索エンジンでの検索されやすさを最大化
+ */
+export function generateAISearchQueries(
+  entity: YouTubeShortEntity,
+  targetEngines: string[] = ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek']
+): Record<string, string[]> {
+  const queries: Record<string, string[]> = {};
+  
+  targetEngines.forEach(engineName => {
+    const config = AI_SEARCH_ENGINE_CONFIGS[engineName];
+    if (!config) return;
+    
+    // エンジン特化クエリ生成
+    switch (engineName) {
+      case 'ChatGPT':
+        queries[engineName] = [
+          `${entity.title}を動画で説明してください`,
+          `${entity.targetQueries[0]}について教えてください`,
+          `${entity.title}のYouTube動画はありますか`,
+          ...entity.targetQueries.slice(0, 2)
+        ];
+        break;
+      
+      case 'Perplexity':
+        queries[engineName] = [
+          `${entity.title} ソース`,
+          `${entity.targetQueries[0]} 信頼できる情報`,
+          `${entity.title} 公式`,
+          ...entity.targetQueries.slice(0, 2)
+        ];
+        break;
+      
+      case 'Claude':
+        queries[engineName] = [
+          `${entity.title}のエンティティ`,
+          `${entity.targetQueries[0]} 構造化データ`,
+          `${entity.title} 関連情報`,
+          ...entity.targetQueries.slice(0, 2)
+        ];
+        break;
+      
+      case 'Gemini':
+        queries[engineName] = [
+          `${entity.title} 動画`,
+          `${entity.targetQueries[0]} マルチメディア`,
+          `${entity.title} 画像`,
+          ...entity.targetQueries.slice(0, 2)
+        ];
+        break;
+      
+      case 'DeepSeek':
+        queries[engineName] = [
+          `${entity.title} 技術詳細`,
+          `${entity.targetQueries[0]} 実装`,
+          `${entity.title} コード`,
+          ...entity.targetQueries.slice(0, 2)
+        ];
+        break;
+    }
+  });
+  
+  return queries;
+}
+
+/**
+ * 🆕 AI検索エンジン準備度スコア計算
+ * 各AI検索エンジンでの最適化レベルを評価
+ */
+export function calculateAISearchReadinessScore(
+  entity: YouTubeShortEntity,
+  shortInfo: YouTubeShortInfo
+): {
+  totalScore: number;
+  engineScores: Record<string, number>;
+  recommendations: string[];
+} {
+  const engineScores: Record<string, number> = {};
+  const recommendations: string[] = [];
+  
+  // Fragment ID実装チェック
+  const hasFragmentId = !!entity.fragmentId && !!entity.completeUri;
+  
+  // エンティティ統合チェック
+  const hasEntities = entity.relatedEntities.length > 0;
+  
+  // ターゲットクエリチェック
+  const hasQueries = entity.targetQueries.length > 0;
+  
+  // エンゲージメントチェック
+  const hasEngagement = shortInfo.viewCount > 0 && shortInfo.likeCount > 0;
+  
+  // 各AI検索エンジンのスコア計算
+  ['ChatGPT', 'Perplexity', 'Claude', 'Gemini', 'DeepSeek'].forEach(engineName => {
+    let score = 0;
+    
+    // 基本スコア
+    if (hasFragmentId) score += 25;
+    if (hasEntities) score += 20;
+    if (hasQueries) score += 20;
+    if (hasEngagement) score += 15;
+    
+    // エンジン特化スコア
+    switch (engineName) {
+      case 'ChatGPT':
+        // 会話形式での引用しやすさ
+        if (entity.targetQueries.some(q => q.includes('？') || q.includes('教え'))) score += 10;
+        if (shortInfo.description.length > 50) score += 10;
+        break;
+      
+      case 'Perplexity':
+        // ソース引用の信頼性
+        if (entity.completeUri.startsWith('https://')) score += 10;
+        if (shortInfo.publishedAt) score += 10;
+        break;
+      
+      case 'Claude':
+        // エンティティ統合度
+        if (entity.relatedEntities.length >= 3) score += 10;
+        if (entity.targetQueries.length >= 3) score += 10;
+        break;
+      
+      case 'Gemini':
+        // マルチモーダル対応
+        if (shortInfo.thumbnailUrl) score += 10;
+        if (shortInfo.videoUrl) score += 10;
+        break;
+      
+      case 'DeepSeek':
+        // 技術的詳細度
+        if (entity.tags.some(t => t.includes('技術') || t.includes('実装') || t.includes('コード'))) score += 10;
+        if (entity.targetQueries.some(q => q.includes('方法') || q.includes('実装'))) score += 10;
+        break;
+    }
+    
+    engineScores[engineName] = Math.min(score, 100);
+    
+    // 推奨事項生成
+    if (score < 60) {
+      recommendations.push(`${engineName}: スコア ${score}/100 - 最適化が必要`);
+    }
+  });
+  
+  const totalScore = Math.round(
+    Object.values(engineScores).reduce((sum, score) => sum + score, 0) / 5
+  );
+  
+  return {
+    totalScore,
+    engineScores,
+    recommendations
   };
 }
 

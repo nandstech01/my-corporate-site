@@ -44,6 +44,9 @@ import { UnifiedStructuredDataSystem } from '@/lib/structured-data'
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system'
 import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema'
 import { HARADA_KENJI_PROFILE } from '@/lib/structured-data/author-trust-system'
+// 🆕 YouTubeショート動画4大AI検索エンジン最適化
+import { generateAIOptimizedYouTubeShortSchema, type YouTubeShortEntity } from '@/lib/structured-data/youtube-short-schema'
+import type { YouTubeShortInfo } from '@/lib/youtube/youtube-data-api'
 
 // BreadcrumbItemの型定義
 interface BreadcrumbItem {
@@ -332,19 +335,82 @@ export default async function PostPage({ params }: PageProps) {
   
   // 🎬 YouTube動画情報を取得（youtube_script_idがある場合）
   let youtubeScript: YouTubeScriptInfo | null = null
+  let youtubeAIOptimizedSchema: any = null // 🆕 4大AI検索エンジン最適化Schema
+  
   if (post.youtube_script_id) {
     try {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('company_youtube_shorts')
-        .select('id, youtube_video_id, youtube_url, script_title, script_hook, thumbnail_url, embed_url, status')
+        .select('*') // 🆕 全フィールド取得（AI最適化Schema生成用）
         .eq('id', post.youtube_script_id)
         .eq('status', 'published')
         .single()
       
       if (data && !error) {
-        youtubeScript = data as YouTubeScriptInfo
+        // 🆕 表示用の基本情報
+        youtubeScript = {
+          id: data.id,
+          youtube_video_id: data.youtube_video_id,
+          youtube_url: data.youtube_url,
+          script_title: data.script_title,
+          script_hook: data.script_hook,
+          thumbnail_url: data.thumbnail_url,
+          embed_url: data.embed_url,
+          status: data.status
+        } as YouTubeScriptInfo
+        
         console.log('✅ YouTube動画情報取得成功:', youtubeScript.script_title)
+        
+        // 🆕 4大AI検索エンジン最適化Schema生成
+        try {
+          const shortInfo: YouTubeShortInfo = {
+            videoId: data.youtube_video_id || '',
+            title: data.script_title || '',
+            description: data.description || data.content || '',
+            publishedAt: data.published_at || data.created_at,
+            thumbnailUrl: data.thumbnail_url || '',
+            duration: `PT${data.script_duration_seconds || 30}S`,
+            durationSeconds: data.script_duration_seconds || 30,
+            viewCount: data.view_count || 0,
+            likeCount: data.like_count || 0,
+            commentCount: data.comment_count || 0,
+            tags: data.tags || [],
+            videoUrl: data.youtube_url,
+            embedUrl: data.embed_url || `https://www.youtube.com/embed/${data.youtube_video_id}`,
+            shortUrl: data.youtube_url,
+            contentForEmbedding: data.content_for_embedding || data.content || ''
+          }
+          
+          const entity: YouTubeShortEntity = {
+            fragmentId: data.fragment_id || '',
+            completeUri: data.complete_uri || '',
+            videoId: data.youtube_video_id || '',
+            title: data.script_title || '',
+            description: data.description || data.content || '',
+            category: data.category || 'ai-technology',
+            tags: data.tags || [],
+            targetQueries: data.target_queries || [],
+            relatedEntities: data.related_entities || [],
+            relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
+            relatedBlogPostSlug: params.slug,
+            relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
+            viralityScore: data.virality_score,
+            targetEmotion: data.target_emotion,
+            hookType: data.hook_type
+          }
+          
+          youtubeAIOptimizedSchema = generateAIOptimizedYouTubeShortSchema(
+            shortInfo,
+            entity,
+            `https://nands.tech/posts/${params.slug}`
+          )
+          
+          console.log('🎯 YouTube動画の4大AI検索エンジン最適化Schema生成成功')
+        } catch (schemaError) {
+          console.error('⚠️ YouTube Schema生成エラー:', schemaError)
+          // Schemaエラーは無視して表示は続行
+        }
       }
     } catch (error) {
       console.error('⚠️ YouTube動画情報取得エラー:', error)
@@ -686,6 +752,15 @@ export default async function PostPage({ params }: PageProps) {
           id="structured-data-dynamic-faq"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(dynamicBlogSchema) }}
+        />
+      )}
+      
+      {/* 🆕 YouTubeショート動画の4大AI検索エンジン最適化Schema */}
+      {youtubeAIOptimizedSchema && (
+        <Script
+          id="youtube-ai-optimized-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(youtubeAIOptimizedSchema) }}
         />
       )}
 

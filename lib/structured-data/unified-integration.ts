@@ -1,6 +1,7 @@
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合システム
 // フェーズ1-2完成 → フェーズ3: GEO最適化拡張
+// 🆕 フェーズ5: YouTubeショート動画統合（4大AI検索エンジン最適化）
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 // import { getUnifiedSupabaseClient } from '../supabase/unified-client'
@@ -10,6 +11,13 @@ import {
   ORGANIZATION_ENTITY,
   SERVICE_ENTITIES
 } from './entity-relationships'
+// 🆕 YouTubeショート動画統合
+import {
+  generateAIOptimizedYouTubeShortSchema,
+  calculateAISearchReadinessScore,
+  type YouTubeShortEntity
+} from './youtube-short-schema'
+import type { YouTubeShortInfo } from '../youtube/youtube-data-api'
 import { 
   SemanticLinksSystem, 
   type SemanticLink,
@@ -109,6 +117,32 @@ export interface UnifiedPageData {
   };
   authorSchema?: any;
   organizationTrustSchema?: any;
+  
+  // 🆕 Phase 5: YouTubeショート動画統合（4大AI検索エンジン最適化）
+  youtubeShortVideo?: {
+    fragmentId: string;
+    completeUri: string;
+    videoId: string;
+    videoUrl: string;
+    embedUrl: string;
+    thumbnailUrl: string;
+    title: string;
+    description: string;
+    publishedAt: string;
+    viewCount: number;
+    likeCount: number;
+    commentCount: number;
+    tags: string[];
+    targetQueries: string[];
+    relatedEntities: string[];
+    aiOptimizationScore: number;
+    aiSearchReadinessScore?: {
+      totalScore: number;
+      engineScores: Record<string, number>;
+      recommendations: string[];
+    };
+  };
+  youtubeShortSchema?: any; // AI最適化VideoObject Schema
 }
 
 export interface PageContext {
@@ -123,6 +157,8 @@ export interface PageContext {
   // Phase 4: AI検索・Trust Layer対応
   requestHeaders?: Headers;
   currentUrl?: string;
+  // 🆕 Phase 5: YouTubeショート動画統合
+  postId?: number; // ブログ記事ID（YouTubeショート動画取得用）
   enableAISearchDetection?: boolean;
   enableTrustSignals?: boolean;
 }
@@ -374,6 +410,156 @@ export class UnifiedIntegrationSystem {
         }
       }
 
+      // 🆕 Phase 5: YouTubeショート動画統合（4大AI検索エンジン最適化）
+      let youtubeShortVideo: UnifiedPageData['youtubeShortVideo'];
+      let youtubeShortSchema: any;
+      
+      try {
+        if (context.postId) {
+          console.log(`🎬 YouTubeショート動画取得開始: Post ID ${context.postId}`);
+          
+          const { data: youtubeScript, error: youtubeError } = await supabase
+            .from('company_youtube_shorts')
+            .select('*')
+            .eq('related_blog_post_id', context.postId)
+            .eq('status', 'published')
+            .maybeSingle();
+          
+          if (youtubeError) {
+            console.warn('YouTubeショート動画取得エラー:', youtubeError);
+          } else if (youtubeScript && youtubeScript.youtube_url) {
+            console.log(`✅ YouTubeショート動画取得成功: ${youtubeScript.youtube_video_id}`);
+            
+            // YouTubeShortInfo構築
+            const shortInfo: YouTubeShortInfo = {
+              videoId: youtubeScript.youtube_video_id || '',
+              title: youtubeScript.script_title || '',
+              description: youtubeScript.description || youtubeScript.content || '',
+              publishedAt: youtubeScript.published_at || youtubeScript.created_at,
+              thumbnailUrl: youtubeScript.thumbnail_url || '',
+              duration: `PT${youtubeScript.script_duration_seconds || 30}S`,
+              durationSeconds: youtubeScript.script_duration_seconds || 30,
+              viewCount: youtubeScript.view_count || 0,
+              likeCount: youtubeScript.like_count || 0,
+              commentCount: youtubeScript.comment_count || 0,
+              tags: youtubeScript.tags || [],
+              videoUrl: youtubeScript.youtube_url,
+              embedUrl: youtubeScript.embed_url || `https://www.youtube.com/embed/${youtubeScript.youtube_video_id}`,
+              shortUrl: youtubeScript.youtube_url,
+              contentForEmbedding: youtubeScript.content_for_embedding || youtubeScript.content || ''
+            };
+            
+            // YouTubeShortEntity構築
+            const entity: YouTubeShortEntity = {
+              fragmentId: youtubeScript.fragment_id || '',
+              completeUri: youtubeScript.complete_uri || '',
+              videoId: youtubeScript.youtube_video_id || '',
+              title: youtubeScript.script_title || '',
+              description: youtubeScript.description || youtubeScript.content || '',
+              category: youtubeScript.category || 'ai-technology',
+              tags: youtubeScript.tags || [],
+              targetQueries: youtubeScript.target_queries || [],
+              relatedEntities: youtubeScript.related_entities || [],
+              relatedBlogPostId: context.postId,
+              relatedBlogPostSlug: context.pageSlug,
+              relatedBlogPostUrl: `https://nands.tech/posts/${context.pageSlug}`,
+              viralityScore: youtubeScript.virality_score,
+              targetEmotion: youtubeScript.target_emotion,
+              hookType: youtubeScript.hook_type
+            };
+            
+            // AI最適化VideoObject Schema生成
+            youtubeShortSchema = generateAIOptimizedYouTubeShortSchema(
+              shortInfo,
+              entity,
+              `https://nands.tech/posts/${context.pageSlug}`
+            );
+            
+            // AI検索準備度スコア計算
+            const aiSearchReadinessScore = calculateAISearchReadinessScore(entity, shortInfo);
+            
+            // UnifiedPageData用データ構築
+            youtubeShortVideo = {
+              fragmentId: entity.fragmentId,
+              completeUri: entity.completeUri,
+              videoId: entity.videoId,
+              videoUrl: shortInfo.videoUrl,
+              embedUrl: shortInfo.embedUrl,
+              thumbnailUrl: shortInfo.thumbnailUrl,
+              title: entity.title,
+              description: entity.description,
+              publishedAt: shortInfo.publishedAt,
+              viewCount: shortInfo.viewCount,
+              likeCount: shortInfo.likeCount,
+              commentCount: shortInfo.commentCount,
+              tags: entity.tags,
+              targetQueries: entity.targetQueries,
+              relatedEntities: entity.relatedEntities,
+              aiOptimizationScore: youtubeScript.ai_optimization_score || 0,
+              aiSearchReadinessScore
+            };
+            
+            console.log(`🎯 AI検索エンジン準備度スコア: ${aiSearchReadinessScore.totalScore}/100`);
+            console.log(`  - ChatGPT: ${aiSearchReadinessScore.engineScores.ChatGPT}/100`);
+            console.log(`  - Perplexity: ${aiSearchReadinessScore.engineScores.Perplexity}/100`);
+            console.log(`  - Claude: ${aiSearchReadinessScore.engineScores.Claude}/100`);
+            console.log(`  - Gemini: ${aiSearchReadinessScore.engineScores.Gemini}/100`);
+            console.log(`  - DeepSeek: ${aiSearchReadinessScore.engineScores.DeepSeek}/100`);
+            
+            // 🔗 ベクトルリンク連携：Fragment IDを統合
+            if (entity.fragmentId) {
+              fragmentIds.push(entity.fragmentId);
+              console.log(`🔗 YouTubeショート動画のFragment IDを統合: ${entity.fragmentId}`);
+            }
+            
+            // 🔗 ベクトルリンク連携：hasPartスキーマに統合
+            if (entity.fragmentId && entity.completeUri) {
+              const youtubeHasPartSchema: any = {
+                '@type': 'VideoObject',
+                '@id': entity.completeUri,
+                'name': entity.title,
+                'url': entity.completeUri,
+                'embedUrl': shortInfo.embedUrl,
+                'thumbnailUrl': shortInfo.thumbnailUrl,
+                'description': entity.description,
+                'uploadDate': shortInfo.publishedAt,
+                'duration': shortInfo.duration,
+                'position': (hasPartSchemas.fragmentSchemas?.length || 0) + 1
+              };
+              
+              if (hasPartSchemas.fragmentSchemas) {
+                hasPartSchemas.fragmentSchemas.push(youtubeHasPartSchema);
+              }
+              
+              console.log(`🔗 YouTubeショート動画をhasPart Schemaに統合: ${entity.title}`);
+            }
+            
+            // 🔗 ベクトルリンク連携：Entity Relationshipに統合
+            const youtubeEntityRelationship: EntityRelationship = {
+              '@id': entity.completeUri,
+              '@type': 'VideoObject',
+              name: entity.title,
+              knowsAbout: entity.targetQueries,
+              mentions: entity.relatedEntities,
+              relatedTo: [
+                `https://nands.tech/posts/${context.pageSlug}`,
+                'https://nands.tech/video-generation#service',
+                'https://nands.tech/sns-automation#service'
+              ]
+            };
+            
+            entityRelationships.push(youtubeEntityRelationship);
+            console.log(`🔗 YouTubeショート動画をEntity Relationshipに統合`);
+            
+          } else {
+            console.log('ℹ️ YouTubeショート動画は未公開または未設定です');
+          }
+        }
+      } catch (youtubeError) {
+        console.error('🎬 YouTubeショート動画統合エラー:', youtubeError);
+        // エラーは無視して継続（動画なしでも記事は表示）
+      }
+
       const unifiedData: UnifiedPageData = {
         business,
         category,
@@ -396,7 +582,10 @@ export class UnifiedIntegrationSystem {
         trustSignals,
         authorSchema,
         organizationTrustSchema,
-        aiSearchDetection: aiSearchDetectionResult
+        aiSearchDetection: aiSearchDetectionResult,
+        // 🆕 Phase 5: YouTubeショート動画統合
+        youtubeShortVideo,
+        youtubeShortSchema
       };
 
       // キャッシュに保存

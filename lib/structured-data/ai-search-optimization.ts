@@ -314,6 +314,63 @@ export const DETAILED_KNOWS_ABOUT_ORGANIZATION: DetailedKnowsAbout[] = [
     synonyms: ['IT講師', '技術研修', 'リスキリング', '人材開発'],
     relatedTechnologies: ['研修カリキュラム', 'オンライン研修', '実践指導'],
     fragmentId: 'it-training-expertise'
+  },
+  
+  // 🎬 YouTube動画制作・SNS戦略領域（🆕 4大AI検索エンジン最適化）
+  {
+    subject: 'YouTubeショート動画制作',
+    expertiseLevel: 4,
+    category: 'methodology',
+    relatedEntities: ['https://nands.tech/video-generation#service', 'https://nands.tech/sns-automation#service'],
+    experienceYears: 2,
+    certificationLevel: 'advanced',
+    synonyms: ['YouTube Shorts', 'ショート動画', '短尺動画', 'バーティカル動画'],
+    relatedTechnologies: ['動画編集', 'スクリプト生成', 'サムネイル最適化', 'エンゲージメント分析'],
+    fragmentId: 'youtube-shorts-production-expertise'
+  },
+  {
+    subject: 'バイラルコンテンツ設計',
+    expertiseLevel: 4,
+    category: 'methodology',
+    relatedEntities: ['https://nands.tech/sns-automation#service', 'https://nands.tech/video-generation#service'],
+    experienceYears: 2,
+    certificationLevel: 'advanced',
+    synonyms: ['バイラルマーケティング', 'コンテンツバイラル化', 'SNSバズ', 'エンゲージメント最適化'],
+    relatedTechnologies: ['Hook設計', '感情トリガー', 'ストーリーテリング', 'データ分析'],
+    fragmentId: 'viral-content-design-expertise'
+  },
+  {
+    subject: 'マルチプラットフォームSNS戦略',
+    expertiseLevel: 4,
+    category: 'methodology',
+    relatedEntities: ['https://nands.tech/sns-automation#service'],
+    experienceYears: 3,
+    certificationLevel: 'advanced',
+    synonyms: ['SNS戦略', 'ソーシャルメディア', 'クロスプラットフォーム', 'SNS自動化'],
+    relatedTechnologies: ['X (Twitter)', 'Threads', 'LinkedIn', 'TikTok', 'YouTube'],
+    fragmentId: 'multi-platform-sns-strategy-expertise'
+  },
+  {
+    subject: 'AIコンテンツ生成自動化',
+    expertiseLevel: 5,
+    category: 'technology',
+    relatedEntities: ['https://nands.tech/video-generation#service', 'https://nands.tech/sns-automation#service'],
+    experienceYears: 2,
+    certificationLevel: 'expert',
+    synonyms: ['AI自動生成', 'コンテンツオートメーション', 'スクリプト生成', 'メタデータ最適化'],
+    relatedTechnologies: ['GPT-4', 'OpenAI API', 'プロンプトエンジニアリング', 'RAG'],
+    fragmentId: 'ai-content-generation-automation-expertise'
+  },
+  {
+    subject: 'マルチモーダルコンテンツ最適化',
+    expertiseLevel: 4,
+    category: 'methodology',
+    relatedEntities: ['https://nands.tech/aio-seo#service', 'https://nands.tech/video-generation#service'],
+    experienceYears: 2,
+    certificationLevel: 'advanced',
+    synonyms: ['マルチモーダルAI', '動画+テキスト最適化', 'クロスメディア最適化'],
+    relatedTechnologies: ['VideoObject Schema', 'Fragment ID', 'エンティティ統合', 'AI検索最適化'],
+    fragmentId: 'multimodal-content-optimization-expertise'
   }
 ];
 
@@ -408,6 +465,90 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
     relatedKnowledge: ['AIO対策（AI Overviews最適化）', 'Schema.org構造化データ'],
     searchIntents: ['Google SEO', 'AI Overviews', 'Schema.org'],
     coOccurringTerms: ['Search Console', 'Rich Results', 'Knowledge Graph']
+  },
+  
+  // 🎬 YouTube・SNSプラットフォーム（🆕 4大AI検索エンジン最適化）
+  {
+    entity: 'YouTube Shorts',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 8,
+    fragmentId: 'youtube-shorts-platform',
+    relatedKnowledge: ['YouTubeショート動画制作', 'バイラルコンテンツ設計', 'マルチモーダルコンテンツ最適化'],
+    searchIntents: ['YouTube Shorts 活用', 'ショート動画戦略', 'YouTube短尺動画'],
+    coOccurringTerms: ['バーティカル動画', '縦型動画', 'YouTube Studio', 'エンゲージメント']
+  },
+  {
+    entity: 'X (Twitter)',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 7,
+    fragmentId: 'x-twitter-platform',
+    relatedKnowledge: ['マルチプラットフォームSNS戦略', 'バイラルコンテンツ設計'],
+    searchIntents: ['X 活用', 'Twitter マーケティング', 'SNS自動化'],
+    coOccurringTerms: ['ポスト', 'リポスト', 'エンゲージメント', 'ハッシュタグ']
+  },
+  {
+    entity: 'Threads',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 6,
+    fragmentId: 'threads-platform',
+    relatedKnowledge: ['マルチプラットフォームSNS戦略', 'AIコンテンツ生成自動化'],
+    searchIntents: ['Threads 活用', 'Meta SNS', 'テキストSNS'],
+    coOccurringTerms: ['Meta', 'Instagram連携', 'コミュニティ']
+  },
+  {
+    entity: 'LinkedIn',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 7,
+    fragmentId: 'linkedin-platform',
+    relatedKnowledge: ['マルチプラットフォームSNS戦略', 'AIコンテンツ生成自動化'],
+    searchIntents: ['LinkedIn 活用', 'ビジネスSNS', 'B2Bマーケティング'],
+    coOccurringTerms: ['プロフェッショナル', 'ネットワーキング', 'ビジネスコンテンツ']
+  },
+  {
+    entity: 'TikTok',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 6,
+    fragmentId: 'tiktok-platform',
+    relatedKnowledge: ['バイラルコンテンツ設計', 'マルチプラットフォームSNS戦略'],
+    searchIntents: ['TikTok マーケティング', 'ショート動画', 'バイラルコンテンツ'],
+    coOccurringTerms: ['For You Page', 'バイラル', 'トレンド', 'ハッシュタグチャレンジ']
+  },
+  
+  // 🎬 動画制作・AI技術（🆕 4大AI検索エンジン最適化）
+  {
+    entity: 'VideoObject Schema',
+    entityType: 'Technology',
+    context: 'implements',
+    importance: 9,
+    fragmentId: 'video-object-schema',
+    relatedKnowledge: ['Schema.org構造化データ', 'マルチモーダルコンテンツ最適化', 'AIO対策（AI Overviews最適化）'],
+    searchIntents: ['VideoObject Schema', '動画構造化データ', 'Schema.org 動画'],
+    coOccurringTerms: ['JSON-LD', 'Rich Results', 'Video Carousel', 'AI検索最適化']
+  },
+  {
+    entity: 'Fragment ID（動画統合）',
+    entityType: 'Technology',
+    context: 'implements',
+    importance: 10,
+    fragmentId: 'fragment-id-video-integration',
+    relatedKnowledge: ['レリバンスエンジニアリング', 'マルチモーダルコンテンツ最適化', 'VideoObject Schema'],
+    searchIntents: ['Fragment ID 動画', 'Complete URI 動画', 'ベクトルリンク 動画'],
+    coOccurringTerms: ['Deep Link', 'AI Citation', 'Vector Embedding', 'Mike King理論']
+  },
+  {
+    entity: 'OpenAI GPT-4（スクリプト生成）',
+    entityType: 'Technology',
+    context: 'integrates',
+    importance: 9,
+    fragmentId: 'gpt4-script-generation',
+    relatedKnowledge: ['AIコンテンツ生成自動化', 'YouTubeショート動画制作', 'プロンプトエンジニアリング'],
+    searchIntents: ['GPT-4 動画スクリプト', 'AI スクリプト生成', '動画台本AI'],
+    coOccurringTerms: ['バイラル要素', 'Hook設計', 'Empathy共感', 'CTA行動喚起']
   }
 ];
 
