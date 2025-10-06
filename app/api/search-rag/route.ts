@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
+import { HybridSearchSystem } from '@/lib/vector/hybrid-search';
 
 // Service Role Key を使用してRLSをバイパス
 const supabaseServiceRole = createClient(
@@ -15,6 +16,10 @@ interface SearchRequest {
   threshold?: number;
   dateFilter?: 'all' | '7days' | '30days' | '90days';
   latestNewsMode?: boolean;
+  method?: 'vector' | 'hybrid'; // 🆕 検索方法の選択
+  bm25Weight?: number; // 🆕 BM25の重み（デフォルト: 0.4）
+  vectorWeight?: number; // 🆕 ベクトルの重み（デフォルト: 0.6）
+  recencyWeight?: number; // 🆕 鮮度の重み（Trend RAG専用、デフォルト: 0.3）
 }
 
 interface SearchResult {
@@ -33,7 +38,11 @@ export async function POST(request: NextRequest) {
       limit = 10, 
       threshold = 0.3,
       dateFilter = 'all',
-      latestNewsMode = false
+      latestNewsMode = false,
+      method = 'hybrid', // 🆕 デフォルトでハイブリッド検索
+      bm25Weight = 0.4,
+      vectorWeight = 0.6,
+      recencyWeight = 0.3
     }: SearchRequest = await request.json();
 
     if (!query?.trim()) {
@@ -45,6 +54,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 RAG統合検索開始: "${query}"`);
     console.log(`📊 対象RAGシステム: ${sources.join(', ')}`);
+    console.log(`🔬 検索方法: ${method.toUpperCase()}`);
     console.log(`📅 日付フィルタ: ${dateFilter}, 最新ニュースモード: ${latestNewsMode}`);
 
     // 日付フィルタの計算
@@ -65,13 +75,77 @@ export async function POST(request: NextRequest) {
       console.log(`📰 最新ニュースモード: 対象RAG調整 → ${adjustedSources.join(', ')}`);
     }
 
+    const searchResults: SearchResult[] = [];
+
+    // 🆕 ハイブリッド検索の場合
+    if (method === 'hybrid') {
+      console.log(`🚀 ハイブリッド検索モード起動`);
+      console.log(`⚖️ 重み配分: BM25=${bm25Weight}, Vector=${vectorWeight}${sources.includes('trend') ? `, Recency=${recencyWeight}` : ''}`);
+      
+      const hybridSearch = new HybridSearchSystem();
+      
+      // 各ソースをハイブリッド検索
+      for (const source of adjustedSources) {
+        try {
+          const results = await hybridSearch.search({
+            query,
+            source: source as any,
+            limit,
+            threshold,
+            bm25Weight,
+            vectorWeight,
+            recencyWeight: source === 'trend' ? recencyWeight : undefined
+          });
+
+          // 既存のフォーマットに変換
+          const formattedResults = results.map(r => ({
+            id: typeof r.id === 'string' ? parseInt(r.id) : r.id,
+            content: r.content,
+            source: r.source,
+            score: r.combinedScore,
+            metadata: {
+              ...r.metadata,
+              hybrid_scores: {
+                bm25: r.bm25Score,
+                vector: r.vectorScore,
+                recency: r.recencyScore,
+                combined: r.combinedScore
+              },
+              search_method: 'hybrid'
+            }
+          }));
+
+          searchResults.push(...formattedResults);
+          console.log(`✅ ${source.toUpperCase()} ハイブリッド検索: ${results.length}件取得`);
+        } catch (error) {
+          console.error(`❌ ${source} ハイブリッド検索エラー:`, error);
+        }
+      }
+
+      // 統合スコアで再ソート
+      searchResults.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+      return NextResponse.json({
+        success: true,
+        results: searchResults.slice(0, limit),
+        totalResults: searchResults.length,
+        method: 'hybrid',
+        weights: {
+          bm25: bm25Weight,
+          vector: vectorWeight,
+          recency: sources.includes('trend') ? recencyWeight : undefined
+        }
+      });
+    }
+
+    // レガシーベクトル検索（method === 'vector'）
+    console.log(`🔬 レガシーベクトル検索モード`);
+    
     // クエリをベクトル化
     const embeddings = new OpenAIEmbeddings();
     const queryEmbedding = await embeddings.embedSingle(query);
 
     console.log(`🔢 クエリベクトル化完了: 次元=${queryEmbedding.length}`);
-
-    const searchResults: SearchResult[] = [];
 
     // Fragment Vector RAG検索（旧Company RAGの置き換え）
     if (adjustedSources.includes('company')) {
