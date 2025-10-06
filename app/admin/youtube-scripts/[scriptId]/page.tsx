@@ -44,6 +44,14 @@ interface YouTubeScript {
       youtube_description: string;
       youtube_tags: string[];
     };
+    sns_metadata?: {
+      x_post: string;
+      threads_post: string;
+      linkedin_title: string;
+      linkedin_description: string;
+      tiktok_caption: string;
+      common_tags: string[];
+    };
   };
 }
 
@@ -529,6 +537,167 @@ export default function YouTubeScriptDetailPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 SNS投稿用メタデータ */}
+      {script.metadata?.sns_metadata && (
+        <div className="bg-gradient-to-r from-blue-900 to-cyan-900 border-2 border-blue-500 rounded-lg p-6 mt-6">
+          <h3 className="text-lg font-semibold text-white mb-4">🌐 SNS投稿用文章（全SNS展開）</h3>
+          <p className="text-sm text-blue-200 mb-6">
+            YouTube投稿と同時に各SNSでも展開しましょう。それぞれのSNSに最適化された文章を生成しています。
+          </p>
+
+          {/* ❶ X（Twitter）用 */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              <h4 className="font-bold text-white">❶ X（Twitter）用投稿（280文字以内）</h4>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(script.metadata!.sns_metadata!.x_post);
+                  alert('✅ X投稿文をコピーしました');
+                }}
+                className="ml-auto px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+              >
+                📋 コピー
+              </button>
+            </div>
+            <div className="bg-blue-950 rounded-lg p-4">
+              <p className="text-white text-sm whitespace-pre-wrap">{script.metadata.sns_metadata.x_post}</p>
+              <p className="text-blue-300 text-xs mt-2">文字数: {script.metadata.sns_metadata.x_post.length}/280</p>
+            </div>
+          </div>
+
+          {/* ❷ Threads用 */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🧵</span>
+              <h4 className="font-bold text-white">❷ Threads用投稿（500文字以内）</h4>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(script.metadata!.sns_metadata!.threads_post);
+                  alert('✅ Threads投稿文をコピーしました');
+                }}
+                className="ml-auto px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+              >
+                📋 コピー
+              </button>
+            </div>
+            <div className="bg-blue-950 rounded-lg p-4">
+              <p className="text-white text-sm whitespace-pre-wrap">{script.metadata.sns_metadata.threads_post}</p>
+              <p className="text-blue-300 text-xs mt-2">文字数: {script.metadata.sns_metadata.threads_post.length}/500</p>
+            </div>
+          </div>
+
+          {/* ❸ LinkedIn用 */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              <h4 className="font-bold text-white">❸ LinkedIn用投稿</h4>
+            </div>
+            
+            {/* LinkedInタイトル */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-blue-200">タイトル（100文字以内）</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(script.metadata!.sns_metadata!.linkedin_title);
+                    alert('✅ LinkedInタイトルをコピーしました');
+                  }}
+                  className="px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+                >
+                  📋 コピー
+                </button>
+              </div>
+              <div className="bg-blue-950 rounded-lg p-3">
+                <p className="text-white text-sm font-semibold">{script.metadata.sns_metadata.linkedin_title}</p>
+                <p className="text-blue-300 text-xs mt-1">文字数: {script.metadata.sns_metadata.linkedin_title.length}/100</p>
+              </div>
+            </div>
+            
+            {/* LinkedIn説明文 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-blue-200">説明文（1300文字以内）</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(script.metadata!.sns_metadata!.linkedin_description);
+                    alert('✅ LinkedIn説明文をコピーしました');
+                  }}
+                  className="px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+                >
+                  📋 コピー
+                </button>
+              </div>
+              <div className="bg-blue-950 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <p className="text-white text-sm whitespace-pre-wrap">{script.metadata.sns_metadata.linkedin_description}</p>
+                <p className="text-blue-300 text-xs mt-2">文字数: {script.metadata.sns_metadata.linkedin_description.length}/1300</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ❹ TikTok用 */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🎵</span>
+              <h4 className="font-bold text-white">❹ TikTok用キャプション（150文字推奨）</h4>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(script.metadata!.sns_metadata!.tiktok_caption);
+                  alert('✅ TikTokキャプションをコピーしました');
+                }}
+                className="ml-auto px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+              >
+                📋 コピー
+              </button>
+            </div>
+            <div className="bg-blue-950 rounded-lg p-4">
+              <p className="text-white text-sm whitespace-pre-wrap">{script.metadata.sns_metadata.tiktok_caption}</p>
+              <p className="text-blue-300 text-xs mt-2">文字数: {script.metadata.sns_metadata.tiktok_caption.length} (150文字推奨)</p>
+            </div>
+          </div>
+
+          {/* 共通タグ */}
+          <div className="mt-6 pt-6 border-t border-blue-700">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🏷️</span>
+              <h4 className="font-bold text-white">全SNS共通タグ（YouTube タグと同じ）</h4>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(script.metadata!.sns_metadata!.common_tags.join(', '));
+                  alert('✅ 共通タグをコピーしました');
+                }}
+                className="ml-auto px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+              >
+                📋 コピー
+              </button>
+            </div>
+            <div className="bg-blue-950 rounded-lg p-4">
+              <div className="flex flex-wrap gap-2">
+                {script.metadata.sns_metadata.common_tags.map((tag: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-1 bg-blue-700 text-blue-100 rounded text-xs"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-blue-700">
+            <p className="text-xs text-blue-200 text-center">
+              ✨ 各SNSに最適化された文章とタグが生成されています<br />
+              📋 コピーボタンで簡単に各SNSに投稿できます
+            </p>
           </div>
         </div>
       )}
