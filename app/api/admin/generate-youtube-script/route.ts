@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 
+// Vercelタイムアウト設定（本番環境対応）
+export const maxDuration = 60; // 60秒でタイムアウト
+export const dynamic = 'force-dynamic';
+
 // Service Role Key を使用してRLSをバイパス
 const supabaseServiceRole = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -717,7 +721,7 @@ ${postContent.substring(0, 3000)}
 【重要】毎回異なるパターンを使い、バリエーションを持たせること`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-4o', // 🚀 高速化：gpt-4-turbo-preview → gpt-4o（2倍高速、50%安価）
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
