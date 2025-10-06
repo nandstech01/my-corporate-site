@@ -233,16 +233,16 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               );
             },
             p({ children }) {
-              return <p className="my-4 leading-relaxed text-gray-700 text-base">{children}</p>;
+              return <p className="my-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">{children}</p>;
             },
             ul({ children }) {
-              return <ul className="my-4 text-base list-disc space-y-2 pl-6">{children}</ul>;
+              return <ul className="not-prose my-4 text-base space-y-2 pl-8" style={{ listStyleType: 'disc', listStylePosition: 'outside', display: 'block' }}>{children}</ul>;
             },
             ol({ children }) {
-              return <ol className="my-4 text-base list-decimal space-y-2 pl-6">{children}</ol>;
+              return <ol className="not-prose my-4 text-base space-y-2 pl-8" style={{ listStyleType: 'decimal', listStylePosition: 'outside', display: 'block' }}>{children}</ol>;
             },
             li({ children }) {
-              return <li className="text-gray-700 text-base">{children}</li>;
+              return <li className="text-gray-700 dark:text-gray-300 text-base leading-relaxed ml-0" style={{ display: 'list-item' }}>{children}</li>;
             },
             table: ({ children }) => (
               <div className="sticky-table-container my-6 overflow-x-auto shadow-md rounded-none">

@@ -74,6 +74,19 @@ interface Post {
   excerpt?: string
   tags?: string[]
   seo_keywords?: string[]
+  youtube_script_id?: number | null
+}
+
+// YouTube動画情報の型定義
+interface YouTubeScriptInfo {
+  id: number
+  youtube_video_id: string | null
+  youtube_url: string | null
+  script_title: string
+  script_hook: string
+  thumbnail_url: string | null
+  embed_url: string | null
+  status: string
 }
 
 interface PageProps {
@@ -105,9 +118,10 @@ async function getPost(slug: string): Promise<Post | null> {
     console.log(`🔄 検索実行中 - 長いslug: ${isLongSlug}`)
     
     // まず正確なslugで検索（新しいpostsテーブル）
+    // youtube_script_idも取得
     let { data: newPost, error: newError } = await supabase
       .from('posts')
-      .select('*')
+      .select('*, youtube_script_id')
       .eq('status', 'published')
       .eq('slug', decodedSlug)
       .single()
@@ -314,6 +328,28 @@ export default async function PostPage({ params }: PageProps) {
   
   if (!post) {
     notFound()
+  }
+  
+  // 🎬 YouTube動画情報を取得（youtube_script_idがある場合）
+  let youtubeScript: YouTubeScriptInfo | null = null
+  if (post.youtube_script_id) {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('company_youtube_shorts')
+        .select('id, youtube_video_id, youtube_url, script_title, script_hook, thumbnail_url, embed_url, status')
+        .eq('id', post.youtube_script_id)
+        .eq('status', 'published')
+        .single()
+      
+      if (data && !error) {
+        youtubeScript = data as YouTubeScriptInfo
+        console.log('✅ YouTube動画情報取得成功:', youtubeScript.script_title)
+      }
+    } catch (error) {
+      console.error('⚠️ YouTube動画情報取得エラー:', error)
+      // エラーは無視して記事は表示
+    }
   }
   
   // Mike King理論準拠: 統合構造化データシステム初期化
@@ -706,6 +742,42 @@ export default async function PostPage({ params }: PageProps) {
             {post.content.replace(/\s+/g, '').length.toLocaleString()}文字
           </div>
         </div>
+
+        {/* 🎬 YouTube動画埋め込み（youtube_script_idがあり、動画が公開されている場合） */}
+        {youtubeScript && youtubeScript.youtube_video_id && (
+          <div className="my-8 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border-2 border-purple-200 dark:border-purple-700 shadow-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100">
+                🎬 この記事を動画で見る（30秒）
+              </h3>
+            </div>
+            
+            <p className="text-sm text-purple-700 dark:text-purple-300 mb-4">
+              {youtubeScript.script_hook || 'YouTube動画で要点を簡潔に解説しています'}
+            </p>
+            
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeScript.youtube_video_id}`}
+                title={youtubeScript.script_title || post.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+                className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
+                style={{ border: 'none' }}
+              />
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-700">
+              <p className="text-xs text-purple-600 dark:text-purple-400 text-center">
+                ✨ 詳細な解説はこの後のテキストで！動画とテキストで完全理解 ✨
+              </p>
+            </div>
+          </div>
+        )}
         
         {(post.thumbnail_url || post.featured_image) && (
           <div className="relative mb-8">
