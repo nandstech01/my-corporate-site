@@ -88,7 +88,12 @@ export async function POST(request: NextRequest) {
     console.log(`  📺 埋め込みURL: ${embedUrl}`);
     console.log('✅ URL生成完了\n');
 
-    // 4. company_youtube_shorts を更新
+    // 4. Complete URIを生成（この時点で初めて生成）
+    console.log('🔗 Complete URI生成中...');
+    const completeUri = `https://ken12.tech/posts/${scriptData.blog_slug}#${scriptData.fragment_id}`;
+    console.log(`✅ Complete URI: ${completeUri}\n`);
+
+    // 5. company_youtube_shorts を更新
     console.log('🔄 YouTube URL登録中...');
     const { error: updateError } = await supabaseServiceRole
       .from('company_youtube_shorts')
@@ -98,6 +103,8 @@ export async function POST(request: NextRequest) {
         video_url: videoUrl,
         embed_url: embedUrl,
         thumbnail_url: thumbnailUrl,
+        complete_uri: completeUri, // ⚠️ この時点で初めて設定
+        ai_optimization_score: 95, // URL登録完了で最高スコア
         status: 'published',
         published_at: new Date().toISOString()
       })
@@ -112,35 +119,43 @@ export async function POST(request: NextRequest) {
     }
     console.log('✅ YouTube URL登録完了（サムネイル含む）\n');
 
-    // 5. fragment_vectors を更新（YouTube URLを追加）
-    console.log('🔗 Fragment Vectorsを更新中（YouTube URL追加）...');
+    // 6. fragment_vectors に初めて保存（ベクトルリンク化）
+    console.log('🔗 Fragment Vectorsに保存中（ベクトルリンク化）...');
     
-    // 既存のfragment_vectorsデータを取得
-    const { data: existingFragment } = await supabaseServiceRole
-      .from('fragment_vectors')
-      .select('metadata')
-      .eq('fragment_id', scriptData.fragment_id)
-      .single();
-
-    const updatedMetadata = {
-      ...(existingFragment?.metadata as any || {}),
-      youtube_video_id: videoId,
-      youtube_url: youtubeUrl,
-      published_at: new Date().toISOString()
-    };
-
     const { error: fragmentError } = await supabaseServiceRole
       .from('fragment_vectors')
-      .update({
-        metadata: updatedMetadata
-      })
-      .eq('fragment_id', scriptData.fragment_id);
+      .insert({
+        fragment_id: scriptData.fragment_id,
+        complete_uri: completeUri,
+        page_path: scriptData.page_path,
+        content_title: scriptData.content_title,
+        content: scriptData.content,
+        content_type: 'youtube-short',
+        embedding: scriptData.embedding,
+        category: 'ai-technology',
+        semantic_weight: 1.0,
+        target_queries: scriptData.target_queries || [],
+        related_entities: scriptData.related_entities || ['Company', 'BlogPost', scriptData.blog_slug],
+        metadata: {
+          script_id: scriptData.id,
+          related_blog_post_id: scriptData.related_blog_post_id,
+          blog_slug: scriptData.blog_slug,
+          youtube_video_id: videoId,
+          youtube_url: youtubeUrl,
+          thumbnail_url: thumbnailUrl,
+          embed_url: embedUrl,
+          virality_score: scriptData.virality_score,
+          target_emotion: scriptData.target_emotion,
+          hook_type: scriptData.hook_type,
+          published_at: new Date().toISOString()
+        }
+      });
 
     if (fragmentError) {
-      console.error('⚠️ Fragment Vectors更新エラー:', fragmentError);
+      console.error('⚠️ Fragment Vectors保存エラー:', fragmentError);
       // エラーは記録するが処理は続行（YouTube URLは既に保存済み）
     } else {
-      console.log('✅ Fragment Vectors更新完了（YouTube URL追加）\n');
+      console.log('✅ Fragment Vectors保存完了（ベクトルリンク化完了）\n');
     }
 
     // 6. posts テーブルのステータスを更新

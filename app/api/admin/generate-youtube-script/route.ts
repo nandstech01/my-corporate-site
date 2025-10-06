@@ -101,11 +101,10 @@ export async function POST(request: NextRequest) {
     const scriptResponse = await generateYouTubeScript(postTitle, postContent);
     console.log('✅ 台本生成完了\n');
 
-    // 4. Fragment IDとComplete URIを生成
+    // 4. Fragment IDを生成（Complete URIはYouTube URL登録時に生成）
     const fragmentId = `youtube-short-${postSlug}-${Date.now()}`;
-    const completeUri = `https://ken12.tech/posts/${postSlug}#${fragmentId}`;
     console.log(`🔗 Fragment ID: ${fragmentId}`);
-    console.log(`🔗 Complete URI: ${completeUri}\n`);
+    console.log(`⏳ Complete URIはYouTube URL登録後に生成されます\n`);
 
     // 5. ベクトル埋め込み生成
     console.log('🧮 ベクトル埋め込み生成中...');
@@ -131,16 +130,16 @@ ${scriptResponse.script_cta}
     const embedding = await embeddings.embedSingle(contentForEmbedding);
     console.log(`✅ ベクトル埋め込み生成完了: ${embedding.length}次元\n`);
 
-    // 6. AI最適化スコア計算（Fragment ID, Complete URI, Embedding存在で高スコア）
-    const aiOptimizationScore = 95; // Fragment ID, Complete URI, ベクトル埋め込み完備
+    // 6. AI最適化スコア計算（この時点では未完成・URL登録後に完成）
+    const aiOptimizationScore = 50; // Draft状態（URL登録後に95点になる）
 
-    // 7. company_youtube_shortsテーブルに保存
-    console.log('💾 データベースに保存中...');
+    // 7. company_youtube_shortsテーブルに保存（Draft状態）
+    console.log('💾 データベースに保存中（Draft状態）...');
     const { data: scriptData, error: insertError } = await supabaseServiceRole
       .from('company_youtube_shorts')
       .insert({
         fragment_id: fragmentId,
-        complete_uri: completeUri,
+        complete_uri: null, // ⚠️ YouTube URL登録時に生成
         page_path: `/posts/${postSlug}`,
         related_blog_post_id: postId,
         blog_slug: postSlug,
@@ -209,52 +208,23 @@ ${scriptResponse.script_cta}
       console.log('✅ 記事テーブル更新完了\n');
     }
 
-    // 9. fragment_vectorsテーブルに同期保存（既存のYouTube Shortと同じ構造）
-    console.log('🔗 Fragment Vectorsに同期中（ベクトルリンク化）...');
-    const { error: fragmentError } = await supabaseServiceRole
-      .from('fragment_vectors')
-      .insert({
-        fragment_id: fragmentId,
-        complete_uri: completeUri,
-        page_path: `/posts/${postSlug}`,
-        content_title: scriptResponse.script_title,
-        content: contentForEmbedding,
-        content_type: 'youtube-short',
-        embedding: embedding,
-        category: 'ai-technology',
-        semantic_weight: 1.0,
-        target_queries: [postTitle, ...scriptResponse.viral_elements.slice(0, 3)],
-        related_entities: ['Company', 'BlogPost', postSlug],
-        metadata: {
-          script_id: scriptData.id,
-          related_blog_post_id: postId,
-          blog_slug: postSlug,
-          virality_score: scriptResponse.virality_score,
-          target_emotion: scriptResponse.target_emotion,
-          hook_type: scriptResponse.hook_type,
-          note: 'YouTube URL will be added after video upload'
-        }
-      });
-
-    if (fragmentError) {
-      console.error('⚠️ Fragment Vectors同期エラー:', fragmentError);
-      // エラーは記録するが処理は続行（台本は既に保存済み）
-    } else {
-      console.log('✅ Fragment Vectors同期完了（ベクトルリンク化完了）\n');
-    }
+    // 9. ⚠️ fragment_vectorsへの保存はYouTube URL登録時に実行
+    console.log('⏳ Fragment Vectors同期はYouTube URL登録後に実行されます');
+    console.log('   理由: YouTube URLが存在しない状態でのベクトルリンク化を防止\n');
 
     console.log('🎉 ========================================');
-    console.log('✅ YouTubeショート台本生成完了！');
+    console.log('✅ YouTubeショート台本生成完了（Draft状態）！');
     console.log(`  Script ID: ${scriptData.id}`);
     console.log(`  Fragment ID: ${fragmentId}`);
-    console.log(`  AI最適化スコア: ${aiOptimizationScore}/100`);
+    console.log(`  AI最適化スコア: ${aiOptimizationScore}/100（Draft）`);
+    console.log(`  ⏳ YouTube URL登録後にベクトルリンク化されます`);
     console.log('🎉 ========================================\n');
 
     return NextResponse.json({
       success: true,
       scriptId: scriptData.id,
       fragmentId: fragmentId,
-      completeUri: completeUri,
+      completeUri: null, // ⚠️ YouTube URL登録後に生成
       script: scriptResponse,
       aiOptimizationScore: aiOptimizationScore,
       message: 'YouTubeショート台本を生成しました'

@@ -268,12 +268,17 @@ export default function YouTubeScriptDetailPage() {
       )}
 
       {/* AI最適化スコア */}
-      <div className="bg-green-900 border border-green-700 rounded-lg p-4 mb-6">
+      <div className={`${script.youtube_url ? 'bg-green-900 border-green-700' : 'bg-yellow-900 border-yellow-700'} border rounded-lg p-4 mb-6`}>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-green-200 mb-1">🎯 AI最適化スコア</p>
-            <p className="text-2xl font-bold text-white">{script.ai_optimization_score}/100</p>
-            <p className="text-xs text-green-200 mt-1">Fragment ID, Complete URI, ベクトル埋め込み完備</p>
+            <p className="text-2xl font-bold text-white">{script.ai_optimization_score || 50}/100</p>
+            <p className="text-xs text-green-200 mt-1">
+              {script.youtube_url 
+                ? '✅ Fragment ID, Complete URI, ベクトル埋め込み完備' 
+                : '⏳ Draft状態（URL登録後に95点）'
+              }
+            </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-green-200">バイラリティスコア</p>
@@ -423,24 +428,37 @@ export default function YouTubeScriptDetailPage() {
         </div>
       )}
 
-      {/* ベクトルリンク情報 */}
-      <div className="bg-gray-800 rounded-lg p-6 mt-6">
-        <h3 className="text-lg font-semibold text-white mb-4">🔗 ベクトルリンク情報</h3>
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm text-gray-400">Fragment ID</p>
-            <p className="text-white text-sm font-mono">{script.fragment_id}</p>
+      {/* ベクトルリンク情報（YouTube URL登録後のみ表示） */}
+      {script.youtube_url && script.complete_uri && (
+        <div className="bg-gradient-to-r from-green-900 to-emerald-900 border-2 border-green-500 rounded-lg p-6 mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-lg font-semibold text-white">✅ ベクトルリンク情報（AIの引用対象）</h3>
           </div>
-          <div>
-            <p className="text-sm text-gray-400">Complete URI</p>
-            <p className="text-white text-sm font-mono break-all">{script.complete_uri}</p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-green-200">Fragment ID</p>
+              <p className="text-white text-sm font-mono bg-green-950 px-3 py-2 rounded">{script.fragment_id}</p>
+            </div>
+            <div>
+              <p className="text-sm text-green-200">Complete URI</p>
+              <p className="text-white text-sm font-mono bg-green-950 px-3 py-2 rounded break-all">{script.complete_uri}</p>
+            </div>
+            <div>
+              <p className="text-sm text-green-200">公開日時</p>
+              <p className="text-white text-sm">{script.published_at ? new Date(script.published_at).toLocaleString('ja-JP') : '未公開'}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-400">作成日時</p>
-            <p className="text-white text-sm">{new Date(script.created_at).toLocaleString('ja-JP')}</p>
+          <div className="mt-4 pt-4 border-t border-green-700">
+            <p className="text-xs text-green-200">
+              ✅ Fragment Vectorsに同期済み - AIの引用対象として活用されています<br />
+              🔍 Mike King理論に基づく完全なベクトルリンク構造を実装
+            </p>
           </div>
         </div>
-      </div>
+      )}
 
       {/* YouTube投稿用メタデータ */}
       {script.metadata?.youtube_metadata && (
