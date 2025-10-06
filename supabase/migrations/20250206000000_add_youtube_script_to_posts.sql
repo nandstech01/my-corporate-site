@@ -60,11 +60,24 @@ CREATE INDEX IF NOT EXISTS idx_youtube_shorts_related_post
   ON company_youtube_shorts(related_blog_post_id);
 
 -- 外部キー制約（company_youtube_shorts → posts）
-ALTER TABLE company_youtube_shorts
-ADD CONSTRAINT fk_blog_post
-FOREIGN KEY (related_blog_post_id)
-REFERENCES posts(id)
-ON DELETE CASCADE;
+-- 既に存在する場合はスキップ
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'fk_blog_post' 
+    AND conrelid = 'company_youtube_shorts'::regclass
+  ) THEN
+    ALTER TABLE company_youtube_shorts
+    ADD CONSTRAINT fk_blog_post
+    FOREIGN KEY (related_blog_post_id)
+    REFERENCES posts(id)
+    ON DELETE CASCADE;
+    RAISE NOTICE '✅ 外部キー制約 fk_blog_post を作成しました';
+  ELSE
+    RAISE NOTICE 'ℹ️  外部キー制約 fk_blog_post は既に存在します';
+  END IF;
+END $$;
 
 -- 確認メッセージ
 DO $$ BEGIN
