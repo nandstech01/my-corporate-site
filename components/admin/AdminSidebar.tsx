@@ -18,7 +18,8 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   LinkIcon,
-  CircleStackIcon
+  CircleStackIcon,
+  FilmIcon
 } from '@heroicons/react/24/outline';
 import VoiceAgentButton from './VoiceAgent/VoiceAgentButton';
 import VoiceAgentModalV2 from './VoiceAgent/VoiceAgentModalV2';
@@ -32,6 +33,7 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
   const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
     '記事管理': true,
+    'YouTube台本': true,
     'トリプルRAG': true,
     'Fragment ID管理': true,
     'パートナー管理': false
@@ -64,6 +66,17 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
           name: '新規作成',
           href: '/admin/posts/new',
           current: pathname === '/admin/posts/new'
+        }
+      ]
+    },
+    {
+      name: 'YouTube台本',
+      icon: FilmIcon,
+      children: [
+        {
+          name: '🎬 台本一覧',
+          href: '/admin/youtube-scripts',
+          current: pathname === '/admin/youtube-scripts'
         }
       ]
     },

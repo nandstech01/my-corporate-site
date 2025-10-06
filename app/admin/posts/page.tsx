@@ -19,12 +19,16 @@ type Post = {
   updated_at: string;
   table_type: 'posts' | 'chatgpt_posts';
   is_chatgpt_special: boolean;
+  youtube_script_id?: number | null;
+  youtube_script_status?: string | null;
 };
 
 export default function PostsPage() {
   const [posts, setPosts] = React.useState<Post[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isGeneratingScript, setIsGeneratingScript] = React.useState(false);
+  const [generatingScriptFor, setGeneratingScriptFor] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const supabase = createClientComponentClient<Database>();
 
@@ -45,7 +49,9 @@ export default function PostsPage() {
           thumbnail_url,
           status,
           created_at,
-          updated_at
+          updated_at,
+          youtube_script_id,
+          youtube_script_status
         `)
         .order('created_at', { ascending: false });
 
@@ -84,7 +90,9 @@ export default function PostsPage() {
         created_at: post.created_at,
         updated_at: post.updated_at,
         table_type: 'posts',
-        is_chatgpt_special: false
+        is_chatgpt_special: false,
+        youtube_script_id: post.youtube_script_id,
+        youtube_script_status: post.youtube_script_status
       }));
 
       const formattedOldPosts: Post[] = (oldPosts || []).map(post => ({
@@ -99,7 +107,9 @@ export default function PostsPage() {
         created_at: post.created_at,
         updated_at: post.updated_at,
         table_type: 'chatgpt_posts',
-        is_chatgpt_special: post.is_chatgpt_special || false
+        is_chatgpt_special: post.is_chatgpt_special || false,
+        youtube_script_id: null,
+        youtube_script_status: null
       }));
 
       // 両方のテーブルの記事を合体して日付順でソート
@@ -188,6 +198,70 @@ export default function PostsPage() {
       alert('記事の削除に失敗しました');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleGenerateScript = async (post: Post) => {
+    // postsテーブルの記事のみ対応
+    if (post.table_type !== 'posts') {
+      alert('YouTubeショート台本生成はRAG記事のみ対応しています');
+      return;
+    }
+
+    if (!window.confirm('この記事からYouTubeショート動画の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます')) {
+      return;
+    }
+
+    setIsGeneratingScript(true);
+    setGeneratingScriptFor(post.id.toString());
+
+    try {
+      const originalId = post.id.toString().replace(/^posts-/, '');
+      
+      console.log('🎬 台本生成開始:', {
+        postId: originalId,
+        slug: post.slug,
+        title: post.title
+      });
+
+      const response = await fetch('/api/admin/generate-youtube-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: parseInt(originalId),
+          postSlug: post.slug,
+          postTitle: post.title,
+          postContent: post.content
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          // 既に台本が存在する場合
+          if (window.confirm('既に台本が生成されています。台本確認画面に移動しますか？')) {
+            window.location.href = `/admin/youtube-scripts/${result.scriptId}`;
+          }
+          return;
+        }
+        throw new Error(result.error || '台本生成に失敗しました');
+      }
+
+      console.log('✅ 台本生成成功:', result);
+      alert(`🎉 台本生成完了！\n\nScript ID: ${result.scriptId}\nAI最適化スコア: ${result.aiOptimizationScore}/100\n\n台本確認画面に移動します。`);
+      
+      // 台本確認画面にリダイレクト
+      window.location.href = `/admin/youtube-scripts/${result.scriptId}`;
+      
+    } catch (error: any) {
+      console.error('❌ 台本生成エラー:', error);
+      alert(`台本生成に失敗しました\n\n${error.message}`);
+    } finally {
+      setIsGeneratingScript(false);
+      setGeneratingScriptFor(null);
     }
   };
 
@@ -288,6 +362,24 @@ export default function PostsPage() {
                           >
                             プレビュー ↗
                           </Link>
+                          {post.table_type === 'posts' && (
+                            post.youtube_script_id ? (
+                              <Link
+                                href={`/admin/youtube-scripts/${post.youtube_script_id}`}
+                                className="text-sm text-green-400 hover:text-green-300"
+                              >
+                                🎬 台本確認
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => handleGenerateScript(post)}
+                                disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
+                                className="text-sm text-yellow-400 hover:text-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : '🎬 台本生成'}
+                              </button>
+                            )
+                          )}
                         </div>
                       </div>
                     </div>

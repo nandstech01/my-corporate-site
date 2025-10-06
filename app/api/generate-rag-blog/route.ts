@@ -1249,8 +1249,14 @@ ${fragmentIds.map((id: string, index: number) => {
 
     // 🗑️ 使い捨てトレンドRAGデータの自動削除
     try {
+      // 使用済みトレンドRAG削除
       const usedTrendIds = ragData
         .filter(item => item.source === 'trend' && item.id)
+        .map(item => item.id);
+      
+      // 使用済みYouTube RAG削除
+      const usedYouTubeIds = ragData
+        .filter(item => item.source === 'youtube' && item.id)
         .map(item => item.id);
       
       if (usedTrendIds.length > 0) {
@@ -1273,25 +1279,60 @@ ${fragmentIds.map((id: string, index: number) => {
           console.log('  💡 古いトレンド情報は誤情報となるため、使用後は即座に削除');
         }
         
-        // 使用したトレンドIDをメタデータに記録（履歴管理用）
-        await supabaseServiceRole
-          .from('posts')
-          .update({
-            metadata: {
-              ...savedPost.metadata,
-              usedTrendIds: usedTrendIds,
-              trendDataDeletedAt: new Date().toISOString()
-            }
-          })
-          .eq('id', savedPost.id);
-          
-        console.log('📝 使用済みトレンドID履歴を記事メタデータに記録');
       } else {
         console.log('ℹ️  トレンドRAGデータは使用されませんでした');
       }
-    } catch (trendDeleteError) {
-      console.error('❌ トレンドデータ削除処理エラー:', trendDeleteError);
-      console.warn('⚠️  記事生成は成功しましたが、トレンドデータ削除に失敗しました');
+
+      // 🎬 YouTube RAG削除（使い捨て型）
+      if (usedYouTubeIds.length > 0) {
+        console.log(`🗑️ 使用済みYouTube RAGデータ削除開始: ${usedYouTubeIds.length}件`);
+        
+        const { data: deletedYouTubes, error: deleteYouTubeError } = await supabaseServiceRole
+          .from('youtube_vectors')
+          .delete()
+          .in('id', usedYouTubeIds)
+          .select('id, video_title');
+        
+        if (deleteYouTubeError) {
+          console.error('❌ YouTube RAGデータ削除エラー:', deleteYouTubeError);
+        } else {
+          console.log(`✅ 使用済みYouTube RAGデータ削除完了: ${deletedYouTubes?.length || 0}件`);
+          deletedYouTubes?.forEach((video, index) => {
+            console.log(`  ${index + 1}. 削除: ${video.video_title} (ID: ${video.id})`);
+          });
+          console.log('  💡 理由: YouTube RAGは使い捨て型（他人の動画は参考資料として1回のみ使用）');
+          console.log('  💡 記事化された時点で知識は自社資産となり、元動画は不要');
+          console.log('  💡 著作権リスク軽減・ストレージ最適化・データ鮮度向上');
+        }
+      } else {
+        console.log('ℹ️  YouTube RAGデータは使用されませんでした');
+      }
+
+      // 使用済みRAG履歴をメタデータに一括記録
+      if (usedTrendIds.length > 0 || usedYouTubeIds.length > 0) {
+        const updatedMetadata: any = { ...savedPost.metadata };
+        
+        if (usedTrendIds.length > 0) {
+          updatedMetadata.usedTrendIds = usedTrendIds;
+          updatedMetadata.trendDataDeletedAt = new Date().toISOString();
+        }
+        
+        if (usedYouTubeIds.length > 0) {
+          updatedMetadata.usedYouTubeIds = usedYouTubeIds;
+          updatedMetadata.youtubeDataDeletedAt = new Date().toISOString();
+        }
+        
+        await supabaseServiceRole
+          .from('posts')
+          .update({ metadata: updatedMetadata })
+          .eq('id', savedPost.id);
+          
+        console.log('📝 使用済みRAG履歴を記事メタデータに記録完了');
+      }
+
+    } catch (deleteError) {
+      console.error('❌ RAGデータ削除処理エラー:', deleteError);
+      console.warn('⚠️  記事生成は成功しましたが、RAGデータ削除に失敗しました');
       // エラーでも記事生成は成功として扱う
     }
 
