@@ -135,9 +135,10 @@ export default function RootLayout({
     "description": "滋賀県を拠点とする総合人材支援・生成AIリスキリング研修企業。生成AI活用のリスキリング研修から、キャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合キャリア支援企業です。",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "滋賀県内主要拠点",
-      "addressLocality": "滋賀県",
-      "addressRegion": "関西地方",
+      "streetAddress": "皇子が丘２丁目10-25-3004号",
+      "addressLocality": "大津市",
+      "addressRegion": "滋賀県",
+      "postalCode": "520-0025",
       "addressCountry": "JP"
     },
     "contactPoint": {
