@@ -124,33 +124,10 @@ const nextConfig = {
   },
 
   // ヘッダー設定（SEO強化）
+  // 注意: Content-Security-Policyはvercel.jsonで管理
+  // vercel.jsonが優先されるため、ここではCSPを設定しない
   async headers() {
     return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none';",
-          },
-        ],
-      },
       {
         source: '/api/(.*)',
         headers: [
