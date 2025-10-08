@@ -253,7 +253,7 @@ const Footer: React.FC = () => {
                 <span>LINEで無料相談</span>
               </a>
               <a
-                href="tel:0120558551"
+                href="tel:0120407638"
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition-colors"
               >
                 <span>📞</span>

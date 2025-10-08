@@ -429,7 +429,7 @@ export default function BlogContent() {
             <h2 className="blog-tags-title">ご相談はこちら</h2>
             <div className="blog-contact-grid">
               {/* 電話相談 */}
-              <a href="tel:0120558551" className="blog-contact-card text-center hover-effect-card">
+              <a href="tel:0120407638" className="blog-contact-card text-center hover-effect-card">
                 <Phone className="w-12 h-12 text-orange-500 mx-auto mb-2" />
                 <h4 className="text-xl font-bold text-gray-900 mb-2">
                   お電話でのご相談

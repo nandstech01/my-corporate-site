@@ -100,7 +100,7 @@ const corporateContactSchema = {
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Corporate Sales",
-          "telephone": "+81-120-558-551",
+          "telephone": "+81-120-407-638",
             "email": "contact@nands.tech",
     "availableLanguage": ["Japanese", "English"],
     "areaServed": "JP",

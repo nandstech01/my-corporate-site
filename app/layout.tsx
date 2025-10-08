@@ -142,7 +142,7 @@ export default function RootLayout({
     },
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+81-77-0000-0000",
+      "telephone": "+81-120-407-638",
       "contactType": "customer service",
       "email": "contact@nands.tech",
       "availableLanguage": ["日本語"],

@@ -196,7 +196,7 @@ export default function ContactCTASSR() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <a
-                href="tel:+81-120-558-551"
+                href="tel:+81-120-407-638"
                 className="px-6 py-3 bg-white/20 border border-white/30 text-white font-bold hover:bg-white/30 transition-all duration-300"
               >
                 📞 0120-407-638
