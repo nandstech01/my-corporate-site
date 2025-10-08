@@ -43,7 +43,7 @@ import { RefreshCw } from 'lucide-react'
 import { UnifiedStructuredDataSystem } from '@/lib/structured-data'
 import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system'
 import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema'
-import { HARADA_KENJI_PROFILE } from '@/lib/structured-data/author-trust-system'
+import { HARADA_KENJI_PROFILE, AuthorTrustSystem } from '@/lib/structured-data/author-trust-system'
 // 🆕 YouTubeショート動画4大AI検索エンジン最適化
 import { generateAIOptimizedYouTubeShortSchema, type YouTubeShortEntity } from '@/lib/structured-data/youtube-short-schema'
 import type { YouTubeShortInfo } from '@/lib/youtube/youtube-data-api'
@@ -500,8 +500,9 @@ export default async function PostPage({ params }: PageProps) {
     }))
   }
 
-  // 著者情報（Google E-E-A-T準拠・ORCID対応）
-  const authorSchema = HARADA_KENJI_PROFILE
+  // 著者情報（Google E-E-A-T準拠・ORCID対応・sameAs統合）
+  const authorTrustSystem = new AuthorTrustSystem()
+  const authorSchema = authorTrustSystem.generateAuthorSchema()
 
   // Mike King理論準拠: BlogPosting + hasPart + AIO LLMO最適化（Google 2024年ガイドライン対応）
   const enhancedStructuredData = {
@@ -882,7 +883,7 @@ export default async function PostPage({ params }: PageProps) {
               </a>
               
               <a
-                href="https://www.youtube.com/@NANDStechnology?sub_confirmation=1"
+                href="https://www.youtube.com/@kenjiharada_ai_site?sub_confirmation=1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-900 hover:to-gray-800 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden border-2 border-red-500"
@@ -997,6 +998,17 @@ export default async function PostPage({ params }: PageProps) {
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                   X (Twitter)
+                </a>
+                <a 
+                  href="https://www.youtube.com/@kenjiharada_ai_site?sub_confirmation=1" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg text-sm font-medium"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  YouTube
                 </a>
                 <a 
                   href="https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/" 

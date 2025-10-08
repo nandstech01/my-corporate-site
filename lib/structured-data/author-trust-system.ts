@@ -191,6 +191,12 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
   // 実際のプロフィール（正直ベース）
   personalSocialMedia: [
     {
+      platform: 'YouTube',
+      url: 'https://www.youtube.com/@kenjiharada_ai_site',
+      verified: false,
+      description: '原田賢治公式YouTubeチャンネル - AI技術解説・実践事例・システム開発情報を動画で発信'
+    },
+    {
       platform: 'LinkedIn',
       url: 'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/',
       verified: false,
