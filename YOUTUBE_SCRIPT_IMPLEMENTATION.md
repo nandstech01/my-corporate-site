@@ -51,7 +51,7 @@ ADD COLUMN approved_by VARCHAR(255);
     "success": true,
     "scriptId": 456,
     "fragmentId": "youtube-short-example-post-1234567890",
-    "completeUri": "https://ken12.tech/posts/example-post#youtube-short-example-post-1234567890",
+    "completeUri": "https://nands.tech/posts/example-post#youtube-short-example-post-1234567890",
     "script": {
       "script_title": "動画タイトル",
       "script_hook": "Hook台本...",
@@ -153,7 +153,7 @@ ADD COLUMN approved_by VARCHAR(255);
 
 ### 自動生成されるもの
 1. **Fragment ID**: `youtube-short-{slug}-{timestamp}`
-2. **Complete URI**: `https://ken12.tech/posts/{slug}#{fragmentId}`
+2. **Complete URI**: `https://nands.tech/posts/{slug}#{fragmentId}`
 3. **ベクトル埋め込み**: OpenAI `text-embedding-3-large` (1536次元)
 4. **AI最適化スコア**: 95/100（Fragment ID, Complete URI, ベクトル埋め込み完備）
 

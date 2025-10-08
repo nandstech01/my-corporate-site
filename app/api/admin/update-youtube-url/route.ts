@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Complete URIを生成（この時点で初めて生成）
     console.log('🔗 Complete URI生成中...');
-    const completeUri = `https://ken12.tech/posts/${scriptData.blog_slug}#${scriptData.fragment_id}`;
+    const completeUri = `https://nands.tech/posts/${scriptData.blog_slug}#${scriptData.fragment_id}`;
     console.log(`✅ Complete URI: ${completeUri}\n`);
 
     // 5. company_youtube_shorts を更新

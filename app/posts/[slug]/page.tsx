@@ -90,6 +90,8 @@ interface YouTubeScriptInfo {
   thumbnail_url: string | null
   embed_url: string | null
   status: string
+  fragment_id?: string | null  // 🆕 Fragment ID（ディープリンク用）
+  complete_uri?: string | null  // 🆕 Complete URI（ベクトルリンク用）
 }
 
 interface PageProps {
@@ -357,7 +359,9 @@ export default async function PostPage({ params }: PageProps) {
           script_hook: data.script_hook,
           thumbnail_url: data.thumbnail_url,
           embed_url: data.embed_url,
-          status: data.status
+          status: data.status,
+          fragment_id: data.fragment_id,  // 🆕 Fragment ID
+          complete_uri: data.complete_uri  // 🆕 Complete URI
         } as YouTubeScriptInfo
         
         console.log('✅ YouTube動画情報取得成功:', youtubeScript.script_title)
@@ -398,6 +402,15 @@ export default async function PostPage({ params }: PageProps) {
             viralityScore: data.virality_score,
             targetEmotion: data.target_emotion,
             hookType: data.hook_type
+          }
+          
+          // 🔗 ディープリンク情報のログ出力
+          console.log('🔗 YouTube動画 Fragment ID:', entity.fragmentId || '❌ 未設定')
+          console.log('🔗 YouTube動画 Complete URI:', entity.completeUri || '❌ 未設定')
+          if (entity.fragmentId && entity.completeUri) {
+            console.log('✅ YouTube動画ディープリンク有効:', entity.completeUri)
+          } else {
+            console.log('⚠️ YouTube動画ディープリンク未設定（YouTube URL登録後に自動生成されます）')
           }
           
           youtubeAIOptimizedSchema = generateAIOptimizedYouTubeShortSchema(
@@ -820,10 +833,16 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* 🎬 YouTube動画埋め込み（youtube_script_idがあり、動画が公開されている場合） */}
         {youtubeScript && youtubeScript.youtube_video_id && (
-          <div className="my-8 bg-gradient-to-br from-green-800 to-emerald-900 dark:from-green-900 dark:to-emerald-950 rounded p-6 sm:p-8 border-2 border-green-500 dark:border-green-600 shadow-2xl">
+          <div 
+            id={youtubeScript.fragment_id || 'youtube-short-video'} 
+            className="my-8 bg-gradient-to-br from-green-800 to-emerald-900 dark:from-green-900 dark:to-emerald-950 rounded p-6 sm:p-8 border-2 border-green-500 dark:border-green-600 shadow-2xl scroll-mt-20"
+          >
             <div className="flex items-center gap-3 mb-5">
-              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" viewBox="0 0 24 24">
+                {/* YouTubeロゴ背景（赤色） */}
+                <path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                {/* 再生ボタン三角形（白色） */}
+                <path fill="#FFFFFF" d="M9.545 8.432v7.136L15.818 12z"/>
               </svg>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
                 この記事を動画で見る（30秒）
@@ -847,6 +866,35 @@ export default async function PostPage({ params }: PageProps) {
               />
             </div>
             
+            {/* 🎯 YouTube CTAボタン（魅力的なデザイン） */}
+            <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href={`https://www.youtube.com/watch?v=${youtubeScript.youtube_video_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+              >
+                <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span className="relative z-10 text-sm sm:text-base">高評価お願いします</span>
+              </a>
+              
+              <a
+                href="https://www.youtube.com/@NANDStechnology?sub_confirmation=1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-900 hover:to-gray-800 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden border-2 border-red-500"
+              >
+                <span className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                <span className="relative z-10 text-sm sm:text-base">チャンネル登録</span>
+              </a>
+            </div>
+            
             <div className="mt-5 pt-5 border-t border-green-600 dark:border-green-700">
               <p className="text-xs sm:text-sm text-green-200 dark:text-green-300 text-center font-medium">
                 ✨ 詳細な解説はこの後のテキストで！動画とテキストで完全理解 ✨
@@ -855,7 +903,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )}
         
-        {(post.thumbnail_url || post.featured_image) && (
+        {/* YouTube動画がない場合のみサムネイル画像を表示 */}
+        {!youtubeScript?.youtube_video_id && (post.thumbnail_url || post.featured_image) && (
           <div className="relative mb-8">
             <Image
               src={post.thumbnail_url || post.featured_image || ''}

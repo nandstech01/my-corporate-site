@@ -491,7 +491,7 @@ async function generateYouTubeScript(
    - ハッシュタグを含める
    - 例: 「ChatGPT APIの実装で9割が見落とす落とし穴を解説。トークン管理でコスト3割削減、エラーハンドリングで可用性99.9%達成。実装コードはブログで公開中。
    
-   🔗 ブログ記事: https://ken12.tech/posts/[slug]
+   🔗 ブログ記事: https://nands.tech/posts/[slug]
    
    #ChatGPT #API実装 #エンジニア #プログラミング #AI開発」
 
