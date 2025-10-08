@@ -485,7 +485,8 @@ export function generateAIOptimizedYouTubeShortSchema(
         name: shortInfo.title,
         contentUrl: shortInfo.videoUrl,
         thumbnailUrl: shortInfo.thumbnailUrl,
-        description: shortInfo.description
+        description: shortInfo.description,
+        uploadDate: shortInfo.publishedAt // ✅ リッチリザルト対応
       },
       {
         '@type': 'ImageObject',
@@ -502,13 +503,16 @@ export function generateAIOptimizedYouTubeShortSchema(
     mainEntity: {
       '@type': 'Question',
       name: `${entity.targetQueries[0] || shortInfo.title}について`,
+      answerCount: 1, // ✅ Google リッチリザルト対応
       acceptedAnswer: {
         '@type': 'Answer',
         text: shortInfo.description,
         video: {
           '@type': 'VideoObject',
           contentUrl: shortInfo.videoUrl,
-          name: shortInfo.title
+          name: shortInfo.title,
+          thumbnailUrl: shortInfo.thumbnailUrl, // ✅ リッチリザルト対応
+          uploadDate: shortInfo.publishedAt // ✅ リッチリザルト対応
         }
       }
     }
