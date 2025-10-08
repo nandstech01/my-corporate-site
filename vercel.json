@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/posts/(.*)",
+      "source": "/posts/:slug*",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -22,7 +22,7 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "headers": [
         {
           "key": "X-Content-Type-Options",
