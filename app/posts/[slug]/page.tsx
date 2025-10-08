@@ -820,34 +820,35 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* 🎬 YouTube動画埋め込み（youtube_script_idがあり、動画が公開されている場合） */}
         {youtubeScript && youtubeScript.youtube_video_id && (
-          <div className="my-8 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border-2 border-purple-200 dark:border-purple-700 shadow-lg">
-            <div className="flex items-center gap-2 mb-4">
-              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+          <div className="my-8 bg-gradient-to-br from-green-800 to-emerald-900 dark:from-green-900 dark:to-emerald-950 rounded p-6 sm:p-8 border-2 border-green-500 dark:border-green-600 shadow-2xl">
+            <div className="flex items-center gap-3 mb-5">
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-400 dark:text-green-300 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
               </svg>
-              <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100">
-                🎬 この記事を動画で見る（30秒）
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
+                📹 この記事を動画で見る（30秒）
               </h3>
             </div>
             
-            <p className="text-sm text-purple-700 dark:text-purple-300 mb-4">
+            <p className="text-sm sm:text-base text-green-100 dark:text-green-200 mb-5 leading-relaxed">
               {youtubeScript.script_hook || 'YouTube動画で要点を簡潔に解説しています'}
             </p>
             
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            {/* スマホ対応強化：min-heightを追加 */}
+            <div className="relative w-full bg-black rounded overflow-hidden" style={{ paddingBottom: '56.25%', minHeight: '200px' }}>
               <iframe
                 src={`https://www.youtube.com/embed/${youtubeScript.youtube_video_id}`}
                 title={youtubeScript.script_title || post.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 loading="lazy"
-                className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
-                style={{ border: 'none' }}
+                className="absolute top-0 left-0 w-full h-full"
+                style={{ border: 'none', minHeight: '200px' }}
               />
             </div>
             
-            <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-700">
-              <p className="text-xs text-purple-600 dark:text-purple-400 text-center">
+            <div className="mt-5 pt-5 border-t border-green-600 dark:border-green-700">
+              <p className="text-xs sm:text-sm text-green-200 dark:text-green-300 text-center font-medium">
                 ✨ 詳細な解説はこの後のテキストで！動画とテキストで完全理解 ✨
               </p>
             </div>
