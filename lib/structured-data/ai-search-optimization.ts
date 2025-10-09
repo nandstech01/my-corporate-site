@@ -329,6 +329,39 @@ export const DETAILED_KNOWS_ABOUT_ORGANIZATION: DetailedKnowsAbout[] = [
     fragmentId: 'youtube-shorts-production-expertise'
   },
   {
+    subject: 'YouTube中尺動画制作（130秒）',
+    expertiseLevel: 4,
+    category: 'methodology',
+    relatedEntities: ['https://nands.tech/video-generation#service', 'https://nands.tech/aio-seo#service'],
+    experienceYears: 1,
+    certificationLevel: 'advanced',
+    synonyms: ['YouTube Medium', '中尺動画', '130秒動画', '解説動画', '教育型動画'],
+    relatedTechnologies: ['VideoObject Schema', 'Fragment ID', 'hasPartスキーマ', 'associatedMedia', 'エンティティ統合'],
+    fragmentId: 'youtube-medium-production-expertise'
+  },
+  {
+    subject: 'hasPartスキーマ動画統合',
+    expertiseLevel: 5,
+    category: 'technology',
+    relatedEntities: ['https://nands.tech/aio-seo#service', 'https://nands.tech/video-generation#service'],
+    experienceYears: 1,
+    certificationLevel: 'expert',
+    synonyms: ['hasPart統合', '記事構成要素統合', 'マルチメディア統合', 'Schema.org hasPart'],
+    relatedTechnologies: ['VideoObject', 'Fragment ID', 'isPartOf', 'エンティティリレーションシップ', 'Mike King理論'],
+    fragmentId: 'haspart-video-integration-expertise'
+  },
+  {
+    subject: 'associatedMedia動画統合',
+    expertiseLevel: 5,
+    category: 'technology',
+    relatedEntities: ['https://nands.tech/aio-seo#service'],
+    experienceYears: 1,
+    certificationLevel: 'expert',
+    synonyms: ['関連メディア統合', 'Schema.org associatedMedia', '記事メディア最適化'],
+    relatedTechnologies: ['VideoObject Schema', 'E-E-A-T最適化', 'AI検索最適化', 'Google Rich Results'],
+    fragmentId: 'associated-media-integration-expertise'
+  },
+  {
     subject: 'バイラルコンテンツ設計',
     expertiseLevel: 4,
     category: 'methodology',
@@ -549,6 +582,46 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
     relatedKnowledge: ['AIコンテンツ生成自動化', 'YouTubeショート動画制作', 'プロンプトエンジニアリング'],
     searchIntents: ['GPT-4 動画スクリプト', 'AI スクリプト生成', '動画台本AI'],
     coOccurringTerms: ['バイラル要素', 'Hook設計', 'Empathy共感', 'CTA行動喚起']
+  },
+  {
+    entity: 'YouTube中尺動画（130秒）',
+    entityType: 'Product',
+    context: 'uses',
+    importance: 9,
+    fragmentId: 'youtube-medium-video',
+    relatedKnowledge: ['YouTube中尺動画制作（130秒）', 'マルチモーダルコンテンツ最適化', 'VideoObject Schema'],
+    searchIntents: ['YouTube 中尺動画', '130秒動画', '解説動画制作'],
+    coOccurringTerms: ['教育型動画', '詳細解説', 'エンゲージメント', 'ブログ統合']
+  },
+  {
+    entity: 'hasPartスキーマ（動画統合）',
+    entityType: 'Technology',
+    context: 'implements',
+    importance: 10,
+    fragmentId: 'haspart-schema-video',
+    relatedKnowledge: ['hasPartスキーマ動画統合', 'Schema.org構造化データ', 'Mike King理論', 'エンティティリレーションシップ'],
+    searchIntents: ['hasPart 動画統合', 'Schema.org hasPart', '記事構成要素 動画'],
+    coOccurringTerms: ['WebPageElement', 'isPartOf', 'Article Schema', 'AI検索最適化']
+  },
+  {
+    entity: 'associatedMedia（動画統合）',
+    entityType: 'Technology',
+    context: 'implements',
+    importance: 10,
+    fragmentId: 'associated-media-video',
+    relatedKnowledge: ['associatedMedia動画統合', 'VideoObject Schema', 'E-E-A-T最適化', 'マルチモーダルコンテンツ最適化'],
+    searchIntents: ['associatedMedia 動画', 'Schema.org 関連メディア', '記事メディア最適化'],
+    coOccurringTerms: ['VideoObject', 'MediaObject', 'Rich Snippets', 'Google Rich Results']
+  },
+  {
+    entity: '著者セクション統合（E-E-A-T）',
+    entityType: 'Concept',
+    context: 'implements',
+    importance: 10,
+    fragmentId: 'author-section-integration',
+    relatedKnowledge: ['E-E-A-T最適化', 'hasPartスキーマ動画統合', 'レリバンスエンジニアリング'],
+    searchIntents: ['著者セクション 構造化データ', 'E-E-A-T 著者情報', 'Person Schema'],
+    coOccurringTerms: ['AuthorProfile', 'TrustSignals', 'Expertise', 'Authoritativeness', 'Trustworthiness']
   }
 ];
 
@@ -2001,6 +2074,81 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     semanticWeight: 0.84,
     hierarchyLevel: 2,
     relatedFragments: ['service-ai-agents', 'content-generation']
+  },
+  {
+    id: 'youtube-medium-blog-integration',
+    sectionName: 'YouTube中尺動画ブログ統合',
+    targetQueries: [
+      'YouTube 中尺動画 ブログ統合',
+      '動画 記事 統合',
+      'VideoObject Schema ブログ',
+      'hasPartスキーマ 動画'
+    ],
+    entities: [
+      {
+        entity: 'YouTube中尺動画（130秒）',
+        entityType: 'Product',
+        context: 'uses',
+        importance: 9,
+        relatedKnowledge: ['YouTube中尺動画制作（130秒）', 'hasPartスキーマ動画統合', 'associatedMedia動画統合'],
+        searchIntents: ['YouTube 中尺動画 統合', 'ブログ 動画 最適化'],
+        coOccurringTerms: ['Fragment ID', 'Complete URI', 'ベクトルリンク', 'AI引用']
+      },
+      {
+        entity: 'hasPartスキーマ（動画統合）',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 10,
+        relatedKnowledge: ['hasPartスキーマ動画統合', 'Mike King理論', 'エンティティリレーションシップ'],
+        searchIntents: ['hasPart 動画', 'Schema.org 記事構成'],
+        coOccurringTerms: ['WebPageElement', 'isPartOf', 'Article', 'VideoObject']
+      },
+      {
+        entity: 'associatedMedia（動画統合）',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 10,
+        relatedKnowledge: ['associatedMedia動画統合', 'E-E-A-T最適化', 'VideoObject Schema'],
+        searchIntents: ['associatedMedia Schema', '関連メディア 最適化'],
+        coOccurringTerms: ['MediaObject', 'Rich Results', 'Google検索']
+      }
+    ],
+    semanticWeight: 0.92,
+    hierarchyLevel: 2,
+    relatedFragments: ['service-video-generation', 'aio-seo-optimization', 'multimodal-content-optimization-expertise']
+  },
+  {
+    id: 'author-section-eeat-integration',
+    sectionName: '著者セクションE-E-A-T統合',
+    targetQueries: [
+      '著者セクション 構造化データ',
+      'E-E-A-T 著者情報',
+      'Person Schema ブログ',
+      '著者プロフィール 最適化'
+    ],
+    entities: [
+      {
+        entity: '著者セクション統合（E-E-A-T）',
+        entityType: 'Concept',
+        context: 'implements',
+        importance: 10,
+        relatedKnowledge: ['E-E-A-T最適化', 'hasPartスキーマ動画統合', 'レリバンスエンジニアリング'],
+        searchIntents: ['著者 E-E-A-T', 'Person Schema 実装'],
+        coOccurringTerms: ['AuthorProfile', 'TrustSignals', 'Expertise', 'Authoritativeness']
+      },
+      {
+        entity: 'Fragment ID（著者プロフィール）',
+        entityType: 'Technology',
+        context: 'implements',
+        importance: 9,
+        relatedKnowledge: ['Fragment ID', 'ベクトルリンク化', 'AI引用最適化'],
+        searchIntents: ['著者 Fragment ID', 'author-profile ベクトル化'],
+        coOccurringTerms: ['Complete URI', 'AI Citation', 'Deep Link']
+      }
+    ],
+    semanticWeight: 0.90,
+    hierarchyLevel: 2,
+    relatedFragments: ['haspart-video-integration-expertise', 'eeat-optimization']
   },
   {
     id: 'service-corporate-reskilling',
