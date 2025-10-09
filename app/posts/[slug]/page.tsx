@@ -432,6 +432,11 @@ export default async function PostPage({ params }: PageProps) {
           )
           
           console.log('🎯 YouTube動画の4大AI検索エンジン最適化Schema生成成功')
+          console.log('✅ YouTube動画エンティティ統合準備完了:')
+          console.log('  - hasPart スキーマ統合: ✅')
+          console.log('  - mentions エンティティ統合: ✅')
+          console.log('  - about トピック統合: ✅')
+          console.log('  - associatedMedia 統合: ✅')
         } catch (schemaError) {
           console.error('⚠️ YouTube Schema生成エラー:', schemaError)
           // Schemaエラーは無視して表示は続行
@@ -535,6 +540,21 @@ export default async function PostPage({ params }: PageProps) {
       "alt": post.title
     },
     
+    // YouTube動画を関連メディアとして統合
+    ...(youtubeAIOptimizedSchema && {
+      "associatedMedia": {
+        "@type": "VideoObject",
+        "@id": youtubeAIOptimizedSchema["@id"],
+        "name": youtubeAIOptimizedSchema.name,
+        "description": youtubeAIOptimizedSchema.description,
+        "thumbnailUrl": youtubeAIOptimizedSchema.thumbnailUrl,
+        "contentUrl": youtubeAIOptimizedSchema.contentUrl,
+        "embedUrl": youtubeAIOptimizedSchema.embedUrl,
+        "uploadDate": youtubeAIOptimizedSchema.uploadDate,
+        "duration": youtubeAIOptimizedSchema.duration
+      }
+    }),
+    
     // 著者情報強化（E-E-A-T対策）
     "author": authorSchema,
     "publisher": {
@@ -601,7 +621,13 @@ export default async function PostPage({ params }: PageProps) {
       {
         "@type": "Thing",
         "name": post.categories?.[0]?.name || "AI・ビジネス・テクノロジー"
-      }
+      },
+      // YouTube動画のトピック統合
+      ...(youtubeAIOptimizedSchema ? [{
+        "@type": "Thing",
+        "name": "動画コンテンツ",
+        "url": youtubeAIOptimizedSchema.contentUrl
+      }] : [])
     ],
     "mentions": [
       {
@@ -613,7 +639,15 @@ export default async function PostPage({ params }: PageProps) {
         "@type": "Organization", 
         "name": "ChatGPT",
         "sameAs": "https://chat.openai.com"
-      }
+      },
+      // YouTube動画エンティティ統合（ベクトルリンク化済み）
+      ...(youtubeAIOptimizedSchema ? [{
+        "@type": "VideoObject",
+        "@id": youtubeAIOptimizedSchema["@id"],
+        "name": youtubeAIOptimizedSchema.name,
+        "url": youtubeAIOptimizedSchema.contentUrl,
+        "sameAs": youtubeAIOptimizedSchema.embedUrl
+      }] : [])
     ],
 
     // 言語・地域情報
@@ -643,21 +677,42 @@ export default async function PostPage({ params }: PageProps) {
     "wordCount": post.content.split(/\s+/).length,
     "timeRequired": `PT${Math.ceil(post.content.split(/\s+/).length / 200)}M`,
 
-    // Mike King理論: hasPartスキーマ（GEO最適化）
+    // Mike King理論: hasPartスキーマ（GEO最適化 + YouTube動画統合）
     ...(hasFragmentIds && {
-      "hasPart": tocData.toc.map((item: any, index: number) => ({
-        "@type": "WebPageElement",
-        "@id": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
-        "name": item.title,
-        "description": `${post.title}の第${index + 1}セクション: ${item.title}`,
-        "url": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
-        "position": index + 1,
-        "mainContentOfPage": false,
-        "speakable": {
-          "@type": "SpeakableSpecification",
-          "cssSelector": [`#${item.anchor || item.id}`]
-        }
-      }))
+      "hasPart": [
+        // TOCセクション
+        ...tocData.toc.map((item: any, index: number) => ({
+          "@type": "WebPageElement",
+          "@id": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
+          "name": item.title,
+          "description": `${post.title}の第${index + 1}セクション: ${item.title}`,
+          "url": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
+          "position": index + 1,
+          "mainContentOfPage": false,
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [`#${item.anchor || item.id}`]
+          }
+        })),
+        // YouTube動画セクション（ベクトルリンク化済み）
+        ...(youtubeAIOptimizedSchema ? [{
+          "@type": "VideoObject",
+          "@id": youtubeAIOptimizedSchema["@id"],
+          "name": youtubeAIOptimizedSchema.name,
+          "description": youtubeAIOptimizedSchema.description,
+          "thumbnailUrl": youtubeAIOptimizedSchema.thumbnailUrl,
+          "uploadDate": youtubeAIOptimizedSchema.uploadDate,
+          "duration": youtubeAIOptimizedSchema.duration,
+          "contentUrl": youtubeAIOptimizedSchema.contentUrl,
+          "embedUrl": youtubeAIOptimizedSchema.embedUrl,
+          "position": tocData.toc.length + 1,
+          "mainContentOfPage": false,
+          "isPartOf": {
+            "@type": "Article",
+            "@id": `https://nands.tech/posts/${params.slug}#article`
+          }
+        }] : [])
+      ]
     }),
 
     // AIO LLMO: FAQ構造化データ（自動抽出）
