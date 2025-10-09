@@ -711,7 +711,22 @@ export default async function PostPage({ params }: PageProps) {
             "@type": "Article",
             "@id": `https://nands.tech/posts/${params.slug}#article`
           }
-        }] : [])
+        }] : []),
+        // 著者セクション（E-E-A-T最適化・ベクトルリンク化）
+        {
+          "@type": "Person",
+          "@id": `https://nands.tech/posts/${params.slug}#author-profile`,
+          "name": authorSchema.name,
+          "jobTitle": authorSchema.jobTitle,
+          "description": authorSchema.description,
+          "url": `https://nands.tech/posts/${params.slug}#author-profile`,
+          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1),
+          "mainContentOfPage": false,
+          "isPartOf": {
+            "@type": "Article",
+            "@id": `https://nands.tech/posts/${params.slug}#article`
+          }
+        }
       ]
     }),
 
