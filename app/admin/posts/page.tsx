@@ -21,6 +21,9 @@ type Post = {
   is_chatgpt_special: boolean;
   youtube_script_id?: number | null;
   youtube_script_status?: string | null;
+  // ★ 台本タイプ別ID
+  shortScriptId?: number | null;
+  mediumScriptId?: number | null;
 };
 
 export default function PostsPage() {
@@ -116,6 +119,31 @@ export default function PostsPage() {
       const allPosts = [...formattedNewPosts, ...formattedOldPosts];
       allPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+      // ★ 全ての台本情報を一括取得（パフォーマンス最適化）
+      const postIds = formattedNewPosts
+        .map(p => parseInt(p.id.toString().replace(/^posts-/, '')))
+        .filter(id => !isNaN(id));
+
+      if (postIds.length > 0) {
+        const { data: allScripts } = await supabase
+          .from('company_youtube_shorts')
+          .select('id, related_blog_post_id, content_type')
+          .in('related_blog_post_id', postIds);
+
+        if (allScripts) {
+          // 各記事に台本情報をマッチング
+          allPosts.forEach(post => {
+            if (post.table_type === 'posts') {
+              const originalId = parseInt(post.id.toString().replace(/^posts-/, ''));
+              const relatedScripts = allScripts.filter(s => s.related_blog_post_id === originalId);
+              
+              post.shortScriptId = relatedScripts.find(s => s.content_type === 'youtube-short')?.id || null;
+              post.mediumScriptId = relatedScripts.find(s => s.content_type === 'youtube-medium')?.id || null;
+            }
+          });
+        }
+      }
+
       setPosts(allPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -201,14 +229,18 @@ export default function PostsPage() {
     }
   };
 
-  const handleGenerateScript = async (post: Post) => {
+  const handleGenerateScript = async (post: Post, scriptType: 'short' | 'medium' = 'short') => {
     // postsテーブルの記事のみ対応
     if (post.table_type !== 'posts') {
-      alert('YouTubeショート台本生成はRAG記事のみ対応しています');
+      alert('YouTube台本生成はRAG記事のみ対応しています');
       return;
     }
 
-    if (!window.confirm('この記事からYouTubeショート動画の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます')) {
+    const confirmMessage = scriptType === 'short'
+      ? 'この記事からYouTubeショート動画（30秒）の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます'
+      : 'この記事からYouTube中尺動画（130秒）の台本を生成しますか？\n\n※詳細な解説を含む教育的な内容になります\n※130秒程度の台本が作成されます（約1300文字）\n※5-7つの要点が含まれます';
+
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
@@ -221,7 +253,8 @@ export default function PostsPage() {
       console.log('🎬 台本生成開始:', {
         postId: originalId,
         slug: post.slug,
-        title: post.title
+        title: post.title,
+        scriptType: scriptType
       });
 
       const response = await fetch('/api/admin/generate-youtube-script', {
@@ -233,7 +266,8 @@ export default function PostsPage() {
           postId: parseInt(originalId),
           postSlug: post.slug,
           postTitle: post.title,
-          postContent: post.content
+          postContent: post.content,
+          scriptType: scriptType
         }),
       });
 
@@ -363,22 +397,57 @@ export default function PostsPage() {
                             プレビュー ↗
                           </Link>
                           {post.table_type === 'posts' && (
-                            post.youtube_script_id ? (
-                              <Link
-                                href={`/admin/youtube-scripts/${post.youtube_script_id}`}
-                                className="text-sm text-green-400 hover:text-green-300"
-                              >
-                                🎬 台本確認
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => handleGenerateScript(post)}
-                                disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
-                                className="text-sm text-yellow-400 hover:text-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : '🎬 台本生成'}
-                              </button>
-                            )
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                              {/* ⚡ ショート台本（30秒） */}
+                              {post.shortScriptId ? (
+                                <Link
+                                  href={`/admin/youtube-scripts/${post.shortScriptId}`}
+                                  className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-yellow-900/50 border border-yellow-600 text-yellow-300 hover:bg-yellow-800/50 hover:text-yellow-200 transition-all whitespace-nowrap"
+                                  title="ショート台本を確認・管理"
+                                >
+                                  <span>⚡</span>
+                                  <span className="hidden sm:inline">ショート</span>
+                                  <span className="sm:hidden">30s</span>
+                                  <span className="text-yellow-500">✓</span>
+                                </Link>
+                              ) : (
+                                <button
+                                  onClick={() => handleGenerateScript(post, 'short')}
+                                  disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
+                                  className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-yellow-900/20 border border-yellow-700/50 text-yellow-400 hover:bg-yellow-900/40 hover:border-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                  title="30秒のショート動画用台本を生成"
+                                >
+                                  <span>⚡</span>
+                                  <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : 'ショート生成'}</span>
+                                  <span className="sm:hidden">30s</span>
+                                </button>
+                              )}
+
+                              {/* 🎯 中尺台本（130秒） */}
+                              {post.mediumScriptId ? (
+                                <Link
+                                  href={`/admin/youtube-scripts/${post.mediumScriptId}`}
+                                  className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-blue-900/50 border border-blue-600 text-blue-300 hover:bg-blue-800/50 hover:text-blue-200 transition-all whitespace-nowrap"
+                                  title="中尺台本を確認・管理"
+                                >
+                                  <span>🎯</span>
+                                  <span className="hidden sm:inline">中尺</span>
+                                  <span className="sm:hidden">130s</span>
+                                  <span className="text-blue-500">✓</span>
+                                </Link>
+                              ) : (
+                                <button
+                                  onClick={() => handleGenerateScript(post, 'medium')}
+                                  disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
+                                  className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-blue-900/20 border border-blue-700/50 text-blue-400 hover:bg-blue-900/40 hover:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                  title="130秒の中尺動画用台本を生成（教育的・AI引用最適化）"
+                                >
+                                  <span>🎯</span>
+                                  <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : '中尺生成'}</span>
+                                  <span className="sm:hidden">130s</span>
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>

@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         page_path: scriptData.page_path,
         content_title: scriptData.content_title,
         content: scriptData.content,
-        content_type: 'youtube-short',
+        content_type: scriptData.content_type, // ✅ ショート/中尺を区別
         embedding: scriptData.embedding,
         category: 'ai-technology',
         semantic_weight: 1.0,

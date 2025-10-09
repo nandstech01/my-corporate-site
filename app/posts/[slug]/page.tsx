@@ -335,23 +335,35 @@ export default async function PostPage({ params }: PageProps) {
     notFound()
   }
   
-  // 🎬 YouTube動画情報を取得（youtube_script_idがある場合）
+  // 🎬 YouTube動画情報を取得（中尺優先、なければショート）
   let youtubeScript: YouTubeScriptInfo | null = null
   let youtubeAIOptimizedSchema: any = null // 🆕 4大AI検索エンジン最適化Schema
   
-  if (post.youtube_script_id) {
+  // ★ 記事IDで関連する全てのYouTube台本を取得
+  if (post.id) {
     try {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const { data: allScripts, error } = await supabase
         .from('company_youtube_shorts')
-        .select('*') // 🆕 全フィールド取得（AI最適化Schema生成用）
-        .eq('id', post.youtube_script_id)
+        .select('*')
+        .eq('related_blog_post_id', post.id)
         .eq('status', 'published')
-        .single()
       
-      if (data && !error) {
-        // 🆕 表示用の基本情報
-        youtubeScript = {
+      if (allScripts && !error && allScripts.length > 0) {
+        // ★ 中尺を優先、なければショート
+        const mediumScript = allScripts.find((s: any) => s.content_type === 'youtube-medium')
+        const shortScript = allScripts.find((s: any) => s.content_type === 'youtube-short')
+        const data = mediumScript || shortScript
+        
+        console.log('📊 YouTube動画優先順位:', {
+          medium: mediumScript ? 'あり（表示）' : 'なし',
+          short: shortScript ? 'あり' : 'なし',
+          selected: data?.content_type
+        })
+        
+        if (data) {
+          // 🆕 表示用の基本情報
+          youtubeScript = {
           id: data.id,
           youtube_video_id: data.youtube_video_id,
           youtube_url: data.youtube_url,
@@ -423,6 +435,7 @@ export default async function PostPage({ params }: PageProps) {
         } catch (schemaError) {
           console.error('⚠️ YouTube Schema生成エラー:', schemaError)
           // Schemaエラーは無視して表示は続行
+        }
         }
       }
     } catch (error) {

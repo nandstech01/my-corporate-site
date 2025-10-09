@@ -13,6 +13,7 @@ interface YouTubeScript {
   page_path: string;
   related_blog_post_id: number | null;
   blog_slug: string | null;
+  content_type: string; // 'youtube-short' | 'youtube-medium'
   script_title: string;
   script_hook: string;
   script_empathy: string;
@@ -61,10 +62,15 @@ export default function YouTubeScriptDetailPage() {
   const scriptId = params.scriptId as string;
   
   const [script, setScript] = React.useState<YouTubeScript | null>(null);
+  const [shortScript, setShortScript] = React.useState<YouTubeScript | null>(null);
+  const [mediumScript, setMediumScript] = React.useState<YouTubeScript | null>(null);
+  const [relatedBlogPostId, setRelatedBlogPostId] = React.useState<number | null>(null);
   const [blogPostTitle, setBlogPostTitle] = React.useState<string>('');
+  const [blogSlug, setBlogSlug] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isSubmittingUrl, setIsSubmittingUrl] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
   const [youtubeUrl, setYoutubeUrl] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   
@@ -78,7 +84,7 @@ export default function YouTubeScriptDetailPage() {
     try {
       setError(null);
       
-      // 台本データ取得
+      // 現在の台本データ取得
       const { data: scriptData, error: scriptError } = await supabase
         .from('company_youtube_shorts')
         .select('*')
@@ -91,17 +97,41 @@ export default function YouTubeScriptDetailPage() {
       }
 
       setScript(scriptData as unknown as YouTubeScript);
+      setRelatedBlogPostId(scriptData.related_blog_post_id);
 
-      // 関連記事タイトル取得
+      // ★ 関連する全ての台本を取得（ショート & 中尺）
       if (scriptData.related_blog_post_id) {
+        const { data: allScripts, error: allScriptsError } = await supabase
+          .from('company_youtube_shorts')
+          .select('*')
+          .eq('related_blog_post_id', scriptData.related_blog_post_id);
+
+        if (allScriptsError) {
+          console.error('関連台本の取得エラー:', allScriptsError);
+        } else if (allScripts) {
+          // content_typeで分類
+          const short = allScripts.find(s => s.content_type === 'youtube-short');
+          const medium = allScripts.find(s => s.content_type === 'youtube-medium');
+          
+          setShortScript(short as unknown as YouTubeScript || null);
+          setMediumScript(medium as unknown as YouTubeScript || null);
+
+          console.log('📊 関連台本:', {
+            short: short ? `ID: ${short.id}` : '未作成',
+            medium: medium ? `ID: ${medium.id}` : '未作成'
+          });
+        }
+
+        // 関連記事情報取得
         const { data: postData } = await supabase
           .from('posts')
-          .select('title')
+          .select('title, slug')
           .eq('id', scriptData.related_blog_post_id)
           .single();
         
         if (postData) {
           setBlogPostTitle(postData.title);
+          setBlogSlug(postData.slug);
         }
       }
     } catch (error: any) {
@@ -112,13 +142,18 @@ export default function YouTubeScriptDetailPage() {
     }
   };
 
+  // YouTube URL登録（現在表示中の台本用）
   const handleSubmitUrl = async () => {
+    if (!script) return;
+    
     if (!youtubeUrl.trim()) {
       alert('YouTube URLを入力してください');
       return;
     }
 
-    if (!window.confirm('このYouTube URLを登録してベクトルリンク化しますか？\n\n登録後は、Fragment Vectorsに同期され、AIの引用対象となります。')) {
+    const typeName = script.content_type === 'youtube-short' ? 'ショート' : '中尺';
+    
+    if (!window.confirm(`このYouTube URL（${typeName}）を登録してベクトルリンク化しますか？\n\n登録後は、Fragment Vectorsに同期され、AIの引用対象となります。`)) {
       return;
     }
 
@@ -128,7 +163,7 @@ export default function YouTubeScriptDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          scriptId: parseInt(scriptId),
+          scriptId: script.id,
           youtubeUrl: youtubeUrl.trim()
         })
       });
@@ -139,7 +174,7 @@ export default function YouTubeScriptDetailPage() {
         throw new Error(data.error || 'URL登録に失敗しました');
       }
 
-      alert(`✅ YouTube URLを登録しました！\n\n✨ ベクトルリンク化完了\n🔗 Video ID: ${data.videoId}\n\nFragment Vectorsに同期され、AIの引用対象となりました。`);
+      alert(`✅ ${typeName}台本のYouTube URLを登録しました！\n\n✨ ベクトルリンク化完了\n🔗 Video ID: ${data.videoId}\n\nFragment Vectorsに同期され、AIの引用対象となりました。`);
       
       // データを再取得して表示を更新
       await fetchScript();
@@ -153,51 +188,108 @@ export default function YouTubeScriptDetailPage() {
     }
   };
 
+  // 台本生成関数（ショート or 中尺）
+  const handleGenerateScript = async (scriptType: 'short' | 'medium') => {
+    if (!relatedBlogPostId || !blogPostTitle || !blogSlug) {
+      alert('記事情報が不足しています');
+      return;
+    }
+
+    const typeName = scriptType === 'short' ? 'ショート（30秒）' : '中尺（130秒）';
+    
+    if (!window.confirm(`${typeName}台本を生成しますか？\n\n記事: ${blogPostTitle}`)) {
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // 記事本文を取得
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .select('content')
+        .eq('id', relatedBlogPostId)
+        .single();
+
+      if (postError || !postData) {
+        throw new Error('記事本文の取得に失敗しました');
+      }
+
+      const response = await fetch('/api/admin/generate-youtube-script', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: relatedBlogPostId,
+          postSlug: blogSlug,
+          postTitle: blogPostTitle,
+          postContent: postData.content,
+          scriptType: scriptType
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '台本生成に失敗しました');
+      }
+
+      alert(`✅ ${typeName}台本を生成しました！\n\nScript ID: ${data.scriptId}\nAI最適化スコア: ${data.aiOptimizationScore}/100\n\n台本詳細ページに移動します。`);
+      
+      // 新しく生成された台本の詳細ページにリダイレクト
+      router.push(`/admin/youtube-scripts/${data.scriptId}`);
+      
+    } catch (error: any) {
+      console.error('台本生成エラー:', error);
+      alert(`台本生成に失敗しました\n\n${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleDelete = async () => {
-    if (!window.confirm('この台本を削除してもよろしいですか？\n\n削除後は、記事一覧から再度台本を生成できます。')) {
+    if (!script) return;
+    
+    const typeName = script.content_type === 'youtube-short' ? 'ショート（30秒）' : '中尺（130秒）';
+    
+    if (!window.confirm(`この${typeName}台本を削除してもよろしいですか？\n\n削除後は、記事一覧から再度生成できます。\n\n※ もう一方のタイプの台本は削除されません。`)) {
       return;
     }
 
     setIsDeleting(true);
     try {
-      // 1. company_youtube_shortsテーブルから削除
+      console.log(`🗑️ ${typeName}台本削除開始: ID ${scriptId}`);
+      
+      // 1. company_youtube_shortsテーブルから削除（現在の台本のみ）
       const { error: deleteError } = await supabase
         .from('company_youtube_shorts')
         .delete()
         .eq('id', scriptId);
 
       if (deleteError) throw deleteError;
+      console.log(`✅ company_youtube_shorts削除完了`);
 
-      // 2. postsテーブルのyoutube_script_idをクリア
-      if (script?.related_blog_post_id) {
-        const { error: updateError } = await supabase
-          .from('posts')
-          .update({
-            youtube_script_id: null,
-            youtube_script_status: null
-          })
-          .eq('id', script.related_blog_post_id);
+      // 2. fragment_vectorsテーブルからも削除（ベクトルリンク解除）
+      if (script.youtube_url && script.fragment_id) {
+        console.log(`🔗 Fragment Vector削除中: ${script.fragment_id}`);
+        const { error: fragmentError } = await supabase
+          .from('fragment_vectors')
+          .delete()
+          .eq('fragment_id', script.fragment_id);
 
-        if (updateError) {
-          console.error('記事テーブル更新エラー:', updateError);
+        if (fragmentError) {
+          console.error('⚠️ Fragment Vector削除エラー:', fragmentError);
+          // エラーは記録するが処理は続行（台本削除は成功している）
+        } else {
+          console.log(`✅ Fragment Vector削除完了`);
         }
+      } else {
+        console.log(`💡 Fragment Vectorは未登録（YouTube URL未登録）`);
       }
 
-      // 3. fragment_vectorsテーブルからも削除
-      const { error: fragmentError } = await supabase
-        .from('fragment_vectors')
-        .delete()
-        .eq('fragment_id', script?.fragment_id);
-
-      if (fragmentError) {
-        console.error('Fragment Vector削除エラー:', fragmentError);
-      }
-
-      alert('✅ 台本を削除しました\n\n記事一覧から再度台本を生成できます。');
+      alert(`✅ ${typeName}台本を削除しました\n\n記事一覧から再度生成できます。`);
       router.push('/admin/posts');
       
     } catch (error: any) {
-      console.error('台本削除エラー:', error);
+      console.error(`❌ ${typeName}台本削除エラー:`, error);
       alert(`台本の削除に失敗しました\n\n${error.message}`);
     } finally {
       setIsDeleting(false);
@@ -235,28 +327,33 @@ export default function YouTubeScriptDetailPage() {
       {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-2">🎬 YouTubeショート台本</h1>
-          <p className="text-gray-300 text-sm">Script ID: {scriptId}</p>
+          <h1 className="text-2xl font-bold text-white mb-2">🎬 YouTube台本管理</h1>
+          <p className="text-gray-300 text-sm">
+            {shortScript && mediumScript && '⚡ ショート & 🎯 中尺'}
+            {shortScript && !mediumScript && '⚡ ショート（30秒）'}
+            {!shortScript && mediumScript && '🎯 中尺（130秒）'}
+          </p>
         </div>
         <div className="flex space-x-2">
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={`この${script.content_type === 'youtube-short' ? 'ショート' : '中尺'}台本を削除`}
+          >
+            {isDeleting ? '削除中...' : '🗑️ 削除'}
+          </button>
           <Link
             href="/admin/posts"
             className="inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-white bg-gray-700 hover:bg-gray-600"
           >
             ← 記事一覧
           </Link>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
-          >
-            {isDeleting ? '削除中...' : '🗑️ 台本削除'}
-          </button>
         </div>
       </div>
 
       {/* 関連記事情報 */}
-      {blogPostTitle && script.blog_slug && (
+      {blogPostTitle && blogSlug && (
         <div className="bg-blue-900 border border-blue-700 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -264,12 +361,81 @@ export default function YouTubeScriptDetailPage() {
               <p className="text-white font-medium">{blogPostTitle}</p>
             </div>
             <Link
-              href={`/posts/${script.blog_slug}`}
+              href={`/posts/${blogSlug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-blue-300 hover:text-blue-200 underline"
             >
               記事を見る ↗
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* もう一方のタイプの台本管理 */}
+      {script.content_type === 'youtube-short' && !mediumScript && (
+        <div className="bg-blue-900/30 border-2 border-blue-600 rounded-lg p-8 mb-8">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🎯</div>
+            <h3 className="text-xl font-bold text-white mb-2">中尺台本（130秒）</h3>
+            <p className="text-gray-300 mb-6">教育的価値・AI引用最適化の詳細解説動画用台本</p>
+            <button
+              onClick={() => handleGenerateScript('medium')}
+              disabled={isGenerating}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {isGenerating ? '生成中...' : '🎯 中尺台本を生成'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {script.content_type === 'youtube-short' && mediumScript && (
+        <div className="bg-blue-900 border border-blue-700 rounded-lg p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">🎯 中尺台本（130秒）</h3>
+              <p className="text-blue-200 text-sm">{mediumScript.script_title}</p>
+            </div>
+            <Link
+              href={`/admin/youtube-scripts/${mediumScript.id}`}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+            >
+              中尺台本を表示 →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {script.content_type === 'youtube-medium' && !shortScript && (
+        <div className="bg-yellow-900/30 border-2 border-yellow-600 rounded-lg p-8 mb-8">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⚡</div>
+            <h3 className="text-xl font-bold text-white mb-2">ショート台本（30秒）</h3>
+            <p className="text-gray-300 mb-6">バズる要素重視の短尺動画用台本</p>
+            <button
+              onClick={() => handleGenerateScript('short')}
+              disabled={isGenerating}
+              className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {isGenerating ? '生成中...' : '⚡ ショート台本を生成'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {script.content_type === 'youtube-medium' && shortScript && (
+        <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">⚡ ショート台本（30秒）</h3>
+              <p className="text-yellow-200 text-sm">{shortScript.script_title}</p>
+            </div>
+            <Link
+              href={`/admin/youtube-scripts/${shortScript.id}`}
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-all"
+            >
+              ショート台本を表示 →
             </Link>
           </div>
         </div>
