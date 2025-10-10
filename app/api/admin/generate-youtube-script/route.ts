@@ -51,6 +51,8 @@ interface YouTubeScriptResponse {
   // 🆕 SNS投稿用
   x_post: string; // X（Twitter）用（280文字以内）
   threads_post: string; // Threads用（500文字以内）
+  instagram_caption: string; // Instagram用（2200文字以内）
+  lemon8_caption: string; // Lemon8用（1000文字以内）
   linkedin_title: string; // LinkedIn用タイトル（100文字以内）
   linkedin_description: string; // LinkedIn用説明（1300文字以内）
   tiktok_caption: string; // TikTok用キャプション（150文字推奨）
@@ -203,14 +205,19 @@ ${scriptResponse.script_cta}
             youtube_description: scriptResponse.youtube_description,
             youtube_tags: scriptResponse.youtube_tags
           },
-          sns_metadata: { // 🆕 SNS投稿用メタデータ
-            x_post: scriptResponse.x_post,
-            threads_post: scriptResponse.threads_post,
-            linkedin_title: scriptResponse.linkedin_title,
-            linkedin_description: scriptResponse.linkedin_description,
-            tiktok_caption: scriptResponse.tiktok_caption,
-            common_tags: scriptResponse.youtube_tags // 全SNSで共通タグ使用
-          }
+          // ショート動画の場合のみSNSメタデータを保存
+          ...(scriptType === 'short' && {
+            sns_metadata: {
+              x_post: scriptResponse.x_post,
+              threads_post: scriptResponse.threads_post,
+              instagram_caption: scriptResponse.instagram_caption,
+              lemon8_caption: scriptResponse.lemon8_caption,
+              linkedin_title: scriptResponse.linkedin_title,
+              linkedin_description: scriptResponse.linkedin_description,
+              tiktok_caption: scriptResponse.tiktok_caption,
+              common_tags: scriptResponse.youtube_tags
+            }
+          })
         }
       })
       .select()
@@ -290,25 +297,26 @@ async function generateYouTubeScript(
   
   let enhancedContent = postContent;
   
-  // 🚀 中尺動画の場合、ハイブリッド検索でブログ記事のフラグメントを取得
-  if (scriptType === 'medium') {
-    console.log('\n🔍 ========================================');
-    console.log('🚀 ハイブリッド検索開始（ブログフラグメント取得）');
-    console.log(`  対象記事: ${postSlug}`);
-    console.log('🔍 ========================================\n');
+  // 🚀 ハイブリッド検索でブログ記事のフラグメントを取得（全台本タイプで実行）
+  console.log('\n🔍 ========================================');
+  console.log(`🚀 ハイブリッド検索開始（ブログフラグメント取得 - ${scriptType}動画）`);
+  console.log(`  対象記事: ${postSlug}`);
+  console.log('🔍 ========================================\n');
+  
+  try {
+    const hybridSearch = new HybridSearchSystem();
     
-    try {
-      const hybridSearch = new HybridSearchSystem();
-      
-      // ブログ記事のフラグメントをハイブリッド検索
-      // page_pathを使って、この記事に属するフラグメントのみを検索
-      const pagePath = `/posts/${postSlug}`;
-      
-      const blogFragments = await hybridSearch.search({
-        query: postTitle, // タイトルをクエリとして使用
-        source: 'fragment', // fragment_vectorsから検索
-        limit: 20, // より多くのフラグメントを取得
-        threshold: 0.1, // 閾値を低めに設定してより多くのフラグメントを取得
+    // ブログ記事のフラグメントをハイブリッド検索
+    // page_pathを使って、この記事に属するフラグメントのみを検索
+    const pagePath = `/posts/${postSlug}`;
+    
+    const fragmentLimit = scriptType === 'short' ? 15 : 20; // ショートは15、中尺は20
+    
+    const blogFragments = await hybridSearch.search({
+      query: postTitle, // タイトルをクエリとして使用
+      source: 'fragment', // fragment_vectorsから検索
+      limit: fragmentLimit, // 台本タイプに応じて調整
+      threshold: 0.1, // 閾値を低めに設定してより多くのフラグメントを取得
         bm25Weight: 0.4,
         vectorWeight: 0.6,
         filterPagePath: pagePath // この記事のフラグメントのみに絞る
@@ -338,10 +346,9 @@ async function generateYouTubeScript(
         console.log(`💡 記事本文のみで台本を生成します\n`);
       }
       
-    } catch (error) {
-      console.error('⚠️ ハイブリッド検索エラー:', error);
-      console.log('💡 記事本文のみで台本を生成します\n');
-    }
+  } catch (error) {
+    console.error('⚠️ ハイブリッド検索エラー:', error);
+    console.log('💡 記事本文のみで台本を生成します\n');
   }
   
   // プロンプトをscriptTypeで分岐
@@ -349,9 +356,10 @@ async function generateYouTubeScript(
     ? getShortScriptSystemPrompt()
     : getMediumScriptSystemPrompt();
   
+  // 全台本タイプでenhancedContent（ハイブリッド検索結果）を使用
   const userPrompt = scriptType === 'short'
-    ? getShortScriptUserPrompt(postTitle, postContent)
-    : getMediumScriptUserPrompt(postTitle, enhancedContent); // 中尺はenhancedContentを使用
+    ? getShortScriptUserPrompt(postTitle, enhancedContent)
+    : getMediumScriptUserPrompt(postTitle, enhancedContent);
 
   // メッセージ配列を構築（Few-shot learningは使用しない - 記事内容の忠実性を優先）
   const messages = [
@@ -372,12 +380,52 @@ async function generateYouTubeScript(
     throw new Error('OpenAI APIからの応答が空です');
   }
 
+  console.log('🔍 OpenAI APIレスポンス確認中...');
   const scriptData = JSON.parse(responseContent);
   
-  // バリデーション
-  if (!scriptData.script_title || !scriptData.script_hook || !scriptData.script_empathy || 
-      !scriptData.script_body || !scriptData.script_cta) {
-    throw new Error('生成された台本が不完全です');
+  // 基本フィールドのバリデーション
+  const requiredFields = [
+    'script_title',
+    'script_hook', 
+    'script_empathy',
+    'script_body',
+    'script_cta'
+  ];
+  
+  // ショート動画の場合、SNSフィールドも必須
+  const snsRequiredFields = scriptType === 'short' ? [
+    'youtube_title',
+    'youtube_description',
+    'youtube_tags',
+    'x_post',
+    'threads_post',
+    'instagram_caption',
+    'lemon8_caption',
+    'linkedin_title',
+    'linkedin_description',
+    'tiktok_caption'
+  ] : [];
+  
+  const allRequiredFields = [...requiredFields, ...snsRequiredFields];
+  const missingFields = allRequiredFields.filter(field => !scriptData[field]);
+  
+  if (missingFields.length > 0) {
+    console.error('❌ 不足しているフィールド:', missingFields);
+    console.error('📄 受信したデータ:', JSON.stringify(scriptData, null, 2));
+    throw new Error(`生成された台本が不完全です。不足フィールド: ${missingFields.join(', ')}`);
+  }
+  
+  console.log(`✅ 台本バリデーション成功（${scriptType === 'short' ? 'ショート' : '中尺'}）`);
+  console.log(`  - タイトル: ${scriptData.script_title}`);
+  console.log(`  - Hook: ${scriptData.script_hook?.length || 0}文字`);
+  console.log(`  - Empathy: ${scriptData.script_empathy?.length || 0}文字`);
+  console.log(`  - Body: ${scriptData.script_body?.length || 0}文字`);
+  console.log(`  - CTA: ${scriptData.script_cta?.length || 0}文字`);
+  
+  if (scriptType === 'short') {
+    console.log(`  - SNSメタデータ: ✅ 生成済み`);
+    console.log(`    - X投稿: ${scriptData.x_post?.length || 0}文字`);
+    console.log(`    - Threads: ${scriptData.threads_post?.length || 0}文字`);
   }
 
   return scriptData as YouTubeScriptResponse;
@@ -634,8 +682,15 @@ function getShortScriptUserPrompt(postTitle: string, postContent: string): strin
 【記事タイトル】
 ${postTitle}
 
-【記事内容（抜粋）】
-${postContent.substring(0, 3000)}
+【記事内容（ハイブリッド検索で取得）】
+${postContent}
+
+🚨🚨🚨【超重要】SNS投稿文について🚨🚨🚨
+- **この記事の内容**を元に投稿文を作成してください
+- 台本の説明ではなく、**記事の核心的な内容**を説明する
+- Xは特にバズ要素を最大化（衝撃的、数字、損失回避）
+- 各SNSの特性に合わせて最適化
+- ブログ記事へのリンク誘導を含める
 
 【要求事項】重要度順:
 1. タイトルは短く、過激に、バズる感じで（10-15文字）
@@ -646,8 +701,59 @@ ${postContent.substring(0, 3000)}
 6. 4つのフェーズ構造を厳密に守る
 
 【出力フォーマット】
-JSON形式で返答してください。
-各フェーズで指定文字数を必ず守ること。`;
+以下のJSON形式で返答してください：
+
+{
+  "script_title": "動画タイトル（10-15文字、短く過激に）",
+  "script_hook": "Hook（110文字以上、技術的問題提起）",
+  "script_empathy": "Empathy（120文字以上、実務の悩みに共感）",
+  "script_body": "Body（180文字以上、具体的なポイント解説）",
+  "script_cta": "CTA（80文字以上、行動指示とエンゲージメント誘導）",
+  "script_duration_seconds": 30,
+  "visual_instructions": {
+    "hook": ["視覚的指示1", "視覚的指示2"],
+    "empathy": ["視覚的指示1", "視覚的指示2"],
+    "body": ["視覚的指示1", "視覚的指示2"],
+    "cta": ["視覚的指示1", "視覚的指示2"]
+  },
+  "text_overlays": ["画面表示キーワード1", "キーワード2", "キーワード3"],
+  "background_music_suggestion": "BGM指示（例: テンポ速めのテックトレンス系）",
+  "viral_elements": ["バイラル要素1", "バイラル要素2", "バイラル要素3"],
+  "virality_score": 85,
+  "target_emotion": "感情（例: 好奇心、危機感、解決への期待）",
+  "hook_type": "フックタイプ（例: 問題提起型、損失回避型、衝撃型）",
+  "pacing_notes": "早口で喋る前提。2秒でHook、3-5秒でEmpathy、5-20秒でBody、ラスト5秒でCTA",
+  "engagement_triggers": ["コメント誘導", "保存促進", "共有促進"],
+  "thumbnail_text": "サムネイル用テキスト（5-8文字）",
+  "seo_keywords": ["SEOキーワード1", "キーワード2", "キーワード3"],
+  "target_audience": "ターゲット層の説明",
+  "youtube_title": "YouTubeタイトル（60文字以内、検索最適化）",
+  "youtube_description": "YouTube説明文（150-300文字）\\n\\n動画の概要: [動画の簡潔な説明]\\n\\n🔗 詳しい解説はブログで:\\nhttps://nands.tech/posts/[slug]\\n\\n#タグ1 #タグ2 #タグ3",
+  "youtube_tags": ["タグ1", "タグ2", "タグ3", "タグ4", "タグ5", "タグ6", "タグ7", "タグ8", "タグ9", "タグ10"],
+  "x_post": "X（Twitter）投稿文（280文字以内、バズ要素最大化：衝撃的な一文、具体的な数字、損失回避、ブログ記事の核心を凝縮）",
+  "threads_post": "Threads投稿文（500文字以内、ストーリー性と詳細：記事の背景、課題、価値、実例を含める）",
+  "instagram_caption": "Instagramキャプション（2200文字以内、ビジュアル・エモーショナル：ストーリー形式、実体験、ハッシュタグ15-20個）",
+  "lemon8_caption": "Lemon8投稿文（1000文字以内、実用的・ライフスタイル：Tips形式、手順明確、すぐ使える情報）",
+  "linkedin_title": "LinkedIn投稿タイトル（50文字以内、プロフェッショナル：ビジネス価値を要約）",
+  "linkedin_description": "LinkedIn投稿本文（200-300文字、プロフェッショナル：ビジネス価値、技術的洞察、実務への影響、データ含める）",
+  "tiktok_caption": "TikTokキャプション（100文字以内、若年層・キャッチー：最も衝撃的な一点、超短く、インパクト重視）"
+}
+
+🚨🚨🚨【超重要】SNS投稿の前提🚨🚨🚨
+- **ブログ記事の内容**を元に投稿文を作成（台本の説明ではない）
+- 各SNSの特性に合わせて最適化
+- ブログ記事へのリンク誘導を含める
+
+【X投稿の必須要素】バズ要素を最大化:
+- 衝撃的な一文で開始（「〇〇知らない人、ヤバい」「コスト3倍、気づいてる？」）
+- 具体的な数字（「工数50%削減」「エラー率30%減」）
+- 損失回避（「知らないと損」「この実装ミス、致命的」）
+- ブログ記事の核心的な内容を凝縮
+- ハッシュタグ2-3個、絵文字を効果的に使用（🚨⚡️💡）
+- 悪い例：「新しい記事を書きました。ぜひ読んでください。」
+- 良い例：「🚨AIコスト3倍払ってる人、多すぎ。この実装パターン知らないと致命的。実測で工数50%削減できた方法をブログで公開👉 #AI #エンジニア」
+
+各フィールドは必須です。指定文字数を必ず守ること。`;
 }
 
 /**
@@ -874,17 +980,11 @@ ${postContent}
   "hook_type": "教育型・解説型",
   "youtube_title": "YouTubeタイトル（100文字以内、検索最適化）",
   "youtube_description": "YouTube説明文（500-800文字、必ず以下の構造で）\n\n【必須項目】\n1. 動画の概要（2-3行、ブログ記事の内容を要約）\n2. ⏰ チャプター（タイムスタンプ）\n   ⚠️ ブログ記事の主題と要点を正確に反映すること\n   ⚠️ 「Hook」「Problem」などのプロンプト用語は使わない\n   0:00 【記事の主題】とは\n   0:05 【記事が扱う課題】\n   0:20 ポイント1: 【記事の要点1】\n   0:40 ポイント2: 【記事の要点2】\n   ... （記事の要点数に応じて）\n   1:50 まとめ\n   2:05 詳細はブログで\n3. 🔗 関連リンク\n   📝 詳しい解説はブログで: https://nands.tech/posts/[slug]\n   🔔 チャンネル登録で最新情報をお届け\n4. 🏷️ タグ（ハッシュタグ形式）",
-  "youtube_tags": ["タグ1", "タグ2", "...（10-15個、AI・技術関連）"],
-  "x_post": "",
-  "threads_post": "",
-  "linkedin_title": "",
-  "linkedin_description": "",
-  "tiktok_caption": ""
+  "youtube_tags": ["タグ1", "タグ2", "...（10-15個、AI・技術関連）"]
 }
 
-⚠️【重要】中尺動画ではSNS投稿文は生成不要です。
-x_post、threads_post、linkedin_title、linkedin_description、tiktok_captionは全て空文字列（""）で出力してください。
-ショート台本で生成したSNS投稿文を使用します。
+⚠️【重要】中尺動画では上記のフィールドのみ生成してください。
+SNS投稿用のフィールド（x_post、threads_postなど）は不要です。
 
 🚨🚨🚨【最終チェック】文字数の絶対厳守 - 必ず確認してから出力🚨🚨🚨
 
