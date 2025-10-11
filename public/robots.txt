@@ -41,6 +41,16 @@ Disallow: /partners
 Disallow: /admin/partners/
 Crawl-delay: 2
 
+# Brave Search（独立系プライバシー重視検索エンジン）
+User-agent: brave-search-bot
+Allow: /
+Allow: /lp
+Disallow: /partner-admin
+Disallow: /referrer-admin
+Disallow: /partners
+Disallow: /admin/partners/
+Crawl-delay: 1
+
 # OpenAI公式AI検索エンジン（2025年最新）
 User-agent: GPTBot
 Allow: /
