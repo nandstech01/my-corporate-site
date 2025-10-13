@@ -36,13 +36,13 @@ interface ScriptGenerationRequest {
 interface YouTubeScriptResponse {
   script_title: string;
   script_hook: string;
-  script_empathy: string;
+  script_empathy?: string; // 中尺動画のみ必須
   script_body: string;
   script_cta: string;
   script_duration_seconds: number;
   visual_instructions: {
     hook: string[];
-    empathy: string[];
+    empathy?: string[]; // 中尺動画のみ
     body: string[];
     cta: string[];
   };
@@ -366,22 +366,28 @@ async function generateYouTubeScript(
 
   let trendContext = '';
 
-  // 🆕 ショート動画の場合はYahoo! News RSSでリアルタイムニュース取得
-  if (scriptType === 'short') {
-    try {
-      console.log('🔍 Yahoo! News RSSでリアルタイムニュースを取得中...');
-      
-      // Yahoo! News RSSフィード（ランダムでカテゴリ選択）
-      const yahooRssFeeds = [
-        { name: 'トップ', url: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
-        { name: '主要', url: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
-        { name: '国際', url: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
-        { name: '経済', url: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
-        { name: 'エンタメ', url: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
-        { name: 'スポーツ', url: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
-        { name: 'IT', url: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
-        { name: '科学', url: 'https://news.yahoo.co.jp/rss/topics/science.xml' },
-      ];
+      // 🆕 ショート動画の場合はYahoo! News RSSでリアルタイムニュース取得
+      if (scriptType === 'short') {
+        try {
+          console.log('🔍 Yahoo! News RSSでリアルタイムニュースを取得中...');
+          
+          // 🛡️ NGワードリスト（戦争・人質・暴力関連を除外）
+          const ngWords = [
+            '戦争', '人質', '軍事', 'テロ', '紛争', '殺害', '攻撃', '爆発',
+            'ミサイル', '空爆', '砲撃', '死亡', '死者', '犠牲', '拘束',
+            '銃撃', '暴力', '武装', '兵士', '軍隊', 'タリバン', 'ハマス',
+            'イスラエル', 'ガザ', 'ウクライナ', 'ロシア', '北朝鮮',
+            '核', 'ミサイル', '制裁', '報復', '侵攻', '占領'
+          ];
+          
+          // Yahoo! News RSSフィード（安全なカテゴリのみ）
+          const yahooRssFeeds = [
+            { name: 'IT', url: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
+            { name: '科学', url: 'https://news.yahoo.co.jp/rss/topics/science.xml' },
+            { name: 'エンタメ', url: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+            { name: 'スポーツ', url: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
+            { name: '経済', url: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
+          ];
       
       const selectedFeed = yahooRssFeeds[Math.floor(Math.random() * yahooRssFeeds.length)];
       console.log(`  🎲 選択カテゴリ: ${selectedFeed.name}`);
@@ -410,7 +416,7 @@ async function generateYouTubeScript(
       }
       
       // 各ニュースをパース
-      const newsItems = itemMatches.map((item: string) => {
+      const allNewsItems = itemMatches.map((item: string) => {
         const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/);
         const linkMatch = item.match(/<link>(.*?)<\/link>/);
         const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || item.match(/<description>(.*?)<\/description>/);
@@ -436,6 +442,24 @@ async function generateYouTubeScript(
           pubDate: pubDate,
         };
       }).filter(item => item.title);
+      
+      // 🛡️ NGワードフィルタリング
+      const newsItems = allNewsItems.filter(item => {
+        const fullText = `${item.title} ${item.description}`;
+        const hasNgWord = ngWords.some(ngWord => fullText.includes(ngWord));
+        
+        if (hasNgWord) {
+          console.log(`  🚫 NGワード検出: "${item.title.substring(0, 40)}..." → 除外`);
+          return false;
+        }
+        return true;
+      });
+      
+      console.log(`✅ NGワードフィルタリング完了: ${allNewsItems.length}件 → ${newsItems.length}件（安全）`);
+      
+      if (newsItems.length === 0) {
+        throw new Error(`安全なニュースが見つかりませんでした（カテゴリ: ${selectedFeed.name}）。別のカテゴリで再試行してください。`);
+      }
       
       // 24時間以内のニュースをフィルタリング
       const now = new Date();
@@ -612,15 +636,11 @@ async function generateYouTubeScript(
 
 【最重要指示】「AIが読む今日」コンセプト:
 1. **「今日、〇〇が起きた。これ、AIで言うと"〇〇"です」で始める**（必須）
-2. **AI的再解釈を即座に提示**
-   - 例: 「熊が街に出た → 文脈の逸脱」
-   - 例: 「SNS炎上 → 感情ベクトルの連鎖」
-   - 例: 「選挙 → 意見の分散と収束」
-3. **技術との関連を自然に繋げる**
-   - AI的再解釈 → 技術的概念 → ブログ記事のテーマ
-4. **一言哲学で締める**
-   - 「文脈を失うと、AIも人も迷う」
-   - 「意味のベクトルが、現実を構造化する」
+2. **Body: ニュースの例え → AI概念 → ブログテーマへの軽い接続（1文だけ）→ 一言哲学**
+   - 例: 「握手会 → 再文脈化 → ChatGPTも適切な文脈で精度が変わる → 古い情報も新しい文脈で意味が変わる」
+   - 🚨🚨🚨 ブログの実装詳細は絶対に含めない（「やることリスト」形式は厳禁）🚨🚨🚨
+3. **専門用語は最大1個**
+   - シンプルさ優先、わかりやすさ最優先
 
 ${trendContext}
 
@@ -637,10 +657,9 @@ ${trendContext}
 
 【重要指示】シンプルにわかりやすく:
 1. **ごちゃごちゃ詰め込まない**（1つのメッセージに集中）
-2. **専門用語は最大2個まで**
-3. **専門用語 → 即座に比喩で説明**（下記の比喩RAGを活用）
-4. **禁止カタカナ語**: Gartner、SLA、PoC、エージェント、コンテンツ
-5. **小5でも理解できる言葉**
+2. **専門用語は最大1個まで**
+3. **ブログの実装詳細は絶対に含めない**（「やることリスト」形式は厳禁）
+4. **ニュースの例え → AI概念 → ブログテーマへの軽い接続（1文だけ）→ 一言哲学**
 
 ${kenjiThoughtsContext}
 
@@ -702,9 +721,14 @@ ${kenjiThoughtsContext}
   const scriptData = JSON.parse(responseContent);
   
   // 基本フィールドのバリデーション
-  const requiredFields = [
+  const requiredFields = scriptType === 'short' ? [
     'script_title',
-    'script_hook', 
+    'script_hook',
+    'script_body',
+    'script_cta'
+  ] : [
+    'script_title',
+    'script_hook',
     'script_empathy',
     'script_body',
     'script_cta'
@@ -736,14 +760,19 @@ ${kenjiThoughtsContext}
   console.log(`✅ 台本バリデーション成功（${scriptType === 'short' ? 'ショート' : '中尺'}）`);
   console.log(`  - タイトル: ${scriptData.script_title}`);
   console.log(`  - Hook: ${scriptData.script_hook?.length || 0}文字`);
-  console.log(`  - Empathy: ${scriptData.script_empathy?.length || 0}文字`);
-  console.log(`  - Body: ${scriptData.script_body?.length || 0}文字`);
-  console.log(`  - CTA: ${scriptData.script_cta?.length || 0}文字`);
   
   if (scriptType === 'short') {
+    console.log(`  - Body: ${scriptData.script_body?.length || 0}文字`);
+    console.log(`  - CTA: ${scriptData.script_cta?.length || 0}文字`);
+    const totalChars = (scriptData.script_hook?.length || 0) + (scriptData.script_body?.length || 0) + (scriptData.script_cta?.length || 0);
+    console.log(`  - 合計: ${totalChars}文字（目標: 240-260文字）`);
     console.log(`  - SNSメタデータ: ✅ 生成済み`);
     console.log(`    - X投稿: ${scriptData.x_post?.length || 0}文字`);
     console.log(`    - Threads: ${scriptData.threads_post?.length || 0}文字`);
+  } else {
+    console.log(`  - Empathy: ${scriptData.script_empathy?.length || 0}文字`);
+    console.log(`  - Body: ${scriptData.script_body?.length || 0}文字`);
+    console.log(`  - CTA: ${scriptData.script_cta?.length || 0}文字`);
   }
 
   return scriptData as YouTubeScriptResponse;
