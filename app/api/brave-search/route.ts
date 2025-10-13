@@ -121,14 +121,12 @@ export async function POST(request: NextRequest) {
       // 1. 実際のBrave Search APIを使用してニュースを取得
       console.log(`📡 Brave Search API呼び出し中...`);
       
+      // 🔧 Brave Search API 無料プラン対応のパラメータ
+      // freshness, country, search_lang は有料プランのみ対応の可能性
       const searchResponse = await fetch(
         `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({
           q: query,
           count: '10',
-          country: 'JP',
-          search_lang: 'en',
-          freshness: 'pd',
-          result_filter: 'web'
         })}`,
         {
           headers: {
@@ -153,9 +151,33 @@ export async function POST(request: NextRequest) {
       }
 
       const braveData = await searchResponse.json();
-      const braveResults = braveData.web?.results || [];
+      const allResults = braveData.web?.results || [];
 
-      console.log(`📊 Brave Search API結果: ${braveResults.length}件`);
+      console.log(`📊 Brave Search API結果: ${allResults.length}件`);
+
+      // 📅 age情報を使用して24時間以内のニュースのみフィルタリング
+      const braveResults = allResults.filter((item: any) => {
+        if (item.age) {
+          const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
+          if (ageMatch) {
+            const value = parseInt(ageMatch[1]);
+            const unit = ageMatch[2].toLowerCase();
+            
+            let hoursAgo = 0;
+            if (unit === 'minute') hoursAgo = value / 60;
+            else if (unit === 'hour') hoursAgo = value;
+            else if (unit === 'day') hoursAgo = value * 24;
+            
+            const isWithin24Hours = hoursAgo <= 24;
+            console.log(`  📅 ${item.title?.substring(0, 50)}... → ${item.age} (${hoursAgo.toFixed(1)}時間前) ${isWithin24Hours ? '✅' : '❌'}`);
+            
+            return isWithin24Hours;
+          }
+        }
+        return true; // age情報がない場合は含める
+      });
+
+      console.log(`📊 24時間以内のニュース: ${braveResults.length}件 / ${allResults.length}件中`);
 
       // 2. Brave Search結果をニュースアイテム形式に変換
       const newsItems = braveResults.map((item: any, index: number) => {

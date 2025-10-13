@@ -37,14 +37,17 @@ export class OpenAIEmbeddings {
 
   /**
    * 単一のテキストをベクトル化
+   * @param text ベクトル化するテキスト
+   * @param dimensions ベクトルの次元数（デフォルト: 1536、Kenji思想: 3072）
    */
-  async embedSingle(text: string): Promise<number[]> {
+  async embedSingle(text: string, dimensions?: number): Promise<number[]> {
+    const targetDimensions = dimensions || this.dimensions;
     try {
       const response = await this.openai.embeddings.create({
         model: this.model,
         input: text,
         encoding_format: 'float',
-        dimensions: this.dimensions,
+        dimensions: targetDimensions,
       });
 
       return response.data[0].embedding;

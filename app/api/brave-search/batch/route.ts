@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+/**
+ * 🆕 バッチニュース取得API
+ * 
+ * blog-trend-queries.tsまたはscript-trend-queries.tsから
+ * ランダムにクエリを選択し、Brave Search APIで複数のニュースを取得
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const { count = 10, useBlogQueries = true } = await request.json();
+
+    console.log(`🔍 バッチニュース取得開始: ${count}件 (${useBlogQueries ? 'ブログ用' : '台本用'})`);
+
+    // クエリファイルから取得（レート制限を考慮して少なめに）
+    // Brave Search API無料プラン: 1リクエスト/秒
+    const queryCount = Math.min(Math.ceil(count / 5), 2); // 最大2クエリまで（レート制限対策）
+    const queries = useBlogQueries
+      ? (await import('@/lib/intelligent-rag/blog-trend-queries')).getRandomBlogTrendQueries(queryCount)
+      : (await import('@/lib/intelligent-rag/script-trend-queries')).getAllScriptTrendQueries().slice(0, queryCount);
+    
+    console.log(`⚠️ レート制限対策: ${queries.length}クエリを順次実行（待機時間あり）`);
+
+    console.log(`📝 選択されたクエリ（${queries.length}個）:`, queries.map((q, i) => `${i + 1}. ${q}`).join('\n  '));
+
+    const BRAVE_API_KEY = process.env.BRAVE_API_KEY;
+    if (!BRAVE_API_KEY) {
+      return NextResponse.json({
+        success: false,
+        error: 'BRAVE_API_KEY が設定されていません',
+      }, { status: 500 });
+    }
+
+    const allNews: any[] = [];
+
+    // 各クエリでBrave Search APIを呼び出し
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      
+      try {
+        console.log(`\n🔍 Brave Search API呼び出し [${i + 1}/${queries.length}]: "${query}"`);
+
+        // ⏳ レート制限対策: 2つ目以降のクエリは2秒待機（Brave無料プラン: 1req/秒）
+        if (i > 0) {
+          console.log('  ⏳ レート制限対策: 2秒待機中...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        // 🔧 Brave Search API 無料プラン対応のパラメータ
+        // freshness, country, search_lang は有料プランのみ対応の可能性
+        const searchParams = new URLSearchParams({
+          q: query,
+          count: '5', // 各クエリで5件取得
+        });
+
+        console.log(`  📡 リクエストURL: https://api.search.brave.com/res/v1/web/search?${searchParams}`);
+
+        const searchResponse = await fetch(
+          `https://api.search.brave.com/res/v1/web/search?${searchParams}`,
+          {
+            headers: {
+              'Accept': 'application/json',
+              'Accept-Encoding': 'gzip',
+              'X-Subscription-Token': BRAVE_API_KEY,
+            },
+          }
+        );
+
+        if (!searchResponse.ok) {
+          const errorText = await searchResponse.text();
+          console.warn(`⚠️ Brave Search API エラー (${query}): ${searchResponse.status}`);
+          console.warn(`  エラー詳細: ${errorText.substring(0, 200)}`);
+          
+          // 429エラー（レート制限）の場合は、次のクエリに進む前に長めに待機
+          if (searchResponse.status === 429) {
+            console.warn('  ⏳ レート制限エラー: 5秒待機...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          }
+          
+          // 422エラー（パラメータエラー）の場合は、クエリをスキップ
+          if (searchResponse.status === 422) {
+            console.warn('  ⚠️ パラメータエラー: このクエリをスキップ');
+          }
+          
+          continue;
+        }
+
+        const braveData = await searchResponse.json();
+        const allResults = braveData.web?.results || [];
+        
+        // 📅 age情報を使用して24時間以内のニュースのみフィルタリング（可能な場合）
+        const braveResults = allResults.filter((item: any) => {
+          if (item.age) {
+            const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
+            if (ageMatch) {
+              const value = parseInt(ageMatch[1]);
+              const unit = ageMatch[2].toLowerCase();
+              
+              let hoursAgo = 0;
+              if (unit === 'minute') hoursAgo = value / 60;
+              else if (unit === 'hour') hoursAgo = value;
+              else if (unit === 'day') hoursAgo = value * 24;
+              
+              return hoursAgo <= 24;
+            }
+          }
+          return true; // age情報がない場合は含める
+        }).slice(0, 3); // 最大3件
+
+        console.log(`  ✅ ニュース取得成功（24時間以内）: ${braveResults.length}件 / ${allResults.length}件中`);
+
+        // ニュースアイテムを変換
+        for (const item of braveResults) {
+          try {
+            const newsItem = {
+              title: item.title || 'No title',
+              content: item.description || '',
+              url: item.url || '',
+              category: useBlogQueries ? 'tech' : 'general',
+              source: item.profile?.name || new URL(item.url).hostname.replace('www.', ''),
+              query: query
+            };
+
+            allNews.push(newsItem);
+            console.log(`    📰 ${newsItem.title}`);
+          } catch (itemError) {
+            console.warn(`    ⚠️ ニュースアイテム処理エラー:`, itemError);
+          }
+        }
+
+        // 目標件数に達したら終了
+        if (allNews.length >= count) {
+          break;
+        }
+      } catch (queryError) {
+        console.warn(`⚠️ クエリ処理エラー (${query}):`, queryError);
+      }
+    }
+
+    console.log(`\n✅ バッチニュース取得完了: ${allNews.length}件`);
+
+    if (allNews.length === 0) {
+      console.warn('⚠️ 警告: ニュースが1件も取得できませんでした');
+      console.warn('  原因: レート制限、パラメータエラー、または24時間以内のニュースがない可能性があります');
+      console.warn('  対策: 手動検索モードを使用するか、時間を置いて再試行してください');
+    }
+
+    return NextResponse.json({
+      success: true,
+      news: allNews.slice(0, count), // 目標件数まで切り取り
+      total: allNews.length,
+      queries_used: queries.length,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ バッチニュース取得エラー:', error);
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'バッチニュース取得でエラーが発生しました: ' + (error as Error).message 
+      },
+      { status: 500 }
+    );
+  }
+}
+

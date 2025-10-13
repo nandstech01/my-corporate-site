@@ -38,7 +38,7 @@ interface PreviewData {
 
 export default function RAGCleanupPage() {
   const [cleanupForm, setCleanupForm] = useState({
-    trend_days: 1,    // トレンドニュースは1日（24時間）で削除（使い捨て）
+    trend_days: 0,    // トレンドニュースは0日（即座削除・使い捨て）
     youtube_days: 90, // YouTube動画は90日で削除
     company_days: 365 // 生成記事は365日で削除
   });
@@ -162,19 +162,19 @@ export default function RAGCleanupPage() {
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max="365"
                   value={cleanupForm.trend_days}
                   onChange={(e) => setCleanupForm({
                     ...cleanupForm,
-                    trend_days: parseInt(e.target.value) || 30
+                    trend_days: parseInt(e.target.value) || 0
                   })}
                   className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <span className="text-gray-400">日</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                推奨: 1日（24時間・使い捨て型）⚠️ トレンドRAGは鮮度が命
+                推奨: 0日（即座削除・使い捨て型）⚠️ トレンドRAGは台本生成後すぐに削除
               </p>
             </div>
 
@@ -396,7 +396,7 @@ export default function RAGCleanupPage() {
               <li>• 実行前に必ずDRY RUNでテストしてください</li>
               <li>• 自社の固定情報（Company RAGの元データ）は削除されません</li>
               <li>• 削除対象は生成記事と外部取得データのみです</li>
-              <li>• <strong>トレンドニュース</strong>: ニュース配信日基準で削除（24時間以内推奨・使い捨て型）</li>
+              <li>• <strong>トレンドニュース</strong>: ニュース配信日基準で削除（0日=即座削除推奨・使い捨て型）</li>
               <li>• <strong>YouTube・生成記事</strong>: 取得・生成日基準で削除</li>
             </ul>
           </div>

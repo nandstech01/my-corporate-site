@@ -1,828 +1,516 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { 
-  GlobeAltIcon, 
-  BoltIcon, 
-  DocumentTextIcon, 
-  MagnifyingGlassIcon,
-  NewspaperIcon,
-  SparklesIcon,
-  ExclamationTriangleIcon,
-  PlayIcon
-} from '@heroicons/react/24/outline';
 
-interface NewsItem {
-  id: string;
-  title: string;
-  url: string;
-  description: string;
-  published: string;
-  source: string;
-  relevance?: number;
-  vectorized?: boolean;
-  vectorId?: number;
-  error?: string;
+interface TrendItem {
+  id?: number;
+  trend_title: string;
+  trend_content: string;
+  trend_url: string;
+  trend_category: string;
+  trend_date?: string;
+  created_at?: string;
 }
 
-interface Stats {
-  trend_vectors: {
-    total: number;
-    news: number;
-    last_24h: number;
-  };
-  company_vectors: {
-    total: number;
-  };
-  youtube_vectors: {
-    total: number;
-    status: string;
-  };
-  third_rag: {
-    total: number;
-    status: string;
-  };
-}
-
-export default function TrendRagPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+export default function TrendRAGPage() {
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [vectorizationProgress, setVectorizationProgress] = useState<{[key: string]: string}>({});
-  const [apiStatus, setApiStatus] = useState<string>('');
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  
-  // 🔥 YouTubeトレンド分析
-  const [trendKeywords, setTrendKeywords] = useState<any[]>([]);
-  const [trendAnalysisLoading, setTrendAnalysisLoading] = useState(false);
-  const [showTrendKeywords, setShowTrendKeywords] = useState(false);
+  const [existingTrends, setExistingTrends] = useState<TrendItem[]>([]);
+  const [newTrends, setNewTrends] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
+  const [selectedCount, setSelectedCount] = useState(10);
+  const [searchMode, setSearchMode] = useState<'auto' | 'manual'>('auto');
+  const [manualQuery, setManualQuery] = useState('');
 
-  // 認証チェック
+  // 既存のトレンドRAGを取得
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/admin');
-      return;
-    }
-  }, [user, authLoading, router]);
+    fetchExistingTrends();
+  }, []);
 
-  // 統計情報を取得
-  const fetchStats = async () => {
+  const fetchExistingTrends = async () => {
     try {
-      setStatsLoading(true);
-      // キャッシュバスターを追加して常に最新データを取得
-      const cacheBuster = `_t=${Date.now()}`;
-      const response = await fetch(`/api/trend-stats?${cacheBuster}`, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+      const response = await fetch('/api/trend-stats');
+      const data = await response.json();
       
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-        console.log('📊 統計情報取得成功:', data);
-      } else {
-        console.error('統計情報取得エラー:', response.status);
+      if (data.trends) {
+        setExistingTrends(data.trends);
       }
     } catch (error) {
-      console.error('統計情報取得エラー:', error);
-    } finally {
-      setStatsLoading(false);
+      console.error('❌ 既存トレンド取得エラー:', error);
     }
   };
 
-  // 初期統計情報の取得
-  useEffect(() => {
-    if (user && !authLoading) {
-      fetchStats();
-    }
-  }, [user, authLoading]);
+  /**
+   * 🆕 Brave Search APIで実際のニュースを取得（自動）
+   * blog-trend-queries.tsからクエリを使用
+   */
+  const handleFetchTrends = async () => {
+    setLoading(true);
+    setMessage('');
+    setNewTrends([]);
 
-  // 🔥 YouTubeトレンド分析（24時間以内）
-  const analyzeYouTubeTrends = async () => {
-    setTrendAnalysisLoading(true);
-    setShowTrendKeywords(false);
-    
     try {
-      console.log('🔥 YouTubeトレンド分析開始（過去24時間）...');
-      
-      const response = await fetch('/api/admin/analyze-youtube-trends', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.log(`🔍 Brave Search APIでニュース取得中... (${selectedCount}件)`);
 
-      if (!response.ok) {
-        throw new Error('トレンド分析API呼び出しに失敗しました');
-      }
+      const response = await fetch('/api/brave-search/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          count: selectedCount,
+          useBlogQueries: true // blog-trend-queries.tsを使用
+        })
+      });
 
       const result = await response.json();
-      
-      if (result.success && result.keywords) {
-        setTrendKeywords(result.keywords);
-        setShowTrendKeywords(true);
-        console.log(`✅ トレンドキーワード取得: ${result.keywords.length}件`);
-        alert(`🔥 ${result.keywords.length}個のトレンドキーワードを抽出しました！\n（過去24時間のAI関連YouTube動画から抽出）\nクリックして自動的にニュース検索・ベクトル化が実行されます。`);
+
+      if (result.success) {
+        if (result.news && result.news.length > 0) {
+          setNewTrends(result.news);
+          setMessage(`✅ ${result.news.length}件のニュースを取得しました。「ベクトル化してDBに保存」を押してください。`);
+        } else {
+          setMessage(`⚠️ ニュースが取得できませんでした。原因: Brave APIのレート制限（429エラー）またはパラメータエラー（422エラー）。解決策: ①手動検索モードを使用 ②数分待って再試行 ③取得件数を減らす（5件など）`);
+        }
       } else {
-        throw new Error(result.error || 'トレンド分析に失敗しました');
+        setMessage(`エラー: ${result.error || 'ニュース取得に失敗しました'}`);
       }
-    } catch (error) {
-      console.error('YouTube trend analysis error:', error);
-      alert(`トレンド分析でエラーが発生しました: ${(error as Error).message}`);
+
+    } catch (error: any) {
+      console.error('❌ エラー:', error);
+      setMessage(`エラー: ${error.message}`);
     } finally {
-      setTrendAnalysisLoading(false);
+      setLoading(false);
     }
   };
 
-  // キーワード選択 → 自動検索 → 自動ベクトル化
-  const handleTrendKeywordSelect = async (keyword: string) => {
-    setSearchQuery(keyword);
-    setShowTrendKeywords(false);
-    
-    // 自動的にニュース検索を実行
+  /**
+   * 🆕 手動検索でニュースを取得
+   * 注: このAPIは取得と同時にベクトル化してDBに保存します
+   */
+  const handleManualSearch = async () => {
+    if (!manualQuery.trim()) {
+      setMessage('検索キーワードを入力してください');
+      return;
+    }
+
     setLoading(true);
-    setNewsItems([]);
-    setApiStatus('');
-    
+    setMessage('');
+    setNewTrends([]);
+
     try {
-      console.log(`🔍 選択されたキーワード「${keyword}」でBrave Search実行...`);
-      
+      console.log(`🔍 手動検索: "${manualQuery}"`);
+
       const response = await fetch('/api/brave-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: keyword,
+          query: manualQuery,
           type: 'news'
         })
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok && data.results) {
-        setNewsItems(data.results);
-        setApiStatus(`✅ 成功: ${data.total}件のニュースを取得 → 自動ベクトル化開始...`);
-        console.log(`✅ ${data.total}件のニュースを取得 → 自動ベクトル化開始`);
-        
-        // 自動的にベクトル化を実行
-        await vectorizeNews(data.results);
-        
-        // 統計情報を更新
-        await fetchStats();
-        
-        setApiStatus(`✅ 完了: ${data.total}件のニュースをベクトル化しました`);
-      } else {
-        setApiStatus(`❌ エラー: ${data.error}`);
-        console.error('Brave Search API エラー:', data);
-      }
+      if (result.results && result.results.length > 0) {
+        const vectorizedCount = result.results.filter((item: any) => item.vectorized).length;
 
-    } catch (error) {
-      console.error('自動検索・ベクトル化エラー:', error);
-      setApiStatus(`❌ 接続エラー: ${(error as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Brave Search APIを使用した実際のニュース検索
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setLoading(true);
-    setNewsItems([]);
-    setApiStatus('');
-    
-    try {
-      console.log(`🔍 Brave Search API検索開始 - クエリ: "${searchQuery}"`);
-      
-      // APIエンドポイント経由でBrave Search APIを呼び出し
-      const response = await fetch('/api/brave-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: searchQuery,
-          type: 'news'
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.results) {
-        setNewsItems(data.results);
-        setApiStatus(`✅ 成功: ${data.total}件のニュースを取得 (API: ${data.api_source})`);
-        console.log(`✅ ${data.total}件のニュースを取得`);
-        
-        // 新しいニュースがベクトル化されたので統計情報を更新
-        await fetchStats();
-      } else {
-        setApiStatus(`❌ エラー: ${data.error}`);
-        console.error('Brave Search API エラー:', data);
-        
-        if (data.setup_instructions) {
-          setApiStatus(`⚠️ 設定が必要: ${data.setup_instructions}`);
-        }
-      }
-
-    } catch (error) {
-      console.error('Brave Search API 呼び出しエラー:', error);
-      setApiStatus(`❌ 接続エラー: ${(error as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ニュースをベクトル化
-  const vectorizeNews = async (newsItemsToVectorize: NewsItem[]) => {
-    if (newsItemsToVectorize.length === 0) return;
-
-    console.log(`🔄 ${newsItemsToVectorize.length}件のニュースをベクトル化開始`);
-
-    for (const newsItem of newsItemsToVectorize) {
-      try {
-        setVectorizationProgress(prev => ({
-          ...prev,
-          [newsItem.id]: 'ベクトル化中...'
-        }));
-
-        const response = await fetch('/api/vectorize-news', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            newsItem,
-            query: searchQuery
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          
-          // 成功した場合の更新
-          setNewsItems(prev => prev.map(item => 
-            item.id === newsItem.id 
-              ? { ...item, vectorized: true, vectorId: data.vectorId }
-              : item
-          ));
-
-          setVectorizationProgress(prev => ({
-            ...prev,
-            [newsItem.id]: 'ベクトル化完了'
-          }));
-
-          console.log(`✅ ベクトル化完了: ${newsItem.title} (ID: ${data.vectorId})`);
+        if (vectorizedCount > 0) {
+          setMessage(`✅ ${vectorizedCount}件のニュースを取得し、ベクトル化してDBに保存しました（キーワード: "${manualQuery}"）`);
+          // 既存トレンドをリロード
+          fetchExistingTrends();
+          // 検索フィールドをクリア
+          setManualQuery('');
         } else {
-          throw new Error('ベクトル化に失敗しました');
+          setMessage(`⚠️ ニュースは取得できましたが、ベクトル化に失敗しました`);
         }
-
-      } catch (error) {
-        console.error(`❌ ベクトル化エラー (${newsItem.title}):`, error);
-        
-        setNewsItems(prev => prev.map(item => 
-          item.id === newsItem.id 
-            ? { ...item, vectorized: false, error: (error as Error).message }
-            : item
-        ));
-
-        setVectorizationProgress(prev => ({
-          ...prev,
-          [newsItem.id]: 'エラー'
-        }));
+      } else {
+        setMessage(`⚠️ 検索キーワード "${manualQuery}" に該当する24時間以内のニュースが見つかりませんでした`);
       }
+
+    } catch (error: any) {
+      console.error('❌ 手動検索エラー:', error);
+      setMessage(`エラー: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    console.log('🎉 ベクトル化処理完了');
-    
-    // ベクトル化完了後に統計情報を更新
-    await fetchStats();
   };
 
-  // アイテム選択
-  const handleItemSelect = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
-  // 選択されたニュースをベクトル化
-  const handleVectorizeSelected = async () => {
-    const selectedNews = newsItems.filter(item => selectedItems.includes(item.id));
-    await vectorizeNews(selectedNews);
-  };
-
-  // 全ニュースをベクトル化
-  const handleVectorizeAll = async () => {
-    await vectorizeNews(newsItems);
-  };
-
-  // コンテンツ生成
-  const handleGenerateContent = async () => {
-    const vectorizedNews = newsItems.filter(item => item.vectorized);
-    
-    if (vectorizedNews.length === 0) {
-      alert('ベクトル化されたニュースがありません');
+  /**
+   * 取得したニュースをベクトル化してDBに保存
+   */
+  const handleVectorizeTrends = async () => {
+    if (newTrends.length === 0) {
+      setMessage('先にニュースを取得してください。');
       return;
     }
 
     setLoading(true);
+    setMessage('');
+
     try {
-      const response = await fetch('/api/generate-content', {
+      console.log('📥 トレンドをベクトル化中...');
+
+      const response = await fetch('/api/admin/fetch-trends', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          newsItems: vectorizedNews,
-          type: 'trend-article'
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trends: newTrends }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        router.push(`/admin/posts/new?generated=${data.id}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage(result.message);
+        setNewTrends([]); // クリア
+        fetchExistingTrends(); // 既存リストを再取得
+      } else {
+        setMessage(`エラー: ${result.error}`);
       }
-    } catch (error) {
-      console.error('Error generating content:', error);
+
+    } catch (error: any) {
+      console.error('❌ ベクトル化エラー:', error);
+      setMessage(`エラー: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // プリセットクエリ
-  const presetQueries = [
-    // AI技術・モデル関連（英語）
-    'Large Language Models',
-    'GPT-4 updates',
-    'Claude AI developments',
-    'ChatGPT features',
-    'OpenAI research',
-    'Anthropic Claude',
-    'Google Bard updates',
-    'Microsoft Copilot',
-    'AI model training',
-    'Neural network architecture',
-    'Transformer models',
-    'Multimodal AI',
-    'Computer vision AI',
-    'Natural language processing',
-    'Deep learning breakthroughs',
-    'AI reasoning capabilities',
-    'AGI developments',
-    'AI safety research',
-    'AI alignment',
-    'Reinforcement learning',
-    
-    // AI業界・ビジネス関連（英語）
-    'AI startup funding',
-    'AI venture capital',
-    'AI industry trends',
-    'AI market analysis',
-    'AI enterprise adoption',
-    'AI productivity tools',
-    'AI automation',
-    'AI workforce impact',
-    'AI regulation news',
-    'AI ethics discussions',
-    'AI governance',
-    'AI policy updates',
-    'AI competition',
-    'Tech giants AI',
-    'AI partnerships',
-    'AI acquisitions',
-    
-    // 検索・RAG技術関連（英語）
-    'relevance engineering',
-    'RAG improvements',
-    'vector databases',
-    'semantic search',
-    'embedding models',
-    'retrieval augmented generation',
-    'information retrieval',
-    'search algorithms',
-    'ranking systems',
-    'query understanding',
-    'document retrieval',
-    'knowledge graphs',
-    'AI search optimization',
-    'search relevance',
-    'personalized search',
-    'contextual search',
-    
-    // 開発・エンジニアリング関連（英語）
-    'AI developer tools',
-    'LLM optimization',
-    'LLMO techniques',
-    'AI model deployment',
-    'AI infrastructure',
-    'MLOps practices',
-    'AI model serving',
-    'AI scalability',
-    'AI performance tuning',
-    'Prompt engineering',
-    'Fine-tuning methods',
-    'AI model evaluation',
-    'AI benchmarks',
-    'AI testing frameworks',
-    
-    // 企業・組織別ニュース（英語）
-    'OpenAI announcements',
-    'Google AI updates',
-    'Microsoft AI news',
-    'Anthropic research',
-    'Meta AI developments',
-    'Tesla AI progress',
-    'NVIDIA AI advances',
-    'Amazon AI services',
-    'Apple machine learning',
-    'DeepMind research',
-    'Hugging Face updates',
-    'Stability AI news',
-    
-    // 応用分野（英語）
-    'AI healthcare',
-    'AI finance',
-    'AI education',
-    'AI robotics',
-    'AI autonomous vehicles',
-    'AI content generation',
-    'AI code generation',
-    'AI image generation',
-    'AI video synthesis',
-    'AI music creation',
-    'AI translation',
-    'AI recommendation systems',
-    
-    // 日本語（重要なもののみ）
-    '生成AI 技術',
-    'AI 業界 トレンド',
-    '機械学習 最新研究',
-    'レリバンスエンジニアリング',
-    'AI検索最適化',
-    'LLM最適化',
-    'ChatGPT ニュース',
-    'OpenAI 最新ニュース',
-    'Google AI 発表',
-    'Microsoft AI アップデート',
-    'Claude AI 新機能'
-  ];
+  /**
+   * 個別削除
+   */
+  const handleDeleteTrend = async (id: number) => {
+    if (!confirm('このトレンドRAGを削除しますか？')) {
+      return;
+    }
 
-  if (authLoading) {
-    return <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-white">Loading...</div>
-    </div>;
-  }
+    try {
+      const response = await fetch(`/api/trend-rag/${id}`, {
+        method: 'DELETE',
+      });
 
-  if (!user) {
-    return null;
-  }
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage(`✅ 削除しました`);
+        fetchExistingTrends();
+      } else {
+        setMessage(`エラー: ${result.error}`);
+      }
+    } catch (error: any) {
+      console.error('❌ 削除エラー:', error);
+      setMessage(`エラー: ${error.message}`);
+    }
+  };
+
+  /**
+   * 全削除（trend_ragテーブルから全件削除）
+   */
+  const handleDeleteAll = async () => {
+    if (existingTrends.length === 0) {
+      setMessage('削除対象のトレンドRAGがありません');
+      return;
+    }
+
+    if (!confirm(`本当に全て（${existingTrends.length}件）削除しますか？この操作は元に戻せません。`)) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      console.log(`🗑️ トレンドRAG全削除開始: ${existingTrends.length}件`);
+
+      let deletedCount = 0;
+      let errorCount = 0;
+
+      // 各トレンドを個別に削除
+      for (const trend of existingTrends) {
+        try {
+          const response = await fetch(`/api/trend-rag/${trend.id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            deletedCount++;
+            console.log(`  ✅ 削除成功: ID ${trend.id}`);
+          } else {
+            errorCount++;
+            console.error(`  ❌ 削除失敗: ID ${trend.id}`);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`  ❌ 削除エラー: ID ${trend.id}`, error);
+        }
+      }
+
+      if (errorCount === 0) {
+        setMessage(`✅ 全削除完了: ${deletedCount}件のトレンドRAGを削除しました`);
+      } else {
+        setMessage(`⚠️ 削除完了: 成功${deletedCount}件、失敗${errorCount}件`);
+      }
+
+      // リスト更新
+      fetchExistingTrends();
+
+    } catch (error: any) {
+      console.error('❌ 全削除エラー:', error);
+      setMessage(`エラー: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 pt-4 lg:pt-0">
-        {/* ヘッダー */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <GlobeAltIcon className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                トレンドRAG管理
-              </h1>
-              <p className="text-gray-400">Brave Search APIを使用したリアルタイムニュース取得とベクトル化</p>
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">📰 トレンドRAG管理（ブログ生成用）</h1>
+          <p className="text-gray-400">AI/テック専門ニュースを自動収集・ベクトル化してブログ記事の幅を広げます</p>
+        </div>
+
+        {/* 説明 */}
+        <div className="bg-purple-900/30 border border-purple-500/30 rounded-xl p-6 mb-6">
+          <h2 className="font-bold text-purple-300 mb-3 flex items-center">
+            💡 トレンドRAGとは
+          </h2>
+          <div className="text-sm text-purple-200 space-y-2">
+            <p>
+              <strong>目的:</strong> ブログ記事生成時に、AI/テック専門ニュースを参照して、専門性を維持しつつ入口を広げます。
+            </p>
+            <p>
+              <strong>使用クエリ:</strong> blog-trend-queries.ts から60個のAI/テック専門クエリを使用（AI活用事例、DX、AI技術トレンド、ビジネス×AI）
+            </p>
+            <p className="text-yellow-300">
+              <strong>⚠️ 重要:</strong> 台本生成用の一般ニュース（熊、大谷など）は含まれません。
+            </p>
+          </div>
+        </div>
+
+        {/* 既存トレンドRAG統計 */}
+        <div className="bg-gray-800 rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">📊 現在のトレンドRAG</h2>
+            <div className="flex items-center space-x-4">
+              <span className="text-2xl font-bold text-purple-400">{existingTrends.length}件</span>
+              {existingTrends.length > 0 && (
+                <button
+                  onClick={handleDeleteAll}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded-lg text-sm transition-colors"
+                >
+                  🗑️ 全削除
+                </button>
+              )}
             </div>
           </div>
 
-          {/* API設定状況の表示 */}
-          {apiStatus && (
-            <div className={`p-4 rounded-lg mb-4 ${
-              apiStatus.includes('エラー') || apiStatus.includes('設定が必要') 
-                ? 'bg-red-900/50 border border-red-500' 
-                : 'bg-green-900/50 border border-green-500'
-            }`}>
-              <div className="flex items-center space-x-2">
-                {apiStatus.includes('エラー') || apiStatus.includes('設定が必要') ? (
-                  <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
-                ) : (
-                  <SparklesIcon className="h-5 w-5 text-green-400" />
-                )}
-                <span className="text-sm">{apiStatus}</span>
-              </div>
-              
-              {apiStatus.includes('設定が必要') && (
-                <div className="mt-3 space-y-2 text-sm text-gray-300">
-                  <p><strong>設定手順:</strong></p>
-                  <ol className="list-decimal list-inside space-y-1 ml-4">
-                    <li><a href="https://api.search.brave.com/register" target="_blank" className="text-blue-400 hover:text-blue-300">Brave Search API</a> でアカウントを作成</li>
-                    <li>APIキーを取得（無料プラン: 月5,000クエリまで）</li>
-                    <li>環境変数 <code className="bg-gray-800 px-2 py-1 rounded">BRAVE_API_KEY=your_api_key_here</code> を設定</li>
-                    <li>アプリケーションを再起動</li>
-                  </ol>
+          {existingTrends.length > 0 ? (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {existingTrends.map((trend) => (
+                <div key={trend.id} className="bg-gray-700 rounded-lg p-4 flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white mb-1">{trend.trend_title}</h3>
+                    <p className="text-sm text-gray-300 mb-2 line-clamp-2">{trend.trend_content}</p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                      <span>📅 {trend.trend_date}</span>
+                      <span>📂 {trend.trend_category}</span>
+                      <a
+                        href={trend.trend_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-400 hover:underline"
+                      >
+                        🔗 ソース
+                      </a>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => trend.id && handleDeleteTrend(trend.id)}
+                    className="ml-4 px-3 py-1 bg-red-600/50 hover:bg-red-600 rounded text-sm transition-colors"
+                  >
+                    削除
+                  </button>
                 </div>
-              )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <p>まだトレンドRAGがありません</p>
+              <p className="text-sm">下のボタンから新しいニュースを取得してください</p>
             </div>
           )}
         </div>
 
-        {/* 🔥 YouTubeトレンド分析セクション */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 rounded-xl p-6 border-2 border-red-500">
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-white">
-              <svg className="h-6 w-6 mr-2 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              YouTubeトレンド自動抽出（AI関連）
-            </h2>
-            <p className="text-gray-300 text-sm mb-4">
-              過去24時間のAI関連YouTube動画から人気キーワードを自動抽出し、Brave Searchでニュース検索・ベクトル化まで自動実行
-            </p>
+        {/* ステップ1: 新規ニュース取得 */}
+        <div className="bg-gray-800 rounded-xl p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">🔍 ステップ1: 新規ニュース取得（Brave Search API）</h2>
+          
+          {/* タブ切り替え */}
+          <div className="flex space-x-2 mb-6">
             <button
-              onClick={analyzeYouTubeTrends}
-              disabled={trendAnalysisLoading || loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              onClick={() => setSearchMode('auto')}
+              className={`px-6 py-2 rounded-lg transition-colors font-semibold ${
+                searchMode === 'auto'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
             >
-              {trendAnalysisLoading ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  YouTubeトレンド分析中...
-                </>
-              ) : (
-                <>🔥 YouTubeトレンド自動抽出</>
-              )}
+              🤖 自動取得
             </button>
-            
-            {/* 抽出されたトレンドキーワード表示 */}
-            {showTrendKeywords && trendKeywords.length > 0 && (
-              <div className="mt-6 bg-gray-900 rounded-lg p-4 border border-red-500">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13.5 2c-5.629 0-10.212 4.436-10.475 10h-.025v12h21v-12h-.025c-.263-5.564-4.846-10-10.475-10zm7.5 20h-15v-8h15v8zm-15-10c.313-4.424 4.031-8 8.5-8s8.187 3.576 8.5 8h-17zm8.5 0c0 1.33.632 2.51 1.609 3.268-.59 1.07-1.609 1.732-2.609 1.732s-2.019-.662-2.609-1.732c.977-.758 1.609-1.938 1.609-3.268z"/>
-                  </svg>
-                  <h4 className="font-bold text-white">🔥 トレンドキーワード（再生回数順）</h4>
-                  <span className="ml-auto px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
-                    {trendKeywords.length}件
-                  </span>
-                </div>
-                <p className="text-sm text-gray-400 mb-3">
-                  クリックで自動的にニュース検索 → ベクトル化が実行されます
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {trendKeywords.map((keyword, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleTrendKeywordSelect(keyword.keyword)}
-                      disabled={loading}
-                      className="group px-3 py-2 bg-gray-800 hover:bg-gradient-to-r hover:from-red-600 hover:to-orange-600 border border-red-400 hover:border-red-300 rounded-lg transition-all duration-300 text-left disabled:opacity-50"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-white text-sm group-hover:text-white truncate">
-                            {index + 1}. {keyword.keyword}
-                          </p>
-                          <p className="text-xs text-gray-400 group-hover:text-gray-200">
-                            📺 {keyword.videoCount}本 | 👁️ {keyword.viewCount.toLocaleString()}回
-                          </p>
-                        </div>
-                        <svg className="w-4 h-4 text-red-400 group-hover:text-white opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <button
+              onClick={() => setSearchMode('manual')}
+              className={`px-6 py-2 rounded-lg transition-colors font-semibold ${
+                searchMode === 'manual'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              🔍 手動検索
+            </button>
           </div>
-        </div>
 
-        {/* 検索セクション */}
-        <div className="mb-8">
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <MagnifyingGlassIcon className="h-5 w-5 mr-2 text-purple-400" />
-              ニュース検索
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="検索クエリを入力..."
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 transition-all"
+          {/* 自動取得モード */}
+          {searchMode === 'auto' && (
+            <div>
+              <div className="flex items-center space-x-4 mb-4">
+                <label className="text-sm text-gray-300">取得件数:</label>
+                <select
+                  value={selectedCount}
+                  onChange={(e) => setSelectedCount(Number(e.target.value))}
+                  className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
                 >
-                  {loading ? '検索中...' : '検索'}
+                  <option value={5}>5件</option>
+                  <option value={10}>10件</option>
+                  <option value={15}>15件</option>
+                  <option value={20}>20件</option>
+                </select>
+                <button
+                  onClick={handleFetchTrends}
+                  disabled={loading}
+                  className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+                >
+                  <span>{loading ? '取得中...' : '🚀 自動でニュース取得'}</span>
                 </button>
               </div>
 
-              {/* プリセットクエリ */}
-              <div>
-                <p className="text-sm text-gray-400 mb-2">プリセットクエリ:</p>
-                <div className="flex flex-wrap gap-2">
-                  {presetQueries.map((query) => (
-                    <button
-                      key={query}
-                      onClick={() => setSearchQuery(query)}
-                      className="bg-gray-800 hover:bg-gray-700 text-sm px-3 py-1 rounded-full border border-gray-700 transition-colors"
-                    >
-                      {query}
-                    </button>
-                  ))}
+              <p className="text-xs text-gray-400">
+                💡 blog-trend-queries.ts からランダムにクエリを選択し、Brave Search APIで最新のAI/テックニュースを取得します
+                <br />
+                ⏰ 24時間以内の最新ニュースのみ取得（鮮度が命）
+              </p>
+            </div>
+          )}
+
+          {/* 手動検索モード */}
+          {searchMode === 'manual' && (
+            <div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2">検索キーワード:</label>
+                  <input
+                    type="text"
+                    value={manualQuery}
+                    onChange={(e) => setManualQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleManualSearch()}
+                    placeholder="例: AI 活用 事例、ChatGPT 最新機能、DX 推進 成功事例"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  />
                 </div>
+
+                <button
+                  onClick={handleManualSearch}
+                  disabled={loading || !manualQuery.trim()}
+                  className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+                >
+                  <span>{loading ? '検索中...' : '🔍 このキーワードで検索'}</span>
+                </button>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
+                <p className="text-xs text-blue-300 space-y-1">
+                  <strong>💡 ヒント:</strong>
+                  <br />
+                  ✅ 特定のトピックについてニュースを取得したい場合に使用
+                  <br />
+                  ✅ 自動取得では出てこないような、特定の企業名や技術名で検索可能
+                  <br />
+                  ⏰ 24時間以内の最新ニュースのみ取得（鮮度が命）
+                  <br />
+                  💾 検索と同時にベクトル化してDBに自動保存されます
+                </p>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* ニュース結果 */}
-        {newsItems.length > 0 && (
-          <div className="mb-8">
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center">
-                  <NewspaperIcon className="h-5 w-5 mr-2 text-blue-400" />
-                  検索結果 ({newsItems.length}件)
-                </h2>
-                
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleGenerateContent}
-                    disabled={newsItems.filter(item => item.vectorized).length === 0}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
-                  >
-                    記事生成 ({newsItems.filter(item => item.vectorized).length}件のベクトル化済み記事から)
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {newsItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 rounded-lg border bg-gray-800 border-gray-700 hover:border-gray-600 transition-all"
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-white mb-1">{item.title}</h3>
-                            <p className="text-gray-300 text-sm mb-2">{item.description}</p>
-                            <div className="flex items-center space-x-4 text-xs text-gray-400">
-                              <span>{item.source}</span>
-                              <span>{new Date(item.published).toLocaleDateString('ja-JP')}</span>
-                              {item.relevance && (
-                                <span>関連度: {(item.relevance * 100).toFixed(1)}%</span>
-                              )}
-                              <a
-                                href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-400 hover:text-blue-300"
-                              >
-                                元記事
-                              </a>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            {item.vectorized && (
-                              <span className="text-green-400 text-xs bg-green-900/30 px-2 py-1 rounded">
-                                ベクトル化済み
-                              </span>
-                            )}
-                            {vectorizationProgress[item.id] && (
-                              <span className="text-yellow-400 text-xs bg-yellow-900/30 px-2 py-1 rounded">
-                                {vectorizationProgress[item.id]}
-                              </span>
-                            )}
-                            {item.error && (
-                              <span className="text-red-400 text-xs bg-red-900/30 px-2 py-1 rounded">
-                                エラー
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+        {/* ステップ2: 取得結果表示 */}
+        {newTrends.length > 0 && (
+          <div className="bg-gray-800 rounded-xl p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4">✅ ステップ2: 取得したニュース（{newTrends.length}件）</h2>
+            <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
+              {newTrends.map((trend, idx) => (
+                <div key={idx} className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="font-bold text-white mb-2">{trend.title}</h3>
+                  <p className="text-sm text-gray-300 mb-2 line-clamp-2">{trend.content}</p>
+                  <div className="flex items-center space-x-4 text-xs text-gray-400">
+                    <span>📂 {trend.category}</span>
+                    <a
+                      href={trend.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:underline"
+                    >
+                      🔗 {trend.url}
+                    </a>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+
+            <button
+              onClick={handleVectorizeTrends}
+              disabled={loading}
+              className="w-full px-6 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-bold text-lg"
+            >
+              {loading ? 'ベクトル化中...' : '💾 ベクトル化してtrend_vectorsテーブルに保存'}
+            </button>
           </div>
         )}
 
-        {/* 統計情報 */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">統計情報</h2>
-            <button
-              onClick={fetchStats}
-              disabled={statsLoading}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg disabled:opacity-50 transition-colors text-sm"
-            >
-              {statsLoading ? '更新中...' : '🔄 更新'}
-            </button>
+        {/* メッセージ */}
+        {message && (
+          <div className={`rounded-xl p-4 mb-6 ${message.includes('エラー') ? 'bg-red-900/30 border border-red-500' : 'bg-green-900/30 border border-green-500'}`}>
+            <p className={message.includes('エラー') ? 'text-red-300' : 'text-green-300'}>
+              {message}
+            </p>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
-                <DocumentTextIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-green-400 text-sm font-medium">自社RAG</p>
-                <p className="text-2xl font-bold text-white">
-                  {statsLoading ? '...' : stats?.company_vectors?.total || 0}個
-                </p>
-                <p className="text-gray-400 text-xs">ベクトル化済み</p>
-              </div>
-            </div>
-          </div>
+        )}
 
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg flex items-center justify-center mr-3">
-                <GlobeAltIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-purple-400 text-sm font-medium">トレンドニュース</p>
-                <p className="text-2xl font-bold text-white">
-                  {statsLoading ? '...' : stats?.trend_vectors?.total || 0}個
-                </p>
-                <p className="text-gray-400 text-xs">ベクトル化済み</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-                <PlayIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-red-400 text-sm font-medium">YouTubeRAG</p>
-                <p className="text-2xl font-bold text-white">
-                  {statsLoading ? '...' : stats?.youtube_vectors?.total || 0}個
-                </p>
-                <p className="text-gray-400 text-xs">ベクトル化済み</p>
-              </div>
-            </div>
-          </div>
+        {/* 使用方法 */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+          <h2 className="font-bold text-white mb-4">📋 使用方法</h2>
+          <ol className="text-sm text-gray-300 space-y-3">
+            <li className="flex items-start">
+              <span className="mr-2">1️⃣</span>
+              <span><strong>「Brave Search API でニュース取得」</strong>をクリック → AI/テック専門ニュースを取得</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">2️⃣</span>
+              <span>取得したニュースを確認 → blog-trend-queries.tsのクエリから自動選択</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">3️⃣</span>
+              <span><strong>「ベクトル化してDBに保存」</strong>をクリック → trend_vectorsテーブルに保存</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">4️⃣</span>
+              <span><strong>ブログ記事生成時に自動で使用</strong> → /api/generate-rag-blog で autoFetchTrends: true を指定</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">5️⃣</span>
+              <span className="text-yellow-300">⚠️ ブログ生成完了後、使用済みtrend_vectorsは自動削除（使い捨て型）</span>
+            </li>
+          </ol>
         </div>
       </div>
     </div>
   );
 }
-
-// ドメインを抽出する関数
-function extractDomain(url: string): string {
-  try {
-    const domain = new URL(url).hostname;
-    return domain.replace('www.', '');
-  } catch {
-    return 'Unknown';
-  }
-}
-
-// 関連度を計算する関数
-function calculateRelevance(item: any, query: string, index: number): number {
-  let relevance = 0.9 - (index * 0.05); // 基本スコア
-  
-  const title = (item.title || '').toLowerCase();
-  const description = (item.description || '').toLowerCase();
-  const queryLower = query.toLowerCase();
-  
-  // タイトルにクエリが含まれる場合のボーナス
-  if (title.includes(queryLower)) {
-    relevance += 0.1;
-  }
-  
-  // 説明にクエリが含まれる場合のボーナス
-  if (description.includes(queryLower)) {
-    relevance += 0.05;
-  }
-  
-  return Math.min(relevance, 1.0);
-} 

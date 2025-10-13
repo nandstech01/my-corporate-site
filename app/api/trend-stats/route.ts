@@ -9,6 +9,16 @@ const supabaseServiceRole = createClient(
 
 export async function GET() {
   try {
+    // trend_ragテーブルから全トレンドデータを取得（UIで表示するため）
+    const { data: allTrends, error: allTrendsError } = await supabaseServiceRole
+      .from('trend_rag')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (allTrendsError) {
+      console.error('Trend RAG error:', allTrendsError);
+    }
+
     // trend_vectorsテーブルの統計情報を取得
     const { data: trendData, error: trendError } = await supabaseServiceRole
       .from('trend_vectors')
@@ -77,6 +87,7 @@ export async function GET() {
     };
 
     const response = NextResponse.json({
+      trends: allTrends || [], // 🆕 UIで使用するトレンドデータ
       trend_vectors: trendStats,
       company_vectors: companyStats,
       youtube_vectors: youtubeStats,

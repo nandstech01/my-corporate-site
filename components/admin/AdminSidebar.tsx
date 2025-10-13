@@ -100,6 +100,11 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
           current: pathname === '/admin/youtube-rag'
         },
         {
+          name: '🧠 Kenji思想RAG',
+          href: '/admin/kenji-thought',
+          current: pathname === '/admin/kenji-thought'
+        },
+        {
           name: 'コンテンツ生成',
           href: '/admin/content-generation',
           current: pathname === '/admin/content-generation'

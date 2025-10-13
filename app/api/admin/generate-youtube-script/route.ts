@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 import { HybridSearchSystem } from '@/lib/vector/hybrid-search';
+import {
+  getShortScriptSystemPrompt,
+  getShortScriptUserPrompt,
+  getMediumScriptSystemPrompt,
+  getMediumScriptUserPrompt,
+  MODEL_CONFIG,
+} from '@/lib/prompts';
 
 // Vercelタイムアウト設定（本番環境対応）
 export const maxDuration = 60; // 60秒でタイムアウト
@@ -199,7 +206,7 @@ ${scriptResponse.script_cta}
           generated_from_post_id: postId,
           generated_from_post_slug: postSlug,
           generated_at: new Date().toISOString(),
-          generation_method: 'openai-gpt-4',
+          generation_method: 'openai-gpt-5', // ✅ GPT-5を記録
           youtube_metadata: {
             youtube_title: scriptResponse.youtube_title,
             youtube_description: scriptResponse.youtube_description,
@@ -350,16 +357,269 @@ async function generateYouTubeScript(
     console.error('⚠️ ハイブリッド検索エラー:', error);
     console.log('💡 記事本文のみで台本を生成します\n');
   }
+
+  // 📰 トレンドニュースの取得（Brave MCPでリアルタイム）
+  console.log('\n📰 ========================================');
+  console.log(`🚀 トレンドニュース取得開始（${scriptType}動画）`);
+  console.log(`  方法: ${scriptType === 'short' ? 'Brave MCP（リアルタイム）' : 'トレンドRAGテーブル'}`);
+  console.log('📰 ========================================\n');
+
+  let trendContext = '';
+
+  // 🆕 ショート動画の場合はBrave MCPでリアルタイムニュース取得
+  if (scriptType === 'short') {
+    try {
+      console.log('🔍 Brave MCPで一般ニュースを取得中...');
+      
+           // ランダムで一般ニュースクエリを選択（ファイルから取得）
+           const { getRandomScriptTrendQuery } = await import('@/lib/intelligent-rag/script-trend-queries');
+           const randomQuery = getRandomScriptTrendQuery();
+      console.log(`  選択されたクエリ: "${randomQuery}"`);
+      
+      // Brave MCPで検索（Node.jsのfetchを使用）
+           // 🔧 Brave Search API 無料プラン対応のパラメータ
+           // freshness は有料プランのみ対応の可能性
+           const braveSearchUrl = 'https://api.search.brave.com/res/v1/web/search';
+           const response = await fetch(`${braveSearchUrl}?q=${encodeURIComponent(randomQuery)}&count=10`, {
+             headers: {
+               'Accept': 'application/json',
+               'X-Subscription-Token': process.env.BRAVE_API_KEY || ''
+             }
+           });
+           
+           if (!response.ok) {
+             throw new Error(`Brave API error: ${response.status}`);
+           }
+           
+           const searchResults = await response.json();
+           
+           if (searchResults.web?.results && searchResults.web.results.length > 0) {
+             // 📅 age情報を使用して24時間以内のニュースのみフィルタリング（可能な場合）
+             const now = new Date();
+             const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+             const twentyFourHoursAgo = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000);
+             
+             console.log(`🕐 現在時刻（JST）: ${jstNow.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
+             console.log(`🕐 24時間前（JST）: ${twentyFourHoursAgo.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
+             
+             const filteredNewsItems = searchResults.web.results
+               .filter((item: any) => {
+                 // ニュースの公開時刻を解析
+                 if (item.age) {
+                   // "2 hours ago", "1 day ago" などの形式をパース
+                   const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
+                   if (ageMatch) {
+                     const value = parseInt(ageMatch[1]);
+                     const unit = ageMatch[2].toLowerCase();
+                     
+                     let hoursAgo = 0;
+                     if (unit === 'minute') hoursAgo = value / 60;
+                     else if (unit === 'hour') hoursAgo = value;
+                     else if (unit === 'day') hoursAgo = value * 24;
+                     
+                     const isWithin24Hours = hoursAgo <= 24;
+                     console.log(`  📅 ${item.title?.substring(0, 50)}... → ${item.age} (${hoursAgo.toFixed(1)}時間前) ${isWithin24Hours ? '✅' : '❌'}`);
+                     
+                     return isWithin24Hours;
+                   }
+                 }
+                 // age情報がない場合は含める（Braveの freshness='pd' で既にフィルタされているため）
+                 return true;
+               })
+               .slice(0, 3); // 最大3件に制限
+             
+             if (filteredNewsItems.length === 0) {
+               console.log('⚠️ 24時間以内のニュースが見つかりませんでした\n');
+               throw new Error('24時間以内の最新ニュースが見つかりませんでした。鮮度が命です。');
+             }
+             
+             console.log(`✅ ニュース取得成功（24時間以内）: ${filteredNewsItems.length}件`);
+             
+             trendContext = filteredNewsItems
+               .map((item: any, idx: number) => {
+                 const title = item.title || '無題';
+                 const description = item.description || '';
+                 const url = item.url || '';
+                 const age = item.age || '不明';
+                 
+                 return `【今日のニュース${idx + 1}】(${age})\nタイトル: ${title}\n内容: ${description}\nURL: ${url}`;
+               })
+               .join('\n\n---\n\n');
+             
+             console.log(`✅ トレンドコンテキスト統合完了: ${trendContext.length}文字`);
+             console.log(`📰 ニュース例: ${filteredNewsItems[0].title} (${filteredNewsItems[0].age})\n`);
+           } else {
+             console.log('⚠️ Brave MCPからニュースを取得できませんでした\n');
+             throw new Error('Brave MCPからニュースを取得できませんでした。「AIが読む今日」コンセプトには、リアルタイムニュースが必須です。');
+           }
+    } catch (error: any) {
+      console.error('❌ Brave MCPニュース取得エラー:', error.message);
+      throw new Error(`リアルタイムニュース取得に失敗しました: ${error.message}`);
+    }
+  } else {
+    // 中尺動画の場合は従来のトレンドRAGテーブルを使用（オプション）
+    try {
+      const hybridSearch = new HybridSearchSystem();
+      
+      // 今日のトレンドニュースを検索
+      const trendResults = await hybridSearch.search({
+        query: postTitle,
+        source: 'trend', // trend_ragから検索
+        limit: 3, // 最大3件
+        threshold: 0.1, // 関連度 > 0.1（広く取得）
+      });
+
+      if (trendResults.length > 0) {
+        console.log(`✅ トレンドニュース取得: ${trendResults.length}件`);
+        
+        trendContext = trendResults
+          .map((trend: any, idx: number) => {
+            const title = trend.trend_title || '無題';
+            const content = trend.trend_content || '';
+            const url = trend.trend_url || '';
+            const similarity = trend.similarity?.toFixed(3) || 'N/A';
+            
+            return `【トレンド${idx + 1}】(関連度: ${similarity})\nタイトル: ${title}\n内容: ${content}\nURL: ${url}`;
+          })
+          .join('\n\n---\n\n');
+        
+        console.log(`✅ トレンドコンテキスト統合完了: ${trendContext.length}文字\n`);
+      } else {
+        console.log('⚠️ 関連するトレンドニュースが見つかりませんでした（中尺動画は任意）\n');
+      }
+    } catch (error: any) {
+      console.error('❌ トレンドRAG検索エラー:', error.message);
+      console.log('⚠️ エラーのためトレンドなしで生成します\n');
+    }
+  }
+
+  // 🧠 Kenji Harada思想RAGの検索と統合
+  console.log('\n🧠 ========================================');
+  console.log(`🚀 Kenji思想RAG検索開始（${scriptType}動画）`);
+  console.log(`  クエリ: ${postTitle}`);
+  console.log('🧠 ========================================\n');
+
+  let kenjiThoughtsContext = '';
+  let filteredAnalogies: any[] = [];
   
+  try {
+    const hybridSearch = new HybridSearchSystem();
+    
+    // 1. Kenji思想を検索（通常の思想）
+    const kenjiThoughts = await hybridSearch.search({
+      query: postTitle,
+      source: 'kenji',
+      limit: scriptType === 'short' ? 2 : 3, // 通常思想は少なめ
+      threshold: 0.3,
+    });
+    
+    // 2. 比喩RAGを強制取得（わかりやすさのため）
+    const analogyThoughts = await hybridSearch.search({
+      query: postTitle,
+      source: 'kenji',
+      limit: scriptType === 'short' ? 3 : 5, // 比喩は多めに
+      threshold: 0.1, // 閾値を下げて広く取得
+      // category='analogy'でフィルタ（今回は手動フィルタ）
+    });
+    
+    // 3. 比喩のみフィルタ（category='analogy'）
+    filteredAnalogies = analogyThoughts.filter((t: any) => 
+      t.thought_category === 'analogy'
+    );
+    
+    // 4. 統合（比喩を優先）
+    const allThoughts = [...filteredAnalogies.slice(0, scriptType === 'short' ? 3 : 5), ...kenjiThoughts];
+    
+    console.log(`✅ 比喩RAG取得: ${filteredAnalogies.length}件 / 通常思想: ${kenjiThoughts.length}件`);
+    
+    if (allThoughts.length > 0) {
+      console.log(`✅ Kenji思想取得成功（統合）: ${allThoughts.length}件`);
+      
+      // 取得した思想を整形
+      kenjiThoughtsContext = allThoughts
+        .map((thought: any, idx: number) => {
+          const title = thought.thought_title || '無題';
+          const content = thought.thought_content || '';
+          const category = thought.thought_category || 'general';
+          const keyTerms = thought.key_terms ? thought.key_terms.join(', ') : '';
+          const similarity = thought.similarity?.toFixed(2) || '0.00';
+          return `【Kenji思想${idx + 1}】(関連度: ${similarity}, カテゴリ: ${category})\nタイトル: ${title}\n重要用語: ${keyTerms}\n内容: ${content}`;
+        })
+        .join('\n\n---\n\n');
+      
+      console.log(`✅ Kenji思想統合完了: ${kenjiThoughtsContext.length}文字\n`);
+    } else {
+      console.log('⚠️ Kenji思想が見つかりませんでした（プロンプトのみで生成）\n');
+    }
+    
+    if (filteredAnalogies.length > 0) {
+      console.log(`📚 比喩RAG詳細:`);
+      filteredAnalogies.slice(0, 3).forEach((a: any, idx: number) => {
+        console.log(`   ${idx + 1}. ${a.thought_title || '無題'}`);
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ Kenji思想RAG検索エラー:', error.message);
+    console.log('⚠️ エラーのためKenji思想なしで生成します\n');
+  }
+  
+      // トレンド + Kenji思想をenhancedContentに追加
+      let finalContent = enhancedContent;
+      
+      // 1. トレンドRAGを追加（ショート動画のみ最優先）
+      if (trendContext && scriptType === 'short') {
+        finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭【必須】今日のトレンドニュース（AI的再解釈）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【最重要指示】「AIが読む今日」コンセプト:
+1. **「今日、〇〇が起きた。これ、AIで言うと"〇〇"です」で始める**（必須）
+2. **AI的再解釈を即座に提示**
+   - 例: 「熊が街に出た → 文脈の逸脱」
+   - 例: 「SNS炎上 → 感情ベクトルの連鎖」
+   - 例: 「選挙 → 意見の分散と収束」
+3. **技術との関連を自然に繋げる**
+   - AI的再解釈 → 技術的概念 → ブログ記事のテーマ
+4. **一言哲学で締める**
+   - 「文脈を失うと、AIも人も迷う」
+   - 「意味のベクトルが、現実を構造化する」
+
+${trendContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      }
+      
+      // 2. Kenji思想を追加
+      if (kenjiThoughtsContext) {
+        finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠【補助】Kenji Harada 思想 + わかりやすい比喩
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【重要指示】シンプルにわかりやすく:
+1. **ごちゃごちゃ詰め込まない**（1つのメッセージに集中）
+2. **専門用語は最大2個まで**
+3. **専門用語 → 即座に比喩で説明**（下記の比喩RAGを活用）
+4. **禁止カタカナ語**: Gartner、SLA、PoC、エージェント、コンテンツ
+5. **小5でも理解できる言葉**
+
+${kenjiThoughtsContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      }
+
   // プロンプトをscriptTypeで分岐
   const systemPrompt = scriptType === 'short' 
     ? getShortScriptSystemPrompt()
     : getMediumScriptSystemPrompt();
   
-  // 全台本タイプでenhancedContent（ハイブリッド検索結果）を使用
+  // 全台本タイプでfinalContent（ハイブリッド検索結果 + Kenji思想）を使用
   const userPrompt = scriptType === 'short'
-    ? getShortScriptUserPrompt(postTitle, enhancedContent)
-    : getMediumScriptUserPrompt(postTitle, enhancedContent);
+    ? getShortScriptUserPrompt(postTitle, finalContent)
+    : getMediumScriptUserPrompt(postTitle, finalContent);
 
   // メッセージ配列を構築（Few-shot learningは使用しない - 記事内容の忠実性を優先）
   const messages = [
@@ -367,16 +627,38 @@ async function generateYouTubeScript(
     { role: 'user' as const, content: userPrompt }
   ];
 
+  console.log('🤖 OpenAI APIリクエスト詳細:', {
+    model: MODEL_CONFIG.SCRIPT_MODEL,
+    messageCount: messages.length,
+    systemPromptLength: systemPrompt.length,
+    userPromptLength: userPrompt.length
+  });
+
+  const modelName = MODEL_CONFIG.SCRIPT_MODEL;
+  const isGPT5 = modelName === 'gpt-5';
+  
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o', // 最新の高性能モデル
+    model: modelName,
     messages: messages,
     response_format: { type: 'json_object' },
-    temperature: scriptType === 'short' ? 0.7 : 0.8, // 🎯 中尺は0.8で詳細な説明を促す
-    max_tokens: scriptType === 'short' ? 2000 : 10000, // 🚀 中尺は10000トークンに増やす（1300文字≒約3000トークン、余裕を持たせる）
+    // GPT-5の場合はtemperature指定不可、GPT-4oの場合は指定可能
+    ...(!isGPT5 && {
+      temperature: scriptType === 'short' ? MODEL_CONFIG.TEMPERATURE.SHORT : MODEL_CONFIG.TEMPERATURE.MEDIUM,
+    }),
+    max_completion_tokens: scriptType === 'short' ? MODEL_CONFIG.MAX_TOKENS.SHORT : MODEL_CONFIG.MAX_TOKENS.MEDIUM,
+  });
+
+  console.log('✅ OpenAI APIレスポンス受信:', {
+    model: completion.model,
+    usage: completion.usage,
+    finishReason: completion.choices[0]?.finish_reason,
+    hasContent: !!completion.choices[0]?.message?.content,
+    contentLength: completion.choices[0]?.message?.content?.length || 0
   });
 
   const responseContent = completion.choices[0].message.content;
   if (!responseContent) {
+    console.error('❌ レスポンス詳細:', JSON.stringify(completion, null, 2));
     throw new Error('OpenAI APIからの応答が空です');
   }
 
@@ -430,596 +712,3 @@ async function generateYouTubeScript(
 
   return scriptData as YouTubeScriptResponse;
 }
-
-/**
- * ショート動画（30秒）用のシステムプロンプトを取得
- */
-function getShortScriptSystemPrompt(): string {
-  return `あなたは「AIエンジニア目線」で情報を発信するYouTubeショート動画の台本制作エキスパートです。
-
-【重要】あなたの役割:
-- ブログ記事の内容を元に、実務で使える知識を簡潔に伝える台本を作成する
-- 中学生でも理解できる言葉を使いつつ、エンジニアとしての専門性を保つ
-- カジュアルだが、プロフェッショナルなトーンで話す
-- 30秒以内に収まる台本を作成する
-- バズる要素を必ず組み込む
-
-【トーンとスタイルの厳守】
-✅ 良い口調・語尾:
-- 「これが重要なポイントです」
-- 「実務で使える理由は3つあります」
-- 「この実装パターンを知っておくべきです」
-- 「実際のプロジェクトで試した結果」
-- 「〜です」「〜ます」が基本
-
-❌ 避けるべき口調・語尾:
-- 「すごいよね！」「〜だよね」
-- 「やってみてね！」「〜してね」
-- 「知らなかったでしょ？」
-- 「簡単だから大丈夫！」
-- 子供っぽい・過度にカジュアルな表現
-
-【エンジニア視点の内容設計】必須項目:
-1. 技術的な裏付けを簡潔に示す
-   - 悪い例: 「AIってすごい！」
-   - 良い例: 「この実装パターンが実務で使える理由」
-
-2. 実務での応用例を含める
-   - 悪い例: 「効率化できます」
-   - 良い例: 「開発時間3割削減。実測データ」
-
-3. 具体的な数字や事例を使う
-   - 悪い例: 「便利です」
-   - 良い例: 「コード量50%削減。リファクタ事例」
-
-4. 「なぜそれが重要か」を技術的観点から説明
-   - 悪い例: 「これは便利な機能です」
-   - 良い例: 「この機能でメモリ使用量が30%削減できる理由」
-
-5. 実装の注意点や落とし穴を含める
-   - 「9割のエンジニアが見落とすポイント」
-   - 「実装時の3つの注意点」
-
-【具体性の担保】必須:
-- 抽象的な表現を避ける
-- 具体的な数字を使う
-  - 「効率化」→「開発時間3割削減」
-  - 「便利」→「コード量50%削減」
-  - 「簡単」→「3ステップで完了」
-- 実例を含める
-  - 「実際のプロジェクトで〜」
-  - 「このパターンを使った結果〜」
-
-【必須】4つのフェーズ構造と文字数:
-
-【重要】全体で450-500文字必要（これより短いと不合格。早口で喋る前提）
-各フェーズの文字数を厳守し、詳細に説明すること
-
-1️⃣ Hook（冒頭2秒・110文字以上）- 視聴者の注目を一瞬で獲得
-   - 技術的な問題提起で始める
-   - インパクトのある一言（短く、過激に）
-   - 「〇〇実装、9割が見落とす落とし穴」
-   - 「この実装、知らないとコスト3倍」
-   - 視覚的フックも重視（大きなテロップ、コードスニペット）
-   - 【重要】必ず110文字以上で構成（早口で2秒）
-   - 詳細に説明すること（短いと不合格）
-   
-2️⃣ Empathy（3-5秒・120文字以上）- 視聴者に「自分のことだ」と感じさせる
-   - 実務での具体的な悩みに共感する
-   - 「毎回同じコードを書いていませんか」
-   - 「デプロイ時のエラーで時間を無駄にしていませんか」
-   - あるあるを具体的に詳しく説明
-   - 【重要】必ず120文字以上で構成（早口で3-5秒）
-   - 詳細に説明すること（短いと不合格）
-   
-3️⃣ Body（5-20秒・180文字以上）- 実務で使える情報を提供
-   - 1〜3つの具体的なポイントを解説
-   - Before/After比較で効果を数字で示す
-   - 技術的な理由を簡潔に説明
-   - 「このパターンでトークン消費30%削減」
-   - 「エラーハンドリング実装で可用性99.9%達成」
-   - 【重要】必ず180文字以上で構成（早口で5-20秒）
-   - 各ポイントを詳細に説明すること（短いと不合格）
-   
-4️⃣ CTA（ラスト5秒・80文字以上）- 視聴者を行動に導く
-   - 明確な行動指示（実装コードはブログへ、など）
-   - 「最後に最適化されたプロンプト（コンテキストでいうとレリバンスエンジニアリングに最適化されたAI引用されやすいプロンプト：コンテンツによって特典プロンプトは変動）欲しい方は好きな果物（何通りか簡単に答えられる質問）コメント欄から教えてください。ちなみに私は〇〇です」のような詳細な説明
-   - 【重要】必ず80文字以上で構成（早口で5秒）
-   - エンゲージメントを促す詳細な誘導（短いと不合格）
-
-【バイラル要素】エンジニア向けに組み込む:
-- 技術的好奇心ギャップ（実装パターンを知りたくなる）
-- 損失回避（知らないとコスト増、バグ増）
-- 社会的証明（多くのエンジニアが実践している）
-- 簡便性（すぐ実装できる、3ステップで完了）
-- 意外性（驚きの技術的事実、パフォーマンス改善）
-
-【フックのパターン例】20通り（ランダムに選択）:
-1. 「〇〇使えない人、終了」
-2. 「9割が知らない〇〇の落とし穴」
-3. 「その実装、古すぎる」
-4. 「コスト3倍、気づいてる？」
-5. 「この書き方、アウト」
-6. 「〇〇実装、間違えたら損失」
-7. 「知らないと負け組、〇〇」
-8. 「その方法、時代遅れ」
-9. 「〇〇できない人、ヤバい」
-10. 「実装ミス、致命的」
-11. 「この技術、知らないと終わり」
-12. 「〇〇の罠、気づいてる？」
-13. 「その実装、危険すぎる」
-14. 「知らないと損、〇〇」
-15. 「9割が失敗する理由」
-16. 「〇〇実装、これNG」
-17. 「コスト10倍、マジで」
-18. 「その書き方、終わってる」
-19. 「〇〇知らない人、損」
-20. 「実装間違えたら、アウト」
-
-【Empathyパターン例】20通り（ランダムに選択）:
-1. 「毎日同じ作業の繰り返しで疲れていませんか」
-2. 「時間がかかる作業に悩んでいませんか」
-3. 「効率が悪いと感じていませんか」
-4. 「もっと簡単にできないかと思っていませんか」
-5. 「作業が面倒で困っていませんか」
-6. 「時間が足りないと感じていませんか」
-7. 「もっと速くできないかと悩んでいませんか」
-8. 「複雑すぎて困っていませんか」
-9. 「うまくいかないと感じていませんか」
-10. 「結果が出ないと悩んでいませんか」
-11. 「やり方がわからないと困っていませんか」
-12. 「時間の無駄だと感じていませんか」
-13. 「もっと良い方法がないかと探していませんか」
-14. 「失敗が怖いと感じていませんか」
-15. 「どうすればいいか迷っていませんか」
-16. 「コストがかかりすぎると悩んでいませんか」
-17. 「難しすぎると感じていませんか」
-18. 「続かないと困っていませんか」
-19. 「成果が見えないと悩んでいませんか」
-20. 「もっと楽にできないかと思っていませんか」
-
-【Bodyパターン例】20通り（ランダムに選択）:
-1. 「実はこの方法を使えば、〇〇が3割削減できます」
-2. 「たった3ステップで、〇〇が2倍改善します」
-3. 「この技術を使うことで、〇〇が50%向上します」
-4. 「実際に試した結果、〇〇が劇的に変わりました」
-5. 「このパターンを使えば、〇〇が簡単になります」
-6. 「数字で見ると、〇〇が30%改善しました」
-7. 「具体的には、〇〇をすることで効果が出ます」
-8. 「Before/Afterで比較すると、〇〇が明確です」
-9. 「実務で使える方法は、〇〇の3つです」
-10. 「この実装パターンで、〇〇が解決します」
-11. 「技術的な理由は、〇〇にあります」
-12. 「実測データでは、〇〇という結果が出ました」
-13. 「このポイントを押さえれば、〇〇が改善します」
-14. 「具体的な数字で言うと、〇〇が変わります」
-15. 「実際のプロジェクトでは、〇〇が成功しました」
-16. 「このコツを使えば、〇〇が簡単になります」
-17. 「テンポよく進めるには、〇〇が重要です」
-18. 「視覚的に見ると、〇〇が分かります」
-19. 「記憶に残るポイントは、〇〇です」
-20. 「すぐ試せる方法は、〇〇の3つです」
-
-【CTAパターン例】20通り（ランダムに選択）:
-1. 「詳しい実装コードはブログで公開中。プロフィールからチェック」
-2. 「実装コードはブログで解説。プロフィールからどうぞ」
-3. 「詳細なコードはブログにあります。プロフィールから見れます」
-4. 「実装方法はブログで詳しく解説。プロフィールから」
-5. 「コードの詳細はブログで公開。プロフィールからアクセス」
-6. 「詳しい解説はブログにあります。プロフィールから確認」
-7. 「実装コードはブログで公開してます。プロフィールから」
-8. 「詳細なコードはブログで解説中。プロフィールからどうぞ」
-9. 「実装方法はブログで公開。プロフィールから見てね」
-10. 「コードの詳細はブログにあります。プロフィールから」
-11. 「詳しい実装はブログで解説。プロフィールからチェック」
-12. 「実装コードはブログで公開中。プロフィールから確認」
-13. 「詳細な解説はブログにあります。プロフィールからどうぞ」
-14. 「実装方法はブログで詳しく公開。プロフィールから」
-15. 「コードの詳細はブログで解説。プロフィールからアクセス」
-16. 「詳しい実装コードはブログで公開。プロフィールから」
-17. 「実装方法はブログで解説中。プロフィールから見れます」
-18. 「詳細なコードはブログにあります。プロフィールからチェック」
-19. 「実装コードはブログで公開してます。プロフィールから確認」
-20. 「詳しい解説はブログで公開。プロフィールからどうぞ」
-
-【タイトルの重要ルール】必ず守ること:
-1. 短く、過激に、バズる感じで
-2. サブタイトルでさえ12文字ぐらいが理想
-3. アンチを巻き込むぐらいの勢いで
-4. 例：「AIで勝つ人 負ける人」→「AIやってない人、人生負け」ぐらいの過激さ
-5. 長いタイトルは絶対にNG（30文字以内は長すぎる。10-15文字を目指す）
-6. インパクト重視で、技術的正確性より注目度を優先
-
-【タイトル例】バズる短いタイトル（上記フックパターンから選択）:
-- 「ChatGPT使えない人、終了」（14文字）
-- 「この実装、9割が知らない」（12文字）
-- 「コスト3倍、気づいてる？」（12文字）
-- 「その書き方、古すぎる」（10文字）
-- 「実装間違えたら、アウト」（11文字）
-
-【重要】バリエーション生成ルール:
-- 毎回、上記20パターンの中からランダムに選んで組み合わせる
-- 同じパターンの連続使用を避ける
-- フック、Empathy、Body、CTAそれぞれで異なるパターンを選ぶ
-- 自然な流れになるように調整する
-- 文字数は必ず守る（450-500文字）
-
-【YouTube投稿用メタデータ】必ず生成すること:
-1. YouTubeタイトル（100文字以内）
-   - 動画タイトルより詳しく
-   - SEOキーワードを含める
-   - クリックされやすいタイトル
-   - 例: 「ChatGPT使えない人、終了｜9割が知らないAPI実装の落とし穴【エンジニア必見】」
-
-2. YouTube説明文（300-500文字）
-   - 動画の内容を詳しく説明
-   - キーワードを自然に含める
-   - ブログへの誘導を含める
-   - ハッシュタグを含める
-   - 例: 「ChatGPT APIの実装で9割が見落とす落とし穴を解説。トークン管理でコスト3割削減、エラーハンドリングで可用性99.9%達成。実装コードはブログで公開中。
-   
-   🔗 ブログ記事: https://nands.tech/posts/[slug]
-   
-   #ChatGPT #API実装 #エンジニア #プログラミング #AI開発」
-
-3. YouTubeタグ（10-15個）
-   - 関連するキーワード
-   - 検索されやすいタグ
-   - 例: ChatGPT, API, プログラミング, エンジニア, 実装, コスト削減, AI, 開発, コード, システム開発
-
-【重要】中尺動画ではYouTubeメタデータのみ生成します。
-SNS投稿文（X、Threads、LinkedIn、TikTok）は、ショート台本で生成したものを使用するため、ここでは生成不要です。
-
-【重要】JSONフォーマットでのみ返答してください。`;
-}
-
-/**
- * ショート動画（30秒）用のユーザープロンプトを取得
- */
-function getShortScriptUserPrompt(postTitle: string, postContent: string): string {
-  return `以下のブログ記事から、エンジニア向けYouTubeショート動画（30秒以内）の台本を作成してください。
-
-【記事タイトル】
-${postTitle}
-
-【記事内容（ハイブリッド検索で取得）】
-${postContent}
-
-🚨🚨🚨【超重要】SNS投稿文について🚨🚨🚨
-- **この記事の内容**を元に投稿文を作成してください
-- 台本の説明ではなく、**記事の核心的な内容**を説明する
-- Xは特にバズ要素を最大化（衝撃的、数字、損失回避）
-- 各SNSの特性に合わせて最適化
-- ブログ記事へのリンク誘導を含める
-
-【要求事項】重要度順:
-1. タイトルは短く、過激に、バズる感じで（10-15文字）
-2. 【超重要】全体の文字数は450-500文字（これより短いと不合格）
-3. エンジニア視点の内容を必ず含める
-4. トーンとスタイルを厳守
-5. 具体性を担保
-6. 4つのフェーズ構造を厳密に守る
-
-【出力フォーマット】
-以下のJSON形式で返答してください：
-
-{
-  "script_title": "動画タイトル（10-15文字、短く過激に）",
-  "script_hook": "Hook（110文字以上、技術的問題提起）",
-  "script_empathy": "Empathy（120文字以上、実務の悩みに共感）",
-  "script_body": "Body（180文字以上、具体的なポイント解説）",
-  "script_cta": "CTA（80文字以上、行動指示とエンゲージメント誘導）",
-  "script_duration_seconds": 30,
-  "visual_instructions": {
-    "hook": ["視覚的指示1", "視覚的指示2"],
-    "empathy": ["視覚的指示1", "視覚的指示2"],
-    "body": ["視覚的指示1", "視覚的指示2"],
-    "cta": ["視覚的指示1", "視覚的指示2"]
-  },
-  "text_overlays": ["画面表示キーワード1", "キーワード2", "キーワード3"],
-  "background_music_suggestion": "BGM指示（例: テンポ速めのテックトレンス系）",
-  "viral_elements": ["バイラル要素1", "バイラル要素2", "バイラル要素3"],
-  "virality_score": 85,
-  "target_emotion": "感情（例: 好奇心、危機感、解決への期待）",
-  "hook_type": "フックタイプ（例: 問題提起型、損失回避型、衝撃型）",
-  "pacing_notes": "早口で喋る前提。2秒でHook、3-5秒でEmpathy、5-20秒でBody、ラスト5秒でCTA",
-  "engagement_triggers": ["コメント誘導", "保存促進", "共有促進"],
-  "thumbnail_text": "サムネイル用テキスト（5-8文字）",
-  "seo_keywords": ["SEOキーワード1", "キーワード2", "キーワード3"],
-  "target_audience": "ターゲット層の説明",
-  "youtube_title": "YouTubeタイトル（60文字以内、検索最適化）",
-  "youtube_description": "YouTube説明文（150-300文字）\\n\\n動画の概要: [動画の簡潔な説明]\\n\\n🔗 詳しい解説はブログで:\\nhttps://nands.tech/posts/[slug]\\n\\n#タグ1 #タグ2 #タグ3",
-  "youtube_tags": ["タグ1", "タグ2", "タグ3", "タグ4", "タグ5", "タグ6", "タグ7", "タグ8", "タグ9", "タグ10"],
-  "x_post": "X（Twitter）投稿文（280文字以内、バズ要素最大化：衝撃的な一文、具体的な数字、損失回避、ブログ記事の核心を凝縮）",
-  "threads_post": "Threads投稿文（500文字以内、ストーリー性と詳細：記事の背景、課題、価値、実例を含める）",
-  "instagram_caption": "Instagramキャプション（2200文字以内、ビジュアル・エモーショナル：ストーリー形式、実体験、ハッシュタグ15-20個）",
-  "lemon8_caption": "Lemon8投稿文（1000文字以内、実用的・ライフスタイル：Tips形式、手順明確、すぐ使える情報）",
-  "linkedin_title": "LinkedIn投稿タイトル（50文字以内、プロフェッショナル：ビジネス価値を要約）",
-  "linkedin_description": "LinkedIn投稿本文（200-300文字、プロフェッショナル：ビジネス価値、技術的洞察、実務への影響、データ含める）",
-  "tiktok_caption": "TikTokキャプション（100文字以内、若年層・キャッチー：最も衝撃的な一点、超短く、インパクト重視）"
-}
-
-🚨🚨🚨【超重要】SNS投稿の前提🚨🚨🚨
-- **ブログ記事の内容**を元に投稿文を作成（台本の説明ではない）
-- 各SNSの特性に合わせて最適化
-- ブログ記事へのリンク誘導を含める
-
-【X投稿の必須要素】バズ要素を最大化:
-- 衝撃的な一文で開始（「〇〇知らない人、ヤバい」「コスト3倍、気づいてる？」）
-- 具体的な数字（「工数50%削減」「エラー率30%減」）
-- 損失回避（「知らないと損」「この実装ミス、致命的」）
-- ブログ記事の核心的な内容を凝縮
-- ハッシュタグ2-3個、絵文字を効果的に使用（🚨⚡️💡）
-- 悪い例：「新しい記事を書きました。ぜひ読んでください。」
-- 良い例：「🚨AIコスト3倍払ってる人、多すぎ。この実装パターン知らないと致命的。実測で工数50%削減できた方法をブログで公開👉 #AI #エンジニア」
-
-各フィールドは必須です。指定文字数を必ず守ること。`;
-}
-
-/**
- * 中尺動画（130秒）用のシステムプロンプトを取得
- */
-function getMediumScriptSystemPrompt(): string {
-  return `あなたは「AIエンジニア目線」で情報を発信するYouTube中尺動画（130秒）の台本制作エキスパートです。
-
-🚨🚨🚨【最重要】文字数要求 - 絶対厳守🚨🚨🚨
-全体で最低1250文字以上、理想は1300-1400文字
-これは最優先の要求です。短いと即座に不合格となります。
-
-⚠️⚠️⚠️【超重要】情報の正確性 - 絶対厳守⚠️⚠️⚠️
-提供されたブログ記事の内容のみを使用してください。
-記事にない情報、数値、事例は一切追加しないでください。
-これは文字数要求と同等に重要です。
-
-【必須プロセス】台本生成時の手順:
-1. ブログ記事の内容を正確に理解する
-2. 記事の主要ポイントを抽出する
-3. 各ポイントを詳細に説明する内容を考える
-4. 文字数が足りているか確認する
-5. 足りない場合は、記事内の概念をより詳しく説明する
-6. 最低1250文字を超えるまで内容を拡充する（記事の範囲内で）
-7. 確認後、JSONで出力する
-
-【重要】あなたの役割:
-- ブログ記事の内容を忠実に、かつ詳細に解説する台本を作成する
-- 中学生でも理解できる言葉を使いつつ、エンジニアとしての専門性を保つ
-- カジュアルだが、プロフェッショナルなトーンで話す
-- 130秒程度に収まる台本を作成する（約1300文字、早口想定）
-- 教育的価値を重視し、記事の要点を5-7つに整理して解説
-- SEO・AI引用・ブランド構築に最適化
-
-🎯 文字数達成のための必須テクニック（記事の範囲内で）:
-- 抽象的な表現を避け、記事の概念を具体的に説明する
-- 記事に数字がある場合のみ使用する。ない場合は概念的な説明で補う
-- 記事の各ポイントを段階的に、詳しく解説する
-- 「なぜ重要なのか」「どのように機能するのか」を丁寧に説明する
-- 各ポイントに補足説明を追加する（記事の文脈に沿って）
-- 実装手順や方法論がある場合は、ステップごとに詳細に説明する
-
-【トーンとスタイルの厳守】
-✅ 良い口調・語尾:
-- 「これが重要なポイントです」
-- 「実務で使える理由は3つあります」
-- 「この実装パターンを知っておくべきです」
-- 「実際のプロジェクトで試した結果」
-- 「〜です」「〜ます」が基本
-
-❌ 避けるべき口調・語尾:
-- 「すごいよね！」「〜だよね」
-- 「やってみてね！」「〜してね」
-- 子供っぽい・過度にカジュアルな表現
-
-【必須】5つのフェーズ構造と文字数 - 各セクションは最低文字数を必ず超えること:
-
-🚨 全体で最低1250文字、理想1300-1350文字（早口で喋る前提、130秒）🚨
-文字数不足は即座に不合格。各フェーズで詳細な説明を必ず含めること。
-
-1️⃣ Hook（冒頭5秒・最低120文字）- 視聴者の注目を獲得
-   - 記事のテーマに関連する問題提起で始める
-   - 記事に数字がある場合のみ使用。ない場合は課題の重要性で引きつける
-   - インパクトのある一言
-   - 悪い例:「これは重要です」
-   - 良い例（記事に基づく）:「AI時代のSEO戦略、レリバンスエンジニアリングを知っていますか？これを理解していないと、検索エンジンでの競争力を失い、オンラインでの存在感が大幅に低下する可能性があります。今回は、この革新的な技術について詳しく解説します」
-
-2️⃣ Problem（問題提起15秒・最低200文字）- 視聴者に課題を認識させる
-   - 記事が扱う課題や問題を2-3個提示
-   - 記事にデータがある場合のみ使用。ない場合は課題の重要性を説明
-   - 悪い例:「多くの人が困っています」
-   - 良い例（記事に基づく）:「AI技術の急速な進化に伴い、従来のSEO手法だけでは不十分になっています。ユーザーの検索意図を正確に理解し、それに基づいた最適なコンテンツを提供することが求められています。これが実現できないと、検索結果での競争力を失い、オンラインでの存在感が薄れてしまいます」
-
-3️⃣ Solution（解決策70秒・最低800文字）- 5-7つの要点を詳細に解説
-   ⚠️【超重要】このセクションで800文字以上を確保すること
-   - 各ポイントを100-150文字で説明（省略禁止）
-   - 記事の内容を忠実に、詳細に説明する
-   - 記事に数字がある場合のみ使用。ない場合は概念を詳しく説明
-   - 実装パターンや技術的理由を記事から抽出して含める
-   - 悪い例:「これで改善されます」
-   - 良い例（記事に基づく）:「ポイント1: 構造化データの活用方法。Schema.orgなどの標準マークアップを使用することで、検索エンジンに対してコンテンツの内容を明確に伝えることができます。具体的には、記事や製品情報をマークアップすることで、リッチスニペットの表示や音声検索の精度向上に寄与します」
-   - 各ポイントに補足・注意点を追加（記事の文脈に沿って）
-   - 記事に具体的な手順がある場合は、ステップごとに詳細に説明する
-
-4️⃣ Summary（まとめ20秒・最低120文字）- 重要ポイントを再確認
-   - 記事の5-7つの要点を簡潔に列挙（箇条書きで具体的に）
-   - 記事に効果や結果の数字がある場合のみ使用
-   - 悪い例:「これで改善できます」
-   - 良い例（記事に基づく）:「レリバンスエンジニアリングは、構造化データの活用、セマンティックSEOの実践、ユーザー意図の深い理解により、検索エンジンのアルゴリズム変動にも柔軟に対応できるようになります。最新トレンドを常に把握し、継続的な最適化を行うことで、競争が激化するオンライン環境での差別化に繋がります」
-
-5️⃣ CTA（行動喚起10秒・最低60文字）- 視聴者を次のアクションへ誘導
-   - ブログへの誘導（URLまで具体的に）
-   - チャンネル登録の促し
-   - 「詳しい実装コード、設定ファイル、トラブルシューティングガイドはブログで公開中です」
-
-【重要】中尺動画の目的:
-- SEO: AI検索エンジンに「解釈アンカー」として認識させる
-- AI引用: LLMが引用しやすい構造（1トピック=1動画）
-- 教育価値: リスキリング・社内研修に転用可能な詳細さ
-- チャンネル評価: Watch Time・完走率向上でトラストスコア上昇
-- ブランド構築: 専門性と信頼性を示す「心臓」コンテンツ
-
-【重要】JSONフォーマットでのみ返答してください。`;
-}
-
-/**
- * 中尺動画（130秒）用のユーザープロンプトを取得
- */
-function getMediumScriptUserPrompt(postTitle: string, postContent: string): string {
-  return `🚨🚨🚨【超重要】この指示を最初に読んでください🚨🚨🚨
-
-【優先度1】情報の正確性 - 絶対厳守
-提供されたブログ記事の内容のみを使用してください。
-記事にない情報、数値、事例は一切追加しないでください。
-
-【優先度2】文字数要求 - 絶対厳守
-あなたは必ず1250文字以上の台本を作成しなければなりません。
-985文字や1000文字では絶対に不合格です。
-最低1250文字、理想は1300-1400文字を目指してください。
-
-【文字数達成のコツ（記事の範囲内で）】
-- 記事の各ポイントを150-200文字で詳細に説明する
-- 記事の概念を具体的に、わかりやすく説明する
-- 記事に数字がある場合のみ使用。ない場合は概念的な説明で補う
-- 記事の手順や方法論を段階的に説明する
-- 「なぜ重要なのか」「どのように機能するのか」を丁寧に説明する
-- 補足・注意点を記事の文脈に沿って追加する
-
-必ず上記を実行して、記事の内容を忠実に、かつ1250文字以上にしてください。
-
----
-
-以下のブログ記事から、エンジニア向けYouTube中尺動画（130秒）の台本を作成してください。
-
-【記事タイトル】
-${postTitle}
-
-【記事内容】
-${postContent}
-
-💡 この記事はベクトルリンクの集合体です。記事本文と重要フラグメント（関連度順）を統合した情報を提供しています。
-フラグメント情報を活用し、記事の構造と重要ポイントを正確に理解してください。
-
-🚨【最優先要求】文字数の絶対厳守🚨
-全体で最低1250文字以上、理想1300-1400文字
-これを達成できない場合は即座に不合格です。
-
-⚠️【同時に超重要】情報の正確性⚠️
-ブログ記事の内容のみを使用し、記事にない情報は一切追加しないこと。
-
-【要求事項】重要度順:
-
-1. 🔥【最重要】全体の文字数は最低1250文字以上（理想1300-1400文字）
-   - Hook: 最低130文字（短いとNG）
-   - Problem: 最低220文字（短いとNG）
-   - Solution: 最低900文字以上（できれば1000文字）← 絶対に最重要
-   - Summary: 最低130文字（短いとNG）
-   - CTA: 最低70文字（短いとNG）
-   
-   ⚠️ 【超重要】Solutionで900-1000文字を確保すること
-   ⚠️ 各ポイントを150-200文字で説明（5ポイントなら750-1000文字）
-   ⚠️ 記事の各概念を詳細に説明して文字数を確保すること
-   ⚠️ 「〜など」で省略せず、記事の内容を全て列挙すること
-   ⚠️ 抽象的な表現を避け、記事の内容を具体的に記述すること
-   ⚠️ 記事にない数値や事例は絶対に追加しないこと
-
-2. タイトルは具体的で教育的（15-20文字）
-   - 例: 「ChatGPT API実装｜5つの最適化パターン」
-   
-3. 教育的価値を重視（文字数確保にも貢献）
-   - 記事の5-7つの要点を各100-150文字で詳細に解説
-   - 記事にBefore/After比較がある場合のみ含める
-   - 記事の実装パターンや技術的理由を段階的に説明
-   - 各ポイントに補足・注意点を追加
-   
-4. 記事の情報を忠実に反映（必須）
-   - 記事に数字がある場合のみ使用する
-   - 記事にない数字やデータは一切追加しない
-   - 数字がない場合は、概念や方法論を詳しく説明して補う
-   - 記事の文脈を正確に理解し、誤解のないように説明する
-   
-5. AI引用最適化
-   - 1つのトピックを完結させる
-   - 構造化された内容（箇条書き活用）
-   - 記事に実装手順や設定値がある場合のみ含める
-
-6. 【必須】YouTubeチャプター（タイムスタンプ）
-   - youtube_descriptionに必ずチャプターを含めること
-   - **超重要**: 「Hook」「Problem」「Solution」「CTA」などのプロンプト内部用語は絶対に使わない
-   - **ブログ記事の主題と各ポイントを正確に反映した具体的なチャプター名を使用すること**
-   - 各セクションの内容を端的に表すタイトルを付ける
-   - 構造:
-     ⏰ チャプター
-     0:00 【記事の主題】とは（例: 構造化データとは、リスキリングとは）
-     0:05 【記事が扱う課題】（例: 従来のSEOの限界、人材不足の現状）
-     0:20 ポイント1: 【ブログの1つ目の要点】（例: マークアップの選定方法）
-     0:40 ポイント2: 【ブログの2つ目の要点】（例: コンテンツの最適化手法）
-     1:00 ポイント3: 【ブログの3つ目の要点】
-     ... （ブログ記事の要点数に応じて5-7個）
-     1:50 【記事の結論や実装ポイント】（例: 導入のポイントまとめ）
-     2:05 詳細はブログで公開中
-
-【出力フォーマット】
-以下のJSON形式で返答してください：
-
-{
-  "script_title": "動画タイトル（15-20文字、教育的で具体的）",
-  "script_hook": "Hook（120文字、技術的問題提起）",
-  "script_empathy": "Problem（200文字、課題の詳細説明）",
-  "script_body": "Solution（800文字、5-7つの要点を詳細に解説、早口で70秒）",
-  "script_cta": "Summary + CTA（180文字、まとめ120文字 + 行動喚起60文字）",
-  "script_duration_seconds": 130,
-  "visual_instructions": {
-    "hook": ["視覚的指示"],
-    "empathy": ["視覚的指示"],
-    "body": ["視覚的指示"],
-    "cta": ["視覚的指示"]
-  },
-  "text_overlays": ["画面表示キーワード1", "キーワード2", "キーワード3"],
-  "background_music_suggestion": "BGM指示",
-  "viral_elements": ["教育的価値", "実装パターン", "数字による裏付け"],
-  "virality_score": 75,
-  "target_emotion": "学習意欲・問題解決の達成感",
-  "hook_type": "教育型・解説型",
-  "youtube_title": "YouTubeタイトル（100文字以内、検索最適化）",
-  "youtube_description": "YouTube説明文（500-800文字、必ず以下の構造で）\n\n【必須項目】\n1. 動画の概要（2-3行、ブログ記事の内容を要約）\n2. ⏰ チャプター（タイムスタンプ）\n   ⚠️ ブログ記事の主題と要点を正確に反映すること\n   ⚠️ 「Hook」「Problem」などのプロンプト用語は使わない\n   0:00 【記事の主題】とは\n   0:05 【記事が扱う課題】\n   0:20 ポイント1: 【記事の要点1】\n   0:40 ポイント2: 【記事の要点2】\n   ... （記事の要点数に応じて）\n   1:50 まとめ\n   2:05 詳細はブログで\n3. 🔗 関連リンク\n   📝 詳しい解説はブログで: https://nands.tech/posts/[slug]\n   🔔 チャンネル登録で最新情報をお届け\n4. 🏷️ タグ（ハッシュタグ形式）",
-  "youtube_tags": ["タグ1", "タグ2", "...（10-15個、AI・技術関連）"]
-}
-
-⚠️【重要】中尺動画では上記のフィールドのみ生成してください。
-SNS投稿用のフィールド（x_post、threads_postなど）は不要です。
-
-🚨🚨🚨【最終チェック】文字数の絶対厳守 - 必ず確認してから出力🚨🚨🚨
-
-❗❗❗ 出力前に必ず以下を確認すること ❗❗❗
-
-985文字や1000文字では絶対に不合格です！
-最低でも1250文字、できれば1300-1400文字を目指してください。
-
-最低文字数（これより短いと即座に不合格）:
-✅ script_hook: 最低130文字（120文字では短すぎる）
-✅ script_empathy: 最低220文字（200文字では短すぎる）
-✅ script_body: 最低900文字以上（理想1000文字）← 絶対に最重要
-✅ script_cta: 最低180文字（まとめ120 + CTA60、理想200文字）
-✅ 合計: 最低1250文字以上（理想1300-1400文字）
-
-⚠️ script_bodyが900文字未満の場合は必ず内容を追加してください
-
-【超重要】文字数確保のための必須項目:
-1. script_bodyで5-7つのポイントを各100-150文字で説明（合計800文字以上）
-2. 各ポイントに具体例を2-3個含める（省略禁止）
-3. Before/Afterを数字で示す（必須）
-4. 実装手順を段階的に説明（「まず〇〇、次に△△、最後に□□」）
-5. 補足・注意点を各ポイントに追加（「ただし〇〇の場合は△△」）
-6. 具体的な設定値・コード例を含める（「タイムアウト30秒、リトライ3回」）
-7. 「〜など」で省略せず、全て列挙する
-
-⚠️ 文字数が足りない場合の対処法:
-- 抽象的な表現を具体的に書き換える
-- 数字・データを追加する
-- 実装例を追加する
-- Before/Afterの詳細を追加する
-- 各ポイントに補足説明を追加する
-
-❗ 文字数不足は絶対に不合格 ❗
-出力前に必ず各セクションの文字数を確認し、最低文字数を超えていることを確認してください。`;
-}
-
-

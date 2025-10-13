@@ -10,7 +10,7 @@ import { OpenAIEmbeddings } from './openai-embeddings';
 
 export interface HybridSearchOptions {
   query: string;
-  source: 'company' | 'trend' | 'youtube' | 'fragment';
+  source: 'company' | 'trend' | 'youtube' | 'fragment' | 'kenji';
   limit?: number;
   threshold?: number;
   bm25Weight?: number;
@@ -18,6 +18,8 @@ export interface HybridSearchOptions {
   recencyWeight?: number; // Trend RAG専用
   filterPagePath?: string; // Fragment Vectors専用
   filterContentType?: string; // Fragment Vectors専用
+  filterCategory?: string; // Kenji Thought専用
+  filterUsageContext?: string; // Kenji Thought専用
 }
 
 export interface HybridSearchResult {
@@ -65,7 +67,9 @@ export class HybridSearchSystem {
       vectorWeight = 0.6,
       recencyWeight = 0.3,
       filterPagePath,
-      filterContentType
+      filterContentType,
+      filterCategory,
+      filterUsageContext
     } = options;
 
     console.log(`\n========================================`);
@@ -80,9 +84,10 @@ export class HybridSearchSystem {
     if (recencyWeight) console.log(`  Recency: ${recencyWeight}`);
     console.log(`========================================\n`);
 
-    // クエリをベクトル化
+    // クエリをベクトル化（Kenji思想の場合は3072次元）
     console.log(`📝 ステップ1: クエリをベクトル化中...`);
-    const queryEmbedding = await this.embeddings.embedSingle(query);
+    const dimensions = source === 'kenji' ? 3072 : 1536;
+    const queryEmbedding = await this.embeddings.embedSingle(query, dimensions);
     console.log(`✅ ベクトル化完了:`);
     console.log(`  - 次元: ${queryEmbedding.length}`);
     console.log(`  - サンプル値: [${queryEmbedding.slice(0, 3).map(v => v.toFixed(4)).join(', ')}, ...]`);
@@ -102,6 +107,9 @@ export class HybridSearchSystem {
         break;
       case 'fragment':
         results = await this.searchFragment(query, queryEmbedding, limit, threshold, bm25Weight, vectorWeight, filterPagePath, filterContentType);
+        break;
+      case 'kenji':
+        results = await this.searchKenji(query, queryEmbedding, limit, threshold, filterCategory, filterUsageContext);
         break;
       default:
         throw new Error(`未対応のソース: ${source}`);
@@ -248,6 +256,75 @@ export class HybridSearchSystem {
     }
 
     return data || [];
+  }
+
+  /**
+   * Kenji Harada思想検索（ベクトルのみ）
+   */
+  private async searchKenji(
+    queryText: string,
+    queryEmbedding: number[],
+    limit: number,
+    threshold: number,
+    filterCategory?: string,
+    filterUsageContext?: string
+  ): Promise<any[]> {
+    console.log(`🧠 Kenji Thought検索パラメータ:`, {
+      queryText,
+      embeddingLength: queryEmbedding.length,
+      threshold,
+      limit,
+      filterCategory,
+      filterUsageContext
+    });
+
+    // Kenji思想はベクトル検索のみ（テキスト量が少ないためBM25は不要）
+    const { data, error } = await this.supabase.rpc('match_kenji_thoughts', {
+      query_embedding: queryEmbedding,
+      match_threshold: threshold,
+      match_count: limit,
+      filter_category: filterCategory || null,
+      filter_usage_context: filterUsageContext || null,
+      only_active: true
+    });
+
+    if (error) {
+      console.error('❌ Kenji Thought検索エラー:', error);
+      console.error('   詳細:', JSON.stringify(error, null, 2));
+      return [];
+    }
+
+    console.log(`✅ Kenji Thought検索完了: ${data?.length || 0}件取得`);
+    
+    if (data && data.length > 0) {
+      console.log(`   上位3件:`);
+      data.slice(0, 3).forEach((item: any, index: number) => {
+        console.log(`   ${index + 1}. ${item.thought_title} (類似度: ${item.similarity?.toFixed(3)})`);
+      });
+    }
+
+    // ハイブリッド検索スコア形式に変換
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      thought_id: item.thought_id,
+      thought_title: item.thought_title,
+      content: item.thought_content,
+      content_type: item.thought_category,
+      metadata: {
+        ...item.metadata,
+        key_terms: item.key_terms,
+        usage_context: item.usage_context,
+        tone: item.tone,
+        priority: item.priority,
+        related_thoughts: item.related_thoughts,
+        vectorization_status: item.vectorization_status
+      },
+      // Kenji思想はベクトルのみなので、BM25スコアは0
+      bm25Score: 0,
+      vectorScore: item.similarity,
+      combinedScore: item.similarity, // ベクトルスコアのみ
+      created_at: null
+    }));
   }
 
   /**

@@ -127,17 +127,149 @@ export async function POST(request: NextRequest) {
       targetLength,
       businessCategory,
       categorySlug,
-      includeImages
-    }: BlogGenerationRequest = await request.json();
+      includeImages,
+      autoFetchTrends = false // 新規: トレンドニュース自動収集フラグ
+    }: BlogGenerationRequest & { autoFetchTrends?: boolean } = await request.json();
 
     console.log(`🚀 RAGブログ記事生成開始: "${query}"`);
     console.log(`📊 RAGデータ: ${ragData ? ragData.length : 0}件`);
     console.log(`📝 目標文字数: ${targetLength}文字`);
-    console.log(`📋 受信データ構造:`, { query, ragData: ragData ? 'あり' : 'なし', targetLength, businessCategory, categorySlug });
+    console.log(`🔄 自動トレンド収集: ${autoFetchTrends ? '有効' : '無効'}`);
+    console.log(`📋 受信データ構造:`, { query, ragData: ragData ? 'あり' : 'なし', targetLength, businessCategory, categorySlug, autoFetchTrends });
+
+    // 🆕 自動トレンドニュース収集（既存のragDataを拡張）
+    let currentRagData = ragData || [];
+    
+    if (autoFetchTrends) {
+      console.log('\n🔍 ========================================');
+      console.log('🚀 自動トレンドニュース収集開始');
+      console.log('🔍 ========================================\n');
+      
+      try {
+        // blog-trend-queries.ts からランダムに5個のクエリを選択
+        const { getRandomBlogTrendQueries } = await import('@/lib/intelligent-rag/blog-trend-queries');
+        const trendQueries = getRandomBlogTrendQueries(5);
+        
+        console.log(`📰 選択されたトレンドクエリ（5個）:`);
+        trendQueries.forEach((q, idx) => console.log(`  ${idx + 1}. "${q}"`));
+        
+        const embeddings = new OpenAIEmbeddings();
+        let totalNewsCollected = 0;
+        
+        // 各クエリでBrave Search APIを呼び出し
+        for (const trendQuery of trendQueries) {
+          try {
+            console.log(`\n🔍 Brave Search API呼び出し: "${trendQuery}"`);
+            
+            // 🔧 Brave Search API 無料プラン対応のパラメータ
+            // freshness, country, search_lang は有料プランのみ対応の可能性
+            const searchResponse = await fetch(
+              `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({
+                q: trendQuery,
+                count: '10', // 各クエリで10件取得
+              })}`,
+              {
+                headers: {
+                  'Accept': 'application/json',
+                  'Accept-Encoding': 'gzip',
+                  'X-Subscription-Token': process.env.BRAVE_API_KEY || '',
+                },
+              }
+            );
+            
+            if (!searchResponse.ok) {
+              console.warn(`⚠️ Brave Search API エラー (${trendQuery}): ${searchResponse.status}`);
+              continue;
+            }
+            
+            const braveData = await searchResponse.json();
+            const allResults = braveData.web?.results || [];
+            
+            // 📅 age情報を使用して24時間以内のニュースのみフィルタリング
+            const braveResults = allResults.filter((item: any) => {
+              if (item.age) {
+                const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
+                if (ageMatch) {
+                  const value = parseInt(ageMatch[1]);
+                  const unit = ageMatch[2].toLowerCase();
+                  
+                  let hoursAgo = 0;
+                  if (unit === 'minute') hoursAgo = value / 60;
+                  else if (unit === 'hour') hoursAgo = value;
+                  else if (unit === 'day') hoursAgo = value * 24;
+                  
+                  return hoursAgo <= 24;
+                }
+              }
+              return true; // age情報がない場合は含める
+            }).slice(0, 3); // 最大3件
+            
+            console.log(`  ✅ ニュース取得成功（24時間以内）: ${braveResults.length}件 / ${allResults.length}件中`);
+            
+            // 各ニュースをベクトル化してtrend_vectorsに保存
+            for (const item of braveResults) {
+              try {
+                const contentForVectorization = `
+タイトル: ${item.title || ''}
+内容: ${item.description || ''}
+ソース: ${item.profile?.name || new URL(item.url).hostname.replace('www.', '')}
+URL: ${item.url || ''}
+                `.trim();
+                
+                const embedding = await embeddings.embedSingle(contentForVectorization);
+                
+                const { data: savedVector, error: saveError } = await supabaseServiceRole
+                  .from('trend_vectors')
+                  .insert([
+                    {
+                      content_id: `brave_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+                      content_type: 'news',
+                      content: contentForVectorization,
+                      embedding: embedding,
+                      trend_topic: item.title || 'No title',
+                      source: item.profile?.name || 'Unknown',
+                      source_url: item.url || '',
+                      relevance_score: 0.8,
+                      trend_date: new Date().toISOString().split('T')[0],
+                      popularity_score: 0.8,
+                      keywords: [],
+                      metadata: {
+                        query: trendQuery,
+                        retrieved_at: new Date().toISOString(),
+                        api_source: 'brave_search_api_auto'
+                      }
+                    }
+                  ])
+                  .select()
+                  .single();
+                
+                if (saveError) {
+                  console.warn(`  ⚠️ ベクトル保存エラー: ${saveError.message}`);
+                } else {
+                  totalNewsCollected++;
+                  console.log(`  ✅ ベクトル化完了: ID ${savedVector.id}`);
+                }
+              } catch (itemError) {
+                console.warn(`  ⚠️ ニュースアイテム処理エラー:`, itemError);
+              }
+            }
+          } catch (queryError) {
+            console.warn(`⚠️ クエリ処理エラー (${trendQuery}):`, queryError);
+          }
+        }
+        
+        console.log(`\n✅ 自動トレンド収集完了: ${totalNewsCollected}件のニュースを保存`);
+        console.log('🔍 ========================================\n');
+        
+      } catch (autoFetchError) {
+        console.error('❌ 自動トレンド収集エラー:', autoFetchError);
+        console.warn('⚠️ トレンド収集に失敗しましたが、既存のRAGデータでブログ生成を続行します');
+      }
+    }
 
     // RAGデータの妥当性チェック
-    if (!ragData || !Array.isArray(ragData) || ragData.length === 0) {
-      throw new Error(`RAGデータが提供されていません。受信データ: ${JSON.stringify({ ragData: ragData || 'undefined' })}`);
+    if (!currentRagData || !Array.isArray(currentRagData) || currentRagData.length === 0) {
+      throw new Error(`RAGデータが提供されていません。受信データ: ${JSON.stringify({ ragData: currentRagData || 'undefined' })}`);
     }
 
     // カテゴリ関連性を考慮したRAGデータの重み付けと整理
@@ -159,7 +291,7 @@ export async function POST(request: NextRequest) {
     console.log(`🎯 カテゴリ「${categorySlug}」関連キーワード: ${categoryWords.join(', ')}`);
 
     // RAGデータにカテゴリ関連性スコアを追加
-    const enhancedRAGData = ragData.map((item, index) => {
+    const enhancedRAGData = currentRagData.map((item, index) => {
       const content = getSafeContent(item);
       
       // カテゴリ関連性スコアを計算
