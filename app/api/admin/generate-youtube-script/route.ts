@@ -357,103 +357,139 @@ async function generateYouTubeScript(
     console.error('⚠️ ハイブリッド検索エラー:', error);
     console.log('💡 記事本文のみで台本を生成します\n');
   }
-
-  // 📰 トレンドニュースの取得（Brave MCPでリアルタイム）
+  
+  // 📰 トレンドニュースの取得（Yahoo! News RSSでリアルタイム）
   console.log('\n📰 ========================================');
   console.log(`🚀 トレンドニュース取得開始（${scriptType}動画）`);
-  console.log(`  方法: ${scriptType === 'short' ? 'Brave MCP（リアルタイム）' : 'トレンドRAGテーブル'}`);
+  console.log(`  方法: ${scriptType === 'short' ? 'Yahoo! News RSS（リアルタイム）' : 'トレンドRAGテーブル'}`);
   console.log('📰 ========================================\n');
 
   let trendContext = '';
 
-  // 🆕 ショート動画の場合はBrave MCPでリアルタイムニュース取得
+  // 🆕 ショート動画の場合はYahoo! News RSSでリアルタイムニュース取得
   if (scriptType === 'short') {
     try {
-      console.log('🔍 Brave MCPで一般ニュースを取得中...');
+      console.log('🔍 Yahoo! News RSSでリアルタイムニュースを取得中...');
       
-           // ランダムで一般ニュースクエリを選択（ファイルから取得）
-           const { getRandomScriptTrendQuery } = await import('@/lib/intelligent-rag/script-trend-queries');
-           const randomQuery = getRandomScriptTrendQuery();
-      console.log(`  選択されたクエリ: "${randomQuery}"`);
+      // Yahoo! News RSSフィード（ランダムでカテゴリ選択）
+      const yahooRssFeeds = [
+        { name: 'トップ', url: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
+        { name: '主要', url: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
+        { name: '国際', url: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
+        { name: '経済', url: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
+        { name: 'エンタメ', url: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+        { name: 'スポーツ', url: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
+        { name: 'IT', url: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
+        { name: '科学', url: 'https://news.yahoo.co.jp/rss/topics/science.xml' },
+      ];
       
-      // Brave MCPで検索（Node.jsのfetchを使用）
-           // 🔧 Brave Search API 無料プラン対応のパラメータ
-           // freshness は有料プランのみ対応の可能性
-           const braveSearchUrl = 'https://api.search.brave.com/res/v1/web/search';
-           const response = await fetch(`${braveSearchUrl}?q=${encodeURIComponent(randomQuery)}&count=10`, {
-             headers: {
-               'Accept': 'application/json',
-               'X-Subscription-Token': process.env.BRAVE_API_KEY || ''
-             }
-           });
-           
-           if (!response.ok) {
-             throw new Error(`Brave API error: ${response.status}`);
-           }
-           
-           const searchResults = await response.json();
-           
-           if (searchResults.web?.results && searchResults.web.results.length > 0) {
-             // 📅 age情報を使用して24時間以内のニュースのみフィルタリング（可能な場合）
-             const now = new Date();
-             const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-             const twentyFourHoursAgo = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000);
-             
-             console.log(`🕐 現在時刻（JST）: ${jstNow.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
-             console.log(`🕐 24時間前（JST）: ${twentyFourHoursAgo.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
-             
-             const filteredNewsItems = searchResults.web.results
-               .filter((item: any) => {
-                 // ニュースの公開時刻を解析
-                 if (item.age) {
-                   // "2 hours ago", "1 day ago" などの形式をパース
-                   const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
-                   if (ageMatch) {
-                     const value = parseInt(ageMatch[1]);
-                     const unit = ageMatch[2].toLowerCase();
-                     
-                     let hoursAgo = 0;
-                     if (unit === 'minute') hoursAgo = value / 60;
-                     else if (unit === 'hour') hoursAgo = value;
-                     else if (unit === 'day') hoursAgo = value * 24;
-                     
-                     const isWithin24Hours = hoursAgo <= 24;
-                     console.log(`  📅 ${item.title?.substring(0, 50)}... → ${item.age} (${hoursAgo.toFixed(1)}時間前) ${isWithin24Hours ? '✅' : '❌'}`);
-                     
-                     return isWithin24Hours;
-                   }
-                 }
-                 // age情報がない場合は含める（Braveの freshness='pd' で既にフィルタされているため）
-                 return true;
-               })
-               .slice(0, 3); // 最大3件に制限
-             
-             if (filteredNewsItems.length === 0) {
-               console.log('⚠️ 24時間以内のニュースが見つかりませんでした\n');
-               throw new Error('24時間以内の最新ニュースが見つかりませんでした。鮮度が命です。');
-             }
-             
-             console.log(`✅ ニュース取得成功（24時間以内）: ${filteredNewsItems.length}件`);
-             
-             trendContext = filteredNewsItems
-               .map((item: any, idx: number) => {
-                 const title = item.title || '無題';
-                 const description = item.description || '';
-                 const url = item.url || '';
-                 const age = item.age || '不明';
-                 
-                 return `【今日のニュース${idx + 1}】(${age})\nタイトル: ${title}\n内容: ${description}\nURL: ${url}`;
-               })
-               .join('\n\n---\n\n');
-             
-             console.log(`✅ トレンドコンテキスト統合完了: ${trendContext.length}文字`);
-             console.log(`📰 ニュース例: ${filteredNewsItems[0].title} (${filteredNewsItems[0].age})\n`);
-           } else {
-             console.log('⚠️ Brave MCPからニュースを取得できませんでした\n');
-             throw new Error('Brave MCPからニュースを取得できませんでした。「AIが読む今日」コンセプトには、リアルタイムニュースが必須です。');
-           }
+      const selectedFeed = yahooRssFeeds[Math.floor(Math.random() * yahooRssFeeds.length)];
+      console.log(`  🎲 選択カテゴリ: ${selectedFeed.name}`);
+      console.log(`  📡 RSSフィード: ${selectedFeed.url}`);
+      
+      // Yahoo! News RSSを取得
+      const response = await fetch(selectedFeed.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; NewsBot/1.0)',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Yahoo RSS取得エラー: ${response.status}`);
+      }
+      
+      const xmlText = await response.text();
+      
+      // 簡易XMLパース（<item>タグを抽出）
+      const itemMatches = xmlText.match(/<item>[\s\S]*?<\/item>/g) || [];
+      
+      console.log(`📰 RSS取得成功: ${itemMatches.length}件のニュース`);
+      
+      if (itemMatches.length === 0) {
+        throw new Error('Yahoo RSSからニュースを取得できませんでした');
+      }
+      
+      // 各ニュースをパース
+      const newsItems = itemMatches.map((item: string) => {
+        const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/);
+        const linkMatch = item.match(/<link>(.*?)<\/link>/);
+        const descMatch = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || item.match(/<description>(.*?)<\/description>/);
+        const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+        
+        const pubDateStr = pubDateMatch ? pubDateMatch[1] : null;
+        let pubDate = null;
+        
+        if (pubDateStr) {
+          try {
+            pubDate = new Date(pubDateStr);
+            // デバッグログ
+            console.log(`  🔍 パース: "${titleMatch?.[1]?.substring(0, 30)}..." → pubDate: ${pubDateStr} → ${pubDate.toISOString()}`);
+          } catch (e) {
+            console.log(`  ⚠️ pubDateパースエラー: ${pubDateStr}`);
+          }
+        }
+        
+        return {
+          title: titleMatch ? titleMatch[1] : '',
+          link: linkMatch ? linkMatch[1] : '',
+          description: descMatch ? descMatch[1] : '',
+          pubDate: pubDate,
+        };
+      }).filter(item => item.title);
+      
+      // 24時間以内のニュースをフィルタリング
+      const now = new Date();
+      const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+      const twentyFourHoursAgo = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000);
+      
+      console.log(`🕐 現在時刻（JST）: ${jstNow.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
+      console.log(`🕐 24時間前（JST）: ${twentyFourHoursAgo.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`);
+      
+      // 24時間以内のニュースをフィルタリング
+      let recentNews = newsItems.filter(item => {
+        if (!item.pubDate) return false;
+        const isRecent = item.pubDate >= twentyFourHoursAgo;
+        const hoursAgo = (jstNow.getTime() - item.pubDate.getTime()) / (1000 * 60 * 60);
+        console.log(`  📅 ${item.title.substring(0, 50)}... → ${hoursAgo.toFixed(1)}時間前 ${isRecent ? '✅' : '❌'}`);
+        return isRecent;
+      }).slice(0, 3); // 最大3件
+      
+      // 🎯 フォールバック: 24時間以内がなければ、最新の3件を使用
+      if (recentNews.length === 0) {
+        console.log(`⚠️ 24時間以内のニュースが見つかりませんでした`);
+        console.log(`💡 フォールバック: 最新の3件を使用します`);
+        
+        // pubDateがあるニュースを新しい順にソート
+        const sortedNews = newsItems
+          .filter(item => item.pubDate)
+          .sort((a, b) => b.pubDate!.getTime() - a.pubDate!.getTime())
+          .slice(0, 3);
+        
+        if (sortedNews.length === 0) {
+          throw new Error(`ニュースが取得できませんでした（カテゴリ: ${selectedFeed.name}）`);
+        }
+        
+        recentNews = sortedNews;
+        console.log(`✅ フォールバックで${recentNews.length}件のニュースを取得しました`);
+      }
+      
+      // ニュースが24時間以内かチェック
+      const isWithin24h = recentNews.every(item => item.pubDate && item.pubDate >= twentyFourHoursAgo);
+      console.log(`✅ ニュース取得成功: ${recentNews.length}件${isWithin24h ? '（24時間以内）' : '（最新）'}`);
+      
+      // トレンドコンテキストを生成
+      trendContext = recentNews
+        .map((item: any, idx: number) => {
+          const hoursAgo = ((jstNow.getTime() - item.pubDate.getTime()) / (1000 * 60 * 60)).toFixed(1);
+          return `【今日のニュース${idx + 1}】(${hoursAgo}時間前)\nタイトル: ${item.title}\n内容: ${item.description}\nURL: ${item.link}`;
+        })
+        .join('\n\n---\n\n');
+      
+      console.log(`✅ トレンドコンテキスト統合完了: ${trendContext.length}文字`);
+      console.log(`📰 ニュース例: ${recentNews[0].title}\n`);
+      
     } catch (error: any) {
-      console.error('❌ Brave MCPニュース取得エラー:', error.message);
+      console.error('❌ Yahoo News RSS取得エラー:', error.message);
       throw new Error(`リアルタイムニュース取得に失敗しました: ${error.message}`);
     }
   } else {
