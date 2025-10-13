@@ -74,6 +74,11 @@ export default function YouTubeScriptDetailPage() {
   const [youtubeUrl, setYoutubeUrl] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   
+  // サムネイル生成用
+  const [thumbnailPatterns, setThumbnailPatterns] = React.useState<any[]>([]);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = React.useState(false);
+  const [selectedPattern, setSelectedPattern] = React.useState<number | null>(null);
+  
   const supabase = createClientComponentClient<Database>();
 
   React.useEffect(() => {
@@ -293,6 +298,60 @@ export default function YouTubeScriptDetailPage() {
       alert(`台本の削除に失敗しました\n\n${error.message}`);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // サムネイル生成関数
+  const handleGenerateThumbnail = async () => {
+    if (!script) return;
+
+    setIsGeneratingThumbnail(true);
+    setThumbnailPatterns([]);
+    setSelectedPattern(null);
+
+    try {
+      console.log('🎨 サムネイル文言生成開始');
+
+      // トレンドニュースのタイトルを取得（ある場合）
+      let relatedNewsTitle = '';
+      // scriptのmetadataからtrendニュースを抽出する試み（実際のデータ構造に応じて調整が必要）
+      // ここでは、Hookの最初の部分からニュースを抽出する簡易的な方法を使用
+      const hookMatch = script.script_hook.match(/^(.+?)。/);
+      if (hookMatch) {
+        relatedNewsTitle = hookMatch[1];
+      }
+
+      const response = await fetch('/api/admin/generate-thumbnail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scriptTitle: script.script_title,
+          scriptHook: script.script_hook,
+          scriptBody: script.script_body,
+          scriptCta: script.script_cta,
+          relatedNewsTitle: relatedNewsTitle
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'サムネイル生成に失敗しました');
+      }
+
+      console.log(`✅ サムネイル文言生成完了: ${data.patterns.length}パターン`);
+      setThumbnailPatterns(data.patterns);
+      
+      // 最初のパターンを自動選択
+      if (data.patterns.length > 0) {
+        setSelectedPattern(0);
+      }
+
+    } catch (error: any) {
+      console.error('❌ サムネイル生成エラー:', error);
+      alert(`サムネイル生成に失敗しました\n\n${error.message}`);
+    } finally {
+      setIsGeneratingThumbnail(false);
     }
   };
 
@@ -709,6 +768,130 @@ export default function YouTubeScriptDetailPage() {
           </div>
         </div>
       )}
+
+      {/* 🎨 サムネイル文言生成セクション */}
+      <div className="bg-gradient-to-r from-orange-900 to-red-900 border-2 border-orange-500 rounded-lg p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-2">🎨 サムネイル文言生成（5パターン）</h3>
+            <p className="text-sm text-orange-200">
+              台本からバズるサムネイル文言を自動生成します。タイトル（7-8文字）・サブタイトル（10文字）
+            </p>
+          </div>
+          <button
+            onClick={handleGenerateThumbnail}
+            disabled={isGeneratingThumbnail}
+            className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {isGeneratingThumbnail ? '生成中...' : '🚀 サムネ生成'}
+          </button>
+        </div>
+
+        {/* 生成結果表示 */}
+        {thumbnailPatterns.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {thumbnailPatterns.map((pattern, idx) => (
+              <div
+                key={idx}
+                className={`${
+                  selectedPattern === idx
+                    ? 'bg-orange-800 border-2 border-orange-400'
+                    : 'bg-orange-900 border border-orange-700'
+                } rounded-lg p-5 cursor-pointer hover:border-orange-500 transition-all`}
+                onClick={() => setSelectedPattern(idx)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg font-bold text-white">
+                        {idx === 0 && '🥇'}
+                        {idx === 1 && '🥈'}
+                        {idx === 2 && '🥉'}
+                        {idx === 3 && '💎'}
+                        {idx === 4 && '⚡'}
+                      </span>
+                      <h4 className="text-md font-semibold text-white">{pattern.name}</h4>
+                      <span className="ml-auto px-3 py-1 bg-orange-700 text-orange-100 rounded-full text-xs font-bold">
+                        スコア: {pattern.score}/100
+                      </span>
+                    </div>
+                    <p className="text-xs text-orange-200 mb-3">{pattern.reason}</p>
+                  </div>
+                </div>
+
+                {/* タイトル */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-orange-200">タイトル（{pattern.title.length}文字）</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(pattern.title);
+                        alert('✅ タイトルをコピーしました');
+                      }}
+                      className="px-3 py-1 bg-orange-700 hover:bg-orange-600 text-white text-xs rounded"
+                    >
+                      📋 コピー
+                    </button>
+                  </div>
+                  <div className="bg-orange-950 rounded p-3">
+                    <p className="text-white text-2xl font-bold">{pattern.title}</p>
+                  </div>
+                </div>
+
+                {/* サブタイトル */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-orange-200">サブタイトル（{pattern.subtitle.length}文字）</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(pattern.subtitle);
+                        alert('✅ サブタイトルをコピーしました');
+                      }}
+                      className="px-3 py-1 bg-orange-700 hover:bg-orange-600 text-white text-xs rounded"
+                    >
+                      📋 コピー
+                    </button>
+                  </div>
+                  <div className="bg-orange-950 rounded p-3">
+                    <p className="text-white text-lg font-semibold">{pattern.subtitle}</p>
+                  </div>
+                </div>
+
+                {/* 両方コピー */}
+                <div className="mt-3 pt-3 border-t border-orange-700">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const text = `タイトル: ${pattern.title}\n\nサブタイトル: ${pattern.subtitle}`;
+                      navigator.clipboard.writeText(text);
+                      alert('✅ タイトル & サブタイトルをコピーしました');
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded transition-all"
+                  >
+                    📋 両方コピー
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-6 pt-6 border-t border-orange-700">
+              <p className="text-xs text-orange-200 text-center">
+                ✨ 5パターンから選んで、Vrewでサムネイルを作成しましょう！<br />
+                🎯 最推奨は1番目（対立構造型）です
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 未生成時のメッセージ */}
+        {thumbnailPatterns.length === 0 && !isGeneratingThumbnail && (
+          <div className="mt-4 text-center py-8">
+            <p className="text-orange-200">「サムネ生成」ボタンをクリックして、5パターンのサムネイル文言を生成してください。</p>
+          </div>
+        )}
+      </div>
 
       {/* 🆕 SNS投稿用メタデータ */}
       {script.metadata?.sns_metadata && (
