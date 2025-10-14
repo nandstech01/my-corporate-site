@@ -216,7 +216,7 @@ export default async function LPPage() {
         provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
         offers: {
           '@type': 'Offer',
-          price: 300000,
+          price: 400000,
           priceCurrency: 'JPY',
           availability: 'https://schema.org/InStock',
           url: 'https://nands.tech/lp'
@@ -236,7 +236,7 @@ export default async function LPPage() {
         provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
         offers: {
           '@type': 'Offer',
-          price: 300000,
+          price: 400000,
           priceCurrency: 'JPY',
           availability: 'https://schema.org/InStock',
           url: 'https://nands.tech/lp'
@@ -256,7 +256,7 @@ export default async function LPPage() {
         provider: { '@type': 'Organization', '@id': 'https://nands.tech/#organization' },
         offers: {
           '@type': 'Offer',
-          price: 300000,
+          price: 400000,
           priceCurrency: 'JPY',
           availability: 'https://schema.org/InStock',
           url: 'https://nands.tech/lp'

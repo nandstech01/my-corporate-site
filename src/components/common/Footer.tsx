@@ -112,7 +112,7 @@ const Footer: React.FC = () => {
     : 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-blue-500/20';
 
   return (
-    <footer className="relative font-sans text-white bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">
+    <footer className="relative font-sans text-white bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
       {/* 背景エフェクト */}
       <div className="absolute inset-0 pointer-events-none">
         {/* グラデーション背景 */}

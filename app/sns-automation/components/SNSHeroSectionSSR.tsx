@@ -263,8 +263,25 @@ export default function SNSHeroSectionSSR() {
             </div>
           </div>
 
+          {/* 🔥 新しいCTA: AIリスキリングプログラム */}
+          <div className="mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 backdrop-blur-sm mb-4">
+              <span className="text-orange-300 font-medium text-sm">
+                🔥 新登場！月1.5万円でバズる AIリスキリングプログラム
+              </span>
+            </div>
+          </div>
+
           {/* CTAボタン（アクセシビリティ対応） */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <a
+              href="/sns-automation/lp"
+              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl transform hover:scale-105 animate-pulse"
+              role="button"
+              aria-label="AIリスキリングプログラムを今すぐ体験"
+            >
+              🚀 今すぐバズる台本を体験する
+            </a>
             <a
               href="#contact"
               className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl transform hover:scale-105"

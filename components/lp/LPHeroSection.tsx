@@ -285,7 +285,7 @@ export default function LPHeroSection() {
                       <p className="text-white text-sm">日本初RE・GEO実装企業が指導</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
-                      <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
+                      <p className="text-cyan-300 font-bold text-lg">40万円×人数（5人以上から）</p>
                     </div>
                     
                     {/* AI プラットフォーム */}
@@ -440,7 +440,7 @@ export default function LPHeroSection() {
                         <p className="text-white text-sm">NANDS公式アンバサダー</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
-                      <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
+                      <p className="text-cyan-300 font-bold text-lg">40万円×人数（5人以上から）</p>
                     </div>
                     
                     {/* SNS プラットフォーム */}
@@ -618,7 +618,7 @@ export default function LPHeroSection() {
                       <p className="text-white text-sm">爆速で社内の内製化可能・NANDS CEO原田賢治が直接指導</p>
                     </div>
                     <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/30 mb-4">
-                      <p className="text-cyan-300 font-bold text-lg">30万円×人数（5人以上から）</p>
+                      <p className="text-cyan-300 font-bold text-lg">40万円×人数（5人以上から）</p>
                     </div>
                     
                     {/* AI開発ツール */}

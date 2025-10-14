@@ -33,7 +33,7 @@ export default function ServicesSection() {
         </div>
       ),
       duration: "6週間", 
-      price: "30万円×人数（3人以上から）",
+      price: "40万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -54,7 +54,7 @@ export default function ServicesSection() {
     {
       title: "SNS自動化講座",
       duration: "4週間",
-      price: "30万円×人数（3人以上から）",
+      price: "40万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -75,7 +75,7 @@ export default function ServicesSection() {
     {
       title: "AI駆動開発講座",
       duration: "8週間",
-      price: "30万円×人数（3人以上から）",
+      price: "40万円×人数（3人以上から）",
       icon: (
         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
