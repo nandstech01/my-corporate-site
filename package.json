@@ -12,7 +12,9 @@
     "generate-sitemap": "npx ts-node scripts/generate-sitemap.ts",
     "validate-structured-data": "npx ts-node scripts/validate-structured-data.ts",
     "validate-phase1": "npx ts-node scripts/validate-structured-data.ts",
-    "validate-phase2": "npx ts-node scripts/validate-phase2-llmo.ts"
+    "validate-phase2": "npx ts-node scripts/validate-phase2-llmo.ts",
+    "vectorize-personal-story": "npx ts-node scripts/vectorize-personal-story.ts",
+    "vectorize-catalyst": "npx ts-node scripts/vectorize-catalyst.ts"
   },
   "engines": {
     "node": "22.x"

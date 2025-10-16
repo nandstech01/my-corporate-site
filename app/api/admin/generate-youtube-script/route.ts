@@ -622,6 +622,133 @@ async function generateYouTubeScript(
     console.error('❌ Kenji思想RAG検索エラー:', error.message);
     console.log('⚠️ エラーのためKenji思想なしで生成します\n');
   }
+
+  // 🧩 個人ストーリーRAGの検索（中尺動画のみ）
+  let personalStoryContext = '';
+  
+  if (scriptType === 'medium') {
+    console.log('\n🧩 ========================================');
+    console.log('🚀 個人ストーリーRAG検索開始（中尺動画専用）');
+    console.log(`  クエリ: ${postTitle}`);
+    console.log('🧩 ========================================\n');
+    
+    try {
+      const hybridSearch = new HybridSearchSystem();
+      const embeddings = new OpenAIEmbeddings();
+      
+      // クエリを3072次元でベクトル化
+      const queryEmbedding = await embeddings.embedSingle(postTitle, 3072);
+      
+      // 個人ストーリーRAG検索（閾値を下げて広く取得）
+      const personalStoryResults = await hybridSearch.searchPersonalStoryRAG(
+        postTitle,
+        queryEmbedding,
+        2, // 最大2件
+        0.2 // 類似度閾値（0.3→0.2に下げて広く取得）
+      );
+      
+      if (personalStoryResults.length > 0) {
+        console.log(`✅ 個人ストーリーRAG取得成功: ${personalStoryResults.length}件`);
+        console.log(`   トーン抽出: ${personalStoryResults.map(s => s.emotion).join(', ')}`);
+        
+        // 🎯 「喋らず、滲ませる」実装
+        // 取得したストーリーの「トーン」だけを抽出（内容は絶対に渡さない）
+        personalStoryContext = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧩 個人ストーリーのトーン指示【絶対に内容を台本に書かないこと】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+以下の要素を全体のトーンとして滲ませてください。
+個人ストーリーの「内容」は絶対に台本に書かないでください。
+
+【抽出されたトーン】
+${personalStoryResults.map((story: any, idx: number) => {
+  return `- 感情: ${story.emotion}
+- 声の方向性: ${story.voice_direction || '低く、抑えた熱'}
+- リズム: ${story.rhythm_note || '完結した文章、1文ごとに間を取る'}
+- 核心テーマ: ${story.core_theme}
+- 使用箇所: ${story.use_cases.join(', ')}`;
+}).join('\n\n')}
+
+【適用方法】
+このトーンで技術を語ってください。個人的な主張は一切しない。
+客観的に情報提供するが、その奥に「静かな決意」が感じられる語り口にする。
+
+例:
+✅ 「構造が整うと、同じ一手でも意味が変わります。」
+   → 淡々と、でも確信を持って
+✅ 「最初に全体の流れを捉えることが大切です。」
+   → 余計な説明なし、本質だけを示す
+
+【絶対厳守】
+❌ 「理解されなくてもいい」（個人ストーリーの内容を書いている）
+❌ 「構造を信じてきました」（個人的な主張）
+❌ 「感情は語らない。構造で示す。」（個人ストーリーの結論を引用）
+✅ 客観的に情報提供しつつ、トーンで「静かな決意」を滲ませる
+`;
+        
+        console.log(`✅ 個人ストーリーのトーン抽出完了: ${personalStoryContext.length}文字`);
+        console.log(`   トーン: ${personalStoryResults.map(s => s.emotion).join(', ')}`);
+        console.log(`   核心テーマ: ${personalStoryResults.map(s => s.core_theme).join(', ')}\n`);
+      } else {
+        console.log('⚠️ 個人ストーリーRAGが見つかりませんでした（トーンはプロンプトベース）\n');
+      }
+    } catch (error: any) {
+      console.error('❌ 個人ストーリーRAG検索エラー:', error.message);
+      console.log('⚠️ エラーのため個人ストーリーなしで生成します\n');
+    }
+  }
+
+  // 💎 偉人RAG（Catalyst RAG）の検索（中尺動画のみ）
+  let catalystContext = '';
+  
+  if (scriptType === 'medium') {
+    console.log('\n💎 ========================================');
+    console.log('🚀 偉人RAG（Catalyst RAG）検索開始（中尺動画専用）');
+    console.log(`  クエリ: ${postTitle}`);
+    console.log('💎 ========================================\n');
+    
+    try {
+      const hybridSearch = new HybridSearchSystem();
+      const embeddings = new OpenAIEmbeddings();
+      
+      // クエリを3072次元でベクトル化
+      const queryEmbedding = await embeddings.embedSingle(postTitle, 3072);
+      
+      // 偉人RAG検索
+      const catalystResults = await hybridSearch.searchCatalystRAG(
+        postTitle,
+        queryEmbedding,
+        3, // 最大3件
+        0.25 // 類似度閾値（Kenji思想より低め）
+      );
+      
+      if (catalystResults.length > 0) {
+        console.log(`✅ 偉人RAG取得成功: ${catalystResults.length}件`);
+        
+        // 取得した偉人RAGを整形
+        catalystContext = catalystResults
+          .map((catalyst: any, idx: number) => {
+            return `【${catalyst.person} - ${catalyst.theme}】
+原典引用: "${catalyst.quote}"
+Kenjiさんの言葉: ${catalyst.your_voice_paraphrase}
+核心メッセージ: ${catalyst.core_message}
+反対視点: ${catalyst.counterpoint}
+使用箇所: ${catalyst.use_cases.join(', ')}
+検証ステータス: ${catalyst.verify_status}
+類似度: ${catalyst.similarity?.toFixed(3)}`;
+          })
+          .join('\n\n---\n\n');
+        
+        console.log(`✅ 偉人RAGコンテキスト統合完了: ${catalystContext.length}文字\n`);
+      } else {
+        console.log('⚠️ 偉人RAGが見つかりませんでした\n');
+      }
+    } catch (error: any) {
+      console.error('❌ 偉人RAG検索エラー:', error.message);
+      console.log('⚠️ エラーのため偉人RAGなしで生成します\n');
+    }
+  }
   
       // トレンド + Kenji思想をenhancedContentに追加
       let finalContent = enhancedContent;
@@ -693,7 +820,7 @@ ${kenjiThoughtsContext}
   // 全台本タイプでfinalContent（ハイブリッド検索結果 + Kenji思想）を使用
   const userPrompt = scriptType === 'short'
     ? getShortScriptUserPrompt(postTitle, finalContent)
-    : getMediumScriptUserPrompt(postTitle, finalContent);
+    : getMediumScriptUserPrompt(postTitle, finalContent, personalStoryContext, catalystContext);
 
   // メッセージ配列を構築（Few-shot learningは使用しない - 記事内容の忠実性を優先）
   const messages = [

@@ -1,0 +1,147 @@
+[
+  {
+    "person": "ニーチェ",
+    "quote": "神は死んだ。我々が神を殺したのだ。",
+    "theme": "価値の再創造",
+    "emotion_code": "決意",
+    "your_voice_paraphrase": "古い価値が崩れたなら、新しい構造を組むだけだ。",
+    "core_message": "破壊は創造の始まり",
+    "use_cases": ["twist", "climax"],
+    "counterpoint": "だが、破壊だけでは何も残らない。",
+    "verify_status": "verified",
+    "embedding_text": "価値の再創造 破壊と創造 新しい構造 古い価値の崩壊 再定義"
+  },
+  {
+    "person": "スティーブ・ジョブズ",
+    "quote": "Stay hungry, stay foolish.",
+    "theme": "探求心",
+    "emotion_code": "挑戦",
+    "your_voice_paraphrase": "答えを知ったつもりになった瞬間、成長は止まる。",
+    "core_message": "常に学び続ける姿勢",
+    "use_cases": ["intro", "cta"],
+    "counterpoint": "だが、闇雲な挑戦は時間の無駄だ。",
+    "verify_status": "verified",
+    "embedding_text": "探求心 挑戦 学び続ける 成長 飢えと愚かさ"
+  },
+  {
+    "person": "アインシュタイン",
+    "quote": "Everything should be made as simple as possible, but not simpler.",
+    "theme": "シンプルさと本質",
+    "emotion_code": "洞察",
+    "your_voice_paraphrase": "複雑さを削ぎ落とす。だが、本質は残す。",
+    "core_message": "究極のシンプルさは複雑さの先にある",
+    "use_cases": ["body", "twist"],
+    "counterpoint": "しかし、過度な単純化は真実を歪める。",
+    "verify_status": "verified",
+    "embedding_text": "シンプルさ 本質 複雑さの削減 究極の単純化 本質の保持"
+  },
+  {
+    "person": "ヘミングウェイ",
+    "quote": "The world breaks everyone, and afterward, some are strong at the broken places.",
+    "theme": "逆境と成長",
+    "emotion_code": "強靭さ",
+    "your_voice_paraphrase": "壊れた場所こそ、最も強くなる。",
+    "core_message": "痛みは成長の糧",
+    "use_cases": ["twist", "climax"],
+    "counterpoint": "だが、壊れたまま立ち直れない者もいる。",
+    "verify_status": "verified",
+    "embedding_text": "逆境 成長 壊れた場所 強さ 痛みからの再生"
+  },
+  {
+    "person": "ブルース・リー",
+    "quote": "Be water, my friend.",
+    "theme": "柔軟性と適応",
+    "emotion_code": "柔軟",
+    "your_voice_paraphrase": "形にこだわるな。状況に流れろ。",
+    "core_message": "柔軟性こそ最強の戦略",
+    "use_cases": ["body", "twist"],
+    "counterpoint": "しかし、流されすぎると芯を失う。",
+    "verify_status": "verified",
+    "embedding_text": "柔軟性 適応 水のように 形のない形 状況対応"
+  },
+  {
+    "person": "孫子",
+    "quote": "彼を知り己を知れば百戦殆からず。",
+    "theme": "戦略的思考",
+    "emotion_code": "冷静",
+    "your_voice_paraphrase": "相手の構造を読む。自分の限界を知る。それだけで勝てる。",
+    "core_message": "知識は最強の武器",
+    "use_cases": ["body", "twist"],
+    "counterpoint": "だが、知識だけでは行動に移せない。",
+    "verify_status": "verified",
+    "embedding_text": "戦略的思考 相手を知る 自己認識 勝利の法則 知識と洞察"
+  },
+  {
+    "person": "ヴィクトール・フランクル",
+    "quote": "人間が人生の意味を問うてはならない。人生こそが人間に意味を問うている。",
+    "theme": "目的の再定義",
+    "emotion_code": "覚悟",
+    "your_voice_paraphrase": "意味を探すな。意味を作れ。",
+    "core_message": "人生は問いであり、答えは行動",
+    "use_cases": ["twist", "cta"],
+    "counterpoint": "しかし、行動なき問いは空虚だ。",
+    "verify_status": "verified",
+    "embedding_text": "目的の再定義 意味を作る 人生の問い 行動としての答え 存在の意義"
+  },
+  {
+    "person": "レオナルド・ダ・ヴィンチ",
+    "quote": "Simplicity is the ultimate sophistication.",
+    "theme": "洗練されたシンプルさ",
+    "emotion_code": "洞察",
+    "your_voice_paraphrase": "究極の洗練は、余分を削ぎ落とした先にある。",
+    "core_message": "シンプルさこそ最高の技術",
+    "use_cases": ["body", "twist"],
+    "counterpoint": "だが、単純さは時に深みを欠く。",
+    "verify_status": "verified",
+    "embedding_text": "洗練されたシンプルさ 究極の技術 余分の削減 最高の境地 本質への到達"
+  },
+  {
+    "person": "マーク・トウェイン",
+    "quote": "The secret of getting ahead is getting started.",
+    "theme": "行動の重要性",
+    "emotion_code": "決断",
+    "your_voice_paraphrase": "始めることが、すべての始まりだ。",
+    "core_message": "行動こそが前進の鍵",
+    "use_cases": ["intro", "cta"],
+    "counterpoint": "しかし、準備なき行動は失敗を招く。",
+    "verify_status": "verified",
+    "embedding_text": "行動の重要性 始めること 前進 決断 最初の一歩"
+  },
+  {
+    "person": "セネカ",
+    "quote": "Luck is what happens when preparation meets opportunity.",
+    "theme": "準備と機会",
+    "emotion_code": "冷静",
+    "your_voice_paraphrase": "運は、準備と機会が出会った瞬間に生まれる。",
+    "core_message": "成功は準備の結果",
+    "use_cases": ["body", "twist"],
+    "counterpoint": "だが、機会を待つだけでは何も起きない。",
+    "verify_status": "verified",
+    "embedding_text": "準備と機会 運の本質 成功の法則 準備の重要性 チャンスへの備え"
+  },
+  {
+    "person": "エマーソン",
+    "quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+    "theme": "内なる力",
+    "emotion_code": "誇り",
+    "your_voice_paraphrase": "過去も未来も小さい。内なる力が全てだ。",
+    "core_message": "自己の内側に真の力がある",
+    "use_cases": ["twist", "climax"],
+    "counterpoint": "しかし、内なる力も行動なくば無力だ。",
+    "verify_status": "verified",
+    "embedding_text": "内なる力 自己の可能性 真の強さ 内側からの力 自己信頼"
+  },
+  {
+    "person": "宮本武蔵",
+    "quote": "千日の稽古を鍛とし、万日の稽古を錬とす。",
+    "theme": "継続の力",
+    "emotion_code": "忍耐",
+    "your_voice_paraphrase": "積み重ねが、技を磨く。",
+    "core_message": "継続こそが真の力",
+    "use_cases": ["body", "cta"],
+    "counterpoint": "だが、方向性なき継続は無駄だ。",
+    "verify_status": "verified",
+    "embedding_text": "継続の力 積み重ね 鍛錬 技の磨き 日々の実践"
+  }
+]
+

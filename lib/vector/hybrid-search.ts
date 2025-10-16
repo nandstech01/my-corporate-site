@@ -328,6 +328,90 @@ export class HybridSearchSystem {
   }
 
   /**
+   * 個人ストーリーRAG検索（中尺動画専用）
+   * 
+   * @param query - 検索クエリ
+   * @param queryEmbedding - クエリのベクトル（3072次元）
+   * @param limit - 取得件数（デフォルト: 2）
+   * @param threshold - 類似度閾値（デフォルト: 0.3）
+   */
+  async searchPersonalStoryRAG(
+    query: string,
+    queryEmbedding: number[],
+    limit: number = 2,
+    threshold: number = 0.3
+  ): Promise<any[]> {
+    console.log(`\n🧩 個人ストーリーRAG検索:`);
+    console.log(`  Query: "${query}"`);
+    console.log(`  Dimensions: ${queryEmbedding.length}`);
+    console.log(`  Threshold: ${threshold}`);
+    console.log(`  Limit: ${limit}`);
+
+    const { data, error } = await this.supabase.rpc('match_personal_story_thoughts', {
+      query_embedding: queryEmbedding,
+      match_threshold: threshold,
+      match_count: limit
+    });
+
+    if (error) {
+      console.error(`❌ 個人ストーリーRAG検索エラー:`, error);
+      return [];
+    }
+
+    if (data && data.length > 0) {
+      console.log(`✅ 個人ストーリーRAG検索完了: ${data.length}件取得`);
+      console.log(`   上位${Math.min(3, data.length)}件:`);
+      data.slice(0, 3).forEach((item: any, index: number) => {
+        console.log(`   ${index + 1}. ${item.story_arc} - ${item.section_title} (類似度: ${item.similarity?.toFixed(3)})`);
+      });
+    }
+
+    return data || [];
+  }
+
+  /**
+   * 偉人RAG（Catalyst RAG）検索（中尺動画専用）
+   * 
+   * @param query - 検索クエリ
+   * @param queryEmbedding - クエリのベクトル（3072次元）
+   * @param limit - 取得件数（デフォルト: 3）
+   * @param threshold - 類似度閾値（デフォルト: 0.25）
+   */
+  async searchCatalystRAG(
+    query: string,
+    queryEmbedding: number[],
+    limit: number = 3,
+    threshold: number = 0.25
+  ): Promise<any[]> {
+    console.log(`\n💎 偉人RAG（Catalyst RAG）検索:`);
+    console.log(`  Query: "${query}"`);
+    console.log(`  Dimensions: ${queryEmbedding.length}`);
+    console.log(`  Threshold: ${threshold}`);
+    console.log(`  Limit: ${limit}`);
+
+    const { data, error } = await this.supabase.rpc('match_catalyst_thoughts', {
+      query_embedding: queryEmbedding,
+      match_threshold: threshold,
+      match_count: limit
+    });
+
+    if (error) {
+      console.error(`❌ 偉人RAG検索エラー:`, error);
+      return [];
+    }
+
+    if (data && data.length > 0) {
+      console.log(`✅ 偉人RAG検索完了: ${data.length}件取得`);
+      console.log(`   上位${Math.min(3, data.length)}件:`);
+      data.slice(0, 3).forEach((item: any, index: number) => {
+        console.log(`   ${index + 1}. ${item.person} - ${item.theme} (類似度: ${item.similarity?.toFixed(3)}, verify: ${item.verify_status})`);
+      });
+    }
+
+    return data || [];
+  }
+
+  /**
    * 結果を共通フォーマットに正規化
    */
   private normalizeResults(results: any[], source: string): HybridSearchResult[] {

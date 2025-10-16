@@ -929,7 +929,7 @@ export default async function PostPage({ params }: PageProps) {
                 <path fill="#FFFFFF" d="M9.545 8.432v7.136L15.818 12z"/>
               </svg>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
-                この記事を動画で見る（30秒）
+                この記事を動画で見る（100秒）
               </h3>
             </div>
             

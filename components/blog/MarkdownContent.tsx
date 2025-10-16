@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 // セキュリティ脆弱性のため react-syntax-highlighter を削除
 // 代替案として基本的なコードブロック表示を使用
 import type { Plugin } from 'unified';
+import LINEConversionButton from './LINEConversionButton';
 
 // TypeScript Window拡張
 declare global {
@@ -30,6 +31,13 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
   const [activeHeading, setActiveHeading] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
   const faqCounterRef = useRef<number>(0); // FAQ質問カウンター
+  const h2CounterRef = useRef<number>(0); // h2見出しカウンター（LINEボタン配置用）
+
+  // カウンターをリセット（コンテンツが変わるたびに）
+  useEffect(() => {
+    faqCounterRef.current = 0;
+    h2CounterRef.current = 0;
+  }, [content]);
 
   // 見出しから目次を生成
   useEffect(() => {
@@ -158,13 +166,28 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                   .replace(/\s+/g, '-');
               }
               
+              // h2カウンターをインクリメント（LINEボタン配置用）
+              h2CounterRef.current += 1;
+              const currentH2Index = h2CounterRef.current;
+              
+              // FAQセクションを検出（よくある質問、Q&A、FAQ等）
+              const isFAQSection = displayText.match(/よくある質問|Q&A|Q＆A|FAQ|よくあるご質問/i);
+              
               return (
-                <h2 
-                  id={id}
-                  className="not-prose bg-gray-50 dark:bg-gray-800 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 dark:text-gray-100 border-l-4 border-cyan-400 dark:border-cyan-500"
-                >
-                  {displayText}
-                </h2>
+                <>
+                  {/* FAQセクションの直前にLINEボタンを挿入 */}
+                  {isFAQSection && <LINEConversionButton position="before-faq" />}
+                  
+                  <h2 
+                    id={id}
+                    className="not-prose bg-gray-50 dark:bg-gray-800 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 dark:text-gray-100 border-l-4 border-cyan-400 dark:border-cyan-500"
+                  >
+                    {displayText}
+                  </h2>
+                  
+                  {/* 3番目のh2の直後にLINEボタンを挿入 */}
+                  {currentH2Index === 3 && <LINEConversionButton position="after-3rd-h2" />}
+                </>
               );
             },
             h3({children}) {
