@@ -775,7 +775,9 @@ export default function YouTubeScriptDetailPage() {
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">🎨 サムネイル文言生成（5パターン）</h3>
             <p className="text-sm text-orange-200">
-              台本からバズるサムネイル文言を自動生成します。タイトル（7-8文字）・サブタイトル（10文字）
+              台本からバズるサムネイル文言を自動生成します。<br />
+              ✨ タイトル（3-8文字）・サブタイトル（8-12文字）<br />
+              🎨 レイアウト・色・強調方法も提案します（対立構造、衝撃型、数字インパクト型など）
             </p>
           </div>
           <button
@@ -840,7 +842,7 @@ export default function YouTubeScriptDetailPage() {
                 </div>
 
                 {/* サブタイトル */}
-                <div>
+                <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-orange-200">サブタイトル（{pattern.subtitle.length}文字）</p>
                     <button
@@ -859,18 +861,48 @@ export default function YouTubeScriptDetailPage() {
                   </div>
                 </div>
 
+                {/* 🎨 デザイン指示 */}
+                {(pattern.layout || pattern.color_scheme || pattern.text_emphasis) && (
+                  <div className="mb-3 p-4 bg-orange-950 rounded-lg border border-orange-800">
+                    <p className="text-sm font-semibold text-orange-300 mb-3">🎨 デザイン指示</p>
+                    <div className="space-y-2 text-xs">
+                      {pattern.layout && (
+                        <div>
+                          <span className="text-orange-400 font-semibold">📐 レイアウト: </span>
+                          <span className="text-white">{pattern.layout}</span>
+                        </div>
+                      )}
+                      {pattern.color_scheme && (
+                        <div>
+                          <span className="text-orange-400 font-semibold">🎨 色: </span>
+                          <span className="text-white">{pattern.color_scheme}</span>
+                        </div>
+                      )}
+                      {pattern.text_emphasis && (
+                        <div>
+                          <span className="text-orange-400 font-semibold">✨ 強調: </span>
+                          <span className="text-white">{pattern.text_emphasis}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* 両方コピー */}
                 <div className="mt-3 pt-3 border-t border-orange-700">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      const text = `タイトル: ${pattern.title}\n\nサブタイトル: ${pattern.subtitle}`;
+                      const designInfo = pattern.layout || pattern.color_scheme || pattern.text_emphasis
+                        ? `\n\n📐 レイアウト: ${pattern.layout || 'なし'}\n🎨 色: ${pattern.color_scheme || 'なし'}\n✨ 強調: ${pattern.text_emphasis || 'なし'}`
+                        : '';
+                      const text = `タイトル: ${pattern.title}\n\nサブタイトル: ${pattern.subtitle}${designInfo}`;
                       navigator.clipboard.writeText(text);
-                      alert('✅ タイトル & サブタイトルをコピーしました');
+                      alert('✅ タイトル & サブタイトル & デザイン指示をコピーしました');
                     }}
                     className="w-full px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded transition-all"
                   >
-                    📋 両方コピー
+                    📋 全てコピー
                   </button>
                 </div>
               </div>
@@ -879,7 +911,9 @@ export default function YouTubeScriptDetailPage() {
             <div className="mt-6 pt-6 border-t border-orange-700">
               <p className="text-xs text-orange-200 text-center">
                 ✨ 5パターンから選んで、Vrewでサムネイルを作成しましょう！<br />
-                🎯 最推奨は1番目（対立構造型）です
+                🎯 最推奨は1番目（対立構造型）- 画面2分割で対立構造を視覚化<br />
+                🎨 レイアウト・色・強調方法を参考にデザインしてください<br />
+                💡 「常識 vs AI」の対立と「常識の敗北」を明確に示すとバズります
               </p>
             </div>
           </div>
