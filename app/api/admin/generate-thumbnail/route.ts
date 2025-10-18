@@ -5,25 +5,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { scriptTitle, scriptHook, scriptBody, scriptCta, relatedNewsTitle } = body;
-
-    if (!scriptTitle) {
-      return NextResponse.json(
-        { success: false, error: 'タイトルは必須です' },
-        { status: 400 }
-      );
-    }
-
-    console.log('🎨 サムネイル文言生成開始');
-    console.log(`  台本タイトル: ${scriptTitle}`);
-    console.log(`  Hook: ${scriptHook?.substring(0, 50)}...`);
-    console.log(`  関連ニュース: ${relatedNewsTitle || 'なし'}`);
-
-    // GPT-5でサムネイル文言を生成
-    const systemPrompt = `あなたはYouTubeショート動画（縦型）のサムネイル文言生成のエキスパートです。
+// ショート動画用プロンプト
+function getShortThumbnailSystemPrompt(): string {
+  return `あなたはYouTubeショート動画（縦型）のサムネイル文言生成のエキスパートです。
 
 🎯【目的】瞬間的なクリックと感情を誘発する
 
@@ -170,8 +154,279 @@ export async function POST(request: NextRequest) {
     ...
   ]
 }`;
+}
 
-    const userPrompt = `以下の台本から、バズるサムネイル文言を5パターン生成してください。
+// 中尺動画用プロンプト
+function getMediumThumbnailSystemPrompt(): string {
+  return `あなたはYouTube中尺動画（横型・16:9）のサムネイル文言生成のエキスパートです。
+
+🎯【目的】権威性と専門性を担保し、ブログの内容を正確に表す
+
+🔥【最重要】信頼されるサムネイルの3大要素:
+1. **構造と解決策**を明確に示す
+2. **専門用語で信頼性**を強調する
+3. **権威性のあるビジュアル**を提案する
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【タイトル構造】10-20文字以内
+
+✅ 技術解説型（最推奨）:
+   - 「レリバンスエンジニアリング完全解説」
+   - 「ベクトルリンクの全体設計」
+   - 「AI引用革命の実装戦略」
+   - 専門用語を前面に出して信頼性を担保
+
+✅ 問題解決型:
+   - 「RAG精度を劇的に改善する方法」
+   - 「AIの嘘を防ぐ3つの仕組み」
+   - 「ハルシネーション対策の決定版」
+   - 課題 + 解決策を明示
+
+✅ 実装ガイド型:
+   - 「Fragment Vector実装ガイド」
+   - 「ステップbyステップで学ぶ〇〇」
+   - 「現場で使える〇〇設計」
+   - 実践的・実装可能性を強調
+
+✅ 比較・分析型:
+   - 「RAG vs Fine-tuning 徹底比較」
+   - 「3つの手法の性能分析」
+   - 「従来手法との決定的な違い」
+   - データ・根拠・分析を示唆
+
+✅ ケーススタディ型:
+   - 「実務で証明されたRAG設計」
+   - 「月間100万PVを支える技術」
+   - 「実際のプロダクトから学ぶ」
+   - 実績・証拠を示す
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【サブタイトル構造】15-25文字以内
+
+✅ 技術的価値:
+   - 「AI引用精度を根本から変える設計思想」
+   - 「エンジニアリングの本質を捉えた実装」
+   - 「理論と実装の完全統合アプローチ」
+
+✅ 実用性:
+   - 「そのまま使える設計パターンと実装例」
+   - 「現場で即戦力になる実践知識」
+   - 「プロダクション環境での運用ノウハウ」
+
+✅ 権威性:
+   - 「AI Architectが解説する体系的設計」
+   - 「ベクトルリンク理論の完全ガイド」
+   - 「Mike King理論の実装実績」
+
+✅ 解決性:
+   - 「ハルシネーションを根本から解決する」
+   - 「RAG精度低下の真因と対策」
+   - 「引用エラーをゼロにする仕組み」
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【視覚レイアウト提案】必ず含める:
+
+1. **技術図解レイアウト**（最推奨）:
+   - 中央: 脳の図 or 複雑なネットワーク図
+   - 上部: タイトル（専門用語を強調）
+   - 下部: サブタイトル
+   - オーバーレイ: 「AI引用革命」などのロゴ
+   - 矢印・フローで構造を示す
+
+2. **3層構造レイアウト**:
+   - 上: 問題提起（赤背景）
+   - 中: 解決策の図解（緑背景）
+   - 下: 成果・結果（青背景）
+   - 構造化された情報の流れを視覚化
+
+3. **Before/After レイアウト**:
+   - 左: 従来手法（× 問題点を表示）
+   - 右: 新手法（✓ 解決策を表示）
+   - 中央: 矢印で改善を示す
+
+4. **実装コード背景レイアウト**:
+   - 背景: ぼかしたコード（TypeScript/Python）
+   - 前面: タイトル + サブタイトル
+   - 実装可能性を示唆
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【色スキーム提案】必ず含める:
+
+🔵 信頼・専門性系（最推奨）:
+   - 濃紺×白、青×金、黒×銀
+   - 落ち着いた色で権威性を出す
+   
+🟢 解決・成果系:
+   - 緑×白、エメラルド×黒
+   - 問題解決を示唆
+   
+🟣 革新・技術系:
+   - 紫×白、サイバー青×黒、グラデーション
+   - 先進性・革新性を表現
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【専門用語の使用】積極的に使う:
+
+✅ 必ず含めるべき専門用語:
+   - レリバンスエンジニアリング
+   - ベクトルリンク
+   - Fragment Vector
+   - Retrieval Augmented Generation (RAG)
+   - Semantic Search
+   - Embedding
+   - Mike King理論
+   - Complete URI
+   - Schema.org
+   - ハルシネーション対策
+
+❌ 避けるべき用語:
+   - 「簡単」「楽々」「誰でもできる」
+   - 「秘密」「裏技」
+   - カジュアルすぎる表現
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【必須】5パターン生成 - 各パターンは完全に異なるアプローチ:
+
+パターン1: **技術解説型（最推奨）**
+   - タイトル: 専門用語を前面に
+   - レイアウト: 技術図解（脳の図、ネットワーク図）
+   - 色: 濃紺×白
+   
+パターン2: **問題解決型**
+   - タイトル: 課題 + 解決策
+   - レイアウト: 3層構造（問題→解決→成果）
+   - 色: 赤×緑×青
+   
+パターン3: **実装ガイド型**
+   - タイトル: 「〇〇実装ガイド」
+   - レイアウト: コード背景
+   - 色: 黒×緑（ターミナル風）
+   
+パターン4: **比較・分析型**
+   - タイトル: 「〇〇 vs △△ 徹底比較」
+   - レイアウト: Before/After
+   - 色: 青×金
+   
+パターン5: **ケーススタディ型**
+   - タイトル: 「実務で証明された〇〇」
+   - レイアウト: 実績グラフ + 技術図
+   - 色: 紫×白
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【重要な注意点】:
+✅ 専門用語を積極的に使って信頼性を出す
+✅ 構造と解決策を明確に示す
+✅ 権威性のあるビジュアルを提案
+✅ 横型（16:9）に最適化
+✅ ブログの内容に忠実に
+✅ エンジニア・技術者向けの専門的な表現
+✅ 実装可能性・実用性を強調
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【JSON形式で返答】:
+{
+  "patterns": [
+    {
+      "id": 1,
+      "name": "技術解説型（最推奨）",
+      "title": "レリバンスエンジニアリング完全解説",
+      "subtitle": "AI引用精度を根本から変える設計思想",
+      "layout": "中央に脳の図、上部にタイトル、オーバーレイで「AI引用革命」ロゴ",
+      "color_scheme": "濃紺×白×金（権威性と信頼性）",
+      "text_emphasis": "専門用語を大きく、図解で構造を示す",
+      "score": 95,
+      "reason": "専門性が明確、権威性が高い、エンジニアの信頼を得やすい"
+    },
+    ...
+  ]
+}`;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { scriptTitle, scriptHook, scriptBody, scriptCta, relatedNewsTitle, scriptType } = body;
+
+    if (!scriptTitle) {
+      return NextResponse.json(
+        { success: false, error: 'タイトルは必須です' },
+        { status: 400 }
+      );
+    }
+
+    const isShort = !scriptType || scriptType === 'youtube-short';
+    const isMedium = scriptType === 'youtube-medium';
+
+    console.log('🎨 サムネイル文言生成開始');
+    console.log(`  タイプ: ${isShort ? 'ショート（縦型）' : '中尺（横型）'}`);
+    console.log(`  台本タイトル: ${scriptTitle}`);
+    console.log(`  Hook: ${scriptHook?.substring(0, 50)}...`);
+    console.log(`  関連ニュース: ${relatedNewsTitle || 'なし'}`);
+
+    // タイプに応じて異なるプロンプトを使用
+    const systemPrompt = isShort 
+      ? getShortThumbnailSystemPrompt() 
+      : getMediumThumbnailSystemPrompt();
+
+    const userPrompt = isShort
+      ? getShortUserPrompt(scriptTitle, scriptHook, scriptBody, scriptCta, relatedNewsTitle)
+      : getMediumUserPrompt(scriptTitle, scriptHook, scriptBody, scriptCta);
+
+    console.log('🤖 OpenAI API呼び出し中...');
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_completion_tokens: 2000,
+      response_format: { type: 'json_object' }
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('OpenAI APIからの応答が空です');
+    }
+
+    const result = JSON.parse(content);
+    console.log('✅ サムネイル文言生成完了');
+    console.log(`  生成パターン数: ${result.patterns?.length || 0}`);
+
+    return NextResponse.json({
+      success: true,
+      patterns: result.patterns || []
+    });
+
+  } catch (error: any) {
+    console.error('❌ サムネイル生成エラー:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: error.message || 'サムネイル生成中にエラーが発生しました' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// ショート動画用ユーザープロンプト
+function getShortUserPrompt(
+  scriptTitle: string,
+  scriptHook: string,
+  scriptBody: string,
+  scriptCta: string,
+  relatedNewsTitle: string
+): string {
+  return `以下の台本から、バズるサムネイル文言を5パターン生成してください。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -258,42 +513,100 @@ ${relatedNewsTitle ? `【関連ニュース】\n${relatedNewsTitle}` : ''}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 必ずJSON形式で返答してください。`;
-
-    console.log('🤖 OpenAI API呼び出し中...');
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o', // GPT-5はまだサムネ生成には不要、GPT-4oで十分
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      max_completion_tokens: 2000,
-      response_format: { type: 'json_object' }
-    });
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('OpenAI APIからの応答が空です');
-    }
-
-    const result = JSON.parse(content);
-    console.log('✅ サムネイル文言生成完了');
-    console.log(`  生成パターン数: ${result.patterns?.length || 0}`);
-
-    return NextResponse.json({
-      success: true,
-      patterns: result.patterns || []
-    });
-
-  } catch (error: any) {
-    console.error('❌ サムネイル生成エラー:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'サムネイル生成中にエラーが発生しました' 
-      },
-      { status: 500 }
-    );
-  }
 }
 
+// 中尺動画用ユーザープロンプト
+function getMediumUserPrompt(
+  scriptTitle: string,
+  scriptHook: string,
+  scriptBody: string,
+  scriptCta: string
+): string {
+  return `以下の台本から、権威性と専門性の高いサムネイル文言を5パターン生成してください。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【台本タイトル】
+${scriptTitle}
+
+【Hook】
+${scriptHook || 'なし'}
+
+【Body】
+${scriptBody || 'なし'}
+
+【CTA】
+${scriptCta || 'なし'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【台本分析】必ず以下を抽出してください:
+1. **技術的な核心**: 記事の中心となる技術・概念
+   - 例: 「レリバンスエンジニアリング」「ベクトルリンク」「Fragment Vector」
+   
+2. **解決する問題**: この技術が解決する課題
+   - 例: 「ハルシネーション」「引用精度低下」「RAG品質問題」
+   
+3. **提供する価値**: 読者が得られる価値・成果
+   - 例: 「AI引用精度向上」「実装可能な設計」「プロダクション運用ノウハウ」
+   
+4. **専門用語**: 使用すべき専門用語を抽出
+   - 台本から専門用語を拾い出す
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【要求事項】絶対厳守:
+1. タイトル: **10-20文字以内**
+2. サブタイトル: **15-25文字以内**
+3. 5パターン生成（完全に異なるアプローチ）
+4. 各パターンに以下を必ず含める:
+   - layout: レイアウトの具体的な指示（技術図解、3層構造など）
+   - color_scheme: 色の組み合わせ（権威性を示す色）
+   - text_emphasis: テキストの強調方法
+   - score: 100点満点のスコア
+   - reason: このパターンが信頼される理由
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【必須パターン構成】:
+
+パターン1: **技術解説型（最推奨）**
+   - タイトル: 専門用語を前面に（「レリバンスエンジニアリング完全解説」など）
+   - レイアウト: 脳の図 or ネットワーク図 + ロゴオーバーレイ
+   - 色: 濃紺×白×金
+   
+パターン2: **問題解決型**
+   - タイトル: 課題 + 解決策を明示
+   - レイアウト: 3層構造（問題→解決→成果）
+   - 色: 赤×緑×青
+   
+パターン3: **実装ガイド型**
+   - タイトル: 「〇〇実装ガイド」「ステップbyステップ〇〇」
+   - レイアウト: コード背景 + タイトル前面
+   - 色: 黒×緑（ターミナル風）
+   
+パターン4: **比較・分析型**
+   - タイトル: 「〇〇 vs △△ 徹底比較」「3つの手法の性能分析」
+   - レイアウト: Before/After 2分割
+   - 色: 青×金
+   
+パターン5: **ケーススタディ型**
+   - タイトル: 「実務で証明された〇〇」「実際のプロダクトから学ぶ」
+   - レイアウト: 実績グラフ + 技術図
+   - 色: 紫×白
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【重要な注意点】:
+✅ 専門用語を積極的に使って信頼性を出す
+✅ 「レリバンスエンジニアリング」「ベクトルリンク」などを含める
+✅ 構造と解決策を明確に示す
+✅ 権威性のあるビジュアル（脳の図、ネットワーク図、技術図解）
+✅ 横型（16:9）に最適化
+✅ エンジニア・技術者向けの専門的な表現
+✅ 実装可能性・実用性を強調
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+必ずJSON形式で返答してください。`;
+}

@@ -329,7 +329,8 @@ export default function YouTubeScriptDetailPage() {
           scriptHook: script.script_hook,
           scriptBody: script.script_body,
           scriptCta: script.script_cta,
-          relatedNewsTitle: relatedNewsTitle
+          relatedNewsTitle: relatedNewsTitle,
+          scriptType: script.content_type // 'youtube-short' or 'youtube-medium'
         })
       });
 
@@ -773,12 +774,29 @@ export default function YouTubeScriptDetailPage() {
       <div className="bg-gradient-to-r from-orange-900 to-red-900 border-2 border-orange-500 rounded-lg p-6 mt-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">🎨 サムネイル文言生成（5パターン）</h3>
-            <p className="text-sm text-orange-200">
-              台本からバズるサムネイル文言を自動生成します。<br />
-              ✨ タイトル（3-8文字）・サブタイトル（8-12文字）<br />
-              🎨 レイアウト・色・強調方法も提案します（対立構造、衝撃型、数字インパクト型など）
-            </p>
+            <h3 className="text-lg font-semibold text-white mb-2">
+              🎨 サムネイル文言生成（5パターン）
+              {script.content_type === 'youtube-short' && ' - ショート（縦型）'}
+              {script.content_type === 'youtube-medium' && ' - 中尺（横型）'}
+            </h3>
+            
+            {script.content_type === 'youtube-short' && (
+              <p className="text-sm text-orange-200">
+                台本からバズるサムネイル文言を自動生成します（縦型・9:16）<br />
+                ✨ タイトル（3-8文字）・サブタイトル（8-12文字）<br />
+                🎨 レイアウト・色・強調方法も提案します<br />
+                🔥 対立構造、衝撃型、数字インパクト型など - 瞬間的なクリックを誘発
+              </p>
+            )}
+            
+            {script.content_type === 'youtube-medium' && (
+              <p className="text-sm text-orange-200">
+                台本から権威性の高いサムネイル文言を自動生成します（横型・16:9）<br />
+                ✨ タイトル（10-20文字）・サブタイトル（15-25文字）<br />
+                🎨 レイアウト・色・強調方法も提案します<br />
+                🔬 専門用語を積極的に使用し、構造と解決策を明確に示します
+              </p>
+            )}
           </div>
           <button
             onClick={handleGenerateThumbnail}
@@ -909,12 +927,24 @@ export default function YouTubeScriptDetailPage() {
             ))}
 
             <div className="mt-6 pt-6 border-t border-orange-700">
-              <p className="text-xs text-orange-200 text-center">
-                ✨ 5パターンから選んで、Vrewでサムネイルを作成しましょう！<br />
-                🎯 最推奨は1番目（対立構造型）- 画面2分割で対立構造を視覚化<br />
-                🎨 レイアウト・色・強調方法を参考にデザインしてください<br />
-                💡 「常識 vs AI」の対立と「常識の敗北」を明確に示すとバズります
-              </p>
+              {script.content_type === 'youtube-short' && (
+                <p className="text-xs text-orange-200 text-center">
+                  ✨ 5パターンから選んで、Vrewでサムネイルを作成しましょう！<br />
+                  🎯 最推奨は1番目（対立構造型）- 画面2分割で対立構造を視覚化<br />
+                  🎨 レイアウト・色・強調方法を参考にデザインしてください<br />
+                  💡 「常識 vs AI」の対立と「常識の敗北」を明確に示すとバズります
+                </p>
+              )}
+              
+              {script.content_type === 'youtube-medium' && (
+                <p className="text-xs text-orange-200 text-center">
+                  ✨ 5パターンから選んで、サムネイルを作成しましょう！<br />
+                  🎯 最推奨は1番目（技術解説型）- 脳の図やネットワーク図で専門性を示す<br />
+                  🎨 レイアウト・色・強調方法を参考にデザインしてください<br />
+                  🔬 専門用語（レリバンスエンジニアリング、ベクトルリンクなど）を大きく表示<br />
+                  💡 構造と解決策を明確に示すと信頼性が高まります
+                </p>
+              )}
             </div>
           </div>
         )}
