@@ -64,8 +64,27 @@ export default function TrendRAGPage() {
 
       if (result.success) {
         if (result.news && result.news.length > 0) {
-          setNewTrends(result.news);
-          setMessage(`✅ ${result.news.length}件のニュースを取得しました。「ベクトル化してDBに保存」を押してください。`);
+          // 🆕 取得したニュースを自動的にベクトル化してDBに保存
+          console.log(`🚀 自動保存開始: ${result.news.length}件のニュースをベクトル化してDBに保存中...`);
+          setMessage(`⏳ ${result.news.length}件のニュースを取得しました。ベクトル化してDBに保存中...`);
+          
+          // `/api/admin/fetch-trends` を呼び出して保存
+          const saveResponse = await fetch('/api/admin/fetch-trends', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trends: result.news }),
+          });
+
+          const saveResult = await saveResponse.json();
+
+          if (saveResult.success) {
+            setMessage(`✅ ${result.news.length}件のニュースを取得し、ベクトル化してDBに保存しました！`);
+            // 既存トレンドをリロード
+            fetchExistingTrends();
+          } else {
+            setNewTrends(result.news);
+            setMessage(`⚠️ ニュースは取得できましたが、保存に失敗しました。「ベクトル化してDBに保存」を押して再試行してください。エラー: ${saveResult.error || '不明なエラー'}`);
+          }
         } else {
           setMessage(`⚠️ ニュースが取得できませんでした。原因: Brave APIのレート制限（429エラー）またはパラメータエラー（422エラー）。解決策: ①手動検索モードを使用 ②数分待って再試行 ③取得件数を減らす（5件など）`);
         }
