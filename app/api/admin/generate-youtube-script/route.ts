@@ -10,6 +10,12 @@ import {
   getMediumScriptUserPrompt,
   MODEL_CONFIG,
 } from '@/lib/prompts';
+import {
+  NEWS_TO_BLOG_CATEGORY_MAPPING,
+  YahooNewsCategory,
+  calculateTagOverlap,
+  determineMatchingPattern,
+} from '@/lib/news-category-mapping';
 
 // Vercelタイムアウト設定（本番環境対応）
 export const maxDuration = 60; // 60秒でタイムアウト
@@ -126,9 +132,26 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ 記事確認完了、台本生成を開始します\n');
 
+    // 🆕 2.5. ブログ記事のカテゴリタグを取得（ショート動画のみ）
+    let blogCategoryTags: string[] = [];
+    if (scriptType === 'short') {
+      const { data: blogPost } = await supabaseServiceRole
+        .from('posts')
+        .select('category_tags')
+        .eq('slug', postSlug)
+        .single();
+      
+      if (blogPost && blogPost.category_tags) {
+        blogCategoryTags = blogPost.category_tags;
+        console.log(`✅ ブログ記事のカテゴリタグ: ${blogCategoryTags.join(', ')}`);
+      } else {
+        console.log(`⚠️ ブログ記事にカテゴリタグが設定されていません（デフォルトの動作）`);
+      }
+    }
+
     // 3. OpenAI APIで台本生成
     console.log('🤖 OpenAI APIで台本生成中...');
-    const scriptResponse = await generateYouTubeScript(postTitle, postContent, postSlug, scriptType);
+    const scriptResponse = await generateYouTubeScript(postTitle, postContent, postSlug, scriptType, blogCategoryTags);
     console.log('✅ 台本生成完了\n');
 
     // 4. Fragment IDを生成（Complete URIはYouTube URL登録時に生成）
@@ -294,15 +317,18 @@ ${scriptResponse.script_cta}
  * @param postContent ブログ記事の本文
  * @param postSlug ブログ記事のスラッグ
  * @param scriptType 台本タイプ（'short': 30秒 | 'medium': 130秒）
+ * @param blogCategoryTags ブログ記事のカテゴリタグ（ショート動画のみ）
  */
 async function generateYouTubeScript(
   postTitle: string,
   postContent: string,
   postSlug: string,
-  scriptType: 'short' | 'medium' = 'short'
+  scriptType: 'short' | 'medium' = 'short',
+  blogCategoryTags: string[] = []
 ): Promise<YouTubeScriptResponse> {
   
   let enhancedContent = postContent;
+  let matchingPattern: 'direct' | 'pivot' | 'parallel' | 'news-only' = 'news-only'; // 🆕 デフォルトはnews-only
   
   // 🚀 ハイブリッド検索でブログ記事のフラグメントを取得（全台本タイプで実行）
   console.log('\n🔍 ========================================');
@@ -365,6 +391,7 @@ async function generateYouTubeScript(
   console.log('📰 ========================================\n');
 
   let trendContext = '';
+  let newsCategory: YahooNewsCategory = 'IT'; // 🆕 デフォルトはIT
 
       // 🆕 ショート動画の場合はYahoo! News RSSでリアルタイムニュース取得
       if (scriptType === 'short') {
@@ -390,7 +417,8 @@ async function generateYouTubeScript(
           ];
       
       const selectedFeed = yahooRssFeeds[Math.floor(Math.random() * yahooRssFeeds.length)];
-      console.log(`  🎲 選択カテゴリ: ${selectedFeed.name}`);
+      newsCategory = selectedFeed.name as YahooNewsCategory;
+      console.log(`  🎲 選択カテゴリ: ${newsCategory}`);
       console.log(`  📡 RSSフィード: ${selectedFeed.url}`);
       
       // Yahoo! News RSSを取得
@@ -458,7 +486,7 @@ async function generateYouTubeScript(
       console.log(`✅ NGワードフィルタリング完了: ${allNewsItems.length}件 → ${newsItems.length}件（安全）`);
       
       if (newsItems.length === 0) {
-        throw new Error(`安全なニュースが見つかりませんでした（カテゴリ: ${selectedFeed.name}）。別のカテゴリで再試行してください。`);
+        throw new Error(`安全なニュースが見つかりませんでした（カテゴリ: ${newsCategory}）。別のカテゴリで再試行してください。`);
       }
       
       // 24時間以内のニュースをフィルタリング
@@ -490,7 +518,7 @@ async function generateYouTubeScript(
           .slice(0, 3);
         
         if (sortedNews.length === 0) {
-          throw new Error(`ニュースが取得できませんでした（カテゴリ: ${selectedFeed.name}）`);
+          throw new Error(`ニュースが取得できませんでした（カテゴリ: ${newsCategory}）`);
         }
         
         recentNews = sortedNews;
@@ -511,6 +539,33 @@ async function generateYouTubeScript(
       
       console.log(`✅ トレンドコンテキスト統合完了: ${trendContext.length}文字`);
       console.log(`📰 ニュース例: ${recentNews[0].title}\n`);
+      
+      // 🆕 📊 カテゴリマッチング（ショート動画のみ）
+      if (blogCategoryTags.length > 0) {
+        console.log('\n📊 ========================================');
+        console.log('🧩 カテゴリマッチング開始');
+        console.log(`  ニュースカテゴリ: ${newsCategory}`);
+        console.log(`  ブログカテゴリタグ: ${blogCategoryTags.join(', ')}`);
+        console.log('📊 ========================================\n');
+        
+        // ニュースカテゴリに対応するブログタグを取得
+        const newsCategoryTags = NEWS_TO_BLOG_CATEGORY_MAPPING[newsCategory] || [];
+        
+        // タグ重なり度を計算
+        const overlapPercentage = calculateTagOverlap(newsCategoryTags, blogCategoryTags);
+        
+        // マッチングパターンを判定
+        matchingPattern = determineMatchingPattern(overlapPercentage);
+        
+        console.log(`📊 タグ重なり度: ${overlapPercentage}%`);
+        console.log(`🎯 マッチングパターン: ${matchingPattern}`);
+        console.log(`  - direct (70%以上): 対立構造パターン`);
+        console.log(`  - pivot (40-70%): ピボットパターン`);
+        console.log(`  - parallel (20-40%): 並列紹介パターン`);
+        console.log(`  - news-only (20%未満): ニュース解説専用\n`);
+      } else {
+        console.log('\n⚠️ ブログ記事にカテゴリタグが設定されていないため、デフォルト動作（news-only）を使用します\n');
+      }
       
     } catch (error: any) {
       console.error('❌ Yahoo News RSS取得エラー:', error.message);
@@ -811,6 +866,53 @@ ${kenjiThoughtsContext}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
       }
+
+  // 🆕 matchingPatternに応じた指示を追加（ショート動画のみ）
+  if (scriptType === 'short' && matchingPattern === 'news-only') {
+    finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯【重要】マッチングパターン: news-only（ニュース解説専用）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【台本生成指示】
+1. **ニュース解説を中心に**
+   - ニュースの対立構造と AI 審判に焦点を当てる
+   - ブログ記事の詳細な実装手順は含めない
+   
+2. **ブログへの言及は最小限に**
+   - CTA で「詳しくはブログで」と軽く触れる程度
+   - ブログ記事の具体的な内容は台本に含めない
+   
+3. **AI の視点でニュースを再解釈**
+   - 人間の常識 vs AI の判断
+   - AI がどう考えるか、その理由
+   - 哲学的な一言で締める
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  } else if (scriptType === 'short' && matchingPattern !== 'news-only') {
+    finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯【重要】マッチングパターン: ${matchingPattern}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【台本生成指示】
+1. **ニュースとブログを自然に結びつける**
+   - direct: 直接対決パターン（対立構造で結びつける）
+   - pivot: ピボットパターン（視点の転換で結びつける）
+   - parallel: 並列紹介パターン（共通点を示しつつ紹介）
+   
+2. **ブログ記事の要点を含める**
+   - Body で技術的な要点を1-2文で説明
+   - CTA でブログへの誘導を強化
+   
+3. **AI の視点で統一**
+   - ニュースもブログも、AI の視点で再解釈
+   - 哲学的な一言で締める
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
 
   // プロンプトをscriptTypeで分岐
   const systemPrompt = scriptType === 'short' 
