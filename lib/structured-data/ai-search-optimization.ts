@@ -66,7 +66,7 @@ export interface DetailedMentions {
   entity: string;
   
   /** エンティティタイプ */
-  entityType: 'Technology' | 'Methodology' | 'Organization' | 'Person' | 'Product' | 'Service' | 'Concept' | 'LegalDocument' | 'Policy' | 'Compliance' | 'SecurityMeasure' | 'Terms';
+  entityType: 'Technology' | 'Methodology' | 'Organization' | 'Person' | 'SoftwareApplication' | 'Service' | 'Concept' | 'LegalDocument' | 'Policy' | 'Compliance' | 'SecurityMeasure' | 'Terms';
   
   /** 言及の文脈・関係性 */
   context: 'implements' | 'uses' | 'integrates' | 'optimizes' | 'teaches' | 'provides' | 'collaborates' | 'ensures' | 'defines' | 'specifies' | 'maintains';
@@ -503,7 +503,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   // 🎬 YouTube・SNSプラットフォーム（🆕 4大AI検索エンジン最適化）
   {
     entity: 'YouTube Shorts',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 8,
     fragmentId: 'youtube-shorts-platform',
@@ -513,7 +513,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   },
   {
     entity: 'X (Twitter)',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 7,
     fragmentId: 'x-twitter-platform',
@@ -523,7 +523,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   },
   {
     entity: 'Threads',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 6,
     fragmentId: 'threads-platform',
@@ -533,7 +533,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   },
   {
     entity: 'LinkedIn',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 7,
     fragmentId: 'linkedin-platform',
@@ -543,7 +543,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   },
   {
     entity: 'TikTok',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 6,
     fragmentId: 'tiktok-platform',
@@ -585,7 +585,7 @@ export const DETAILED_MENTIONS_ORGANIZATION: DetailedMentions[] = [
   },
   {
     entity: 'YouTube中尺動画（130秒）',
-    entityType: 'Product',
+    entityType: 'SoftwareApplication',
     context: 'uses',
     importance: 9,
     fragmentId: 'youtube-medium-video',
@@ -2087,7 +2087,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     entities: [
       {
         entity: 'YouTube中尺動画（130秒）',
-        entityType: 'Product',
+        entityType: 'SoftwareApplication',
         context: 'uses',
         importance: 9,
         relatedKnowledge: ['YouTube中尺動画制作（130秒）', 'hasPartスキーマ動画統合', 'associatedMedia動画統合'],
@@ -3550,7 +3550,7 @@ export const AI_OPTIMIZED_FRAGMENT_IDS: AIOptimizedFragmentId[] = [
     entities: [
       {
         entity: 'AIサイト',
-        entityType: 'Product',
+        entityType: 'Service',
         context: 'provides',
         importance: 10,
         relatedKnowledge: ['24時間365日', '無人営業マン', 'AI引用', 'Triple RAG', 'Fragment ID'],

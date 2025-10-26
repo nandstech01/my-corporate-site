@@ -79,6 +79,11 @@ export default function YouTubeScriptDetailPage() {
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = React.useState(false);
   const [selectedPattern, setSelectedPattern] = React.useState<number | null>(null);
   
+  // Veo 3.1プロンプト生成用
+  const [veoPromptPatterns, setVeoPromptPatterns] = React.useState<any[]>([]);
+  const [isGeneratingVeoPrompt, setIsGeneratingVeoPrompt] = React.useState(false);
+  const [selectedVeoPattern, setSelectedVeoPattern] = React.useState<number | null>(null);
+  
   const supabase = createClientComponentClient<Database>();
 
   React.useEffect(() => {
@@ -353,6 +358,59 @@ export default function YouTubeScriptDetailPage() {
       alert(`サムネイル生成に失敗しました\n\n${error.message}`);
     } finally {
       setIsGeneratingThumbnail(false);
+    }
+  };
+
+  // Veo 3.1プロンプト生成関数
+  const handleGenerateVeoPrompt = async () => {
+    if (!script) return;
+
+    setIsGeneratingVeoPrompt(true);
+    setVeoPromptPatterns([]);
+    setSelectedVeoPattern(null);
+
+    try {
+      console.log('🎬 Veo 3.1プロンプト生成開始');
+
+      // トレンドニュースのタイトルを取得（ある場合）
+      let relatedNews = '';
+      const hookMatch = script.script_hook.match(/^(.+?)。/);
+      if (hookMatch) {
+        relatedNews = hookMatch[1];
+      }
+
+      const response = await fetch('/api/admin/generate-veo-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scriptTitle: script.script_title,
+          hookText: script.script_hook,
+          bodyText: script.script_body,
+          ctaText: script.script_cta,
+          relatedNews: relatedNews,
+          contentType: script.content_type // 'youtube-short' or 'youtube-medium'
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Veo 3.1プロンプト生成に失敗しました');
+      }
+
+      console.log(`✅ Veo 3.1プロンプト生成完了: ${data.patterns.length}パターン`);
+      setVeoPromptPatterns(data.patterns);
+      
+      // 最初のパターンを自動選択
+      if (data.patterns.length > 0) {
+        setSelectedVeoPattern(0);
+      }
+
+    } catch (error: any) {
+      console.error('❌ Veo 3.1プロンプト生成エラー:', error);
+      alert(`Veo 3.1プロンプト生成に失敗しました\n\n${error.message}`);
+    } finally {
+      setIsGeneratingVeoPrompt(false);
     }
   };
 
@@ -953,6 +1011,102 @@ export default function YouTubeScriptDetailPage() {
         {thumbnailPatterns.length === 0 && !isGeneratingThumbnail && (
           <div className="mt-4 text-center py-8">
             <p className="text-orange-200">「サムネ生成」ボタンをクリックして、5パターンのサムネイル文言を生成してください。</p>
+          </div>
+        )}
+      </div>
+
+      {/* 🎬 Veo 3.1 背景動画プロンプト生成 */}
+      <div className="bg-gradient-to-r from-purple-900 to-indigo-900 border-2 border-purple-500 rounded-lg p-6 mt-6">
+        <h3 className="text-lg font-semibold text-white mb-4">🎬 Veo 3.1 背景動画プロンプト生成（8秒制約）</h3>
+        <p className="text-sm text-purple-200 mb-4">
+          台本に従ったエンタメ性の高い背景動画プロンプトを生成します。<br />
+          <span className="text-yellow-300 font-semibold">⚠️ Veo 3.1 Proプラン: 8秒が上限</span><br />
+          横向き（16:9）で生成→縦動画（9:16）にクロップ、音声なし、中央重視の構図
+        </p>
+
+        {/* 生成ボタン */}
+        <div>
+          <button
+            onClick={handleGenerateVeoPrompt}
+            disabled={isGeneratingVeoPrompt}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {isGeneratingVeoPrompt ? '生成中...' : '🚀 Veo 3.1プロンプト生成'}
+          </button>
+        </div>
+
+        {/* 生成結果表示 */}
+        {veoPromptPatterns.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {veoPromptPatterns.map((pattern, idx) => (
+              <div
+                key={idx}
+                className={`${
+                  selectedVeoPattern === idx
+                    ? 'bg-purple-800 border-2 border-purple-400'
+                    : 'bg-purple-900 border border-purple-700'
+                } rounded-lg p-5 cursor-pointer hover:border-purple-500 transition-all`}
+                onClick={() => setSelectedVeoPattern(idx)}
+              >
+                {/* パターン名 */}
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-bold text-white">
+                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '💎'} {pattern.pattern_name}
+                  </h4>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(pattern.prompt);
+                      alert(`✅ パターン${idx + 1}のプロンプトをコピーしました`);
+                    }}
+                    className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-all"
+                  >
+                    📋 コピー
+                  </button>
+                </div>
+
+                {/* 特徴 */}
+                <div className="mb-3">
+                  <span className="text-purple-400 font-semibold">✨ 特徴: </span>
+                  <span className="text-white">{pattern.style_note}</span>
+                </div>
+
+                {/* 構図のポイント */}
+                <div className="mb-3">
+                  <span className="text-purple-400 font-semibold">📐 構図: </span>
+                  <span className="text-white">{pattern.composition_note}</span>
+                </div>
+
+                {/* プロンプト本文 */}
+                <div className="mt-3 pt-3 border-t border-purple-700">
+                  <div className="bg-black bg-opacity-30 rounded p-3">
+                    <p className="text-purple-300 text-xs mb-1 font-mono">Veo 3.1 Prompt:</p>
+                    <p className="text-white text-sm font-mono leading-relaxed">{pattern.prompt}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* 推奨メッセージ */}
+            <div className="mt-4 bg-purple-800 bg-opacity-50 rounded-lg p-4">
+              <p className="text-sm text-purple-200 leading-relaxed">
+                💡 <span className="font-semibold">使い方:</span><br />
+                1. お好みのパターンを選択してコピー<br />
+                2. Veo 3.1（Google AI Studio）でプロンプトを貼り付け<br />
+                3. 横向き（16:9）で生成し、動画編集ソフトで縦（9:16）にクロップ<br />
+                4. アバター音声と合成して完成！<br />
+                <br />
+                🎯 推奨は1番目 - 台本の雰囲気に最も近いスタイル<br />
+                🎨 エンタメ性を重視したビジュアルで、視聴者を引き込みます
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 未生成時のメッセージ */}
+        {veoPromptPatterns.length === 0 && !isGeneratingVeoPrompt && (
+          <div className="mt-4 text-center py-8">
+            <p className="text-purple-200">「Veo 3.1プロンプト生成」ボタンをクリックして、5パターンのプロンプトを生成してください。</p>
           </div>
         )}
       </div>
