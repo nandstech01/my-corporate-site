@@ -3731,14 +3731,18 @@ export class AISearchOptimizationSystem {
         ...(item.fragmentId && { mainEntityOfPage: `#${item.fragmentId}` })
       })),
       
-      // 関連エンティティ明示
+      // 関連エンティティ明示（Google Rich Results準拠）
       mentions: optimizedMentions.map(mention => ({
-        '@type': mention.entityType,
+        '@type': 'Thing',
         name: mention.entity,
-        relationshipType: mention.context,
-        importance: mention.importance,
-        searchIntents: mention.searchIntents,
-        ...(mention.fragmentId && { mainEntityOfPage: `#${mention.fragmentId}` })
+        description: `${mention.context} - ${mention.entityType}`,
+        ...(mention.fragmentId && { 
+          identifier: {
+            '@type': 'PropertyValue',
+            'propertyID': 'Fragment ID',
+            'value': mention.fragmentId
+          }
+        })
       })),
       
       // AI検索エンジン特化プロパティ
