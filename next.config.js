@@ -143,6 +143,27 @@ const nextConfig = {
   // リダイレクト設定（SEO最適化）
   async redirects() {
     return [
+      // 404エラー修正：古いページURLを適切なページへリダイレクト
+      {
+        source: '/company',
+        destination: '/about',
+        permanent: true, // 301リダイレクト
+      },
+      {
+        source: '/services',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/contact',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/recruit',
+        destination: '/about',
+        permanent: true,
+      },
       // 長いAIO記事URLから短縮URLへの301リダイレクト
       {
         source: '/posts/aio%E5%AF%BE%E7%AD%96%E5%AE%8C%E5%85%A8%E3%82%AC%E3%82%A4%E3%83%89-2025%E5%B9%B4%E6%9C%80%E6%96%B0%E7%89%88-google-ai%E3%81%AB-%E9%81%B8%E3%81%B0%E3%82%8C%E3%82%8B-%E6%96%B0%E5%B8%B8%E8%AD%98-%E3%83%AC%E3%83%AA%E3%83%90%E3%83%B3%E3%82%B9%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0%E3%81%A8%E3%81%AF-%E6%88%90%E5%8A%9F%E4%BA%8B%E4%BE%8B%E3%81%A7%E8%A8%BC%E6%98%8E',
