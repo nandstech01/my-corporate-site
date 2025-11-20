@@ -8,6 +8,7 @@ interface FormValues {
   name: string;
   email: string;
   phone: string;
+  consultationType: string;
   preferredDateTime: string;
 }
 
@@ -16,6 +17,7 @@ interface FormErrors {
   name?: string;
   email?: string;
   phone?: string;
+  consultationType?: string;
   preferredDateTime?: string;
 }
 
@@ -25,6 +27,7 @@ const DmFormPage: React.FC = () => {
     name: '',
     email: '',
     phone: '',
+    consultationType: '',
     preferredDateTime: '',
   });
 
@@ -51,6 +54,11 @@ const DmFormPage: React.FC = () => {
     // 電話番号（必須）
     if (!formData.phone.trim()) {
       newErrors.phone = '電話番号は必須です';
+    }
+
+    // 相談内容（必須）
+    if (!formData.consultationType) {
+      newErrors.consultationType = '相談内容を選択してください';
     }
 
     // 希望日時（必須）
@@ -90,6 +98,7 @@ const DmFormPage: React.FC = () => {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
+          consultationType: formData.consultationType,
           preferredDateTime: formData.preferredDateTime,
         }),
       });
@@ -102,6 +111,7 @@ const DmFormPage: React.FC = () => {
         name: '',
         email: '',
         phone: '',
+        consultationType: '',
         preferredDateTime: '',
       });
       setErrors({});
@@ -251,6 +261,97 @@ const DmFormPage: React.FC = () => {
               />
               {errors.phone && (
                 <p className="mt-2 text-sm sm:text-base text-red-600">{errors.phone}</p>
+              )}
+            </div>
+
+            {/* 相談内容（必須） */}
+            <div>
+              <label className="block text-base sm:text-lg font-semibold text-gray-900 mb-3">
+                相談内容 <span className="text-red-500 text-sm">※必須</span>
+              </label>
+              <div className="space-y-3">
+                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  formData.consultationType === 'AI時代の検索対策について相談したい'
+                    ? 'border-blue-500 bg-blue-50'
+                    : errors.consultationType
+                    ? 'border-red-300 bg-white hover:bg-gray-50'
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="consultationType"
+                    value="AI時代の検索対策について相談したい"
+                    checked={formData.consultationType === 'AI時代の検索対策について相談したい'}
+                    onChange={handleChange}
+                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-base sm:text-lg text-gray-900">
+                    AI時代の検索対策について相談したい
+                  </span>
+                </label>
+
+                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  formData.consultationType === 'SNS自動化について相談したい'
+                    ? 'border-blue-500 bg-blue-50'
+                    : errors.consultationType
+                    ? 'border-red-300 bg-white hover:bg-gray-50'
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="consultationType"
+                    value="SNS自動化について相談したい"
+                    checked={formData.consultationType === 'SNS自動化について相談したい'}
+                    onChange={handleChange}
+                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-base sm:text-lg text-gray-900">
+                    SNS自動化について相談したい
+                  </span>
+                </label>
+
+                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  formData.consultationType === 'その他、相談したい内容があります'
+                    ? 'border-blue-500 bg-blue-50'
+                    : errors.consultationType
+                    ? 'border-red-300 bg-white hover:bg-gray-50'
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="consultationType"
+                    value="その他、相談したい内容があります"
+                    checked={formData.consultationType === 'その他、相談したい内容があります'}
+                    onChange={handleChange}
+                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-base sm:text-lg text-gray-900">
+                    その他、相談したい内容があります
+                  </span>
+                </label>
+
+                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  formData.consultationType === 'AI時代の検索対策の「実演無料相談」について相談したい'
+                    ? 'border-blue-500 bg-blue-50'
+                    : errors.consultationType
+                    ? 'border-red-300 bg-white hover:bg-gray-50'
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="consultationType"
+                    value="AI時代の検索対策の「実演無料相談」について相談したい"
+                    checked={formData.consultationType === 'AI時代の検索対策の「実演無料相談」について相談したい'}
+                    onChange={handleChange}
+                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-base sm:text-lg text-gray-900">
+                    AI時代の検索対策の「実演無料相談」について相談したい
+                  </span>
+                </label>
+              </div>
+              {errors.consultationType && (
+                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.consultationType}</p>
               )}
             </div>
 
