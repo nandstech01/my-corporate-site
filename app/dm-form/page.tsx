@@ -138,19 +138,61 @@ const DmFormPage: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         {/* ページタイトル・説明 */}
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            AI時代の検索対策・SNS自動化
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6 leading-tight">
+            SNS自動化を目の前で実演します
             <br />
-            無料相談フォーム
+            <span className="text-lg sm:text-xl md:text-2xl text-blue-600">外注費ゼロにする方法を全て公開</span>
           </h1>
-          <p className="text-base sm:text-lg text-gray-700 leading-relaxed px-4">
+          <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6">
             Instagram広告からお越しいただき
             <br />
             ありがとうございます。
+          </p>
+
+          {/* ベネフィット */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 sm:p-8 mb-6 text-left max-w-xl mx-auto">
+            <p className="text-base sm:text-lg font-bold text-gray-900 mb-4 text-center">
+              この無料相談会では：
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-start">
+                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
+                <span className="text-base sm:text-lg text-gray-800">
+                  目の前でAIを使った投稿作成を実演
+                </span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
+                <span className="text-base sm:text-lg text-gray-800">
+                  その場でSNS自動化の実演
+                </span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
+                <span className="text-base sm:text-lg text-gray-800">
+                  AI検索対策で集客を増やす方法を実演
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-base sm:text-lg text-gray-800 font-medium mb-4">
+            口だけではなく、実際に動かしながら
             <br />
-            以下の項目をご入力いただきましたら担当
+            その場で全てお見せします。
+          </p>
+
+          {/* 限定性・安心要素 */}
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-lg p-4 mb-6 inline-block">
+            <p className="text-red-700 font-bold text-base sm:text-lg">
+              【月5社限定】完全無料
+            </p>
+          </div>
+
+          <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            以下のフォームをご入力いただきましたら
             <br />
-            より日程調整のご連絡をいたします。
+            担当より24時間以内にご連絡いたします。
           </p>
         </div>
 
