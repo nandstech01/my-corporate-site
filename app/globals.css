@@ -1196,4 +1196,50 @@ body {
   100% {
     transform: scale(1);
   }
+}
+
+/* CTAボタン用のバウンスアニメーション（ゆっくり） */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-10px);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite;
+}
+
+/* CTAボタンのボーダー光るアニメーション */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgb(251, 191, 36);
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+  }
+  50% {
+    border-color: rgb(252, 211, 77);
+    box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.4);
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* キラキラエフェクト（常時アニメーション） */
+@keyframes shine-continuous {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+.animate-shine-continuous {
+  animation: shine-continuous 3s ease-in-out infinite;
 } 
