@@ -24,7 +24,7 @@ export default function DmNandsLayout({
             display: none !important;
           }
           body {
-            overflow: hidden !important;
+            overflow: auto !important;
           }
         `
       }} />
