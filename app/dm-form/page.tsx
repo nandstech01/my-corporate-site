@@ -1,120 +1,110 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+
+// フォームステップの型定義
+type FormStep = 'company-type' | 'industry' | 'position' | 'form' | 'terms';
 
 // フォームデータの型定義
-interface FormValues {
-  company: string;
-  name: string;
+interface FormData {
+  companyType: 'corporate' | 'freelance' | 'influencer' | '';
+  industry: string;
+  position: string;
   email: string;
   phone: string;
-  consultationType: string;
-  preferredDateTime: string;
-}
-
-// フィールドごとのエラーメッセージ
-interface FormErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
-  consultationType?: string;
-  preferredDateTime?: string;
+  company: string;
+  lastName: string;
+  firstName: string;
 }
 
 const DmFormPage: React.FC = () => {
-  const [formData, setFormData] = useState<FormValues>({
-    company: '',
-    name: '',
+  const [currentStep, setCurrentStep] = useState<FormStep>('company-type');
+  const [formData, setFormData] = useState<FormData>({
+    companyType: '',
+    industry: '',
+    position: '',
     email: '',
     phone: '',
-    consultationType: '',
-    preferredDateTime: '',
+    company: '',
+    lastName: '',
+    firstName: '',
   });
-
-  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // バリデーション関数
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // お名前（必須）
-    if (!formData.name.trim()) {
-      newErrors.name = 'お名前は必須です';
+  // フォームページに移動したら最初の入力欄にフォーカスしてオートフィルを促す
+  useEffect(() => {
+    if (currentStep === 'form' && emailInputRef.current) {
+      // 少し遅延させてからフォーカス（スムーズな遷移のため）
+      setTimeout(() => {
+        emailInputRef.current?.focus();
+        // フォーカス後すぐにクリックイベントを発火してオートフィル候補を表示
+        emailInputRef.current?.click();
+      }, 100);
     }
+  }, [currentStep]);
 
-    // メールアドレス（必須・フォーマットチェック）
-    if (!formData.email.trim()) {
-      newErrors.email = 'メールアドレスは必須です';
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
-      newErrors.email = 'メールアドレスの形式が正しくありません';
-    }
-
-    // 電話番号（必須）
-    if (!formData.phone.trim()) {
-      newErrors.phone = '電話番号は必須です';
-    }
-
-    // 相談内容（必須）
-    if (!formData.consultationType) {
-      newErrors.consultationType = '相談内容を選択してください';
-    }
-
-    // 希望日時（必須）
-    if (!formData.preferredDateTime.trim()) {
-      newErrors.preferredDateTime = '希望日時は必須です';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  // フォーム入力完了時の処理（利用規約ページへ遷移）
+  const handleFormNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentStep('terms');
   };
 
-  // フォーム送信処理
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 最終送信処理
+  const handleSubmit = async () => {
     
-    // バリデーション実行
-    if (!validateForm()) {
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
     try {
-      // Google Apps Script URL（既存のトップページフォームと同じ）
-      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
+      // Google Apps Script URL
+      const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmbR1M3S1qdxRSMxvbkB92Pu9249gRbxuRj6LOMLVXRNbMKQNKi00rJxMyIpSeVQkoAw/exec';
       
-      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      const sendData = {
+        source: 'dm-form',
+        companyType: formData.companyType === 'corporate' ? '会社' : formData.companyType === 'freelance' ? 'フリーランス' : 'インフルエンサー',
+        industry: formData.industry || '（個人）',
+        position: formData.position || '（個人）',
+        company: formData.company,
+        name: `${formData.lastName} ${formData.firstName}`,
+        email: formData.email,
+        phone: formData.phone,
+        consultationType: 'Instagram広告からの申し込み',
+        preferredDateTime: '後ほどご連絡',
+      };
+
+      // デバッグ用：送信データをコンソールに表示
+      console.log('送信データ:', sendData);
+      console.log('formData状態:', formData);
+      console.log('JSON文字列:', JSON.stringify(sendData));
+      
+      await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors', // CORS対策
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          source: 'dm-form', // シート2に保存するための識別子
-          company: formData.company,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          consultationType: formData.consultationType,
-          preferredDateTime: formData.preferredDateTime,
-        }),
+        body: JSON.stringify(sendData),
       });
 
-      // no-corsの場合、レスポンスは読み取れないが送信は成功している
+      console.log('送信完了（no-corsモード）');
+
       setSubmitStatus('success');
-      // フォームをクリア
+      // フォームをリセット
       setFormData({
-        company: '',
-        name: '',
+        companyType: '',
+        industry: '',
+        position: '',
         email: '',
         phone: '',
-        consultationType: '',
-        preferredDateTime: '',
+        company: '',
+        lastName: '',
+        firstName: '',
       });
-      setErrors({});
+      setCurrentStep('company-type');
     } catch (error) {
       console.error('送信エラー:', error);
       setSubmitStatus('error');
@@ -123,94 +113,38 @@ const DmFormPage: React.FC = () => {
     }
   };
 
-  // 入力変更処理
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // エラーをクリア
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24 pb-8 px-4 sm:pt-28 sm:pb-12 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        {/* ページタイトル・説明 */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6 leading-tight">
-            SNS自動化を目の前で実演します
-            <br />
-            <span className="text-lg sm:text-xl md:text-2xl text-blue-600">外注費ゼロにする方法を全て公開</span>
-          </h1>
-          <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6">
-            Instagram広告からお越しいただき
-            <br />
-            ありがとうございます。
-          </p>
-
-          {/* ベネフィット */}
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 sm:p-8 mb-6 text-left max-w-xl mx-auto">
-            <p className="text-base sm:text-lg font-bold text-gray-900 mb-4 text-center">
-              この無料相談会では：
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
-                <span className="text-base sm:text-lg text-gray-800">
-                  目の前でAIを使った投稿作成を実演
-                </span>
-              </div>
-              <div className="flex items-start">
-                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
-                <span className="text-base sm:text-lg text-gray-800">
-                  その場でSNS自動化の実演
-                </span>
-              </div>
-              <div className="flex items-start">
-                <span className="text-blue-600 text-xl mr-3 flex-shrink-0">✅</span>
-                <span className="text-base sm:text-lg text-gray-800">
-                  AI検索対策で集客を増やす方法を実演
-                </span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-white fixed inset-0 z-[9999] overflow-y-auto">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* ヘッダー（ロゴエリア） */}
+        <div className="text-center mb-8">
+          <div className="inline-block">
+            <Image
+              src="/images/logo.svg"
+              alt="N&S Logo"
+              width={120}
+              height={120}
+              className="mx-auto"
+              priority
+            />
           </div>
-
-          <p className="text-base sm:text-lg text-gray-800 font-medium mb-4">
-            口だけではなく、実際に動かしながら
-            <br />
-            その場で全てお見せします。
-          </p>
-
-          {/* 限定性・安心要素 */}
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-lg p-4 mb-6 inline-block">
-            <p className="text-red-700 font-bold text-base sm:text-lg">
-              【月5社限定】完全無料
-            </p>
-          </div>
-
-          <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-            以下のフォームをご入力いただきましたら
-            <br />
-            担当より24時間以内にご連絡いたします。
-          </p>
         </div>
 
         {/* 成功メッセージ */}
         {submitStatus === 'success' && (
-          <div className="mb-6 p-4 sm:p-6 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 text-base sm:text-lg font-medium text-center">
+          <div className="mb-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 text-lg font-medium text-center">
               送信ありがとうございました。
               <br />
-              24時間以内に原田よりご連絡いたします。
+              24時間以内に担当よりご連絡いたします。
             </p>
           </div>
         )}
 
         {/* エラーメッセージ */}
         {submitStatus === 'error' && (
-          <div className="mb-6 p-4 sm:p-6 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-base sm:text-lg font-medium text-center">
+          <div className="mb-6 p-6 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 text-lg font-medium text-center">
               送信に失敗しました。
               <br />
               お手数ですが時間をおいて再度お試しください。
@@ -218,235 +152,480 @@ const DmFormPage: React.FC = () => {
           </div>
         )}
 
-        {/* フォーム */}
-        <div className="bg-white shadow-xl rounded-lg p-6 sm:p-8 md:p-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* 会社名（任意） */}
-            <div>
-              <label htmlFor="company" className="block text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                会社名
-              </label>
-              <input
-                type="text"
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleChange}
-                placeholder="例：株式会社サンプル"
-                className="w-full px-4 py-3 sm:py-4 text-base sm:text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            {/* お名前（必須） */}
-            <div>
-              <label htmlFor="name" className="block text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                お名前 <span className="text-red-500 text-sm">※必須</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="例：山田 太郎"
-                className={`w-full px-4 py-3 sm:py-4 text-base sm:text-lg border rounded-lg transition-colors ${
-                  errors.name 
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              />
-              {errors.name && (
-                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.name}</p>
-              )}
-            </div>
-
-            {/* メールアドレス（必須） */}
-            <div>
-              <label htmlFor="email" className="block text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                メールアドレス <span className="text-red-500 text-sm">※必須</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="例：sample@example.com"
-                className={`w-full px-4 py-3 sm:py-4 text-base sm:text-lg border rounded-lg transition-colors ${
-                  errors.email 
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              />
-              {errors.email && (
-                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            {/* 電話番号（必須） */}
-            <div>
-              <label htmlFor="phone" className="block text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                電話番号 <span className="text-red-500 text-sm">※必須</span>
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="例：090-1234-5678"
-                className={`w-full px-4 py-3 sm:py-4 text-base sm:text-lg border rounded-lg transition-colors ${
-                  errors.phone 
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              />
-              {errors.phone && (
-                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.phone}</p>
-              )}
-            </div>
-
-            {/* 相談内容（必須） */}
-            <div>
-              <label className="block text-base sm:text-lg font-semibold text-gray-900 mb-3">
-                相談内容 <span className="text-red-500 text-sm">※必須</span>
-              </label>
-              <div className="space-y-3">
-                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.consultationType === 'AI時代の検索対策について相談したい'
-                    ? 'border-blue-500 bg-blue-50'
-                    : errors.consultationType
-                    ? 'border-red-300 bg-white hover:bg-gray-50'
-                    : 'border-gray-300 bg-white hover:bg-gray-50'
+        {/* ステップ1: 企業形態選択 */}
+        {currentStep === 'company-type' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">企業形態を選択してください</h3>
+            
+            <button
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, companyType: 'corporate' }));
+                setTimeout(() => setCurrentStep('industry'), 500);
+              }}
+              className={`w-full px-5 py-4 border rounded-xl transition-all duration-200 text-left group ${
+                formData.companyType === 'corporate'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-medium text-gray-900">会社</span>
+                <div className={`w-6 h-6 rounded-full border ${
+                  formData.companyType === 'corporate'
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-gray-400 group-hover:border-blue-500'
                 }`}>
-                  <input
-                    type="radio"
-                    name="consultationType"
-                    value="AI時代の検索対策について相談したい"
-                    checked={formData.consultationType === 'AI時代の検索対策について相談したい'}
-                    onChange={handleChange}
-                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-base sm:text-lg text-gray-900">
-                    AI時代の検索対策について相談したい
-                  </span>
-                </label>
-
-                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.consultationType === 'SNS自動化について相談したい'
-                    ? 'border-blue-500 bg-blue-50'
-                    : errors.consultationType
-                    ? 'border-red-300 bg-white hover:bg-gray-50'
-                    : 'border-gray-300 bg-white hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="consultationType"
-                    value="SNS自動化について相談したい"
-                    checked={formData.consultationType === 'SNS自動化について相談したい'}
-                    onChange={handleChange}
-                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-base sm:text-lg text-gray-900">
-                    SNS自動化について相談したい
-                  </span>
-                </label>
-
-                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.consultationType === 'その他、相談したい内容があります'
-                    ? 'border-blue-500 bg-blue-50'
-                    : errors.consultationType
-                    ? 'border-red-300 bg-white hover:bg-gray-50'
-                    : 'border-gray-300 bg-white hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="consultationType"
-                    value="その他、相談したい内容があります"
-                    checked={formData.consultationType === 'その他、相談したい内容があります'}
-                    onChange={handleChange}
-                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-base sm:text-lg text-gray-900">
-                    その他、相談したい内容があります
-                  </span>
-                </label>
-
-                <label className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.consultationType === 'AI時代の検索対策の「実演無料相談」について相談したい'
-                    ? 'border-blue-500 bg-blue-50'
-                    : errors.consultationType
-                    ? 'border-red-300 bg-white hover:bg-gray-50'
-                    : 'border-gray-300 bg-white hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="consultationType"
-                    value="AI時代の検索対策の「実演無料相談」について相談したい"
-                    checked={formData.consultationType === 'AI時代の検索対策の「実演無料相談」について相談したい'}
-                    onChange={handleChange}
-                    className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-base sm:text-lg text-gray-900">
-                    AI時代の検索対策の「実演無料相談」について相談したい
-                  </span>
-                </label>
+                  {formData.companyType === 'corporate' && (
+                    <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
               </div>
-              {errors.consultationType && (
-                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.consultationType}</p>
-              )}
-            </div>
+            </button>
 
-            {/* 希望日時（必須） */}
-            <div>
-              <label htmlFor="preferredDateTime" className="block text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                希望日時 <span className="text-red-500 text-sm">※必須</span>
-              </label>
-              <textarea
-                id="preferredDateTime"
-                name="preferredDateTime"
-                value={formData.preferredDateTime}
-                onChange={handleChange}
-                placeholder="例：第1希望 11/20 15:00&#10;第2希望 11/21 10:00"
-                rows={4}
-                className={`w-full px-4 py-3 sm:py-4 text-base sm:text-lg border rounded-lg transition-colors ${
-                  errors.preferredDateTime 
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              />
-              {errors.preferredDateTime && (
-                <p className="mt-2 text-sm sm:text-base text-red-600">{errors.preferredDateTime}</p>
-              )}
-            </div>
+            <button
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, companyType: 'freelance' }));
+                setTimeout(() => setCurrentStep('form'), 500);
+              }}
+              className={`w-full px-5 py-4 border rounded-xl transition-all duration-200 text-left group ${
+                formData.companyType === 'freelance'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-medium text-gray-900">フリーランス</span>
+                <div className={`w-6 h-6 rounded-full border ${
+                  formData.companyType === 'freelance'
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-gray-400 group-hover:border-blue-500'
+                }`}>
+                  {formData.companyType === 'freelance' && (
+                    <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </button>
 
-            {/* 送信ボタン */}
+            <button
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, companyType: 'influencer' }));
+                setTimeout(() => setCurrentStep('form'), 500);
+              }}
+              className={`w-full px-5 py-4 border rounded-xl transition-all duration-200 text-left group ${
+                formData.companyType === 'influencer'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-medium text-gray-900">インフルエンサー</span>
+                <div className={`w-6 h-6 rounded-full border ${
+                  formData.companyType === 'influencer'
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-gray-400 group-hover:border-blue-500'
+                }`}>
+                  {formData.companyType === 'influencer' && (
+                    <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </button>
+
+            {/* 次へボタン */}
             <div className="pt-4">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-4 sm:py-5 px-6 text-base sm:text-lg font-bold text-white rounded-lg transition-all duration-300 ${
-                  isSubmitting
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 hover:shadow-lg transform hover:-translate-y-1'
+                onClick={() => {
+                  if (formData.companyType === 'corporate') {
+                    setCurrentStep('industry');
+                  } else if (formData.companyType === 'freelance' || formData.companyType === 'influencer') {
+                    setCurrentStep('form');
+                  }
+                }}
+                disabled={!formData.companyType}
+                className={`w-full py-3 px-6 text-base font-bold text-white rounded-xl transition-all duration-300 ${
+                  formData.companyType
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-300 cursor-not-allowed'
                 }`}
               >
-                {isSubmitting ? '送信中...' : '無料相談を申し込む'}
+                次へ
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+        )}
 
-        {/* 補足情報 */}
-        <div className="mt-8 text-center">
-          <p className="text-sm sm:text-base text-gray-600">
-            ご入力いただいた情報は、お問い合わせ対応のためにのみ使用いたします。
-          </p>
-        </div>
+        {/* ステップ2: 業種選択（法人のみ） */}
+        {currentStep === 'industry' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">業種を選択してください</h3>
+            
+            {[
+              'A　農業、林業',
+              'B　漁業',
+              'C　鉱業、採石業、砂利採取業',
+              'D　建設業',
+              'E　製造業',
+              'F　電気・ガス・熱供給・水道業',
+              'G　情報通信業',
+              'H　運輸業、郵便業',
+              'I　卸売業、小売業',
+              'J　金融業、保険業',
+              'K　不動産業、物品賃貸業',
+              'L　学術研究、専門・技術サービス業',
+              'M　宿泊業、飲食サービス業',
+              'N　生活関連サービス業、娯楽業',
+              'O　教育、学習支援業',
+              'P　医療、福祉',
+              'Q　複合サービス事業',
+              'R　サービス業（他に分類されないもの）',
+              'S　公務（他に分類されるものを除く）',
+              'T　分類不能の産業',
+            ].map((industry) => (
+              <button
+                key={industry}
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, industry }));
+                  setTimeout(() => setCurrentStep('position'), 500);
+                }}
+                className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 text-left group mb-2 ${
+                  formData.industry === industry
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-medium text-gray-900">{industry}</span>
+                  <div className={`w-6 h-6 rounded-full border ${
+                    formData.industry === industry
+                      ? 'border-blue-500 bg-blue-500'
+                      : 'border-gray-400 group-hover:border-blue-500'
+                  }`}>
+                    {formData.industry === industry && (
+                      <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+
+            {/* 戻る・次へボタン */}
+            <div className="pt-4 flex gap-3">
+              <button
+                onClick={() => setCurrentStep('company-type')}
+                className="flex-1 py-3 px-5 text-base font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-xl transition-all duration-300"
+              >
+                戻る
+              </button>
+              <button
+                onClick={() => setCurrentStep('position')}
+                disabled={!formData.industry}
+                className={`flex-1 py-3 px-5 text-base font-bold text-white rounded-xl transition-all duration-300 ${
+                  formData.industry
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                次へ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ステップ3: 役職選択（法人のみ） */}
+        {currentStep === 'position' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">役職</h3>
+            
+            {[
+              '経営者・役員',
+              '部長',
+              '課長',
+              '係長・主任',
+              '一般社員',
+              '契約・派遣・嘱託等',
+            ].map((position) => (
+              <button
+                key={position}
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, position }));
+                  setTimeout(() => setCurrentStep('form'), 500);
+                }}
+                className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 text-left group mb-2 ${
+                  formData.position === position
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-medium text-gray-900">{position}</span>
+                  <div className={`w-6 h-6 rounded-full border ${
+                    formData.position === position
+                      ? 'border-blue-500 bg-blue-500'
+                      : 'border-gray-400 group-hover:border-blue-500'
+                  }`}>
+                    {formData.position === position && (
+                      <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+
+            {/* 戻る・次へボタン */}
+            <div className="pt-4 flex gap-3">
+              <button
+                onClick={() => setCurrentStep('industry')}
+                className="flex-1 py-3 px-5 text-base font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-xl transition-all duration-300"
+              >
+                戻る
+              </button>
+              <button
+                onClick={() => setCurrentStep('form')}
+                disabled={!formData.position}
+                className={`flex-1 py-3 px-5 text-base font-bold text-white rounded-xl transition-all duration-300 ${
+                  formData.position
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                次へ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ステップ4: フォーム入力 */}
+        {currentStep === 'form' && (
+          <div className="space-y-4">
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">連絡先情報</h3>
+              <p className="text-sm text-gray-600">
+                ご入力いただいたメールアドレス宛に視聴用リンクを送付します。
+              </p>
+            </div>
+
+            <form onSubmit={handleFormNext} className="space-y-4">
+              {/* 仕事用メールアドレス */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  仕事用メールアドレス
+                </label>
+                <input
+                  ref={emailInputRef}
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="例：sample@example.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* 電話番号 */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  電話番号
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="tel"
+                  autoComplete="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="例：090-1234-5678"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* 会社名 */}
+              <div>
+                <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+                  会社名
+                </label>
+                <input
+                  type="text"
+                  id="company"
+                  name="organization"
+                  autoComplete="organization"
+                  required
+                  value={formData.company}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, company: e.target.value }))}
+                  placeholder="例：株式会社サンプル"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* 姓 */}
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  姓
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="family-name"
+                  autoComplete="family-name"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="例：山田"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* 名 */}
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  名
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="given-name"
+                  autoComplete="given-name"
+                  required
+                  value={formData.firstName}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="例：太郎"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              {/* 戻る・次へボタン */}
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(formData.companyType === 'corporate' ? 'position' : 'company-type')}
+                  className="flex-1 py-3 px-5 text-base font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-xl transition-all duration-300"
+                >
+                  戻る
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-5 text-base font-bold text-white rounded-xl transition-all duration-300 bg-blue-600 hover:bg-blue-700"
+                >
+                  次へ
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ステップ5: 利用規約同意 */}
+        {currentStep === 'terms' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">利用規約</h3>
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 max-h-[400px] overflow-y-auto space-y-4">
+              <div>
+                <h4 className="font-bold text-base text-gray-900 mb-2">
+                  本サービス「AIアーキテクト無料相談」に関する特約とプライバシーポリシーへの同意
+                </h4>
+                <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                  株式会社エヌアンドエス（以下「弊社」といいます。）
+                </p>
+              </div>
+
+              <div className="space-y-3 text-sm text-gray-700">
+                <p className="font-medium">【確認事項】</p>
+                
+                <p>1. 本無料相談の実施にあたり、本サービスの利用規約を遵守させること。</p>
+                
+                <p>2. 本無料相談は、AIアーキテクトとしてのキャリア構築および収益化手法について実演を交えながらご説明する無料相談会です。今後も同様の利用条件が保証されるものではないこと。</p>
+                
+                <p>3. 本無料相談に関して知り得た情報を第三者に提供又は漏洩してはならないこと。</p>
+                
+                <p>4. 本無料相談の日程は、別途、電子メール又はLINEにて通知されること。</p>
+                
+                <p>5. 本無料相談の延長、または再相談をする場合は事前に弊社から承諾を得ること。</p>
+                
+                <p>6. 本無料相談終了後、必要に応じてアンケートやヒアリングにご協力いただくこと。</p>
+                
+                <p>7. 本無料相談に伴い弊社に生じた損害について、貴社に故意または重過失がある場合を除き、弊社が賠償義務を負わないこと。</p>
+                
+                <p>8. 本無料相談に伴い弊社の責めに帰すべき事由により貴社に損害が生じた場合、弊社が賠償義務を負うこと。</p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-300">
+                <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                  <span className="font-bold">AIアーキテクトとは？</span>
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                  生成AIを活用して、業務自動化・システム構築・データ分析などを行う次世代の専門職です。プログラミング経験がなくても、AIツールを組み合わせることで高度な価値提供が可能になります。
+                </p>
+                
+                <p className="text-sm text-gray-700 leading-relaxed mb-2">
+                  <span className="font-bold">どうやって稼いでいくのか？</span>
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  無料相談会では、実際のAIツール操作を目の前で実演しながら、具体的な収益化手法・案件獲得方法・価格設定まで全て公開します。月5社限定・完全無料でご参加いただけます。
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-300">
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  ［送信］をクリックすることで、弊社にあなたの情報を送信し、弊社がその
+                  <a href="https://nands.tech/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">プライバシーポリシー</a>
+                  にそってその情報を使用することに同意するものとします。またInstagramもプライバシーポリシーにそって、広告フォームの自動入力などにこの情報を使用します。あなたの情報は、以前回答を送信した広告やInstagramプロフィール、リンクされたFacebookプロフィールからこの広告に自動入力される可能性があります。
+                </p>
+              </div>
+            </div>
+
+            {/* 同意チェックボックス */}
+            <label className="flex items-start p-4 border border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition-all">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 rounded"
+              />
+              <span className="ml-3 text-sm text-gray-900">
+                上記の利用規約およびプライバシーポリシーに同意します
+              </span>
+            </label>
+
+            {/* 送信・後でボタン */}
+            <div className="pt-4 space-y-3">
+              <button
+                onClick={handleSubmit}
+                disabled={!agreedToTerms || isSubmitting}
+                className={`w-full py-4 px-6 text-base font-bold text-white rounded-xl transition-all duration-300 ${
+                  agreedToTerms && !isSubmitting
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? '送信中...' : '送信する'}
+              </button>
+              
+              <button
+                onClick={() => setCurrentStep('form')}
+                className="w-full py-3 px-6 text-base font-medium text-blue-600 hover:text-blue-700 transition-all duration-300"
+              >
+                後で
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default DmFormPage;
-
