@@ -234,6 +234,7 @@ ${scriptResponse.script_cta}
           generated_from_post_slug: postSlug,
           generated_at: new Date().toISOString(),
           generation_method: 'openai-gpt-5', // ✅ GPT-5を記録
+          script_mode: scriptMode, // ✅ 台本モードを記録（default / architect）
           youtube_metadata: {
             youtube_title: scriptResponse.youtube_title,
             youtube_description: scriptResponse.youtube_description,

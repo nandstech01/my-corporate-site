@@ -40,6 +40,7 @@ interface YouTubeScript {
   created_at: string;
   published_at: string | null;
   metadata?: {
+    script_mode?: 'default' | 'architect';
     youtube_metadata?: {
       youtube_title: string;
       youtube_description: string;
@@ -445,7 +446,14 @@ export default function YouTubeScriptDetailPage() {
       {/* ヘッダー */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-2">🎬 YouTube台本管理</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold text-white">🎬 YouTube台本管理</h1>
+            {script.metadata?.script_mode === 'architect' && (
+              <span className="px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold rounded-full">
+                🏗️ AIアーキテクト
+              </span>
+            )}
+          </div>
           <p className="text-gray-300 text-sm">
             {shortScript && mediumScript && '⚡ ショート & 🎯 中尺'}
             {shortScript && !mediumScript && '⚡ ショート（30秒）'}
@@ -590,6 +598,16 @@ export default function YouTubeScriptDetailPage() {
           <div>
             <p className="text-sm text-gray-400">予想尺</p>
             <p className="text-white font-medium">{script.script_duration_seconds}秒</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">台本モード</p>
+            <p className="text-white font-medium">
+              {script.metadata?.script_mode === 'architect' ? (
+                <span className="text-emerald-400">🏗️ AIアーキテクト（えっ→なぜ？→なるほど）</span>
+              ) : (
+                <span className="text-yellow-400">📝 デフォルト（AI審判型）</span>
+              )}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-400">ターゲット感情</p>
