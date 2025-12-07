@@ -55,7 +55,7 @@ const DmNandsPage: React.FC = () => {
           {/* CTAボタン - 極めたデザイン */}
           <div className="sticky bottom-6 z-50 sm:static text-center pb-4 sm:pb-0">
             <a
-              href="https://lin.ee/RFuVg33"
+              href="https://lin.ee/vQmAwMU"
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full max-w-3xl mx-auto group"

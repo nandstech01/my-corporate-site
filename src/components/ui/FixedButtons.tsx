@@ -17,7 +17,7 @@ const FixedButtons = () => {
         <div className="fixed-buttons fixed bottom-0 left-0 right-0 flex justify-center p-4 z-50">
           <div className="flex flex-row gap-4 p-4 rounded-lg">
             <a 
-              href="https://lin.ee/LRj3T2V"
+              href="https://lin.ee/vQmAwMU"
               target="_blank"
               rel="noopener noreferrer"
               className="neon-button group"

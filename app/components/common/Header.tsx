@@ -490,7 +490,7 @@ export default function Header() {
                       ))}
                     </div>
                     {[
-                      ['無料相談', 'https://lin.ee/LRj3T2V'],
+                      ['無料相談', 'https://lin.ee/vQmAwMU'],
                       ['コース申し込み', '#contact-form'],
                       ['よくある質問・お問い合わせ', '/faq'],
                       ['法人パートナー ログイン ＞', '#']

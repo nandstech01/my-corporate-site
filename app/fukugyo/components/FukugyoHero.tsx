@@ -113,7 +113,7 @@ export default function FukugyoHero() {
           プロのエンジニアが、あなたのAI副業の第一歩をサポートします。
         </motion.p>
         <a
-          href="https://lin.ee/gUyPhHa"
+          href="https://lin.ee/vQmAwMU"
           className="neon-button group"
           target="_blank"
           rel="noopener noreferrer"

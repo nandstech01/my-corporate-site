@@ -194,7 +194,7 @@ export default function FukugyoFlow() {
           </p>
 
           <a
-            href="https://lin.ee/gUyPhHa"
+            href="https://lin.ee/vQmAwMU"
             className="neon-button group"
             target="_blank"
             rel="noopener noreferrer"

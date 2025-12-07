@@ -126,7 +126,7 @@ export default function BuzzWordSuccessSection() {
 
         <div className="mt-16 text-center">
           <a
-            href="https://lin.ee/gUyPhHa"
+            href="https://lin.ee/vQmAwMU"
             className="neon-button group"
             target="_blank"
             rel="noopener noreferrer"

@@ -129,7 +129,7 @@ export default function FukugyoProblems() {
 
         <div className="text-center mt-12">
           <a
-            href="https://lin.ee/gUyPhHa"
+            href="https://lin.ee/vQmAwMU"
             className="neon-button group"
             target="_blank"
             rel="noopener noreferrer"
