@@ -263,7 +263,7 @@ export default function YouTubeRagPage() {
     return n.toString();
   };
 
-  // プリセットクエリ
+  // 教育モード用プリセットクエリ
   const presetQueries = [
     'machine learning tutorial',
     'AI programming guide',
@@ -317,6 +317,77 @@ export default function YouTubeRagPage() {
     'machine learning evaluation',
     'AI system design'
   ];
+
+  // 🆕 AIアーキテクト用プリセットクエリ
+  const architectPresetQueries = [
+    // キャリア・年収系
+    'AIエンジニア 年収 フリーランス',
+    'AI engineer salary 2024 2025',
+    'machine learning engineer career path',
+    'AI architect career guide',
+    'フリーランス エンジニア 案件獲得',
+    'AI engineer interview preparation',
+    'tech career roadmap AI',
+    // 技術課題系
+    'RAG implementation challenges',
+    'LLM production deployment',
+    'vector database comparison',
+    'AI system architecture design',
+    'RAG vs fine-tuning comparison',
+    'LLM latency optimization',
+    'AI infrastructure best practices',
+    // 実装系
+    'building production RAG systems',
+    'enterprise AI architecture',
+    'AI API design patterns',
+    'MLOps best practices 2024',
+    'AI system monitoring',
+    'LangChain production tutorial',
+    'OpenAI API best practices'
+  ];
+
+  // 🆕 AIアーキテクト用ランダム検索
+  const handleArchitectAutoSearch = async () => {
+    const randomQuery = architectPresetQueries[Math.floor(Math.random() * architectPresetQueries.length)];
+    setSearchQuery(randomQuery);
+    
+    // 検索を実行
+    setLoading(true);
+    setVideos([]);
+    setApiStatus('');
+    
+    try {
+      console.log(`🏗️ AIアーキテクト自動検索: "${randomQuery}"`);
+      
+      const response = await fetch('/api/youtube-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: randomQuery,
+          maxResults: 10
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.results) {
+        setVideos(data.results);
+        setApiStatus(`✅ 成功: 🏗️ AIアーキテクト用 "${randomQuery}" で ${data.total}件の動画を取得`);
+        console.log(`✅ ${data.total}件の動画を取得`);
+      } else {
+        setApiStatus(`❌ エラー: ${data.error}`);
+        console.error('YouTube Data API エラー:', data);
+      }
+
+    } catch (error) {
+      console.error('YouTube Data API 呼び出しエラー:', error);
+      setApiStatus(`❌ 接続エラー: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (authLoading) {
     return <div className="min-h-screen bg-black flex items-center justify-center">
@@ -384,15 +455,50 @@ export default function YouTubeRagPage() {
                 </button>
               </div>
 
-              {/* プリセットクエリ */}
+              {/* 🆕 AIアーキテクト自動取得ボタン */}
+              <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-600/50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-purple-300 mb-1">🏗️ AIアーキテクト自動取得</h3>
+                    <p className="text-sm text-purple-200">
+                      キャリア・年収・技術課題・実装に関する動画をランダムに検索します
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleArchitectAutoSearch}
+                    disabled={loading}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 transition-all font-semibold"
+                  >
+                    {loading ? '検索中...' : '🏗️ 自動検索'}
+                  </button>
+                </div>
+              </div>
+
+              {/* プリセットクエリ - 教育モード */}
               <div>
-                <p className="text-sm text-gray-400 mb-2">プリセットクエリ:</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-sm text-gray-400 mb-2">📚 教育モード用クエリ:</p>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                   {presetQueries.map((query) => (
                     <button
                       key={query}
                       onClick={() => setSearchQuery(query)}
                       className="bg-gray-800 hover:bg-gray-700 text-sm px-3 py-1 rounded-full border border-gray-700 transition-colors"
+                    >
+                      {query}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 🆕 プリセットクエリ - AIアーキテクトモード */}
+              <div>
+                <p className="text-sm text-purple-400 mb-2">🏗️ AIアーキテクト用クエリ:</p>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                  {architectPresetQueries.map((query) => (
+                    <button
+                      key={query}
+                      onClick={() => setSearchQuery(query)}
+                      className="bg-purple-900/50 hover:bg-purple-800 text-sm px-3 py-1 rounded-full border border-purple-600/50 text-purple-200 transition-colors"
                     >
                       {query}
                     </button>

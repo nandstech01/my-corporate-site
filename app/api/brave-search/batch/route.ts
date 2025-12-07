@@ -3,21 +3,48 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * 🆕 バッチニュース取得API
  * 
- * blog-trend-queries.tsまたはscript-trend-queries.tsから
+ * blog-trend-queries.ts、script-trend-queries.ts、または architect-trend-queries.ts から
  * ランダムにクエリを選択し、Brave Search APIで複数のニュースを取得
  */
 export async function POST(request: NextRequest) {
   try {
-    const { count = 10, useBlogQueries = true } = await request.json();
+    const { 
+      count = 10, 
+      useBlogQueries = true,
+      useArchitectQueries = false, // 🆕 AIアーキテクトモード
+      articleType = 'general',     // 🆕 記事タイプ（career/technical/freelance/general）
+      freshnessFilter = '24h'      // 🆕 鮮度フィルタ（24h/7days/30days）
+    } = await request.json();
 
-    console.log(`🔍 バッチニュース取得開始: ${count}件 (${useBlogQueries ? 'ブログ用' : '台本用'})`);
+    // モード判定
+    let modeLabel = useBlogQueries ? '教育モード' : '台本用';
+    if (useArchitectQueries) {
+      modeLabel = `AIアーキテクトモード（${articleType}）`;
+    }
+
+    console.log(`🔍 バッチニュース取得開始: ${count}件 (${modeLabel})`);
+    console.log(`📅 鮮度フィルタ: ${freshnessFilter}`);
 
     // クエリファイルから取得（レート制限を考慮して少なめに）
     // Brave Search API無料プラン: 1リクエスト/秒
     const queryCount = Math.min(Math.ceil(count / 5), 2); // 最大2クエリまで（レート制限対策）
-    const queries = useBlogQueries
-      ? (await import('@/lib/intelligent-rag/blog-trend-queries')).getRandomBlogTrendQueries(queryCount)
-      : (await import('@/lib/intelligent-rag/script-trend-queries')).getAllScriptTrendQueries().slice(0, queryCount);
+    
+    let queries: string[];
+    
+    if (useArchitectQueries) {
+      // 🆕 AIアーキテクトモード: architect-trend-queries.ts を使用
+      const { getArchitectQueriesByArticleType } = await import('@/lib/intelligent-rag/architect-trend-queries');
+      queries = getArchitectQueriesByArticleType(articleType as 'career' | 'technical' | 'freelance' | 'general', queryCount);
+      console.log(`🏗️ AIアーキテクト用クエリを使用（${articleType}タイプ）`);
+    } else if (useBlogQueries) {
+      // 教育モード: blog-trend-queries.ts を使用
+      queries = (await import('@/lib/intelligent-rag/blog-trend-queries')).getRandomBlogTrendQueries(queryCount);
+      console.log(`📚 教育モード用クエリを使用`);
+    } else {
+      // 台本用: script-trend-queries.ts を使用
+      queries = (await import('@/lib/intelligent-rag/script-trend-queries')).getAllScriptTrendQueries().slice(0, queryCount);
+      console.log(`🎬 台本用クエリを使用`);
+    }
     
     console.log(`⚠️ レート制限対策: ${queries.length}クエリを順次実行（待機時間あり）`);
 
@@ -88,10 +115,18 @@ export async function POST(request: NextRequest) {
         const braveData = await searchResponse.json();
         const allResults = braveData.web?.results || [];
         
-        // 📅 age情報を使用して24時間以内のニュースのみフィルタリング（可能な場合）
+        // 📅 鮮度フィルタに応じた時間制限を設定
+        let maxHours = 24; // デフォルト: 24時間
+        if (freshnessFilter === '7days') {
+          maxHours = 24 * 7; // 1週間
+        } else if (freshnessFilter === '30days') {
+          maxHours = 24 * 30; // 30日
+        }
+        
+        // 📅 age情報を使用してフィルタリング
         const braveResults = allResults.filter((item: any) => {
           if (item.age) {
-            const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day)/i);
+            const ageMatch = item.age.match(/(\d+)\s*(minute|hour|day|week|month)/i);
             if (ageMatch) {
               const value = parseInt(ageMatch[1]);
               const unit = ageMatch[2].toLowerCase();
@@ -100,14 +135,17 @@ export async function POST(request: NextRequest) {
               if (unit === 'minute') hoursAgo = value / 60;
               else if (unit === 'hour') hoursAgo = value;
               else if (unit === 'day') hoursAgo = value * 24;
+              else if (unit === 'week') hoursAgo = value * 24 * 7;
+              else if (unit === 'month') hoursAgo = value * 24 * 30;
               
-              return hoursAgo <= 24;
+              return hoursAgo <= maxHours;
             }
           }
           return true; // age情報がない場合は含める
         }).slice(0, 3); // 最大3件
 
-        console.log(`  ✅ ニュース取得成功（24時間以内）: ${braveResults.length}件 / ${allResults.length}件中`);
+        const freshnessLabel = freshnessFilter === '7days' ? '1週間以内' : freshnessFilter === '30days' ? '30日以内' : '24時間以内';
+        console.log(`  ✅ ニュース取得成功（${freshnessLabel}）: ${braveResults.length}件 / ${allResults.length}件中`);
 
         // ニュースアイテムを変換
         for (const item of braveResults) {

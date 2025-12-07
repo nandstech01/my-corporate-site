@@ -18,8 +18,9 @@ export default function TrendRAGPage() {
   const [newTrends, setNewTrends] = useState<any[]>([]);
   const [message, setMessage] = useState('');
   const [selectedCount, setSelectedCount] = useState(10);
-  const [searchMode, setSearchMode] = useState<'auto' | 'manual'>('auto');
+  const [searchMode, setSearchMode] = useState<'auto' | 'architect' | 'manual'>('auto');
   const [manualQuery, setManualQuery] = useState('');
+  const [architectArticleType, setArchitectArticleType] = useState<'career' | 'technical' | 'freelance' | 'general'>('career');
 
   // 既存のトレンドRAGを取得
   useEffect(() => {
@@ -94,6 +95,66 @@ export default function TrendRAGPage() {
 
     } catch (error: any) {
       console.error('❌ エラー:', error);
+      setMessage(`エラー: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * 🆕 AIアーキテクト用ニュース取得（1週間以内）
+   * architect-trend-queries.ts からクエリを使用
+   */
+  const handleFetchArchitectTrends = async () => {
+    setLoading(true);
+    setMessage('');
+    setNewTrends([]);
+
+    try {
+      console.log(`🏗️ AIアーキテクトモード: ${architectArticleType}タイプのニュース取得中... (${selectedCount}件)`);
+
+      const response = await fetch('/api/brave-search/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          count: selectedCount,
+          useArchitectQueries: true, // architect-trend-queries.ts を使用
+          articleType: architectArticleType, // 記事タイプ
+          freshnessFilter: '7days' // 1週間以内に限定
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (result.news && result.news.length > 0) {
+          console.log(`🚀 自動保存開始: ${result.news.length}件のニュースをベクトル化してDBに保存中...`);
+          setMessage(`⏳ ${result.news.length}件のAIアーキテクト関連ニュースを取得しました。ベクトル化してDBに保存中...`);
+          
+          const saveResponse = await fetch('/api/admin/fetch-trends', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trends: result.news }),
+          });
+
+          const saveResult = await saveResponse.json();
+
+          if (saveResult.success) {
+            setMessage(`✅ ${result.news.length}件のAIアーキテクト関連ニュース（${architectArticleType}）を取得し、ベクトル化してDBに保存しました！`);
+            fetchExistingTrends();
+          } else {
+            setNewTrends(result.news);
+            setMessage(`⚠️ ニュースは取得できましたが、保存に失敗しました。エラー: ${saveResult.error || '不明なエラー'}`);
+          }
+        } else {
+          setMessage(`⚠️ 1週間以内のAIアーキテクト関連ニュースが見つかりませんでした。別の記事タイプを試してください。`);
+        }
+      } else {
+        setMessage(`エラー: ${result.error || 'ニュース取得に失敗しました'}`);
+      }
+
+    } catch (error: any) {
+      console.error('❌ AIアーキテクトモードエラー:', error);
       setMessage(`エラー: ${error.message}`);
     } finally {
       setLoading(false);
@@ -372,7 +433,17 @@ export default function TrendRAGPage() {
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
-              🤖 自動取得
+              📚 教育モード自動取得
+            </button>
+            <button
+              onClick={() => setSearchMode('architect')}
+              className={`px-6 py-2 rounded-lg transition-colors font-semibold ${
+                searchMode === 'architect'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              🏗️ AIアーキテクト自動取得
             </button>
             <button
               onClick={() => setSearchMode('manual')}
@@ -386,9 +457,13 @@ export default function TrendRAGPage() {
             </button>
           </div>
 
-          {/* 自動取得モード */}
+          {/* 教育モード自動取得 */}
           {searchMode === 'auto' && (
             <div>
+              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4 mb-4">
+                <h3 className="font-bold text-blue-300 mb-2">📚 教育モード自動取得</h3>
+                <p className="text-sm text-blue-200">AIツール紹介、最新技術、DX事例などの一般的なAI/テックニュースを取得します。</p>
+              </div>
               <div className="flex items-center space-x-4 mb-4">
                 <label className="text-sm text-gray-300">取得件数:</label>
                 <select
@@ -404,9 +479,9 @@ export default function TrendRAGPage() {
                 <button
                   onClick={handleFetchTrends}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+                  className="flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
                 >
-                  <span>{loading ? '取得中...' : '🚀 自動でニュース取得'}</span>
+                  <span>{loading ? '取得中...' : '📚 教育モードでニュース取得'}</span>
                 </button>
               </div>
 
@@ -415,6 +490,80 @@ export default function TrendRAGPage() {
                 <br />
                 ⏰ 24時間以内の最新ニュースのみ取得（鮮度が命）
               </p>
+            </div>
+          )}
+
+          {/* 🆕 AIアーキテクトモード自動取得 */}
+          {searchMode === 'architect' && (
+            <div>
+              <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-600/50 rounded-lg p-4 mb-4">
+                <h3 className="font-bold text-purple-300 mb-2">🏗️ AIアーキテクトモード自動取得</h3>
+                <p className="text-sm text-purple-200 mb-2">
+                  年収・キャリア・案件獲得・技術課題など、AIアーキテクト記事に必要な情報を取得します。
+                </p>
+                <p className="text-xs text-yellow-300">
+                  ⚠️ <strong>1週間以内の新鮮な情報のみ</strong>を取得します（最新の年収・単価データを確保）
+                </p>
+              </div>
+              
+              {/* 記事タイプ選択 */}
+              <div className="mb-4">
+                <label className="block text-sm text-gray-300 mb-2">📝 記事タイプを選択:</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {[
+                    { value: 'career', label: '💼 キャリア・年収', desc: '年収相場、キャリアパス' },
+                    { value: 'technical', label: '⚙️ 技術課題', desc: 'RAG実装、痛点解決' },
+                    { value: 'freelance', label: '🚀 フリーランス', desc: '案件獲得、単価交渉' },
+                    { value: 'general', label: '📊 総合', desc: 'バランス型' },
+                  ].map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setArchitectArticleType(type.value as any)}
+                      className={`p-3 rounded-lg text-left transition-all ${
+                        architectArticleType === type.value
+                          ? 'bg-purple-600 text-white ring-2 ring-purple-400'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      <div className="font-medium text-sm">{type.label}</div>
+                      <div className="text-xs opacity-70 mt-1">{type.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4 mb-4">
+                <label className="text-sm text-gray-300">取得件数:</label>
+                <select
+                  value={selectedCount}
+                  onChange={(e) => setSelectedCount(Number(e.target.value))}
+                  className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value={5}>5件</option>
+                  <option value={10}>10件</option>
+                  <option value={15}>15件</option>
+                  <option value={20}>20件</option>
+                </select>
+                <button
+                  onClick={handleFetchArchitectTrends}
+                  disabled={loading}
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+                >
+                  <span>{loading ? '取得中...' : '🏗️ AIアーキテクト用ニュース取得'}</span>
+                </button>
+              </div>
+
+              <div className="p-3 bg-gray-800/50 rounded-lg">
+                <p className="text-xs text-gray-400 mb-2">
+                  <strong>💡 取得されるクエリ例（{architectArticleType}タイプ）:</strong>
+                </p>
+                <div className="text-xs text-purple-300">
+                  {architectArticleType === 'career' && '「AIエンジニア 年収 2025」「フリーランス 単価 相場」「キャリアパス ロードマップ」'}
+                  {architectArticleType === 'technical' && '「RAG 実装 課題」「LLM ハルシネーション 対策」「ベクトル検索 精度」'}
+                  {architectArticleType === 'freelance' && '「フリーランス 案件獲得」「エージェント おすすめ」「ポートフォリオ 作り方」'}
+                  {architectArticleType === 'general' && '「AIアーキテクト」「AI人材 市場」「生成AI 将来性」'}
+                </div>
+              </div>
             </div>
           )}
 

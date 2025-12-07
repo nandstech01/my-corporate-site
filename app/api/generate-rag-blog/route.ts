@@ -42,6 +42,9 @@ interface BlogGenerationRequest {
   businessCategory: string;
   categorySlug: string;
   includeImages: boolean;
+  // 🆕 AIアーキテクト記事生成モード
+  generationMode?: 'education' | 'architect';
+  articleType?: 'career' | 'technical' | 'freelance' | 'general';
 }
 
 // 安全にコンテンツを取得するヘルパー関数
@@ -128,27 +131,41 @@ export async function POST(request: NextRequest) {
       businessCategory,
       categorySlug,
       includeImages,
-      autoFetchTrends = false // 新規: トレンドニュース自動収集フラグ
+      autoFetchTrends = false, // 新規: トレンドニュース自動収集フラグ
+      generationMode = 'education', // 🆕 デフォルトは教育モード（既存動作を維持）
+      articleType = 'general' // 🆕 記事タイプ（architectモード時に使用）
     }: BlogGenerationRequest & { autoFetchTrends?: boolean } = await request.json();
 
     console.log(`🚀 RAGブログ記事生成開始: "${query}"`);
     console.log(`📊 RAGデータ: ${ragData ? ragData.length : 0}件`);
     console.log(`📝 目標文字数: ${targetLength}文字`);
     console.log(`🔄 自動トレンド収集: ${autoFetchTrends ? '有効' : '無効'}`);
-    console.log(`📋 受信データ構造:`, { query, ragData: ragData ? 'あり' : 'なし', targetLength, businessCategory, categorySlug, autoFetchTrends });
+    console.log(`🏗️ 生成モード: ${generationMode} / 記事タイプ: ${articleType}`);
+    console.log(`📋 受信データ構造:`, { query, ragData: ragData ? 'あり' : 'なし', targetLength, businessCategory, categorySlug, autoFetchTrends, generationMode, articleType });
 
     // 🆕 自動トレンドニュース収集（既存のragDataを拡張）
     let currentRagData = ragData || [];
     
     if (autoFetchTrends) {
       console.log('\n🔍 ========================================');
-      console.log('🚀 自動トレンドニュース収集開始');
+      console.log(`🚀 自動トレンドニュース収集開始（${generationMode}モード）`);
       console.log('🔍 ========================================\n');
       
       try {
-        // blog-trend-queries.ts からランダムに5個のクエリを選択
-        const { getRandomBlogTrendQueries } = await import('@/lib/intelligent-rag/blog-trend-queries');
-        const trendQueries = getRandomBlogTrendQueries(5);
+        // 🆕 モードに応じてクエリを切り替え
+        let trendQueries: string[];
+        
+        if (generationMode === 'architect') {
+          // AIアーキテクトモード: キャリア・年収・案件系のクエリ
+          const { getArchitectQueriesByArticleType } = await import('@/lib/intelligent-rag/architect-trend-queries');
+          trendQueries = getArchitectQueriesByArticleType(articleType as 'career' | 'technical' | 'freelance' | 'general', 5);
+          console.log(`🏗️ AIアーキテクトモード: ${articleType}タイプのクエリを選択`);
+        } else {
+          // 教育モード（既存動作を維持）: 一般的なAI/テックトレンド
+          const { getRandomBlogTrendQueries } = await import('@/lib/intelligent-rag/blog-trend-queries');
+          trendQueries = getRandomBlogTrendQueries(5);
+          console.log(`📚 教育モード: 汎用トレンドクエリを選択`);
+        }
         
         console.log(`📰 選択されたトレンドクエリ（5個）:`);
         trendQueries.forEach((q, idx) => console.log(`  ${idx + 1}. "${q}"`));
@@ -267,6 +284,65 @@ URL: ${item.url || ''}
       }
     }
 
+    // 🆕 AIアーキテクトモード: Kenji Thought RAG を追加
+    let kenjiThoughtsContext = '';
+    if (generationMode === 'architect') {
+      console.log('\n🧠 ========================================');
+      console.log('🏗️ Kenji Thought RAG 検索開始');
+      console.log('🧠 ========================================\n');
+      
+      try {
+        const { getKenjiThoughtSearchQueries } = await import('@/lib/prompts/architect/architect-blog-base');
+        const kenjiQueries = getKenjiThoughtSearchQueries(articleType as 'career' | 'technical' | 'freelance' | 'general');
+        
+        console.log(`🔍 検索クエリ: ${kenjiQueries.join(', ')}`);
+        
+        // kenji_harada_architect_knowledge からベクトル検索
+        const { data: kenjiThoughts, error: kenjiError } = await supabaseServiceRole
+          .from('kenji_harada_architect_knowledge')
+          .select('thought_id, thought_title, thought_content, thought_category, priority')
+          .eq('is_active', true)
+          .order('priority', { ascending: false })
+          .limit(10);
+        
+        if (kenjiError) {
+          console.warn('⚠️ Kenji Thought RAG検索エラー:', kenjiError);
+        } else if (kenjiThoughts && kenjiThoughts.length > 0) {
+          console.log(`✅ Kenji思想データ取得: ${kenjiThoughts.length}件`);
+          
+          // 実装経験系を優先
+          const implementationThoughts = kenjiThoughts.filter(t => 
+            t.thought_category === 'implementation' || 
+            t.thought_category === 'core-innovation' ||
+            t.thought_category === 'architecture-decision' ||
+            t.thought_category === 'seo-innovation' ||
+            t.thought_id?.includes('implementation')
+          );
+          
+          const philosophyThoughts = kenjiThoughts.filter(t => 
+            t.thought_category === 'philosophy' || 
+            t.thought_id === 'mission-statement' ||
+            t.thought_id === 'ai-architect-role'
+          );
+          
+          const selectedThoughts = [...implementationThoughts.slice(0, 4), ...philosophyThoughts.slice(0, 2)];
+          
+          kenjiThoughtsContext = selectedThoughts.map(t => 
+            `【${t.thought_title}】\n${t.thought_content}`
+          ).join('\n\n---\n\n');
+          
+          console.log(`📝 プロンプトに注入する思想: ${selectedThoughts.length}件`);
+          selectedThoughts.forEach(t => console.log(`  - ${t.thought_title} (${t.thought_category})`));
+        }
+        
+        console.log('🧠 ========================================\n');
+        
+      } catch (kenjiError) {
+        console.error('❌ Kenji Thought RAGエラー:', kenjiError);
+        console.warn('⚠️ Kenji思想の取得に失敗しましたが、ブログ生成を続行します');
+      }
+    }
+
     // RAGデータの妥当性チェック
     if (!currentRagData || !Array.isArray(currentRagData) || currentRagData.length === 0) {
       throw new Error(`RAGデータが提供されていません。受信データ: ${JSON.stringify({ ragData: currentRagData || 'undefined' })}`);
@@ -359,7 +435,17 @@ ${item.categoryRelevance > 0 ? `カテゴリ関連性: ${(item.categoryRelevance
       '該当分野の専門家として、実践的で価値ある情報を詳しく解説してください。';
 
     // ブログ記事生成プロンプト
-    const prompt = `あなたは経験豊富なコンテンツライターです。以下のRAGデータを活用して、SEO最適化された高品質なブログ記事を生成してください。
+    // 🆕 モードに応じてペルソナを切り替え
+    const writerPersona = generationMode === 'architect' 
+      ? `あなたはAIアーキテクト「原田賢治」として記事を執筆します。
+- 実績: Triple RAG、Vector Link、使い捨てRAG設計を設計・実装した実務経験者
+- 哲学: 「AIが私を理解する構造を設計する」
+- トーン: 知的で専門的だが、分かりやすく実践的
+- 一人称: 「私」を使用
+- 特徴: 自分の実装経験を交えつつ、市場データに基づいた具体的な数字を提示する`
+      : 'あなたは経験豊富なコンテンツライターです。';
+
+    const prompt = `${writerPersona}以下のRAGデータを活用して、SEO最適化された高品質なブログ記事を生成してください。
 
 ## 生成指示
 - **検索クエリ**: "${query}"
@@ -371,6 +457,20 @@ ${item.categoryRelevance > 0 ? `カテゴリ関連性: ${(item.categoryRelevance
 ## RAG参考データ
 ${ragSummary}
 
+${generationMode === 'architect' && kenjiThoughtsContext ? `## 🧠 原田賢治の思想・経験（AIアーキテクトモード専用）
+以下の思想・経験を記事に自然に織り交ぜてください。「私が〜を設計した際に」「私の実装経験では」などの一人称で言及してください。
+
+${kenjiThoughtsContext}
+
+⚠️ **【絶対禁止】嘘・捏造の防止ルール** ⚠️
+- 上記の思想・経験に書かれていない具体的な数字（改善率〇%、金額〇円など）を勝手に作らないこと
+- 「クライアントの〇〇が〇%改善」など、存在しない実績を捏造しないこと
+- サービス価格（〇万円〜など）を勝手に作らないこと
+- 年収交渉や営業経験など、上記に書かれていない経験を捏造しないこと
+- 数字が必要な場合は「一般的には〜と言われている」「業界平均では〜」などRAGデータからの引用に留めること
+- 私（原田）の経験として書けるのは、上記の思想・経験に明記されている内容のみ
+
+` : ''}
 ## カテゴリ特化要件
 特に「${categorySlug}」分野に特化した内容として、以下を重視してください：
 ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、')}` : ''}
@@ -427,6 +527,14 @@ ${categoryWords.length > 0 ? `- 関連キーワード: ${categoryWords.join('、
 - 見出しタイトルは読者とAI検索エンジンの両方にとって有益で具体的な内容であること
 - 良い例: ## Google AIの最新機能と活用方法 {#main-topic-1}
 - 悪い例: ## メイントピック1：基礎・概念理解 {#main-topic-1}
+
+🎲 **【重要】記事バリエーション・独自性ルール** 🎲
+- 毎回同じ構成・同じ切り口にならないよう、以下のいずれかを意識して変化をつけること：
+  ① 切り口を変える（課題→解決策、時系列、比較、ランキング、ケーススタディなど）
+  ② 導入部を変える（質問から始める、驚きの事実から、読者の悩みから、統計データからなど）
+  ③ セクション順序を変える（結論ファーストか、ストーリー型か、問題提起型かなど）
+  ④ FAQ質問を新鮮にする（毎回異なる視点・読者層を想定した質問にする）
+- 検索キーワードが同じでも、見出しのワーディングや構成を変えて独自性を出すこと
 
 記事構造テンプレート:
 ## はじめに {#introduction}

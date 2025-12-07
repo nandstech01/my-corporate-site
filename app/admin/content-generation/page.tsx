@@ -231,6 +231,9 @@ interface BlogGenerationForm {
   includeImages: boolean;
   dateFilter: 'all' | '7days' | '30days' | '90days';
   latestNewsMode: boolean;
+  // 🆕 AIアーキテクト記事生成モード
+  generationMode: 'education' | 'architect';
+  articleType: 'career' | 'technical' | 'freelance' | 'general';
 }
 
 export default function ContentGenerationPage() {
@@ -258,7 +261,10 @@ export default function ContentGenerationPage() {
     categorySlug: '',
     includeImages: true,
     dateFilter: 'all',
-    latestNewsMode: false
+    latestNewsMode: false,
+    // 🆕 デフォルトは教育モード（既存動作を維持）
+    generationMode: 'education',
+    articleType: 'general'
   });
   const [ragSearchLoading, setRagSearchLoading] = useState(false);
   const [blogGenerationLoading, setBlogGenerationLoading] = useState(false);
@@ -344,15 +350,22 @@ export default function ContentGenerationPage() {
         'Digital Transformation', 'Cloud Computing', 'Data Science', 'Reskilling',
         'API Development', 'Chatbot Development', 'SEO Optimization', 'Social Media Automation',
         'Video Generation', 'Vector Search', 'System Development', 'Web Development',
-        'AI Education', 'Programming Training', 'Innovation'
+        'AI Education', 'Programming Training', 'Innovation',
+        // AI Architect keywords
+        'AI Engineer Salary', 'Freelance AI Projects', 'RAG Implementation', 'LLM Development',
+        'AI Career Path', 'Prompt Engineering', 'AI Side Hustle', 'High-Paying AI Jobs'
       ];
     } else {
       return [
-        'AI技術', '機械学習', 'ChatGPT', 'AIエージェント', 'ディープラーニング',
-        'デジタル変革', 'クラウドコンピューティング', 'データサイエンス', 'リスキリング',
-        'API開発', 'チャットボット開発', 'SEO対策', 'SNS自動化',
-        '動画生成', 'ベクトル検索', 'システム開発', 'Web開発',
-        'AI教育', 'プログラミング研修', 'イノベーション'
+        // SEO keywords (high search volume)
+        'AIエンジニア年収', 'フリーランス案件', 'AI副業', '高単価案件',
+        'ChatGPT活用法', 'RAG実装', 'プロンプトエンジニアリング', 'LLM活用',
+        'AIアーキテクト', 'AI転職', '未経験からAIエンジニア', 'AI資格',
+        // Education keywords
+        'AI技術', '機械学習', 'ディープラーニング', 'データサイエンス',
+        'AIエージェント', 'ベクトル検索', 'AI教育', 'プログラミング研修',
+        // Business keywords
+        'デジタル変革', 'DX推進', 'AI導入', 'システム開発', 'Web開発'
       ];
     }
   };
@@ -510,7 +523,10 @@ export default function ContentGenerationPage() {
           targetLength: blogGenerationForm.targetLength,
           businessCategory: blogGenerationForm.businessCategory,
           categorySlug: blogGenerationForm.categorySlug,
-          includeImages: blogGenerationForm.includeImages
+          includeImages: blogGenerationForm.includeImages,
+          // 🆕 AIアーキテクトモード対応
+          generationMode: blogGenerationForm.generationMode,
+          articleType: blogGenerationForm.articleType
         })
       });
 
@@ -986,10 +1002,129 @@ export default function ContentGenerationPage() {
                 </div>
               </div>
 
+              {/* 🆕 生成モードの選択 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <span className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-bold text-white">4</span>
+                  <span>生成モードの選択 <span className="ml-2 px-2 py-0.5 bg-purple-600 text-xs rounded-full">NEW</span></span>
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* 教育・情報提供モード */}
+                  <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 border border-blue-600/50 rounded-lg p-5">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-2xl">📚</span>
+                      <span>教育・情報提供モード</span>
+                    </h4>
+                    <p className="text-blue-200 text-sm mb-4">
+                      AIツール紹介、使い方ガイド、トレンド解説など、一般向けの教育コンテンツを生成します。
+                    </p>
+                    <div className="space-y-2 text-sm text-gray-300">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-blue-400 mt-0.5">✓</span>
+                        <span>AIツール・サービスの紹介記事</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-blue-400 mt-0.5">✓</span>
+                        <span>使い方ガイド・チュートリアル</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-blue-400 mt-0.5">✓</span>
+                        <span>最新トレンド解説</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
+                      <div className="text-xs text-gray-400">
+                        <strong>データソース:</strong> Brave Search（汎用AI/テッククエリ）+ Company RAG
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* AIアーキテクトモード */}
+                  <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/50 border border-purple-600/50 rounded-lg p-5">
+                    <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                      <span className="text-2xl">🏗️</span>
+                      <span>AIアーキテクトモード</span>
+                    </h4>
+                    <p className="text-purple-200 text-sm mb-4">
+                      キャリア・年収・案件獲得など、生徒の将来像を示すコンテンツを生成します。
+                    </p>
+                    <div className="space-y-2 text-sm text-gray-300">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-purple-400 mt-0.5">✓</span>
+                        <span>AIエンジニア/アーキテクトの年収情報</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-purple-400 mt-0.5">✓</span>
+                        <span>キャリアパス・学習ロードマップ</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-purple-400 mt-0.5">✓</span>
+                        <span>フリーランス案件獲得術</span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-purple-400 mt-0.5">✓</span>
+                        <span>技術的課題（RAG実装等）の解決策</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
+                      <div className="text-xs text-gray-400">
+                        <strong>データソース:</strong> Brave Search（キャリア・年収クエリ）+ Company RAG + <span className="text-purple-400 font-bold">Kenji Thought RAG</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* AIアーキテクトモードの記事タイプ説明 */}
+                <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-4">
+                  <h4 className="font-medium text-purple-300 mb-3">🎯 AIアーキテクトモードの記事タイプ</h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="font-medium text-white text-sm mb-1">💼 キャリア・年収</div>
+                      <div className="text-xs text-gray-400">年収相場、キャリアパス、転職情報</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="font-medium text-white text-sm mb-1">⚙️ 技術課題</div>
+                      <div className="text-xs text-gray-400">RAG実装、LLM課題、痛点解決</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="font-medium text-white text-sm mb-1">🚀 フリーランス</div>
+                      <div className="text-xs text-gray-400">案件獲得、単価交渉、独立術</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <div className="font-medium text-white text-sm mb-1">📊 総合</div>
+                      <div className="text-xs text-gray-400">バランス型、複合テーマ</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Kenji Thought RAGの説明 */}
+                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-600/30 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <span className="text-2xl">🧠</span>
+                    <div>
+                      <h4 className="font-medium text-indigo-300 mb-1">Kenji Thought RAG とは？</h4>
+                      <p className="text-sm text-gray-300 mb-2">
+                        原田賢治の実装経験・思想をベクトル化したRAGシステムです。AIアーキテクトモードでは、この経験を記事に自然に織り交ぜます。
+                      </p>
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <div>• Triple RAG設計・実装経験</div>
+                        <div>• Vector Link（ベクトルリンク）設計・実装経験</div>
+                        <div>• 使い捨てRAG設計（著作権対策）</div>
+                        <div>• AI検索最適化（AIO）実装経験</div>
+                      </div>
+                      <p className="text-xs text-indigo-400 mt-2">
+                        ※「私がTriple RAGを設計した際に...」などの一人称で実装経験が記事に反映されます
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* 高度な設定 */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                  <span className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm font-bold text-white">4</span>
+                  <span className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-sm font-bold text-white">5</span>
                   <span>高度な設定</span>
                 </h3>
                 
@@ -1028,26 +1163,55 @@ export default function ContentGenerationPage() {
                   <li>• 文字数制限は実際に機能しており、指定した文字数程度で記事が生成されます</li>
                   <li>• 生成された記事は自動的にRAGシステムに追加され、今後の記事生成で参照可能になります</li>
                   <li>• カテゴリ関連性システムにより、選択したカテゴリに最適化された記事が生成されます</li>
+                  <li>• <span className="text-purple-300">【AIアーキテクトモード】</span> 年収・単価情報はBrave検索でリアルタイム取得するため、常に最新データが反映されます</li>
+                  <li>• <span className="text-purple-300">【AIアーキテクトモード】</span> Kenji Thought RAGは実際の実装経験のみ使用。嘘や誇張は含まれません</li>
                 </ul>
               </div>
 
               {/* 使用例 */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                  <span className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white">5</span>
+                  <span className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white">6</span>
                   <span>実際の使用例</span>
                 </h3>
                 
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h4 className="font-medium text-white mb-2">例: 「AI エージェント 最新技術」記事の生成</h4>
-                  <div className="text-sm text-gray-300 space-y-2">
-                    <div><strong>手順1:</strong> 検索クエリに「AI エージェント 最新技術」を入力</div>
-                    <div><strong>手順2:</strong> Company RAG + Trend RAG を選択</div>
-                    <div><strong>手順3:</strong> 最新ニュースモードを ON、日付フィルタを 7days に設定</div>
-                    <div><strong>手順4:</strong> 目標文字数を 6,000文字 に設定</div>
-                                         <div><strong>手順5:</strong> 事業カテゴリを「リスキリング」、記事カテゴリを「AIニュース・トレンド」に設定</div>
-                    <div><strong>手順6:</strong> 「RAGデータ検索」をクリック</div>
-                    <div><strong>手順7:</strong> 検索結果を確認後、「記事生成」をクリック</div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* 教育モードの使用例 */}
+                  <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-300 mb-3 flex items-center space-x-2">
+                      <span>📚</span>
+                      <span>教育モード例: 「ChatGPT 最新機能 使い方」</span>
+                    </h4>
+                    <div className="text-sm text-gray-300 space-y-2">
+                      <div><strong>手順1:</strong> 生成モードで「📚 教育・情報提供」を選択</div>
+                      <div><strong>手順2:</strong> 検索クエリに「ChatGPT 最新機能 使い方」を入力</div>
+                      <div><strong>手順3:</strong> Company RAG + Trend RAG を選択</div>
+                      <div><strong>手順4:</strong> 最新ニュースモードを ON に設定</div>
+                      <div><strong>手順5:</strong> 事業カテゴリ・記事カテゴリを設定</div>
+                      <div><strong>手順6:</strong> 「記事生成を開始」をクリック</div>
+                    </div>
+                    <div className="mt-3 text-xs text-blue-400">
+                      → 一般向けのツール紹介・使い方ガイド記事が生成されます
+                    </div>
+                  </div>
+                  
+                  {/* AIアーキテクトモードの使用例 */}
+                  <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-4">
+                    <h4 className="font-medium text-purple-300 mb-3 flex items-center space-x-2">
+                      <span>🏗️</span>
+                      <span>AIアーキテクトモード例: 「AIエンジニアの年収」</span>
+                    </h4>
+                    <div className="text-sm text-gray-300 space-y-2">
+                      <div><strong>手順1:</strong> 生成モードで「🏗️ AIアーキテクト」を選択</div>
+                      <div><strong>手順2:</strong> 記事タイプで「💼 キャリア・年収」を選択</div>
+                      <div><strong>手順3:</strong> 検索クエリに「AIエンジニア 年収 キャリアパス」を入力</div>
+                      <div><strong>手順4:</strong> Company RAG を選択</div>
+                      <div><strong>手順5:</strong> 事業カテゴリを「副業支援」、記事カテゴリを「転職・キャリア」に設定</div>
+                      <div><strong>手順6:</strong> 「記事生成を開始」をクリック</div>
+                    </div>
+                    <div className="mt-3 text-xs text-purple-400">
+                      → 年収相場（Brave検索）+ 実装経験（Kenji思想）を織り交ぜた記事が生成されます
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1077,6 +1241,96 @@ export default function ContentGenerationPage() {
           
           {showRAGBlogGeneration && (
             <div className="p-6 space-y-6">
+              
+              {/* 🆕 生成モード切り替えタブ */}
+              <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>🎯</span>
+                    生成モード選択
+                  </h3>
+                </div>
+                
+                {/* モード切り替えタブ */}
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setBlogGenerationForm(prev => ({ ...prev, generationMode: 'education', articleType: 'general' }))}
+                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
+                      blogGenerationForm.generationMode === 'education'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xl">📚</span>
+                      <div className="text-left">
+                        <div className="font-bold">教育・情報提供</div>
+                        <div className="text-xs opacity-80">AIツール紹介、使い方ガイド、トレンド解説</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setBlogGenerationForm(prev => ({ ...prev, generationMode: 'architect', articleType: 'career' }))}
+                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
+                      blogGenerationForm.generationMode === 'architect'
+                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xl">🏗️</span>
+                      <div className="text-left">
+                        <div className="font-bold">AIアーキテクト</div>
+                        <div className="text-xs opacity-80">キャリア記事、年収情報、案件獲得術</div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+                
+                {/* AIアーキテクトモード時の記事タイプ選択 */}
+                {blogGenerationForm.generationMode === 'architect' && (
+                  <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-purple-300 mb-3">📝 記事タイプを選択</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {[
+                        { value: 'career', label: '💼 キャリア・年収', desc: '年収相場、キャリアパス' },
+                        { value: 'technical', label: '⚙️ 技術課題', desc: 'RAG実装、痛点解決' },
+                        { value: 'freelance', label: '🚀 フリーランス', desc: '案件獲得、単価交渉' },
+                        { value: 'general', label: '📊 総合', desc: 'バランス型記事' },
+                      ].map((type) => (
+                        <button
+                          key={type.value}
+                          onClick={() => setBlogGenerationForm(prev => ({ ...prev, articleType: type.value as any }))}
+                          className={`p-3 rounded-lg text-left transition-all ${
+                            blogGenerationForm.articleType === type.value
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          <div className="font-medium text-sm">{type.label}</div>
+                          <div className="text-xs opacity-70 mt-1">{type.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
+                      <div className="text-xs text-purple-200">
+                        <span className="font-bold">🧠 Kenji Thought RAG 統合:</span> 原田賢治の実装経験（Triple RAG、Vector Link、使い捨てRAG設計）を記事に自然に織り交ぜます。
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 教育モードの説明 */}
+                {blogGenerationForm.generationMode === 'education' && (
+                  <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+                    <div className="text-xs text-blue-200">
+                      <span className="font-bold">📚 教育モード:</span> 従来通りのAIツール紹介、使い方ガイド、トレンド解説記事を生成します。一般的なAI/テック系クエリでBrave Searchを行います。
+                    </div>
+                  </div>
+                )}
+              </div>
               
               {/* 🧠 智的RAG最適化セクション（新機能） */}
               <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-700/50 rounded-xl p-6">
