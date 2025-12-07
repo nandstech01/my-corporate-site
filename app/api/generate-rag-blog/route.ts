@@ -284,63 +284,79 @@ URL: ${item.url || ''}
       }
     }
 
-    // 🆕 AIアーキテクトモード: Kenji Thought RAG を追加
+    // 🆕 E-E-A-T「Experience」強化: 全モードで運用事例を取得
     let kenjiThoughtsContext = '';
-    if (generationMode === 'architect') {
-      console.log('\n🧠 ========================================');
-      console.log('🏗️ Kenji Thought RAG 検索開始');
-      console.log('🧠 ========================================\n');
+    let siteExperienceContext = ''; // 教育モード用：当サイトの運用事例
+    
+    console.log('\n🧠 ========================================');
+    console.log('🏗️ 運用事例・思想RAG検索開始（E-E-A-T Experience強化）');
+    console.log(`📝 モード: ${generationMode === 'architect' ? 'AIアーキテクト' : '教育・情報提供'}`);
+    console.log('🧠 ========================================\n');
+    
+    try {
+      // kenji_harada_architect_knowledge からデータ取得
+      const { data: kenjiThoughts, error: kenjiError } = await supabaseServiceRole
+        .from('kenji_harada_architect_knowledge')
+        .select('thought_id, thought_title, thought_content, thought_category, priority')
+        .eq('is_active', true)
+        .order('priority', { ascending: false })
+        .limit(15);
       
-      try {
-        const { getKenjiThoughtSearchQueries } = await import('@/lib/prompts/architect/architect-blog-base');
-        const kenjiQueries = getKenjiThoughtSearchQueries(articleType as 'career' | 'technical' | 'freelance' | 'general');
+      if (kenjiError) {
+        console.warn('⚠️ 運用事例RAG検索エラー:', kenjiError);
+      } else if (kenjiThoughts && kenjiThoughts.length > 0) {
+        console.log(`✅ 運用事例・思想データ取得: ${kenjiThoughts.length}件`);
         
-        console.log(`🔍 検索クエリ: ${kenjiQueries.join(', ')}`);
+        // 実装経験系（E-E-A-T Experience用）
+        const implementationThoughts = kenjiThoughts.filter(t => 
+          t.thought_category === 'implementation' || 
+          t.thought_category === 'core-innovation' ||
+          t.thought_category === 'architecture-decision' ||
+          t.thought_category === 'seo-innovation' ||
+          t.thought_category === 'automation' ||
+          t.thought_id?.includes('implementation') ||
+          t.thought_id?.includes('impl')
+        );
         
-        // kenji_harada_architect_knowledge からベクトル検索
-        const { data: kenjiThoughts, error: kenjiError } = await supabaseServiceRole
-          .from('kenji_harada_architect_knowledge')
-          .select('thought_id, thought_title, thought_content, thought_category, priority')
-          .eq('is_active', true)
-          .order('priority', { ascending: false })
-          .limit(10);
+        // 哲学・ブランディング系
+        const philosophyThoughts = kenjiThoughts.filter(t => 
+          t.thought_category === 'philosophy' || 
+          t.thought_id === 'mission-statement' ||
+          t.thought_id === 'ai-architect-role'
+        );
         
-        if (kenjiError) {
-          console.warn('⚠️ Kenji Thought RAG検索エラー:', kenjiError);
-        } else if (kenjiThoughts && kenjiThoughts.length > 0) {
-          console.log(`✅ Kenji思想データ取得: ${kenjiThoughts.length}件`);
-          
-          // 実装経験系を優先
-          const implementationThoughts = kenjiThoughts.filter(t => 
-            t.thought_category === 'implementation' || 
-            t.thought_category === 'core-innovation' ||
-            t.thought_category === 'architecture-decision' ||
-            t.thought_category === 'seo-innovation' ||
-            t.thought_id?.includes('implementation')
-          );
-          
-          const philosophyThoughts = kenjiThoughts.filter(t => 
-            t.thought_category === 'philosophy' || 
-            t.thought_id === 'mission-statement' ||
-            t.thought_id === 'ai-architect-role'
-          );
-          
+        if (generationMode === 'architect') {
+          // AIアーキテクトモード: 従来通り詳細な思想を注入
           const selectedThoughts = [...implementationThoughts.slice(0, 4), ...philosophyThoughts.slice(0, 2)];
           
           kenjiThoughtsContext = selectedThoughts.map(t => 
             `【${t.thought_title}】\n${t.thought_content}`
           ).join('\n\n---\n\n');
           
-          console.log(`📝 プロンプトに注入する思想: ${selectedThoughts.length}件`);
+          console.log(`📝 AIアーキテクトモード - プロンプトに注入する思想: ${selectedThoughts.length}件`);
           selectedThoughts.forEach(t => console.log(`  - ${t.thought_title} (${t.thought_category})`));
+        } else {
+          // 教育モード: E-E-A-T Experience強化のため、ランダムに1-2件の運用事例を選択
+          const shuffled = [...implementationThoughts].sort(() => Math.random() - 0.5);
+          const selectedExperiences = shuffled.slice(0, 2);
+          
+          if (selectedExperiences.length > 0) {
+            siteExperienceContext = selectedExperiences.map(t => {
+              // 運用事例を「当サイトでの事例」形式に変換
+              return `【当サイト運用事例: ${t.thought_title}】\n${t.thought_content}`;
+            }).join('\n\n');
+            
+            console.log(`📝 教育モード - E-E-A-T Experience用運用事例: ${selectedExperiences.length}件`);
+            selectedExperiences.forEach(t => console.log(`  - ${t.thought_title} (${t.thought_category})`));
+          }
         }
-        
-        console.log('🧠 ========================================\n');
-        
-      } catch (kenjiError) {
-        console.error('❌ Kenji Thought RAGエラー:', kenjiError);
-        console.warn('⚠️ Kenji思想の取得に失敗しましたが、ブログ生成を続行します');
       }
+      
+      console.log('🧠 ========================================\n');
+      
+    } catch (kenjiError) {
+      console.error('❌ 運用事例RAGエラー:', kenjiError);
+      console.warn('⚠️ 運用事例の取得に失敗しましたが、ブログ生成を続行します');
     }
 
     // RAGデータの妥当性チェック
@@ -469,6 +485,24 @@ ${kenjiThoughtsContext}
 - 年収交渉や営業経験など、上記に書かれていない経験を捏造しないこと
 - 数字が必要な場合は「一般的には〜と言われている」「業界平均では〜」などRAGデータからの引用に留めること
 - 私（原田）の経験として書けるのは、上記の思想・経験に明記されている内容のみ
+
+` : ''}${generationMode !== 'architect' && siteExperienceContext ? `## 🌟 E-E-A-T「Experience（経験）」強化 - 当サイト独自の運用事例
+Googleの品質評価ガイドライン「E-E-A-T」の「Experience（経験）」を強化するため、以下の当サイト独自の運用事例を**記事内に1〜2回**自然に織り込んでください。
+
+【重要】織り込み方のルール:
+- 「当サイトで実際に稼働させているシステムでは〜」「筆者が運用しているサイトでは〜」などの形式で言及
+- 二次情報のまとめだけでなく、一次体験の「匂い」を出す
+- 記事の流れに自然に溶け込ませる（不自然な挿入はNG）
+- 毎回同じ文章にならないよう、言い回しを変える
+
+【当サイト運用事例データ】
+${siteExperienceContext}
+
+⚠️ **【絶対禁止】嘘・捏造の防止ルール** ⚠️
+- 上記の運用事例に書かれていない具体的な数字は作らない
+- 「〇%改善」「〇円削減」など、存在しない実績を捏造しない
+- 事例として言及できるのは、上記に明記されている内容のみ
+- 上記にない経験や実績は絶対に追加しない
 
 ` : ''}
 ## カテゴリ特化要件
