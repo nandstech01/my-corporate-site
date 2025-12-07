@@ -392,16 +392,27 @@ async function generateYouTubeScript(
   }
   
   // 📰 トレンドニュースの取得（Yahoo! News RSSでリアルタイム）
-  console.log('\n📰 ========================================');
-  console.log(`🚀 トレンドニュース取得開始（${scriptType}動画）`);
-  console.log(`  方法: ${scriptType === 'short' ? 'Yahoo! News RSS（リアルタイム）' : 'トレンドRAGテーブル'}`);
-  console.log('📰 ========================================\n');
-
+  // 🏗️ AIアーキテクトモードではトレンドニュースをスキップ（記事内容に集中）
   let trendContext = '';
   let newsCategory: YahooNewsCategory = 'IT'; // 🆕 デフォルトはIT
 
+  if (scriptMode === 'architect') {
+    // 🏗️ AIアーキテクトモード: トレンドニュースは取得しない
+    console.log('\n🏗️ ========================================');
+    console.log('🏗️ AIアーキテクトモード: トレンドニュース取得をスキップ');
+    console.log('   → 記事の「仕組み・設計」に集中します');
+    console.log('   → 「えっ→なぜ？→なるほど」構成で台本生成');
+    console.log('🏗️ ========================================\n');
+  } else {
+    console.log('\n📰 ========================================');
+    console.log(`🚀 トレンドニュース取得開始（${scriptType}動画）`);
+    console.log(`  方法: ${scriptType === 'short' ? 'Yahoo! News RSS（リアルタイム）' : 'トレンドRAGテーブル'}`);
+    console.log('📰 ========================================\n');
+  }
+
       // 🆕 ショート動画の場合はYahoo! News RSSでリアルタイムニュース取得
-      if (scriptType === 'short') {
+      // 🏗️ AIアーキテクトモードではスキップ
+      if (scriptType === 'short' && scriptMode !== 'architect') {
         try {
           console.log('🔍 Yahoo! News RSSでリアルタイムニュースを取得中...');
           
@@ -815,9 +826,77 @@ Kenjiさんの言葉: ${catalyst.your_voice_paraphrase}
       // トレンド + Kenji思想をenhancedContentに追加
       let finalContent = enhancedContent;
       
-      // 1. トレンドRAGを追加（ショート動画のみ最優先）
-      if (trendContext && scriptType === 'short') {
+      // 🏗️ AIアーキテクトモードでは「えっ→なぜ？→なるほど」構成に集中
+      if (scriptMode === 'architect' && scriptType === 'short') {
+        // AIアーキテクト専用のコンテキストを追加
         finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏗️【AIアーキテクトモード】「えっ→なぜ？→なるほど」構成
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【最重要指示】記事の「仕組み・設計」に集中して台本生成
+
+1. **Hook（えっ）: 驚きの予測・数字・事実で引き込む**
+   - 「2026年、人間が情報を流す時代は終わります」
+   - 「AIエンジニア年収1000万超えは、もう珍しくありません」
+   - 「この仕組み、作れるって知ってました？」
+   - 記事の核心を「衝撃的な一言」に凝縮
+
+2. **Bridge（なぜ？）: 仕組みを簡潔に説明**
+   - 「これは、あなたが寝てる間に動いている仕組みの話です」
+   - 「世界中のニュース、YouTube、SNS...全部、自動で集めて、AIが読める形に整理するエンジンです」
+   - 技術の詳細は省略、「何ができるか」に集中
+   - 小学生でもわかる言葉で説明
+
+3. **Payoff（なるほど）: 価値と行動喚起**
+   - 「こういう仕組み、作れるって知ってました？」
+   - 「詳しい資料、プロフィールからチェックしてください」
+   - 視聴者の「自分もできるかも」という気持ちを引き出す
+
+【禁止事項】
+❌ トレンドニュースの引用（AIアーキテクトモードでは使用しない）
+❌ 専門用語の羅列（RAG、ベクトル、エンベディングなど）
+❌ 長い説明文
+❌ 「続きはブログで」という直接的な誘導
+
+【推奨事項】
+✅ 数字・年号を使った具体的な予測
+✅ 「えっ？」と思わせる一言
+✅ 「なるほど」と納得させる仕組みの説明
+✅ 「自分もできるかも」と思わせるCTA
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+        // Kenji思想を追加（AIアーキテクトモード専用の使い方）
+        if (kenjiThoughtsContext) {
+          finalContent = `${finalContent}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠【補助】Kenji Harada 実装経験・哲学
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【AIアーキテクトモードでの使い方】
+1. **実装経験を「具体例」として活用**
+   - 「私が実際に作った仕組みでは...」
+   - 「このプロジェクトで学んだのは...」
+
+2. **哲学を「一言の締め」として活用**
+   - 「つまり、AIは○○なんです」
+   - 「だから、○○が大事なんですね」
+
+3. **嘘をつかない**
+   - 具体的な数字（年収、プロジェクト金額）は市場データに基づく
+   - 自分の経験は「このプロジェクト」の実装経験のみ
+
+${kenjiThoughtsContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+        }
+      } else {
+        // 通常モード: トレンドRAGを追加（ショート動画のみ最優先）
+        if (trendContext && scriptType === 'short') {
+          finalContent = `${finalContent}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧭【必須】今日のトレンドニュース（AI的再解釈）
@@ -847,11 +926,11 @@ Kenjiさんの言葉: ${catalyst.your_voice_paraphrase}
 ${trendContext}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-      }
-      
-      // 2. Kenji思想を追加
-      if (kenjiThoughtsContext) {
-        finalContent = `${finalContent}
+        }
+        
+        // 2. Kenji思想を追加（通常モード）
+        if (kenjiThoughtsContext) {
+          finalContent = `${finalContent}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧠【補助】Kenji Harada 思想 + わかりやすい比喩
@@ -872,10 +951,11 @@ ${trendContext}
 ${kenjiThoughtsContext}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+        }
       }
 
-  // 🆕 matchingPatternに応じた指示を追加（ショート動画のみ）
-  if (scriptType === 'short' && matchingPattern === 'news-only') {
+  // 🆕 matchingPatternに応じた指示を追加（ショート動画のみ、通常モードのみ）
+  if (scriptType === 'short' && scriptMode !== 'architect' && matchingPattern === 'news-only') {
     finalContent = `${finalContent}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -904,7 +984,7 @@ ${kenjiThoughtsContext}
    - 哲学的な一言で締める
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-  } else if (scriptType === 'short' && matchingPattern !== 'news-only') {
+  } else if (scriptType === 'short' && scriptMode !== 'architect' && matchingPattern !== 'news-only') {
     finalContent = `${finalContent}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
