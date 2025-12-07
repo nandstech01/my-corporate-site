@@ -41,9 +41,9 @@ const DmNandsPage: React.FC = () => {
             ].map((text, index) => (
               <div 
                 key={index}
-                className="flex items-center justify-start px-4 py-3 border-2 border-cyan-200/60 rounded-lg hover:border-cyan-400 hover:bg-cyan-50/30 transition-all duration-200"
+                className="flex items-center justify-start px-4 py-2 border-2 border-cyan-200/60 rounded-lg hover:border-cyan-400 hover:bg-cyan-50/30 transition-all duration-200"
               >
-                <p className="text-[15px] xs:text-base sm:text-lg md:text-xl text-white font-bold tracking-tight text-left whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ 
+                <p className="text-[16px] xs:text-[17px] sm:text-xl md:text-2xl text-white font-bold tracking-tight text-left whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ 
                   textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000'
                 }}>
                   {text}

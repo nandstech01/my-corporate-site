@@ -5,6 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import MarkdownContent from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
+// 🆕 YouTubeショート動画スライダー
+import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
 
 // 関連情報抽出関数
 interface RelatedInfoLink {
@@ -335,9 +337,13 @@ export default async function PostPage({ params }: PageProps) {
     notFound()
   }
   
-  // 🎬 YouTube動画情報を取得（中尺優先、なければショート）
-  let youtubeScript: YouTubeScriptInfo | null = null
-  let youtubeAIOptimizedSchema: any = null // 🆕 4大AI検索エンジン最適化Schema
+  // 🎬 YouTube動画情報を取得（中尺動画 + ショート動画スライダー）
+  let youtubeScript: YouTubeScriptInfo | null = null  // 中尺動画（サムネの代わり）
+  let youtubeAIOptimizedSchema: any = null // 中尺動画の4大AI検索エンジン最適化Schema
+  
+  // 🆕 ショート動画スライダー用
+  let youtubeShortVideos: YouTubeShortVideo[] = []
+  let youtubeShortSchemas: any[] = []
   
   // ★ 記事IDで関連する全てのYouTube台本を取得
   if (post.id) {
@@ -350,97 +356,260 @@ export default async function PostPage({ params }: PageProps) {
         .eq('status', 'published')
       
       if (allScripts && !error && allScripts.length > 0) {
-        // ★ 中尺を優先、なければショート
-        const mediumScript = allScripts.find((s: any) => s.content_type === 'youtube-medium')
-        const shortScript = allScripts.find((s: any) => s.content_type === 'youtube-short')
-        const data = mediumScript || shortScript
+        // ★ 中尺動画とショート動画を分離
+        const mediumScript = allScripts.find((s: any) => s.content_type === 'youtube-medium' && s.youtube_video_id)
+        const shortScripts = allScripts.filter((s: any) => s.content_type === 'youtube-short' && s.youtube_video_id)
         
-        console.log('📊 YouTube動画優先順位:', {
-          medium: mediumScript ? 'あり（表示）' : 'なし',
-          short: shortScript ? 'あり' : 'なし',
-          selected: data?.content_type
+        console.log('📊 YouTube動画取得結果:', {
+          medium: mediumScript ? `あり（ID: ${mediumScript.youtube_video_id}）` : 'なし',
+          shorts: shortScripts.length > 0 ? `${shortScripts.length}件` : 'なし'
         })
         
-        if (data) {
-          // 🆕 表示用の基本情報
+        // 🎬 中尺動画の処理（既存ロジック維持）
+        if (mediumScript) {
           youtubeScript = {
-          id: data.id,
-          youtube_video_id: data.youtube_video_id,
-          youtube_url: data.youtube_url,
-          script_title: data.script_title,
-          script_hook: data.script_hook,
-          thumbnail_url: data.thumbnail_url,
-          embed_url: data.embed_url,
-          status: data.status,
-          fragment_id: data.fragment_id,  // 🆕 Fragment ID
-          complete_uri: data.complete_uri  // 🆕 Complete URI
-        } as YouTubeScriptInfo
-        
-        console.log('✅ YouTube動画情報取得成功:', youtubeScript.script_title)
-        
-        // 🆕 4大AI検索エンジン最適化Schema生成
-        try {
-          const shortInfo: YouTubeShortInfo = {
-            videoId: data.youtube_video_id || '',
-            title: data.script_title || '',
-            description: data.description || data.content || '',
-            publishedAt: data.published_at || data.created_at,
-            thumbnailUrl: data.thumbnail_url || '',
-            duration: `PT${data.script_duration_seconds || 30}S`,
-            durationSeconds: data.script_duration_seconds || 30,
-            viewCount: data.view_count || 0,
-            likeCount: data.like_count || 0,
-            commentCount: data.comment_count || 0,
-            tags: data.tags || [],
-            videoUrl: data.youtube_url,
-            embedUrl: data.embed_url || `https://www.youtube.com/embed/${data.youtube_video_id}`,
-            shortUrl: data.youtube_url,
-            contentForEmbedding: data.content_for_embedding || data.content || ''
+            id: mediumScript.id,
+            youtube_video_id: mediumScript.youtube_video_id,
+            youtube_url: mediumScript.youtube_url,
+            script_title: mediumScript.script_title,
+            script_hook: mediumScript.script_hook,
+            thumbnail_url: mediumScript.thumbnail_url,
+            embed_url: mediumScript.embed_url,
+            status: mediumScript.status,
+            fragment_id: mediumScript.fragment_id,
+            complete_uri: mediumScript.complete_uri
+          } as YouTubeScriptInfo
+          
+          console.log('✅ 中尺動画情報取得成功:', youtubeScript.script_title)
+          
+          // 中尺動画の4大AI検索エンジン最適化Schema生成
+          try {
+            const shortInfo: YouTubeShortInfo = {
+              videoId: mediumScript.youtube_video_id || '',
+              title: mediumScript.script_title || '',
+              description: mediumScript.description || mediumScript.content || '',
+              publishedAt: mediumScript.published_at || mediumScript.created_at,
+              thumbnailUrl: mediumScript.thumbnail_url || '',
+              duration: `PT${mediumScript.script_duration_seconds || 130}S`,
+              durationSeconds: mediumScript.script_duration_seconds || 130,
+              viewCount: mediumScript.view_count || 0,
+              likeCount: mediumScript.like_count || 0,
+              commentCount: mediumScript.comment_count || 0,
+              tags: mediumScript.tags || [],
+              videoUrl: mediumScript.youtube_url,
+              embedUrl: mediumScript.embed_url || `https://www.youtube.com/embed/${mediumScript.youtube_video_id}`,
+              shortUrl: mediumScript.youtube_url,
+              contentForEmbedding: mediumScript.content_for_embedding || mediumScript.content || ''
+            }
+            
+            const entity: YouTubeShortEntity = {
+              fragmentId: mediumScript.fragment_id || '',
+              completeUri: mediumScript.complete_uri || '',
+              videoId: mediumScript.youtube_video_id || '',
+              title: mediumScript.script_title || '',
+              description: mediumScript.description || mediumScript.content || '',
+              category: mediumScript.category || 'ai-technology',
+              tags: mediumScript.tags || [],
+              targetQueries: mediumScript.target_queries || [],
+              relatedEntities: mediumScript.related_entities || [],
+              relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
+              relatedBlogPostSlug: params.slug,
+              relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
+              viralityScore: mediumScript.virality_score,
+              targetEmotion: mediumScript.target_emotion,
+              hookType: mediumScript.hook_type
+            }
+            
+            console.log('🔗 中尺動画 Fragment ID:', entity.fragmentId || '❌ 未設定')
+            console.log('🔗 中尺動画 Complete URI:', entity.completeUri || '❌ 未設定')
+            
+            youtubeAIOptimizedSchema = generateAIOptimizedYouTubeShortSchema(
+              shortInfo,
+              entity,
+              `https://nands.tech/posts/${params.slug}`
+            )
+            
+            console.log('🎯 中尺動画の4大AI検索エンジン最適化Schema生成成功')
+          } catch (schemaError) {
+            console.error('⚠️ 中尺動画Schema生成エラー:', schemaError)
           }
-          
-          const entity: YouTubeShortEntity = {
-            fragmentId: data.fragment_id || '',
-            completeUri: data.complete_uri || '',
-            videoId: data.youtube_video_id || '',
-            title: data.script_title || '',
-            description: data.description || data.content || '',
-            category: data.category || 'ai-technology',
-            tags: data.tags || [],
-            targetQueries: data.target_queries || [],
-            relatedEntities: data.related_entities || [],
-            relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
-            relatedBlogPostSlug: params.slug,
-            relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
-            viralityScore: data.virality_score,
-            targetEmotion: data.target_emotion,
-            hookType: data.hook_type
-          }
-          
-          // 🔗 ディープリンク情報のログ出力
-          console.log('🔗 YouTube動画 Fragment ID:', entity.fragmentId || '❌ 未設定')
-          console.log('🔗 YouTube動画 Complete URI:', entity.completeUri || '❌ 未設定')
-          if (entity.fragmentId && entity.completeUri) {
-            console.log('✅ YouTube動画ディープリンク有効:', entity.completeUri)
-          } else {
-            console.log('⚠️ YouTube動画ディープリンク未設定（YouTube URL登録後に自動生成されます）')
-          }
-          
-          youtubeAIOptimizedSchema = generateAIOptimizedYouTubeShortSchema(
-            shortInfo,
-            entity,
-            `https://nands.tech/posts/${params.slug}`
-          )
-          
-          console.log('🎯 YouTube動画の4大AI検索エンジン最適化Schema生成成功')
-          console.log('✅ YouTube動画エンティティ統合準備完了:')
-          console.log('  - hasPart スキーマ統合: ✅')
-          console.log('  - mentions エンティティ統合: ✅')
-          console.log('  - about トピック統合: ✅')
-          console.log('  - associatedMedia 統合: ✅')
-        } catch (schemaError) {
-          console.error('⚠️ YouTube Schema生成エラー:', schemaError)
-          // Schemaエラーは無視して表示は続行
         }
+        
+        // 📱 ショート動画スライダーの処理（関連動画 + 最新動画で3件表示）
+        // Step 1: 関連ショート動画を取得
+        let displayShorts: any[] = shortScripts.slice(0, 3)
+        const relatedShortIds = shortScripts.map((s: any) => s.id)
+        
+        console.log('📱 関連ショート動画:', displayShorts.length, '件')
+        
+        // Step 2: 3件に満たない場合、最新のショート動画を追加取得
+        if (displayShorts.length < 3) {
+          const neededCount = 3 - displayShorts.length
+          console.log('📱 最新ショート動画を', neededCount, '件追加取得します')
+          
+          const { data: latestShorts, error: latestError } = await supabase
+            .from('company_youtube_shorts')
+            .select('*')
+            .eq('content_type', 'youtube-short')
+            .eq('status', 'published')
+            .not('youtube_video_id', 'is', null)
+            .not('id', 'in', `(${relatedShortIds.join(',')})`)
+            .order('created_at', { ascending: false })
+            .limit(neededCount)
+          
+          if (latestShorts && !latestError) {
+            displayShorts = [...displayShorts, ...latestShorts]
+            console.log('📱 最新ショート動画追加後:', displayShorts.length, '件')
+          }
+        }
+        
+        if (displayShorts.length > 0) {
+          youtubeShortVideos = displayShorts.map((s: any) => ({
+            id: s.id,
+            videoId: s.youtube_video_id,
+            url: s.youtube_url || `https://youtube.com/shorts/${s.youtube_video_id}`,
+            embedUrl: `https://www.youtube-nocookie.com/embed/${s.youtube_video_id}`,
+            title: s.script_title || post.title,
+            hookText: s.script_hook,
+            fragmentId: s.fragment_id,
+            completeUri: s.complete_uri
+          }))
+          
+          console.log('📱 ショート動画スライダー合計:', youtubeShortVideos.length, '件')
+          
+          // 各ショート動画のSchema生成
+          for (const shortData of displayShorts) {
+            try {
+              const shortInfo: YouTubeShortInfo = {
+                videoId: shortData.youtube_video_id || '',
+                title: shortData.script_title || '',
+                description: shortData.description || shortData.content || '',
+                publishedAt: shortData.published_at || shortData.created_at,
+                thumbnailUrl: shortData.thumbnail_url || '',
+                duration: `PT${shortData.script_duration_seconds || 30}S`,
+                durationSeconds: shortData.script_duration_seconds || 30,
+                viewCount: shortData.view_count || 0,
+                likeCount: shortData.like_count || 0,
+                commentCount: shortData.comment_count || 0,
+                tags: shortData.tags || [],
+                videoUrl: shortData.youtube_url,
+                embedUrl: `https://www.youtube-nocookie.com/embed/${shortData.youtube_video_id}`,
+                shortUrl: shortData.youtube_url,
+                contentForEmbedding: shortData.content_for_embedding || shortData.content || ''
+              }
+              
+              const entity: YouTubeShortEntity = {
+                fragmentId: shortData.fragment_id || '',
+                completeUri: shortData.complete_uri || '',
+                videoId: shortData.youtube_video_id || '',
+                title: shortData.script_title || '',
+                description: shortData.description || shortData.content || '',
+                category: shortData.category || 'ai-technology',
+                tags: shortData.tags || [],
+                targetQueries: shortData.target_queries || [],
+                relatedEntities: shortData.related_entities || [],
+                relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
+                relatedBlogPostSlug: params.slug,
+                relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
+                viralityScore: shortData.virality_score,
+                targetEmotion: shortData.target_emotion,
+                hookType: shortData.hook_type
+              }
+              
+              const shortSchema = generateAIOptimizedYouTubeShortSchema(
+                shortInfo,
+                entity,
+                `https://nands.tech/posts/${params.slug}`
+              )
+              
+              youtubeShortSchemas.push(shortSchema)
+              console.log('🔗 ショート動画 Fragment ID:', entity.fragmentId)
+            } catch (schemaError) {
+              console.error('⚠️ ショート動画Schema生成エラー:', schemaError)
+            }
+          }
+          
+          console.log('📱 ショート動画Schema生成完了:', youtubeShortSchemas.length, '件')
+        }
+      }
+      
+      // 📱 関連動画が0件の場合でも最新ショート動画を3件取得
+      if (youtubeShortVideos.length === 0) {
+        console.log('📱 関連ショート動画なし。最新ショート動画を3件取得します')
+        
+        const { data: latestShorts, error: latestError } = await supabase
+          .from('company_youtube_shorts')
+          .select('*')
+          .eq('content_type', 'youtube-short')
+          .eq('status', 'published')
+          .not('youtube_video_id', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(3)
+        
+        if (latestShorts && !latestError && latestShorts.length > 0) {
+          youtubeShortVideos = latestShorts.map((s: any) => ({
+            id: s.id,
+            videoId: s.youtube_video_id,
+            url: s.youtube_url || `https://youtube.com/shorts/${s.youtube_video_id}`,
+            embedUrl: `https://www.youtube-nocookie.com/embed/${s.youtube_video_id}`,
+            title: s.script_title || post.title,
+            hookText: s.script_hook,
+            fragmentId: s.fragment_id,
+            completeUri: s.complete_uri
+          }))
+          
+          console.log('📱 最新ショート動画取得:', youtubeShortVideos.length, '件')
+          
+          // Schema生成
+          for (const shortData of latestShorts) {
+            try {
+              const shortInfo: YouTubeShortInfo = {
+                videoId: shortData.youtube_video_id || '',
+                title: shortData.script_title || '',
+                description: shortData.description || shortData.content || '',
+                publishedAt: shortData.published_at || shortData.created_at,
+                thumbnailUrl: shortData.thumbnail_url || '',
+                duration: `PT${shortData.script_duration_seconds || 30}S`,
+                durationSeconds: shortData.script_duration_seconds || 30,
+                viewCount: shortData.view_count || 0,
+                likeCount: shortData.like_count || 0,
+                commentCount: shortData.comment_count || 0,
+                tags: shortData.tags || [],
+                videoUrl: shortData.youtube_url,
+                embedUrl: `https://www.youtube-nocookie.com/embed/${shortData.youtube_video_id}`,
+                shortUrl: shortData.youtube_url,
+                contentForEmbedding: shortData.content_for_embedding || shortData.content || ''
+              }
+              
+              const entity: YouTubeShortEntity = {
+                fragmentId: shortData.fragment_id || '',
+                completeUri: shortData.complete_uri || '',
+                videoId: shortData.youtube_video_id || '',
+                title: shortData.script_title || '',
+                description: shortData.description || shortData.content || '',
+                category: shortData.category || 'ai-technology',
+                tags: shortData.tags || [],
+                targetQueries: shortData.target_queries || [],
+                relatedEntities: shortData.related_entities || [],
+                relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
+                relatedBlogPostSlug: params.slug,
+                relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
+                viralityScore: shortData.virality_score,
+                targetEmotion: shortData.target_emotion,
+                hookType: shortData.hook_type
+              }
+              
+              const shortSchema = generateAIOptimizedYouTubeShortSchema(
+                shortInfo,
+                entity,
+                `https://nands.tech/posts/${params.slug}`
+              )
+              
+              youtubeShortSchemas.push(shortSchema)
+            } catch (schemaError) {
+              console.error('⚠️ 最新ショート動画Schema生成エラー:', schemaError)
+            }
+          }
         }
       }
     } catch (error) {
@@ -640,14 +809,22 @@ export default async function PostPage({ params }: PageProps) {
         "name": "ChatGPT",
         "sameAs": "https://chat.openai.com"
       },
-      // YouTube動画エンティティ統合（ベクトルリンク化済み）
+      // YouTube中尺動画エンティティ統合（ベクトルリンク化済み）
       ...(youtubeAIOptimizedSchema ? [{
         "@type": "VideoObject",
         "@id": youtubeAIOptimizedSchema["@id"],
         "name": youtubeAIOptimizedSchema.name,
         "url": youtubeAIOptimizedSchema.contentUrl,
         "sameAs": youtubeAIOptimizedSchema.embedUrl
-      }] : [])
+      }] : []),
+      // 📱 YouTubeショート動画エンティティ統合（ベクトルリンク化済み）
+      ...youtubeShortSchemas.map((shortSchema: any) => ({
+        "@type": "VideoObject",
+        "@id": shortSchema["@id"],
+        "name": shortSchema.name,
+        "url": shortSchema.contentUrl,
+        "sameAs": shortSchema.embedUrl
+      }))
     ],
 
     // 言語・地域情報
@@ -694,7 +871,7 @@ export default async function PostPage({ params }: PageProps) {
             "cssSelector": [`#${item.anchor || item.id}`]
           }
         })),
-        // YouTube動画セクション（ベクトルリンク化済み）
+        // YouTube中尺動画セクション（ベクトルリンク化済み）
         ...(youtubeAIOptimizedSchema ? [{
           "@type": "VideoObject",
           "@id": youtubeAIOptimizedSchema["@id"],
@@ -712,6 +889,24 @@ export default async function PostPage({ params }: PageProps) {
             "@id": `https://nands.tech/posts/${params.slug}#article`
           }
         }] : []),
+        // 📱 YouTubeショート動画スライダー（新規追加・ベクトルリンク化済み）
+        ...youtubeShortSchemas.map((shortSchema: any, index: number) => ({
+          "@type": "VideoObject",
+          "@id": shortSchema["@id"],
+          "name": shortSchema.name,
+          "description": shortSchema.description,
+          "thumbnailUrl": shortSchema.thumbnailUrl,
+          "uploadDate": shortSchema.uploadDate,
+          "duration": shortSchema.duration || "PT30S",
+          "contentUrl": shortSchema.contentUrl,
+          "embedUrl": shortSchema.embedUrl,
+          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1) + index,
+          "mainContentOfPage": false,
+          "mentions": {
+            "@type": "Article",
+            "@id": `https://nands.tech/posts/${params.slug}#article`
+          }
+        })),
         // 著者セクション（E-E-A-T最適化・ベクトルリンク化）
         {
           "@type": "Person",
@@ -720,7 +915,7 @@ export default async function PostPage({ params }: PageProps) {
           "jobTitle": authorSchema.jobTitle,
           "description": authorSchema.description,
           "url": `https://nands.tech/posts/${params.slug}#author-profile`,
-          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1),
+          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1) + youtubeShortSchemas.length,
           "mainContentOfPage": false,
           "isPartOf": {
             "@type": "Article",
@@ -1048,6 +1243,14 @@ export default async function PostPage({ params }: PageProps) {
             </div>
           </div>
         )} */}
+
+        {/* 📱 YouTubeショート動画スライダー（新規追加） */}
+        {youtubeShortVideos.length > 0 && (
+          <YouTubeShortSlider 
+            videos={youtubeShortVideos} 
+            currentArticleTitle={post.title} 
+          />
+        )}
 
         {/* 著者セクション - Fragment ID付き */}
         <div className="mt-12 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6" id="author-profile">

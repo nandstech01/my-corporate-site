@@ -13,6 +13,8 @@ import Image from 'next/image'
 
 import FAQSection from './components/portal/FAQSection'
 import TableOfContents from '@/components/common/TableOfContents'
+// 🆕 YouTubeショート動画スライダー（トップページ用）
+import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
 
 // SSR対応版HeroSection（AI検索エンジン最適化）
 import HeroSectionSSR from '@/app/components/portal/HeroSectionSSR'
@@ -163,6 +165,41 @@ type Post = {
   is_chatgpt_special?: boolean;
 };
 
+// 🆕 最新ショート動画を取得（トップページ用・ISRキャッシュ対応）
+async function getLatestYouTubeShorts(): Promise<YouTubeShortVideo[]> {
+  const supabase = createClient();
+  
+  try {
+    const { data: shorts, error } = await supabase
+      .from('company_youtube_shorts')
+      .select('id, youtube_video_id, youtube_url, script_title, script_hook, fragment_id, complete_uri')
+      .eq('content_type', 'youtube-short')
+      .eq('status', 'published')
+      .not('youtube_video_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(3);
+    
+    if (error || !shorts) {
+      console.error('YouTube shorts fetch error:', error?.message);
+      return [];
+    }
+    
+    return shorts.map((s: any) => ({
+      id: s.id,
+      videoId: s.youtube_video_id,
+      url: s.youtube_url || `https://youtube.com/shorts/${s.youtube_video_id}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${s.youtube_video_id}`,
+      title: s.script_title || 'YouTubeショート動画',
+      hookText: s.script_hook,
+      fragmentId: s.fragment_id || `youtube-short-${s.id}`,
+      completeUri: s.complete_uri
+    }));
+  } catch (error) {
+    console.error('getLatestYouTubeShorts error:', error);
+    return [];
+  }
+}
+
 async function getLatestPosts(): Promise<Post[]> {
   const supabase = createClient();
   
@@ -242,9 +279,14 @@ export default async function Home() {
   console.log('🏠 Home page rendering started...');
   const renderStartTime = Date.now();
 
-  // 🚀 並列処理最適化（1段階目）
-  const posts = await getLatestPosts();
+  // 🚀 並列処理最適化（1段階目）- ショート動画も並列取得
+  const [posts, youtubeShorts] = await Promise.all([
+    getLatestPosts(),
+    getLatestYouTubeShorts()
+  ]);
   const structuredData = getStructuredData();
+  
+  console.log('📱 トップページ ショート動画:', youtubeShorts.length, '件');
   
   // 🚀 AI検索最適化処理を軽量化（キャッシュシステムは後で統合）
   let aiEnhancedData, aiSearchReport, aiEnhancedStructuredDataJSON;
@@ -646,6 +688,13 @@ export default async function Home() {
           },
           {
             "@type": "WebPageElement",
+            "@id": "https://nands.tech/#youtube-shorts-section",
+            "name": "最新YouTubeショート動画",
+            "description": "AI技術・生成AI活用に関する最新ショート動画コンテンツ",
+            "cssSelector": "#youtube-shorts"
+          },
+          {
+            "@type": "WebPageElement",
             "@id": "https://nands.tech/#faq-section",
             "name": "よくある質問",
             "description": "生成AI研修・退職代行サービスに関するFAQ",
@@ -809,7 +858,36 @@ export default async function Home() {
           "生成AI技術", "レリバンスエンジニアリング", "LLMO対策", 
           "AI Overviews最適化", "Google Gemini LLM", "Vector RAG"
         ]
-             }
+      },
+      
+      // 【7】VideoObject Collection（YouTubeショート動画・動画スニペット対応）
+      ...(youtubeShorts.length > 0 ? [{
+        "@type": "ItemList",
+        "@id": "https://nands.tech/#video-collection",
+        "name": "AI技術解説YouTubeショート動画",
+        "description": "生成AI・AI技術に関する最新のショート動画コンテンツ",
+        "numberOfItems": youtubeShorts.length,
+        "itemListElement": youtubeShorts.map((video, index) => ({
+          "@type": "VideoObject",
+          "position": index + 1,
+          "@id": `https://nands.tech/#video-${video.videoId}`,
+          "name": video.title,
+          "description": video.hookText || `${video.title} - AI技術解説ショート動画`,
+          "thumbnailUrl": `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`,
+          "uploadDate": new Date().toISOString().split('T')[0],
+          "duration": "PT30S",
+          "contentUrl": video.url,
+          "embedUrl": video.embedUrl,
+          "publisher": {
+            "@id": "https://nands.tech/#organization"
+          },
+          "author": {
+            "@type": "Person",
+            "name": "原田賢治",
+            "@id": "https://nands.tech/#founder"
+          }
+        }))
+      }] : [])
     ]
   };
 
@@ -1200,6 +1278,20 @@ export default async function Home() {
       <section id="premium-solutions" className="scroll-mt-20">
         <FeaturedSection />
       </section>
+
+      {/* 📱 最新YouTubeショート動画セクション（ISRキャッシュ対応） */}
+      {youtubeShorts.length > 0 && (
+        <section id="youtube-shorts" className="py-12 bg-gray-50 scroll-mt-20">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <YouTubeShortSlider 
+                videos={youtubeShorts} 
+                currentArticleTitle="株式会社エヌアンドエス" 
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="faq-support" className="scroll-mt-20 relative">
         <FAQSection />
