@@ -37,6 +37,12 @@ export {
   getMediumScriptUserPrompt,
 } from './youtube/medium-base';
 
+// AIアーキテクト向けYouTube動画プロンプト
+export {
+  getArchitectShortScriptSystemPrompt,
+  getArchitectShortScriptUserPrompt,
+} from './youtube/architect-short-base';
+
 // SNSプロンプト（ドキュメント用）
 export { X_TWITTER_RULES } from './sns/x-twitter';
 export { LINKEDIN_RULES } from './sns/linkedin';

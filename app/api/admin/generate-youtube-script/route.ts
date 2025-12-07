@@ -8,6 +8,8 @@ import {
   getShortScriptUserPrompt,
   getMediumScriptSystemPrompt,
   getMediumScriptUserPrompt,
+  getArchitectShortScriptSystemPrompt,
+  getArchitectShortScriptUserPrompt,
   MODEL_CONFIG,
 } from '@/lib/prompts';
 import {
@@ -37,6 +39,7 @@ interface ScriptGenerationRequest {
   postTitle: string;
   postContent: string;
   scriptType?: 'short' | 'medium'; // 台本タイプ（デフォルト: short）
+  scriptMode?: 'default' | 'architect'; // 台本モード（デフォルト: default、architect: AIアーキテクト向け）
 }
 
 interface YouTubeScriptResponse {
@@ -84,7 +87,7 @@ interface YouTubeScriptResponse {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { postId, postSlug, postTitle, postContent, scriptType = 'short' }: ScriptGenerationRequest = await request.json();
+    const { postId, postSlug, postTitle, postContent, scriptType = 'short', scriptMode = 'default' }: ScriptGenerationRequest = await request.json();
 
     console.log('\n🎬 ========================================');
     console.log(`📝 YouTube台本生成開始（${scriptType === 'short' ? 'ショート30秒' : '中尺130秒'}）`);
@@ -92,6 +95,7 @@ export async function POST(request: NextRequest) {
     console.log(`  記事Slug: ${postSlug}`);
     console.log(`  記事タイトル: ${postTitle}`);
     console.log(`  台本タイプ: ${scriptType}`);
+    console.log(`  台本モード: ${scriptMode === 'architect' ? '🏗️ AIアーキテクト' : '📝 デフォルト'}`);
     console.log('🎬 ========================================\n');
 
     // 1. 記事がpostsテーブルに存在することを確認
@@ -151,7 +155,7 @@ export async function POST(request: NextRequest) {
 
     // 3. OpenAI APIで台本生成
     console.log('🤖 OpenAI APIで台本生成中...');
-    const scriptResponse = await generateYouTubeScript(postTitle, postContent, postSlug, scriptType, blogCategoryTags);
+    const scriptResponse = await generateYouTubeScript(postTitle, postContent, postSlug, scriptType, blogCategoryTags, scriptMode);
     console.log('✅ 台本生成完了\n');
 
     // 4. Fragment IDを生成（Complete URIはYouTube URL登録時に生成）
@@ -318,13 +322,15 @@ ${scriptResponse.script_cta}
  * @param postSlug ブログ記事のスラッグ
  * @param scriptType 台本タイプ（'short': 30秒 | 'medium': 130秒）
  * @param blogCategoryTags ブログ記事のカテゴリタグ（ショート動画のみ）
+ * @param scriptMode 台本モード（'default': 通常 | 'architect': AIアーキテクト向け）
  */
 async function generateYouTubeScript(
   postTitle: string,
   postContent: string,
   postSlug: string,
   scriptType: 'short' | 'medium' = 'short',
-  blogCategoryTags: string[] = []
+  blogCategoryTags: string[] = [],
+  scriptMode: 'default' | 'architect' = 'default'
 ): Promise<YouTubeScriptResponse> {
   
   let enhancedContent = postContent;
@@ -929,15 +935,24 @@ ${kenjiThoughtsContext}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
   }
 
-  // プロンプトをscriptTypeで分岐
-  const systemPrompt = scriptType === 'short' 
-    ? getShortScriptSystemPrompt()
-    : getMediumScriptSystemPrompt();
+  // プロンプトをscriptTypeとscriptModeで分岐
+  let systemPrompt: string;
+  let userPrompt: string;
   
-  // 全台本タイプでfinalContent（ハイブリッド検索結果 + Kenji思想）を使用
-  const userPrompt = scriptType === 'short'
-    ? getShortScriptUserPrompt(postTitle, finalContent)
-    : getMediumScriptUserPrompt(postTitle, finalContent, personalStoryContext, catalystContext);
+  if (scriptMode === 'architect' && scriptType === 'short') {
+    // 🏗️ AIアーキテクトモード（ショート動画）
+    console.log('🏗️ AIアーキテクトモードでプロンプト生成');
+    systemPrompt = getArchitectShortScriptSystemPrompt();
+    userPrompt = getArchitectShortScriptUserPrompt(postTitle, finalContent, postSlug);
+  } else if (scriptType === 'short') {
+    // 📝 デフォルトモード（ショート動画）
+    systemPrompt = getShortScriptSystemPrompt();
+    userPrompt = getShortScriptUserPrompt(postTitle, finalContent);
+  } else {
+    // 🎬 中尺動画（モードに関係なく同じ）
+    systemPrompt = getMediumScriptSystemPrompt();
+    userPrompt = getMediumScriptUserPrompt(postTitle, finalContent, personalStoryContext, catalystContext);
+  }
 
   // メッセージ配列を構築（Few-shot learningは使用しない - 記事内容の忠実性を優先）
   const messages = [

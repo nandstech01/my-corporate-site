@@ -229,16 +229,21 @@ export default function PostsPage() {
     }
   };
 
-  const handleGenerateScript = async (post: Post, scriptType: 'short' | 'medium' = 'short') => {
+  const handleGenerateScript = async (post: Post, scriptType: 'short' | 'medium' = 'short', scriptMode: 'default' | 'architect' = 'default') => {
     // postsテーブルの記事のみ対応
     if (post.table_type !== 'posts') {
       alert('YouTube台本生成はRAG記事のみ対応しています');
       return;
     }
 
-    const confirmMessage = scriptType === 'short'
-      ? 'この記事からYouTubeショート動画（30秒）の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます'
-      : 'この記事からYouTube中尺動画（130秒）の台本を生成しますか？\n\n※詳細な解説を含む教育的な内容になります\n※130秒程度の台本が作成されます（約1300文字）\n※5-7つの要点が含まれます';
+    let confirmMessage = '';
+    if (scriptMode === 'architect') {
+      confirmMessage = 'この記事からAIアーキテクト向けYouTubeショート動画（30秒）の台本を生成しますか？\n\n🏗️ AIアーキテクトモード\n※「えっ → なぜ？ → なるほど」構成\n※仕組み・設計の価値を伝える台本\n※バズる形で技術を表現';
+    } else if (scriptType === 'short') {
+      confirmMessage = 'この記事からYouTubeショート動画（30秒）の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます';
+    } else {
+      confirmMessage = 'この記事からYouTube中尺動画（130秒）の台本を生成しますか？\n\n※詳細な解説を含む教育的な内容になります\n※130秒程度の台本が作成されます（約1300文字）\n※5-7つの要点が含まれます';
+    }
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -254,7 +259,8 @@ export default function PostsPage() {
         postId: originalId,
         slug: post.slug,
         title: post.title,
-        scriptType: scriptType
+        scriptType: scriptType,
+        scriptMode: scriptMode
       });
 
       const response = await fetch('/api/admin/generate-youtube-script', {
@@ -267,7 +273,8 @@ export default function PostsPage() {
           postSlug: post.slug,
           postTitle: post.title,
           postContent: post.content,
-          scriptType: scriptType
+          scriptType: scriptType,
+          scriptMode: scriptMode
         }),
       });
 
@@ -447,6 +454,18 @@ export default function PostsPage() {
                                   <span className="sm:hidden">130s</span>
                                 </button>
                               )}
+                              
+                              {/* 🏗️ AIアーキテクト台本 */}
+                              <button
+                                onClick={() => handleGenerateScript(post, 'short', 'architect')}
+                                disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
+                                className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-600/60 text-emerald-300 hover:from-emerald-800/50 hover:to-teal-800/50 hover:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                title="AIアーキテクト向け台本を生成（えっ→なぜ？→なるほど構成）"
+                              >
+                                <span>🏗️</span>
+                                <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : 'アーキテクト'}</span>
+                                <span className="sm:hidden">🏗️</span>
+                              </button>
                             </div>
                           )}
                         </div>

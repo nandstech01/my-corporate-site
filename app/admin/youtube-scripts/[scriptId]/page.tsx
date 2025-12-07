@@ -610,15 +610,84 @@ export default function YouTubeScriptDetailPage() {
         </div>
       </div>
 
+      {/* 📋 台本全体コピー */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-gray-600 rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-1">📋 台本全体をコピー</h3>
+            <p className="text-sm text-gray-400">読み上げ用・編集用にコピーできます</p>
+          </div>
+          <button
+            onClick={() => {
+              const fullScript = `【${script.script_title}】
+
+🎣 フック（冒頭）:
+${script.script_hook}
+
+${script.script_empathy ? `🤝 共感ゾーン:
+${script.script_empathy}
+
+` : ''}💡 本題:
+${script.script_body}
+
+🚀 CTA:
+${script.script_cta}`;
+              navigator.clipboard.writeText(fullScript);
+              alert('✅ 台本全体をコピーしました！');
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition-all"
+          >
+            📋 全体コピー
+          </button>
+        </div>
+        
+        {/* 読み上げ用（改行なし） */}
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-400">読み上げ用（改行なし・連続テキスト）</p>
+            <button
+              onClick={() => {
+                const readScript = `${script.script_hook} ${script.script_empathy || ''} ${script.script_body} ${script.script_cta}`.replace(/\s+/g, ' ').trim();
+                navigator.clipboard.writeText(readScript);
+                alert('✅ 読み上げ用テキストをコピーしました！');
+              }}
+              className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded"
+            >
+              📋 読み上げ用コピー
+            </button>
+          </div>
+          <div className="bg-gray-800 rounded p-3 max-h-24 overflow-y-auto">
+            <p className="text-gray-300 text-sm">
+              {`${script.script_hook} ${script.script_empathy || ''} ${script.script_body} ${script.script_cta}`.replace(/\s+/g, ' ').trim()}
+            </p>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            文字数: {`${script.script_hook} ${script.script_empathy || ''} ${script.script_body} ${script.script_cta}`.replace(/\s+/g, ' ').trim().length}文字
+          </p>
+        </div>
+      </div>
+
       {/* 4フェーズ台本 */}
       <div className="space-y-6">
         {/* Hook */}
         <div className="bg-red-900 border border-red-700 rounded-lg p-6">
-          <div className="flex items-center mb-3">
-            <span className="text-2xl mr-2">🎣</span>
-            <h3 className="text-lg font-semibold text-white">1️⃣ Hook（冒頭2秒）</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">🎣</span>
+              <h3 className="text-lg font-semibold text-white">1️⃣ Hook（冒頭2秒）</h3>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(script.script_hook);
+                alert('✅ Hookをコピーしました！');
+              }}
+              className="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs rounded"
+            >
+              📋 コピー
+            </button>
           </div>
           <p className="text-white whitespace-pre-wrap mb-4">{script.script_hook}</p>
+          <p className="text-xs text-red-300">文字数: {script.script_hook?.length || 0}文字</p>
           {script.visual_instructions.hook && script.visual_instructions.hook.length > 0 && (
             <div className="mt-4 pt-4 border-t border-red-600">
               <p className="text-sm text-red-200 mb-2">🎬 視覚的指示</p>
@@ -633,11 +702,25 @@ export default function YouTubeScriptDetailPage() {
 
         {/* Empathy */}
         <div className="bg-yellow-900 border border-yellow-700 rounded-lg p-6">
-          <div className="flex items-center mb-3">
-            <span className="text-2xl mr-2">🤝</span>
-            <h3 className="text-lg font-semibold text-white">2️⃣ Empathy（3-5秒）</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">🤝</span>
+              <h3 className="text-lg font-semibold text-white">2️⃣ Empathy（3-5秒）</h3>
+            </div>
+            {script.script_empathy && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(script.script_empathy);
+                  alert('✅ Empathyをコピーしました！');
+                }}
+                className="px-3 py-1 bg-yellow-700 hover:bg-yellow-600 text-white text-xs rounded"
+              >
+                📋 コピー
+              </button>
+            )}
           </div>
-          <p className="text-white whitespace-pre-wrap mb-4">{script.script_empathy}</p>
+          <p className="text-white whitespace-pre-wrap mb-4">{script.script_empathy || '（なし）'}</p>
+          <p className="text-xs text-yellow-300">文字数: {script.script_empathy?.length || 0}文字</p>
           {script.visual_instructions.empathy && script.visual_instructions.empathy.length > 0 && (
             <div className="mt-4 pt-4 border-t border-yellow-600">
               <p className="text-sm text-yellow-200 mb-2">🎬 視覚的指示</p>
@@ -652,11 +735,23 @@ export default function YouTubeScriptDetailPage() {
 
         {/* Body */}
         <div className="bg-blue-900 border border-blue-700 rounded-lg p-6">
-          <div className="flex items-center mb-3">
-            <span className="text-2xl mr-2">💡</span>
-            <h3 className="text-lg font-semibold text-white">3️⃣ Body（5-20秒）</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">💡</span>
+              <h3 className="text-lg font-semibold text-white">3️⃣ Body（5-20秒）</h3>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(script.script_body);
+                alert('✅ Bodyをコピーしました！');
+              }}
+              className="px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white text-xs rounded"
+            >
+              📋 コピー
+            </button>
           </div>
           <p className="text-white whitespace-pre-wrap mb-4">{script.script_body}</p>
+          <p className="text-xs text-blue-300">文字数: {script.script_body?.length || 0}文字</p>
           {script.visual_instructions.body && script.visual_instructions.body.length > 0 && (
             <div className="mt-4 pt-4 border-t border-blue-600">
               <p className="text-sm text-blue-200 mb-2">🎬 視覚的指示</p>
@@ -671,11 +766,23 @@ export default function YouTubeScriptDetailPage() {
 
         {/* CTA */}
         <div className="bg-green-900 border border-green-700 rounded-lg p-6">
-          <div className="flex items-center mb-3">
-            <span className="text-2xl mr-2">🚀</span>
-            <h3 className="text-lg font-semibold text-white">4️⃣ CTA（ラスト5秒）</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">🚀</span>
+              <h3 className="text-lg font-semibold text-white">4️⃣ CTA（ラスト5秒）</h3>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(script.script_cta);
+                alert('✅ CTAをコピーしました！');
+              }}
+              className="px-3 py-1 bg-green-700 hover:bg-green-600 text-white text-xs rounded"
+            >
+              📋 コピー
+            </button>
           </div>
           <p className="text-white whitespace-pre-wrap mb-4">{script.script_cta}</p>
+          <p className="text-xs text-green-300">文字数: {script.script_cta?.length || 0}文字</p>
           {script.visual_instructions.cta && script.visual_instructions.cta.length > 0 && (
             <div className="mt-4 pt-4 border-t border-green-600">
               <p className="text-sm text-green-200 mb-2">🎬 視覚的指示</p>
