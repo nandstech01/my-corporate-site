@@ -326,15 +326,25 @@ URL: ${item.url || ''}
         );
         
         if (generationMode === 'architect') {
-          // AIアーキテクトモード: 従来通り詳細な思想を注入
-          const selectedThoughts = [...implementationThoughts.slice(0, 4), ...philosophyThoughts.slice(0, 2)];
+          // AIアーキテクトモード: 実装経験をランダム選択 + 哲学は固定
+          // 🎲 毎回同じにならないよう、実装経験をシャッフルして2-3件選択
+          const shuffledImplementation = [...implementationThoughts].sort(() => Math.random() - 0.5);
+          const selectedImplementation = shuffledImplementation.slice(0, 3); // ランダムに3件
+          
+          // 哲学は固定（ブランディングのため1件）
+          const selectedPhilosophy = philosophyThoughts.slice(0, 1);
+          
+          const selectedThoughts = [...selectedImplementation, ...selectedPhilosophy];
           
           kenjiThoughtsContext = selectedThoughts.map(t => 
             `【${t.thought_title}】\n${t.thought_content}`
           ).join('\n\n---\n\n');
           
           console.log(`📝 AIアーキテクトモード - プロンプトに注入する思想: ${selectedThoughts.length}件`);
-          selectedThoughts.forEach(t => console.log(`  - ${t.thought_title} (${t.thought_category})`));
+          console.log(`   🎲 実装経験（ランダム選択）: ${selectedImplementation.length}件`);
+          selectedImplementation.forEach(t => console.log(`     - ${t.thought_title}`));
+          console.log(`   📜 哲学（固定）: ${selectedPhilosophy.length}件`);
+          selectedPhilosophy.forEach(t => console.log(`     - ${t.thought_title}`));
         } else {
           // 教育モード: E-E-A-T Experience強化のため、ランダムに1-2件の運用事例を選択
           const shuffled = [...implementationThoughts].sort(() => Math.random() - 0.5);
