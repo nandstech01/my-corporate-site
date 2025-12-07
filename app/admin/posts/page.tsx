@@ -237,8 +237,10 @@ export default function PostsPage() {
     }
 
     let confirmMessage = '';
-    if (scriptMode === 'architect') {
-      confirmMessage = 'この記事からAIアーキテクト向けYouTubeショート動画（30秒）の台本を生成しますか？\n\n🏗️ AIアーキテクトモード\n※「えっ → なぜ？ → なるほど」構成\n※仕組み・設計の価値を伝える台本\n※バズる形で技術を表現';
+    if (scriptMode === 'architect' && scriptType === 'short') {
+      confirmMessage = 'この記事からAIアーキテクト向けYouTubeショート動画（30秒）の台本を生成しますか？\n\n🏗️ AIアーキテクトモード（ショート）\n※「えっ → なぜ？ → なるほど」構成\n※仕組み・設計の価値を伝える台本\n※バズる形で技術を表現';
+    } else if (scriptMode === 'architect' && scriptType === 'medium') {
+      confirmMessage = 'この記事からAIアーキテクト向けYouTube中尺動画（130秒）の台本を生成しますか？\n\n🏗️ AIアーキテクトモード（中尺）\n※年収・キャリア・仕組みを詳しく解説\n※図解挿入ポイント付き（Nano Banana Pro対応予定）\n※信頼構築・ファン化を狙う教育コンテンツ';
     } else if (scriptType === 'short') {
       confirmMessage = 'この記事からYouTubeショート動画（30秒）の台本を生成しますか？\n\n※中学生でも理解できる簡単な内容に変換されます\n※30秒以内の台本が作成されます\n※バイラル要素が自動で組み込まれます';
     } else {
@@ -455,16 +457,28 @@ export default function PostsPage() {
                                 </button>
                               )}
                               
-                              {/* 🏗️ AIアーキテクト台本 */}
+                              {/* 🏗️ AIアーキテクト台本（ショート） */}
                               <button
                                 onClick={() => handleGenerateScript(post, 'short', 'architect')}
                                 disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
                                 className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-600/60 text-emerald-300 hover:from-emerald-800/50 hover:to-teal-800/50 hover:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
-                                title="AIアーキテクト向け台本を生成（えっ→なぜ？→なるほど構成）"
+                                title="AIアーキテクト向けショート台本（えっ→なぜ？→なるほど）"
                               >
                                 <span>🏗️</span>
-                                <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : 'アーキテクト'}</span>
+                                <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : '🏗️ショート'}</span>
                                 <span className="sm:hidden">🏗️</span>
+                              </button>
+                              
+                              {/* 🏗️ AIアーキテクト台本（中尺） */}
+                              <button
+                                onClick={() => handleGenerateScript(post, 'medium', 'architect')}
+                                disabled={isGeneratingScript && generatingScriptFor === post.id.toString()}
+                                className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-amber-900/40 to-orange-900/40 border border-amber-600/60 text-amber-300 hover:from-amber-800/50 hover:to-orange-800/50 hover:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                title="AIアーキテクト向け中尺台本（図解付き・130秒）"
+                              >
+                                <span>🏗️</span>
+                                <span className="hidden sm:inline">{isGeneratingScript && generatingScriptFor === post.id.toString() ? '生成中...' : '🏗️中尺'}</span>
+                                <span className="sm:hidden">🏗️📊</span>
                               </button>
                             </div>
                           )}

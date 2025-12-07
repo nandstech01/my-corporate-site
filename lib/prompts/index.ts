@@ -43,6 +43,11 @@ export {
   getArchitectShortScriptUserPrompt,
 } from './youtube/architect-short-base';
 
+export {
+  getArchitectMediumScriptSystemPrompt,
+  getArchitectMediumScriptUserPrompt,
+} from './youtube/architect-medium-base';
+
 // SNSプロンプト（ドキュメント用）
 export { X_TWITTER_RULES } from './sns/x-twitter';
 export { LINKEDIN_RULES } from './sns/linkedin';

@@ -10,6 +10,8 @@ import {
   getMediumScriptUserPrompt,
   getArchitectShortScriptSystemPrompt,
   getArchitectShortScriptUserPrompt,
+  getArchitectMediumScriptSystemPrompt,
+  getArchitectMediumScriptUserPrompt,
   MODEL_CONFIG,
 } from '@/lib/prompts';
 import {
@@ -1022,15 +1024,22 @@ ${kenjiThoughtsContext}
   
   if (scriptMode === 'architect' && scriptType === 'short') {
     // 🏗️ AIアーキテクトモード（ショート動画）
-    console.log('🏗️ AIアーキテクトモードでプロンプト生成');
+    console.log('🏗️ AIアーキテクトモードでプロンプト生成（ショート）');
     systemPrompt = getArchitectShortScriptSystemPrompt();
     userPrompt = getArchitectShortScriptUserPrompt(postTitle, finalContent, postSlug);
+  } else if (scriptMode === 'architect' && scriptType === 'medium') {
+    // 🏗️ AIアーキテクトモード（中尺動画）
+    console.log('🏗️ AIアーキテクトモードでプロンプト生成（中尺・図解対応）');
+    systemPrompt = getArchitectMediumScriptSystemPrompt();
+    // E-E-A-T用の運用事例コンテキストを作成
+    const siteExperienceContext = kenjiThoughtsContext || '';
+    userPrompt = getArchitectMediumScriptUserPrompt(postTitle, finalContent, postSlug, siteExperienceContext);
   } else if (scriptType === 'short') {
     // 📝 デフォルトモード（ショート動画）
     systemPrompt = getShortScriptSystemPrompt();
     userPrompt = getShortScriptUserPrompt(postTitle, finalContent);
   } else {
-    // 🎬 中尺動画（モードに関係なく同じ）
+    // 🎬 デフォルトモード（中尺動画）
     systemPrompt = getMediumScriptSystemPrompt();
     userPrompt = getMediumScriptUserPrompt(postTitle, finalContent, personalStoryContext, catalystContext);
   }
