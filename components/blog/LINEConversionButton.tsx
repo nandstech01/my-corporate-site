@@ -25,7 +25,7 @@ export default function LINEConversionButton({ position = 'after-3rd-h2' }: LINE
       }}
     >
       <a 
-        href="https://lin.ee/VYCK74F"
+        href="https://lin.ee/vQmAwMU"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold text-sm sm:text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"

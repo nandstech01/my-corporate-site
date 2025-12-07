@@ -447,7 +447,7 @@ export default function BlogContent() {
                   LINEなら、いつでも気軽にご相談いただけます
                 </p>
                 <a
-                  href="https://lin.ee/h1kk42r"
+                  href="https://lin.ee/vQmAwMU"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block bg-[#06C755] hover:bg-[#05b34c] text-white text-lg font-bold py-4 px-6 rounded-lg text-center transition-colors"
