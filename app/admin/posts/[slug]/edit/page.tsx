@@ -7,6 +7,8 @@ import ImageUploader from '@/components/ImageUploader';
 import PostPreview from '@/components/PostPreview';
 import { useAuth } from '@/contexts/AuthContext';
 import ContentImageManager from '@/components/admin/ContentImageManager';
+import AIThumbnailGenerator from '@/components/admin/AIThumbnailGenerator';
+import H2DiagramGenerator from '@/components/admin/H2DiagramGenerator';
 import type { Database } from '@/lib/database.types';
 
 type Category = {
@@ -42,7 +44,8 @@ type Post = {
   featured_image?: string;
   thumbnail_url?: string;
   meta_description?: string;
-  meta_keywords?: string[];
+  meta_keywords?: string[];   // postsテーブル用
+  seo_keywords?: string[];    // chatgpt_postsテーブル用
   is_indexable?: boolean;
   canonical_url?: string;
   is_chatgpt_special?: boolean;
@@ -200,6 +203,11 @@ export default function EditPostPage({
     fetchCategories();
   }, [businessId]);
 
+  // デバッグ: thumbnailUrlの変更を監視
+  React.useEffect(() => {
+    console.log('🖼️ [EditPage] thumbnailUrl変更:', thumbnailUrl);
+  }, [thumbnailUrl]);
+
   // 記事データの取得
   React.useEffect(() => {
     const loadPost = async () => {
@@ -217,7 +225,8 @@ export default function EditPostPage({
       setStatus(post.status as 'draft' | 'published');
       setThumbnailUrl(post.featured_image || post.thumbnail_url || '');
       setMetaDescription(post.meta_description || '');
-      setSeoKeywords(post.meta_keywords || []);
+      // ⚠️ chatgpt_postsは「seo_keywords」、postsは「meta_keywords」
+      setSeoKeywords(post.seo_keywords || post.meta_keywords || []);
       setIsIndexable(post.is_indexable ?? true);
       setCanonicalUrl(post.canonical_url || '');
       setPostId(post.id.toString());
@@ -279,28 +288,37 @@ export default function EditPostPage({
         }
       } else {
         // ChatGPT記事の更新
-        const { error: postError } = await supabase
-          .from('chatgpt_posts')
-          .update({
-            title,
-            content,
-            status,
-            business_id: isChatGPTSpecial ? null : businessId,
-            category_id: isChatGPTSpecial ? null : categoryId,
-            chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
-            featured_image: thumbnailUrl,
-            updated_at: new Date().toISOString(),
-            meta_description: metaDescription,
-            meta_keywords: seoKeywords,
-            is_indexable: isIndexable,
-            canonical_url: canonicalUrl,
-            is_chatgpt_special: isChatGPTSpecial,
-          })
-          .eq('id', postId);
+        // ⚠️ RLSポリシーのため、サーバーサイドAPI経由で更新
+        const chatgptUpdateData = {
+          id: postId,
+          title,
+          content,
+          status,
+          business_id: isChatGPTSpecial ? null : businessId,
+          category_id: isChatGPTSpecial ? null : categoryId,
+          chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
+          featured_image: thumbnailUrl,
+          thumbnail_url: thumbnailUrl,
+          updated_at: new Date().toISOString(),
+          meta_description: metaDescription,
+          seo_keywords: seoKeywords, // ⚠️ chatgpt_postsは「seo_keywords」
+          is_indexable: isIndexable,
+          canonical_url: canonicalUrl,
+          is_chatgpt_special: isChatGPTSpecial,
+        };
+        
+        // サーバーサイドAPI経由で更新（RLSバイパス）
+        const response = await fetch('/api/update-chatgpt-post', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chatgptUpdateData),
+        });
 
-        if (postError) {
-          console.error('Error updating post:', postError);
-          alert('投稿の更新に失敗しました');
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          console.error('Error updating post:', result.error);
+          alert(`投稿の更新に失敗しました: ${result.error}`);
           return;
         }
       }
@@ -521,9 +539,33 @@ export default function EditPostPage({
               <label className="block text-sm font-medium text-gray-700">
                 サムネイル画像
               </label>
+              {/* 現在のサムネイルプレビュー */}
+              {thumbnailUrl && (
+                <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                  <p className="text-xs text-gray-500 mb-2">現在設定されているサムネイル:</p>
+                  <img
+                    src={thumbnailUrl}
+                    alt="サムネイルプレビュー"
+                    className="max-w-md rounded-lg shadow-sm"
+                  />
+                  <p className="text-xs text-gray-400 mt-2 truncate">{thumbnailUrl}</p>
+                </div>
+              )}
               <ImageUploader
-                onImageUploaded={setThumbnailUrl}
+                onImageUploaded={(url) => {
+                  console.log('📁 [ImageUploader] アップロード完了:', url);
+                  setThumbnailUrl(url);
+                }}
                 currentImageUrl={thumbnailUrl}
+              />
+              <AIThumbnailGenerator
+                title={title}
+                content={content}
+                onThumbnailGenerated={(url) => {
+                  console.log('🎨 [AIThumbnail] 生成完了 - 親コンポーネント受信:', url);
+                  setThumbnailUrl(url);
+                }}
+                currentThumbnailUrl={thumbnailUrl}
               />
             </div>
 
@@ -555,6 +597,10 @@ export default function EditPostPage({
                   <ContentImageManager
                     postId={postId}
                     onImageSelect={handleImageSelect}
+                  />
+                  <H2DiagramGenerator
+                    title={title}
+                    content={content}
                   />
                 </>
               )}

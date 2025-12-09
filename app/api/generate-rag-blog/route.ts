@@ -8,6 +8,9 @@ import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema';
 import { UnifiedStructuredDataSystem } from '@/lib/structured-data/index';
 import { generateBlogFAQEntities, generateBlogSectionEntities } from '@/lib/structured-data/entity-relationships';
 
+// 🖼️ H2図解自動生成（Nano Banana Pro）
+import { generateH2DiagramsAuto, isH2DiagramGenerationEnabled } from '@/lib/ai-image/h2-diagram-auto-generator';
+
 // 🔗 Fragment ID内部リンク自動生成システム（一時的に無効化）
 // import { enhanceMarkdownWithFragmentLinks, FragmentLinkGenerator } from '@/lib/ai-internal-links/fragment-link-generator';
 
@@ -45,6 +48,9 @@ interface BlogGenerationRequest {
   // 🆕 AIアーキテクト記事生成モード
   generationMode?: 'education' | 'architect';
   articleType?: 'career' | 'technical' | 'freelance' | 'general';
+  // 🖼️ H2図解自動生成オプション
+  enableH2Diagrams?: boolean;
+  maxH2Diagrams?: number;
 }
 
 // 安全にコンテンツを取得するヘルパー関数
@@ -133,7 +139,9 @@ export async function POST(request: NextRequest) {
       includeImages,
       autoFetchTrends = false, // 新規: トレンドニュース自動収集フラグ
       generationMode = 'education', // 🆕 デフォルトは教育モード（既存動作を維持）
-      articleType = 'general' // 🆕 記事タイプ（architectモード時に使用）
+      articleType = 'general', // 🆕 記事タイプ（architectモード時に使用）
+      enableH2Diagrams = true, // 🖼️ H2図解自動生成（デフォルト: ON）
+      maxH2Diagrams = 3 // 🖼️ 最大図解生成数（デフォルト: 3枚）
     }: BlogGenerationRequest & { autoFetchTrends?: boolean } = await request.json();
 
     console.log(`🚀 RAGブログ記事生成開始: "${query}"`);
@@ -1007,6 +1015,58 @@ ${relatedFragmentLinks.map((link, index) => `${index + 1}. ${link}`).join('\n')}
       }
     } catch (thumbnailErr) {
       console.error('❌ サムネイル処理エラー:', thumbnailErr);
+    }
+
+    // 🖼️ H2図解自動生成（Nano Banana Pro）
+    // ⚠️ この処理は既存システムに影響を与えない設計
+    // エラーが発生しても記事生成は継続される
+    if (enableH2Diagrams && isH2DiagramGenerationEnabled()) {
+      console.log('🖼️ H2図解自動生成開始...');
+      try {
+        const diagramResult = await generateH2DiagramsAuto(enhancedContent, {
+          maxDiagrams: maxH2Diagrams,
+          skipFAQ: true // FAQ/まとめ/はじめにセクションはスキップ
+        });
+        
+        if (diagramResult.generatedDiagrams.length > 0) {
+          const successCount = diagramResult.generatedDiagrams.filter(d => d.success).length;
+          console.log(`✅ H2図解生成完了: ${successCount}/${diagramResult.generatedDiagrams.length}件`);
+          
+          // 図解が1つ以上成功した場合のみコンテンツを更新
+          if (successCount > 0) {
+            enhancedContent = diagramResult.updatedContent;
+            
+            // 記事のコンテンツを更新
+            const { error: updateContentError } = await supabaseServiceRole
+              .from('posts')
+              .update({ content: enhancedContent })
+              .eq('id', savedPost.id);
+            
+            if (updateContentError) {
+              console.error('❌ 図解付きコンテンツ更新エラー:', updateContentError);
+            } else {
+              console.log('✅ 図解付きコンテンツ更新完了');
+            }
+          }
+          
+          // 生成した図解のURLをログ出力
+          diagramResult.generatedDiagrams
+            .filter(d => d.success)
+            .forEach(d => console.log(`  📊 ${d.h2Title}: ${d.imageUrl}`));
+        }
+        
+        if (diagramResult.errors.length > 0) {
+          console.warn('⚠️ H2図解生成で一部エラー:', diagramResult.errors);
+        }
+        
+      } catch (diagramError) {
+        // H2図解生成エラーは記事生成の失敗とはしない
+        console.error('❌ H2図解自動生成エラー（記事生成は継続）:', diagramError);
+      }
+    } else if (enableH2Diagrams) {
+      console.log('ℹ️ H2図解生成: GOOGLE_AI_API_KEYが未設定のためスキップ');
+    } else {
+      console.log('ℹ️ H2図解生成: 無効化されています');
     }
 
     // 📝 メタデータ自動生成・DB保存

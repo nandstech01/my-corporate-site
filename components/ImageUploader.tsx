@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/lib/database.types';
 
 type Props = {
   onImageUploaded: (url: string) => void;
@@ -12,7 +10,6 @@ type Props = {
 export default function ImageUploader({ onImageUploaded, currentImageUrl }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClientComponentClient<Database>();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,8 +25,8 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
     setError(null);
 
     try {
-      // ファイル検証
-      if (file.size > 10 * 1024 * 1024) { // 10MB制限
+      // クライアント側の基本検証
+      if (file.size > 10 * 1024 * 1024) {
         throw new Error('ファイルサイズが大きすぎます（10MB以下にしてください）');
       }
 
@@ -37,56 +34,28 @@ export default function ImageUploader({ onImageUploaded, currentImageUrl }: Prop
         throw new Error('画像ファイルを選択してください');
       }
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
-      if (!fileExt || !['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
-        throw new Error('サポートされていない画像形式です');
-      }
+      // FormDataを作成してAPI経由でアップロード
+      const formData = new FormData();
+      formData.append('file', file);
 
-      // ファイル名生成（より安全な方法）
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const fileName = `${timestamp}-${randomString}.${fileExt}`;
-      const filePath = `images/${fileName}`;
+      console.log('🚀 Uploading via API...');
 
-      console.log('🚀 Uploading to Storage:', {
-        bucket: 'blog',
-        filePath: filePath,
-        fullUrl: `blog/${filePath}`
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
       });
 
-      // 認証状態を確認
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔐 Auth session:', {
-        hasSession: !!session,
-        userId: session?.user?.id
-      });
+      const result = await response.json();
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('blog')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error('❌ Upload error details:', {
-          message: uploadError.message,
-          name: uploadError.name,
-          cause: uploadError.cause,
-          stack: uploadError.stack
-        });
-        throw new Error(`アップロードエラー: ${uploadError.message}`);
+      if (!response.ok) {
+        console.error('❌ Upload error details:', result);
+        throw new Error(result.error || 'アップロードに失敗しました');
       }
 
-      console.log('✅ Upload successful:', uploadData);
+      console.log('✅ Upload successful:', result);
+      console.log('🔗 Public URL:', result.url);
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('blog')
-        .getPublicUrl(filePath);
-
-      console.log('🔗 Public URL generated:', publicUrl);
-
-      onImageUploaded(publicUrl);
+      onImageUploaded(result.url);
     } catch (err: any) {
       console.error('❌ Error uploading:', err);
       setError(err.message || 'アップロードに失敗しました');
