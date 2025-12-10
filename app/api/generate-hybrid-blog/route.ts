@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
@@ -727,8 +728,29 @@ ${formatResearchResults(researchResults2)}
     // ※ これにより8192トークン制限エラーを回避し、コストも削減
     console.log('  ℹ️ 記事全体ベクトル化: スキップ（Fragment IDベクトル化で代替）');
 
+    // 7-3.5: ベクトルリンク（関連記事）5個追加（Fragment IDベクトル化の前に実行）
+    console.log('  🔗 ベクトルリンク追加中...');
+    try {
+      const vectorLinks = generateVectorLinks(categorySlug, topic, targetKeyword);
+      const vectorLinksSection = `
+
+---
+
+## 関連記事・おすすめコンテンツ {#related-content}
+
+${vectorLinks.map((link, index) => `${index + 1}. **[${link.title}](${link.url})** - ${link.description}`).join('\n')}
+
+---
+`;
+      enhancedContent = enhancedContent + vectorLinksSection;
+      console.log(`  ✅ ベクトルリンク追加完了: ${vectorLinks.length}件`);
+    } catch (vectorLinkError) {
+      console.warn('  ⚠️ ベクトルリンク追加エラー（継続）:', vectorLinkError);
+    }
+
     // 7-4: Fragment ID抽出・ベクトル化
     console.log('  🔍 Fragment IDベクトル化中...');
+    let extractedFragmentIds: string[] = [];
     try {
       const fragmentVectorizer = new FragmentVectorizer();
       const fragmentResult = await fragmentVectorizer.extractAndVectorizeFromMarkdown(
@@ -745,12 +767,128 @@ ${formatResearchResults(researchResults2)}
 
       if (fragmentResult.success) {
         console.log(`  ✅ Fragment ID: ${fragmentResult.vectorizedCount}個ベクトル化`);
+        // Fragment IDリストを抽出
+        extractedFragmentIds = fragmentResult.extractedFragments.map(f => f.fragment_id);
       }
     } catch (fragmentError) {
       console.error('  ⚠️ Fragment IDエラー（継続）:', fragmentError);
     }
 
-    // 7-5: コンテンツ更新
+    // 7-5: FAQエンティティ生成（既存システム統合）
+    console.log('  🔧 FAQエンティティ生成中...');
+    let faqEntities: any[] = [];
+    try {
+      // FAQ質問・回答ペアを抽出
+      const faqSectionRegex = /## よくある質問[\s\S]*?(?=\n##[^#]|$)/i;
+      const faqMatch = enhancedContent.match(faqSectionRegex);
+      
+      if (faqMatch) {
+        const faqItems: Array<{ question: string; answer: string; index: number }> = [];
+        const faqQARegex = /### Q:\s*([^{]+?)(?:\s*\{#faq-(\d+)\})?\s*\n\s*A:\s*([^#]+?)(?=\n\s*###|\n\s*##|$)/g;
+        let faqMatch_inner;
+        let faqIndex = 1;
+        
+        while ((faqMatch_inner = faqQARegex.exec(faqMatch[0])) !== null) {
+          const question = faqMatch_inner[1].trim();
+          const answer = faqMatch_inner[3].trim();
+          const extractedIndex = faqMatch_inner[2] ? parseInt(faqMatch_inner[2]) : faqIndex;
+          
+          faqItems.push({ question, answer, index: extractedIndex });
+          faqIndex++;
+        }
+        
+        if (faqItems.length > 0) {
+          faqEntities = generateBlogFAQEntities(
+            { id: savedPost.id, title: blogData.title, slug: slug, content: enhancedContent },
+            faqItems
+          );
+          console.log(`  ✅ FAQエンティティ生成完了: ${faqEntities.length}個`);
+        }
+      }
+    } catch (faqError) {
+      console.warn('  ⚠️ FAQエンティティ生成エラー（継続）:', faqError);
+    }
+
+    // 7-6: 統合構造化データ生成（Mike King理論準拠）
+    console.log('  🔧 統合構造化データ生成中...');
+    let pageSchema: any = null;
+    try {
+      const structuredDataSystem = new UnifiedStructuredDataSystem('https://nands.tech');
+      pageSchema = structuredDataSystem.generateWebPageSchemaWithHasPart({
+        path: `/posts/${slug}`,
+        title: blogData.title,
+        description: blogData.meta_description || blogData.excerpt || blogData.title,
+        serviceType: 'BlogPost',
+        fragmentIds: extractedFragmentIds,
+        lastModified: new Date().toISOString()
+      });
+      
+      console.log(`  ✅ 統合構造化データ生成完了`);
+      console.log(`    - WebPage Schema: ${pageSchema['@type']}`);
+      console.log(`    - hasPart要素: ${pageSchema.hasPart?.length || 0}個`);
+      console.log(`    - FAQエンティティ: ${faqEntities.length}個`);
+    } catch (structuredDataError) {
+      console.warn('  ⚠️ 構造化データ生成エラー（継続）:', structuredDataError);
+    }
+
+    // 7-7: AI検索最適化処理（4大AI検索エンジン対応）
+    console.log('  🔧 AI検索最適化処理中...');
+    let aiEnhancedData: any = null;
+    let aiEnhancedStructuredDataJSON: any = null;
+    try {
+      const extractedKeywords = blogData.seo_keywords || [targetKeyword, topic, 'AI', 'ブログ記事'];
+      
+      aiEnhancedData = await generateCompleteAIEnhancedUnifiedPageData(
+        {
+          pageSlug: `posts/${slug}`,
+          pageTitle: blogData.title,
+          keywords: extractedKeywords,
+          category: categorySlug
+        },
+        ['ChatGPT', 'Perplexity', 'Claude', 'Gemini']
+      );
+      
+      aiEnhancedStructuredDataJSON = generateCompleteAIEnhancedStructuredDataJSON(aiEnhancedData);
+      
+      console.log(`  ✅ AI検索最適化完了`);
+      console.log(`    - 対象エンジン: ChatGPT, Perplexity, Claude, Gemini`);
+      console.log(`    - Fragment ID数: ${extractedFragmentIds.length}個`);
+    } catch (aiOptError) {
+      console.warn('  ⚠️ AI検索最適化エラー（継続）:', aiOptError);
+    }
+
+    // 7-8: メタデータ保存（構造化データ・エンティティ・AI最適化データ統合）
+    console.log('  💾 メタデータ保存中...');
+    try {
+      await supabaseServiceRole
+        .from('posts')
+        .update({
+          metadata: {
+            structuredData: pageSchema,
+            faqEntities: faqEntities,
+            fragmentIds: extractedFragmentIds,
+            generatedAt: new Date().toISOString(),
+            aiEnhancedData: aiEnhancedData,
+            aiEnhancedStructuredDataJSON: aiEnhancedStructuredDataJSON,
+            aiSearchOptimizedAt: new Date().toISOString(),
+            generationType: 'hybrid', // ハイブリッド記事識別
+            ragSources: {
+              company: companyVectors?.length || 0,
+              personalStory: personalStoryData.length,
+              kenjiThought: kenjiThoughtData.length,
+              scrapedKeywords: totalScrapedCount,
+              deepResearch: researchRagData?.length || 0
+            }
+          }
+        })
+        .eq('id', savedPost.id);
+      
+      console.log(`  ✅ メタデータ保存完了`);
+    } catch (metadataError) {
+      console.warn('  ⚠️ メタデータ保存エラー（継続）:', metadataError);
+    }
+
+    // 7-9: コンテンツ更新
     if (enhancedContent !== blogData.content) {
       await supabaseServiceRole
         .from('posts')
@@ -759,7 +897,7 @@ ${formatResearchResults(researchResults2)}
       console.log('  ✅ コンテンツ更新完了');
     }
 
-    // 7-6: 一時RAGデータ自動削除（DB容量節約）
+    // 7-11: 一時RAGデータ自動削除（DB容量節約）
     console.log('  🗑️ 一時RAGデータ削除中...');
     try {
       // スクレイピングデータ削除
@@ -1111,5 +1249,73 @@ function parseGeneratedContent(content: string): any {
       word_count: content.length
     };
   }
+}
+
+/**
+ * ベクトルリンク（関連記事）生成
+ * 記事末尾に追加する関連リンク5個を生成
+ */
+interface VectorLink {
+  title: string;
+  url: string;
+  description: string;
+}
+
+function generateVectorLinks(categorySlug: string, topic: string, targetKeyword: string): VectorLink[] {
+  // 必須リンク（常に含める）
+  const mandatoryLinks: VectorLink[] = [
+    {
+      title: 'NANDSトップページ',
+      url: 'https://nands.tech/',
+      description: 'AI時代のキャリア支援から最新技術開発まで、包括的なソリューションを提供'
+    },
+    {
+      title: 'NANDSのAIサイト',
+      url: 'https://nands.tech/ai-site',
+      description: 'AIに引用されるサイト構築。ChatGPT・Claude・Perplexityが正確に理解・引用するデジタル資産'
+    }
+  ];
+
+  // カテゴリ・トピックに応じた関連リンク
+  const categoryRelatedLinks: Record<string, VectorLink[]> = {
+    'marketing': [
+      { title: 'AIO対策・SEO最適化', url: 'https://nands.tech/aio-seo', description: 'レリバンスエンジニアリングによるAI時代のSEO最適化サービス' },
+      { title: 'SNS自動化', url: 'https://nands.tech/sns-automation', description: 'AI活用のSNS投稿自動化とコンテンツ生成。ブランド認知度向上を実現' },
+      { title: '動画生成サービス', url: 'https://nands.tech/video-generation', description: 'AI技術を活用した動画コンテンツ生成。マーケティング効果を最大化' }
+    ],
+    'programming': [
+      { title: 'システム開発', url: 'https://nands.tech/system-development', description: 'Webアプリケーション開発からAI統合システムまで幅広く対応' },
+      { title: 'AIエージェント開発', url: 'https://nands.tech/ai-agents', description: 'Mastra Framework活用の自律型AIエージェント開発。業務自動化を実現' },
+      { title: 'MCPサーバー開発', url: 'https://nands.tech/mcp-servers', description: 'Model Context Protocol対応のカスタムサーバー開発' }
+    ],
+    'ai-technology': [
+      { title: 'AIエージェント開発', url: 'https://nands.tech/ai-agents', description: 'Mastra Framework活用の自律型AIエージェント開発。業務自動化を実現' },
+      { title: 'チャットボット開発', url: 'https://nands.tech/chatbot-development', description: 'ChatGPT・Claude統合チャットボット。顧客対応を24時間自動化' },
+      { title: 'ベクトルRAG検索', url: 'https://nands.tech/vector-rag', description: '企業内文書の意味的検索システム。検索精度95%向上を実現' }
+    ],
+    'business': [
+      { title: '法人向けリスキリング', url: 'https://nands.tech/reskilling', description: '企業のDX推進を支援する法人向け人材育成プログラム' },
+      { title: '人材ソリューション', url: 'https://nands.tech/hr-solutions', description: 'AIを活用した人事・労務支援サービス。法令準拠で安心サポート' },
+      { title: 'システム開発', url: 'https://nands.tech/system-development', description: 'Webアプリケーション開発からAI統合システムまで幅広く対応' }
+    ],
+    'career': [
+      { title: '個人向けリスキリング', url: 'https://nands.tech/fukugyo', description: 'AI副業・キャリアアップを支援するスキル習得プログラム' },
+      { title: '法人向けリスキリング', url: 'https://nands.tech/reskilling', description: '企業のDX推進を支援する法人向け人材育成プログラム' },
+      { title: '人材ソリューション', url: 'https://nands.tech/hr-solutions', description: 'AIを活用した人事・労務支援サービス' }
+    ]
+  };
+
+  // デフォルトリンク（カテゴリが見つからない場合）
+  const defaultLinks: VectorLink[] = [
+    { title: 'システム開発', url: 'https://nands.tech/system-development', description: 'Webアプリケーション開発からAI統合システムまで幅広く対応' },
+    { title: 'AIO対策・SEO最適化', url: 'https://nands.tech/aio-seo', description: 'レリバンスエンジニアリングによるAI時代のSEO最適化サービス' },
+    { title: '法人向けリスキリング', url: 'https://nands.tech/reskilling', description: '企業のDX推進を支援する法人向け人材育成プログラム' }
+  ];
+
+  // カテゴリに応じた関連リンクを取得
+  const relatedLinks = categoryRelatedLinks[categorySlug] || defaultLinks;
+
+  // 必須リンク2つ + 関連リンク3つ = 5つ
+  return [...mandatoryLinks, ...relatedLinks.slice(0, 3)];
 }
 

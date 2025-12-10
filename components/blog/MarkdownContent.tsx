@@ -256,7 +256,19 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               );
             },
             p({ children }) {
-              return <p className="my-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">{children}</p>;
+              // Fragment ID パターンを除去 ({#xxx} 形式)
+              const processChildren = (node: React.ReactNode): React.ReactNode => {
+                if (typeof node === 'string') {
+                  // 先頭・末尾の {#xxx} パターンを除去
+                  return node.replace(/\s*\{#[^}]+\}\s*/g, ' ').trim();
+                }
+                if (Array.isArray(node)) {
+                  return node.map(processChildren);
+                }
+                return node;
+              };
+              const processedChildren = processChildren(children);
+              return <p className="my-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">{processedChildren}</p>;
             },
             ul({ children }) {
               return <ul className="not-prose my-4 text-base space-y-2 pl-8" style={{ listStyleType: 'disc', listStylePosition: 'outside', display: 'block' }}>{children}</ul>;
@@ -265,7 +277,18 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
               return <ol className="not-prose my-4 text-base space-y-2 pl-8" style={{ listStyleType: 'decimal', listStylePosition: 'outside', display: 'block' }}>{children}</ol>;
             },
             li({ children }) {
-              return <li className="text-gray-700 dark:text-gray-300 text-base leading-relaxed ml-0" style={{ display: 'list-item' }}>{children}</li>;
+              // Fragment ID パターンを除去 ({#xxx} 形式)
+              const processChildren = (node: React.ReactNode): React.ReactNode => {
+                if (typeof node === 'string') {
+                  return node.replace(/\s*\{#[^}]+\}\s*/g, ' ').trim();
+                }
+                if (Array.isArray(node)) {
+                  return node.map(processChildren);
+                }
+                return node;
+              };
+              const processedChildren = processChildren(children);
+              return <li className="text-gray-700 dark:text-gray-300 text-base leading-relaxed ml-0" style={{ display: 'list-item' }}>{processedChildren}</li>;
             },
             table: ({ children }) => (
               <div className="sticky-table-container my-6 overflow-x-auto shadow-md rounded-none">
@@ -289,11 +312,24 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
                 {children}
               </tbody>
             ),
-            td: ({ children }) => (
-              <td className="py-3 px-4 text-gray-700 border-b border-gray-200 bg-white">
-                {children}
-              </td>
-            ),
+            td: ({ children }) => {
+              // Fragment ID パターンを除去 ({#xxx} 形式)
+              const processChildren = (node: React.ReactNode): React.ReactNode => {
+                if (typeof node === 'string') {
+                  return node.replace(/\s*\{#[^}]+\}\s*/g, ' ').trim();
+                }
+                if (Array.isArray(node)) {
+                  return node.map(processChildren);
+                }
+                return node;
+              };
+              const processedChildren = processChildren(children);
+              return (
+                <td className="py-3 px-4 text-gray-700 border-b border-gray-200 bg-white">
+                  {processedChildren}
+                </td>
+              );
+            },
             strong({ children }) {
               return <span className="font-bold highlight-marker">{children}</span>;
             },

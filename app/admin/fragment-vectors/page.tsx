@@ -82,11 +82,12 @@ export default function FragmentVectorsPage() {
     try {
       setLoading(true);
 
-      // 1. Fragment Vectorsデータ取得
+      // 1. Fragment Vectorsデータ取得（制限解除: range()で明示的に指定）
       const { data: fragmentsData, error: fragmentsError } = await supabase
         .from('fragment_vectors')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(0, 9999);  // 0-9999の範囲を明示的に指定（10000件まで）
 
       if (fragmentsError) {
         console.error('Fragment Vectors取得エラー:', fragmentsError);
@@ -96,7 +97,8 @@ export default function FragmentVectorsPage() {
       const { data: youtubeShortsData, error: youtubeShortsError } = await supabase
         .from('company_youtube_shorts')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(1000);  // 制限を明示
 
       if (youtubeShortsError) {
         console.error('YouTube Shorts取得エラー:', youtubeShortsError);

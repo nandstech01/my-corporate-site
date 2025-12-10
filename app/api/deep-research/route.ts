@@ -536,7 +536,7 @@ async function generateFinalReport(
     .map(l => `- ${l.content}`)
     .join('\n');
 
-  const allSourcesText = [...new Set(results.map(r => r.source))]
+  const allSourcesText = Array.from(new Set(results.map(r => r.source)))
     .filter(s => s && s !== 'Unknown' && s !== 'Tavily AI')
     .slice(0, 20)
     .join(', ');
@@ -750,7 +750,7 @@ function extractEntitiesFromText(text: string): string[] {
   const serviceMatches = text.match(/[A-Z][A-Za-z0-9]+/g) || [];
   entities.push(...serviceMatches.filter(s => s.length > 2).slice(0, 5));
   
-  return [...new Set(entities)].slice(0, 10);
+  return Array.from(new Set(entities)).slice(0, 10);
 }
 
 function extractKeywordsFromText(text: string): string[] {
@@ -766,5 +766,5 @@ function extractKeywordsFromText(text: string): string[] {
   const englishMatches = text.match(/[A-Z][a-z]+/g) || [];
   keywords.push(...englishMatches.filter(e => e.length > 2).slice(0, 5));
   
-  return [...new Set(keywords)].slice(0, 15);
+  return Array.from(new Set(keywords)).slice(0, 15);
 }
