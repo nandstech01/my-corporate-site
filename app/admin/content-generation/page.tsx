@@ -19,6 +19,7 @@ import {
 import XPostGenerationSection from './components/XPostGenerationSection';
 import AutoScheduler from './components/AutoScheduler';
 import ThumbnailStockManager from './components/ThumbnailStockManager';
+import HybridArticleGenerator from './components/HybridArticleGenerator';
 
 // キーワードデータベース（英語・日本語対応）
 const keywordDatabase = {
@@ -2037,6 +2038,9 @@ export default function ContentGenerationPage() {
 
         {/* サムネイル画像ストック管理 */}
         <ThumbnailStockManager />
+
+        {/* ハイブリッド記事生成セクション */}
+        <HybridArticleGenerator />
 
         {/* 自動スケジューラーセクション */}
         <AutoScheduler />

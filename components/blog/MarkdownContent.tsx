@@ -297,6 +297,9 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             strong({ children }) {
               return <span className="font-bold highlight-marker">{children}</span>;
             },
+            em({ children }) {
+              return <em className="italic text-gray-700 dark:text-gray-300">{children}</em>;
+            },
             a({ href, children }) {
               const isLongUrl = typeof children === 'string' && children.length > 60;
               const displayText = isLongUrl && typeof children === 'string' 

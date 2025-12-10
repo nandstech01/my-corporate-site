@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { PhotoIcon, TrashIcon, EyeIcon, ArrowUpTrayIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, TrashIcon, EyeIcon, ArrowUpTrayIcon, CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/lib/database.types';
 
@@ -21,6 +21,7 @@ export default function ThumbnailStockManager() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [isExpanded, setIsExpanded] = useState(false); // 🔽 デフォルトで閉じておく
   const supabase = createClientComponentClient<Database>();
 
   // サムネイル一覧取得
@@ -185,8 +186,12 @@ export default function ThumbnailStockManager() {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      {/* 🔽 クリック可能なヘッダー */}
+      <div 
+        className="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-700/50 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="flex items-center space-x-3">
           <PhotoIcon className="w-6 h-6 text-blue-400" />
           <h2 className="text-xl font-semibold text-white">サムネイル画像ストック</h2>
@@ -194,13 +199,27 @@ export default function ThumbnailStockManager() {
             {thumbnails.filter(t => t.is_active).length}/150
           </span>
         </div>
+        <div className="flex items-center space-x-2">
         <button
-          onClick={fetchThumbnails}
+            onClick={(e) => {
+              e.stopPropagation(); // 親のクリックイベントを止める
+              fetchThumbnails();
+            }}
           className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
         >
           更新
         </button>
+          {isExpanded ? (
+            <ChevronUpIcon className="w-6 h-6 text-gray-400" />
+          ) : (
+            <ChevronDownIcon className="w-6 h-6 text-gray-400" />
+          )}
+        </div>
       </div>
+
+      {/* 🔽 折りたたみ可能なコンテンツ */}
+      {isExpanded && (
+        <div className="p-6 pt-0 border-t border-gray-700">
 
       {/* アップロードエリア */}
       <div
@@ -329,6 +348,8 @@ export default function ThumbnailStockManager() {
       {thumbnails.length === 0 && !loading && (
         <div className="text-center text-gray-400 py-8">
           まだサムネイル画像がアップロードされていません
+        </div>
+      )}
         </div>
       )}
     </div>

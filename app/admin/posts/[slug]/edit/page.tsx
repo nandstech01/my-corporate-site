@@ -291,20 +291,20 @@ export default function EditPostPage({
         // ⚠️ RLSポリシーのため、サーバーサイドAPI経由で更新
         const chatgptUpdateData = {
           id: postId,
-          title,
-          content,
-          status,
-          business_id: isChatGPTSpecial ? null : businessId,
-          category_id: isChatGPTSpecial ? null : categoryId,
-          chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
-          featured_image: thumbnailUrl,
+            title,
+            content,
+            status,
+            business_id: isChatGPTSpecial ? null : businessId,
+            category_id: isChatGPTSpecial ? null : categoryId,
+            chatgpt_section_id: isChatGPTSpecial ? chatGPTSectionId : null,
+            featured_image: thumbnailUrl,
           thumbnail_url: thumbnailUrl,
-          updated_at: new Date().toISOString(),
-          meta_description: metaDescription,
+            updated_at: new Date().toISOString(),
+            meta_description: metaDescription,
           seo_keywords: seoKeywords, // ⚠️ chatgpt_postsは「seo_keywords」
-          is_indexable: isIndexable,
-          canonical_url: canonicalUrl,
-          is_chatgpt_special: isChatGPTSpecial,
+            is_indexable: isIndexable,
+            canonical_url: canonicalUrl,
+            is_chatgpt_special: isChatGPTSpecial,
         };
         
         // サーバーサイドAPI経由で更新（RLSバイパス）
