@@ -380,19 +380,71 @@ async function getRecentPosts(): Promise<Post[]> {
   }
 }
 
+/**
+ * 🎬 カテゴリ別記事を取得 - Netflix風セクション用
+ * @param categoryId カテゴリID
+ * @param limit 取得件数（デフォルト: 10件）
+ */
+async function getPostsByCategory(categoryId: number, limit: number = 10): Promise<Post[]> {
+  const supabase = createClient();
+  
+  try {
+    // postsテーブルから指定カテゴリの記事を取得
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id, title, slug, meta_description, thumbnail_url, created_at, category_id')
+      .eq('status', 'published')
+      .eq('category_id', categoryId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error(`Category ${categoryId} posts fetch error:`, error.message);
+      return [];
+    }
+
+    // 統一フォーマットに変換
+    return (data || []).map((post: any) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.meta_description,
+      thumbnail_url: post.thumbnail_url,
+      featured_image: post.thumbnail_url,
+      created_at: post.created_at,
+      category_id: post.category_id,
+      table_type: 'posts' as const
+    }));
+
+  } catch (error) {
+    console.error(`getPostsByCategory(${categoryId}) error:`, error);
+    return [];
+  }
+}
+
 export default async function Home() {
   console.log('🏠 Home page rendering started...');
   const renderStartTime = Date.now();
 
-  // 🚀 並列処理最適化（1段階目）- ヒーロー固定記事、最新記事、ショート動画を並列取得
-  const [posts, recentPosts, youtubeShorts] = await Promise.all([
-    getLatestPosts(),      // ヒーロー用固定4件
-    getRecentPosts(),      // 最新知見セクション用6件
+  // 🚀 並列処理最適化（1段階目）- ヒーロー固定記事、最新記事、カテゴリ別記事、ショート動画を並列取得
+  const [posts, recentPosts, aiNewsPosts, careerPosts, itReskillPosts, marketingReskillPosts, youtubeShorts] = await Promise.all([
+    getLatestPosts(),                  // ヒーロー用固定4件
+    getRecentPosts(),                  // 最新知見セクション用6件（廃止予定）
+    getPostsByCategory(40, 10),        // AIニュース・トレンド（category_id: 40）
+    getPostsByCategory(37, 10),        // 転職・キャリア（category_id: 37）
+    getPostsByCategory(27, 10),        // IT・ソフトウェア業界向けリスキリング（category_id: 27）
+    getPostsByCategory(29, 10),        // 広告・マーケティング業界向けリスキリング（category_id: 29）
     getLatestYouTubeShorts()
   ]);
   const structuredData = getStructuredData();
   
   console.log('📱 トップページ ショート動画:', youtubeShorts.length, '件');
+  console.log('🎬 カテゴリ別記事取得:', {
+    aiNews: aiNewsPosts.length,
+    career: careerPosts.length,
+    itReskill: itReskillPosts.length,
+    marketingReskill: marketingReskillPosts.length
+  });
   
   // 🚀 AI検索最適化処理を軽量化（キャッシュシステムは後で統合）
   let aiEnhancedData, aiSearchReport, aiEnhancedStructuredDataJSON;
@@ -1310,7 +1362,13 @@ export default async function Home() {
       <AISiteShowcaseSection />
       
       {/* 記事セクション（自社RAG活用・AI Overviews最適化）- ライト/ダークモード対応、最新6件表示 */}
-      <KnowledgeInsightsSection initialPosts={recentPosts} />
+      {/* 🎬 Netflix風カテゴリ別記事セクション（最新知見・専門情報） */}
+      <KnowledgeInsightsSection 
+        aiNewsPosts={aiNewsPosts}
+        careerPosts={careerPosts}
+        itReskillPosts={itReskillPosts}
+        marketingReskillPosts={marketingReskillPosts}
+      />
       
       {/* NANDSについて - 非表示（ヘッダーの会社概要に移管） */}
       {/* <section id="company-expertise" className="scroll-mt-20">

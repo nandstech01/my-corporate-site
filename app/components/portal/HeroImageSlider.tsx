@@ -1262,17 +1262,6 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
               className="relative z-10 w-full max-w-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* 閉じるボタン */}
-              <button
-                onClick={closeVideoModal}
-                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
-                aria-label="閉じる"
-              >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
               {/* YouTube埋め込み（Shorts用縦長） */}
               <div 
                 className="relative rounded-2xl overflow-hidden shadow-2xl"
@@ -1281,6 +1270,22 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                   background: '#000'
                 }}
               >
+                {/* 閉じるボタン（動画内側の右上） */}
+                <button
+                  onClick={closeVideoModal}
+                  className="absolute top-3 right-3 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  style={{
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                  aria-label="閉じる"
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
                 <iframe
                   src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&loop=1&playlist=${selectedVideo}&controls=1&rel=0&modestbranding=1`}
                   title="YouTube video player"

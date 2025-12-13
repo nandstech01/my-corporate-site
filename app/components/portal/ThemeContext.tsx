@@ -26,14 +26,23 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export const THEME_CHANGE_EVENT = 'nands-theme-change'
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  // 初期値はダークモード（現在のデザイン）
+  // 初期値: システムテーマを検出（SSR対応）
   const [theme, setThemeState] = useState<Theme>('dark')
 
-  // localStorageから読み込み（トップページ専用キー）
+  // localStorageとシステムテーマから初期値を読み込み
   useEffect(() => {
+    // 1. まずlocalStorageをチェック（ユーザーが明示的に設定している場合）
     const savedTheme = localStorage.getItem('nands-top-page-theme') as Theme
     if (savedTheme === 'light' || savedTheme === 'dark') {
+      console.log('🎨 ThemeContext: Using saved theme =', savedTheme)
       setThemeState(savedTheme)
+    } else {
+      // 2. localStorageがない場合、システムテーマを検出
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const systemTheme = mediaQuery.matches ? 'dark' : 'light'
+      console.log('🎨 ThemeContext: Using system theme =', systemTheme)
+      console.log('🎨 ThemeContext: prefers-color-scheme:dark matches =', mediaQuery.matches)
+      setThemeState(systemTheme)
     }
 
     // ヘッダーからのテーマ変更イベントを監視
@@ -83,8 +92,16 @@ export const useTheme = () => {
  */
 export const getStoredTheme = (): Theme => {
   if (typeof window === 'undefined') return 'dark'
+  
+  // 1. localStorageをチェック
   const stored = localStorage.getItem('nands-top-page-theme')
-  return (stored === 'light' || stored === 'dark') ? stored : 'dark'
+  if (stored === 'light' || stored === 'dark') {
+    return stored
+  }
+  
+  // 2. システムテーマを検出
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  return mediaQuery.matches ? 'dark' : 'light'
 }
 
 export const setStoredTheme = (theme: Theme) => {
