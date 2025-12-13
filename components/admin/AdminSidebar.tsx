@@ -81,6 +81,12 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
       ]
     },
     {
+      name: '📹 VIDEO Jobs',
+      href: '/admin/video-jobs',
+      icon: PlayIcon,
+      current: pathname?.startsWith('/admin/video-jobs')
+    },
+    {
       name: 'トリプルRAG',
       icon: CubeIcon,
       children: [

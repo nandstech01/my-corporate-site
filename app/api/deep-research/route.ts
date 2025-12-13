@@ -550,28 +550,57 @@ ${allLearningsText}
 ${allSourcesText}
 
 ## レポート要件
-1. **サマリー**: 300-500文字で全体像を説明
-2. **主要な発見**: 最も重要な5-8個のポイント
-3. **推奨事項**: 読者へのアクション3-5個
-4. **キーエンティティ**: 重要な会社名・サービス名・人名
-5. **統計データ**: 数字を含む具体的なデータ
+
+### 1. サマリー
+- 300-500文字で全体像を説明
+
+### 2. 主要な発見（keyFindings）⚠️ 超重要
+**必ず7個以上生成してください。6個以下は不合格です。**
+
+各発見には**必ず具体的な数字を含めてください**：
+- ✅ 良い例: "フリーランスAIエンジニアは月額平均85万円、年収換算で1,020万円を稼げる（レバテックフリーランス調査）"
+- ✅ 良い例: "AI市場は2023年に6,858億7,300万円、2028年には2兆5,433億6,200万円に成長予測（IDC Japan）"
+- ✅ 良い例: "求人倍率は1.91倍で、年収700万円以上の求人は2.56倍と高水準（doda調査）"
+- ❌ 悪い例: "AIエンジニアの需要が高まっている"（数字なし）
+- ❌ 悪い例: "市場が成長している"（抽象的）
+
+**優先順位**:
+1. 金額（年収、月収、市場規模）
+2. 率・倍率（成長率、求人倍率、ROI）
+3. 人数・件数（採用数、ユーザー数）
+4. 期間（投資回収期間、開発期間）
+
+### 3. 推奨事項
+- 読者へのアクション3-5個
+
+### 4. キーエンティティ
+- 重要な会社名・サービス名・人名
+
+### 5. 統計データ
+- 数字を含む具体的なデータ
 
 ## 出力形式（JSON）
+**keyFindingsは必ず7個以上、各項目に具体的な数字を含めてください**
+
 \`\`\`json
 {
   "summary": "包括的なサマリー（300-500文字）",
   "keyFindings": [
-    "主要な発見1（具体的な数字や名前を含む）",
-    "主要な発見2",
-    ...
+    "主要な発見1（必ず具体的な数字を含む）",
+    "主要な発見2（必ず具体的な数字を含む）",
+    "主要な発見3（必ず具体的な数字を含む）",
+    "主要な発見4（必ず具体的な数字を含む）",
+    "主要な発見5（必ず具体的な数字を含む）",
+    "主要な発見6（必ず具体的な数字を含む）",
+    "主要な発見7（必ず具体的な数字を含む）"
   ],
   "recommendations": [
     "推奨事項1",
     "推奨事項2",
-    ...
+    "推奨事項3"
   ],
-  "entities": ["会社名1", "サービス名1", ...],
-  "statistics": ["統計データ1", "統計データ2", ...]
+  "entities": ["会社名1", "サービス名1", "人名1"],
+  "statistics": ["統計データ1", "統計データ2"]
 }
 \`\`\``;
 
@@ -579,8 +608,8 @@ ${allSourcesText}
     const completion = await deepseekClient.chat.completions.create({
       model: 'deepseek-chat',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 3000,
-      temperature: 0.5,
+      max_tokens: 4000, // 7個以上のkeyFindingsを生成するために増量
+      temperature: 0.3, // より一貫性のある出力を得るために低下
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
@@ -597,16 +626,36 @@ ${allSourcesText}
           .replace(/[\r\n]+/g, ' ')
           .trim();
         
-        return JSON.parse(cleanedJson);
+        const parsed = JSON.parse(cleanedJson);
+        
+        // keyFindingsが7個未満の場合は警告を出し、learningsから補完
+        if (!parsed.keyFindings || parsed.keyFindings.length < 7) {
+          console.warn(`  ⚠️ keyFindingsが${parsed.keyFindings?.length || 0}個しかありません。learningsから補完します。`);
+          const existingFindings = parsed.keyFindings || [];
+          const neededCount = 7 - existingFindings.length;
+          const additionalFindings = learnings
+            .slice(0, neededCount + 5)
+            .filter(l => !existingFindings.includes(l.content))
+            .slice(0, neededCount)
+            .map(l => l.content);
+          
+          parsed.keyFindings = [...existingFindings, ...additionalFindings];
+          console.log(`  ✅ keyFindingsを${existingFindings.length}個 → ${parsed.keyFindings.length}個に補完しました`);
+        }
+        
+        return parsed;
       } catch (parseError) {
         console.warn('  ⚠️ レポートJSONパースエラー:', (parseError as Error).message);
       }
     }
 
-    // フォールバック
+    // フォールバック: 少なくとも7個のkeyFindingsを返す
+    const minKeyFindings = 7;
+    const keyFindingsCount = Math.max(minKeyFindings, Math.min(10, learnings.length));
+    
     return {
       summary: `${topic}についてのリサーチが完了しました。${learnings.length}件の知識を収集。`,
-      keyFindings: learnings.slice(0, 8).map(l => l.content),
+      keyFindings: learnings.slice(0, keyFindingsCount).map(l => l.content),
       recommendations: ['詳細な分析を続けることを推奨'],
       entities: [],
       statistics: []
@@ -614,9 +663,14 @@ ${allSourcesText}
 
   } catch (error) {
     console.error('  ❌ レポート生成エラー:', (error as Error).message);
+    
+    // エラー時も少なくとも7個のkeyFindingsを返す
+    const minKeyFindings = 7;
+    const keyFindingsCount = Math.max(minKeyFindings, Math.min(10, learnings.length));
+    
     return {
       summary: `${topic}についてのリサーチが完了しました。`,
-      keyFindings: learnings.slice(0, 5).map(l => l.content),
+      keyFindings: learnings.slice(0, keyFindingsCount).map(l => l.content),
       recommendations: [],
       entities: [],
       statistics: []

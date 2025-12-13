@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import SustainabilitySection from '@/app/components/portal/SustainabilitySection'
-import ContactSection from '@/app/components/portal/ContactSection'
 import { FeaturedSection } from '@/components/home/FeaturedSection'
 import { createClient } from '@/utils/supabase/server'
 import PostsGridSSR from '@/components/common/PostsGridSSR'
@@ -11,19 +10,27 @@ import { getStructuredData } from './structured-data'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 
-import FAQSection from './components/portal/FAQSection'
 import TableOfContents from '@/components/common/TableOfContents'
 // 🆕 YouTubeショート動画スライダー（トップページ用）
 import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
 
-// SSR対応版HeroSection（AI検索エンジン最適化）
-import HeroSectionSSR from '@/app/components/portal/HeroSectionSSR'
+// 🆕 Hybrid Architecture新セクション（魂のデザイン）
+import NewTopPageSections from '@/app/components/portal/NewTopPageSections'
 
-// ServicesSectionSSR（AI検索エンジン最適化）
-import ServicesSectionSSR from '@/app/components/portal/ServicesSectionSSR'
+// ServicesSectionSSRは削除（ヘッダーに移管済み）
+// import ServicesSectionSSR from '@/app/components/portal/ServicesSectionSSR'
 
 // AboutSectionSSR（AI検索エンジン最適化）
 import AboutSectionSSR from '@/app/components/portal/AboutSectionSSR'
+
+// 🆕 AIサイトショーケースセクション（Apple風カードデザイン）
+import AISiteShowcaseSection from '@/app/components/portal/AISiteShowcaseSection'
+
+// 🆕 最新知見・専門情報セクション（ライト/ダークモード対応）
+import KnowledgeInsightsSection from '@/app/components/portal/KnowledgeInsightsSection'
+
+// 🆕 YouTubeショートセクション（ライト/ダークモード対応）
+import YouTubeShortsSection from '@/app/components/portal/YouTubeShortsSection'
 
 // Schema.org 16.0+ 最新機能をインポート
 import {
@@ -40,6 +47,9 @@ import {
   generateCompleteAIEnhancedStructuredDataJSON,
   generateEnhancedAISearchReport
 } from '@/lib/structured-data/unified-integration-ai-enhanced';
+
+// 著者信頼性システム（原田賢治プロフィール）
+import { AuthorTrustSystem, HARADA_KENJI_PROFILE, NANDS_TRUST_SIGNALS } from '@/lib/structured-data/author-trust-system';
 
 // キャッシュシステムは一時的にコメントアウト
 // import { getFastAIEnhancedPageData } from '@/lib/cache/ai-enhanced-cache'
@@ -177,7 +187,7 @@ async function getLatestYouTubeShorts(): Promise<YouTubeShortVideo[]> {
       .eq('status', 'published')
       .not('youtube_video_id', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(3);
+      .limit(6);
     
     if (error || !shorts) {
       console.error('YouTube shorts fetch error:', error?.message);
@@ -200,27 +210,36 @@ async function getLatestYouTubeShorts(): Promise<YouTubeShortVideo[]> {
   }
 }
 
+// 🎯 固定表示する注目記事のslug（表示順）
+const FEATURED_POST_SLUGS = [
+  'ai-ai20251000-097498', // 1. AIアーキテクト
+  'ai--949889',           // 2. AIキャリア
+  '-571903',              // 3. ベクトルリンク
+  'ai-950781'             // 4. レリバンスエンジニアリング
+]
+
+/**
+ * ヒーロー用固定記事を取得（4件）
+ */
 async function getLatestPosts(): Promise<Post[]> {
   const supabase = createClient();
   
   try {
-    // 🚀 パフォーマンス最適化: 並列クエリ実行
+    // 🚀 固定記事を指定されたslugで取得
     const [newPostsResult, oldPostsResult] = await Promise.all([
-      // postsテーブル（RAG記事）- 最小限のフィールドのみ
+      // postsテーブル（RAG記事）- 固定slug
       supabase
         .from('posts')
         .select('id, title, slug, meta_description, thumbnail_url, created_at')
         .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(6), // 最初から6件に制限
+        .in('slug', FEATURED_POST_SLUGS),
 
-      // chatgpt_postsテーブル（ChatGPT記事）- 最小限のフィールドのみ
+      // chatgpt_postsテーブル（ChatGPT記事）- 固定slug
       supabase
         .from('chatgpt_posts')
         .select('id, title, slug, excerpt, thumbnail_url, featured_image, created_at, is_chatgpt_special, categories(name, slug)')
         .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(6) // 最初から6件に制限
+        .in('slug', FEATURED_POST_SLUGS)
     ]);
 
     // エラーハンドリング（ログ出力を最小化）
@@ -264,13 +283,106 @@ async function getLatestPosts(): Promise<Post[]> {
       };
     });
 
-    // 🚀 最適化されたソート・制限処理
+    // 🎯 固定記事を指定された順番でソート
     const allPosts = [...formattedNewPosts, ...formattedOldPosts];
-    allPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    return allPosts.slice(0, 6);
+    
+    // slugの順番通りにソート
+    const sortedPosts = FEATURED_POST_SLUGS
+      .map(slug => allPosts.find(post => post.slug === slug))
+      .filter((post): post is Post => post !== undefined);
+    
+    return sortedPosts;
 
   } catch (error) {
     console.error('getLatestPosts error:', error);
+    return [];
+  }
+}
+
+/**
+ * 最新記事を取得（6件）- 最新知見セクション用
+ */
+async function getRecentPosts(): Promise<Post[]> {
+  const supabase = createClient();
+  
+  try {
+    // 🚀 最新記事を6件取得（作成日時順）
+    const [newPostsResult, oldPostsResult] = await Promise.all([
+      // postsテーブル（RAG記事）- 最新6件
+      supabase
+        .from('posts')
+        .select('id, title, slug, meta_description, thumbnail_url, created_at')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6),
+
+      // chatgpt_postsテーブル（ChatGPT記事）- 最新6件
+      supabase
+        .from('chatgpt_posts')
+        .select('id, title, slug, excerpt, thumbnail_url, featured_image, created_at, is_chatgpt_special, categories(name, slug)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(6)
+    ]);
+
+    // エラーハンドリング
+    if (newPostsResult.error) {
+      console.error('Recent posts (posts) fetch error:', newPostsResult.error.message);
+    }
+    if (oldPostsResult.error) {
+      console.error('Recent posts (chatgpt_posts) fetch error:', oldPostsResult.error.message);
+    }
+
+    const newPosts = newPostsResult.data || [];
+    const oldPosts = oldPostsResult.data || [];
+
+    // 統一フォーマットに変換
+    const formattedNewPosts: Post[] = newPosts.map((post: any) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.meta_description,
+      thumbnail_url: post.thumbnail_url,
+      featured_image: post.thumbnail_url,
+      created_at: post.created_at,
+      table_type: 'posts' as const
+    }));
+
+    const formattedOldPosts: Post[] = oldPosts.map((post: any) => {
+      return {
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        thumbnail_url: post.thumbnail_url,
+        featured_image: post.featured_image,
+        created_at: post.created_at,
+        category: post.categories?.[0],
+        table_type: 'chatgpt_posts' as const,
+        is_chatgpt_special: post.is_chatgpt_special
+      };
+    });
+
+    // 全記事をマージして作成日時順にソート、上位6件を返す
+    const allPosts = [...formattedNewPosts, ...formattedOldPosts];
+    const sortedPosts = allPosts.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    
+    const recentPosts = sortedPosts.slice(0, 6);
+    
+    // デバッグ: 画像URLを確認
+    console.log('🖼️ Recent Posts with images:', recentPosts.map(p => ({
+      title: p.title,
+      thumbnail_url: p.thumbnail_url,
+      featured_image: p.featured_image,
+      hasImage: !!(p.thumbnail_url || p.featured_image)
+    })));
+    
+    return recentPosts;
+
+  } catch (error) {
+    console.error('getRecentPosts error:', error);
     return [];
   }
 }
@@ -279,9 +391,10 @@ export default async function Home() {
   console.log('🏠 Home page rendering started...');
   const renderStartTime = Date.now();
 
-  // 🚀 並列処理最適化（1段階目）- ショート動画も並列取得
-  const [posts, youtubeShorts] = await Promise.all([
-    getLatestPosts(),
+  // 🚀 並列処理最適化（1段階目）- ヒーロー固定記事、最新記事、ショート動画を並列取得
+  const [posts, recentPosts, youtubeShorts] = await Promise.all([
+    getLatestPosts(),      // ヒーロー用固定4件
+    getRecentPosts(),      // 最新知見セクション用6件
     getLatestYouTubeShorts()
   ]);
   const structuredData = getStructuredData();
@@ -339,6 +452,11 @@ export default async function Home() {
   
   const renderDuration = Date.now() - renderStartTime;
   console.log(`🏠 Home page rendered in ${renderDuration}ms`);
+  
+  // 🎯 著者信頼性システム - 原田賢治プロフィール構造化データ
+  const authorTrustSystem = new AuthorTrustSystem(HARADA_KENJI_PROFILE, NANDS_TRUST_SIGNALS);
+  const authorSchema = authorTrustSystem.generateAuthorSchema();
+  const organizationTrustSchema = authorTrustSystem.generateOrganizationTrustSchema();
   
   // 【LLMO最強実装】Google Gemini LLM + AI Overviews最適化
   // Mike King理論完全準拠 + 2024年Google最新ガイドライン対応
@@ -1066,6 +1184,22 @@ export default async function Home() {
           />
 
           <Script
+            id="author-profile-schema"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(authorSchema, null, 2),
+            }}
+          />
+
+          <Script
+            id="organization-trust-schema"
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationTrustSchema, null, 2),
+            }}
+          />
+
+          <Script
             id="ai-transparency-schema"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1077,8 +1211,8 @@ export default async function Home() {
                 text: aiTransparencyStatement.statement,
                 digitalSourceType: aiTransparencyStatement.digitalSourceTypes,
                 author: {
-                  '@type': 'Organization',
-                  '@id': 'https://nands.tech/#organization'
+                  '@type': 'Person',
+                  '@id': 'https://nands.tech/author/harada-kenji'
                 },
                 publisher: {
                   '@type': 'Organization', 
@@ -1139,21 +1273,29 @@ export default async function Home() {
         />
       )}
       
+      {/* ============================================
+          🆕 Hybrid Architecture - 新トップページセクション
+          「見た目はApple、中身はデジライズ」コンセプト
+          ============================================ */}
+      <NewTopPageSections posts={posts} youtubeShorts={youtubeShorts} />
 
+      {/* ============================================
+          以下: 既存の構造化データ最適化セクション（Fragment ID保持）
+          控えめに配置し、魂の邪魔にならないように
+          ============================================ */}
 
-      {/* Table of Contents（Fragment ID ナビゲーション） */}
-      <div className="bg-black py-4 border-b border-gray-800 pt-20">
+      {/* Table of Contents（Fragment ID ナビゲーション） - 一旦非表示 */}
+      {/* <div className="bg-deep-ocean py-4 border-b border-gray-800">
         <div className="container mx-auto px-4">
           <TableOfContents items={tocItems} compact={true} />
         </div>
-      </div>
+      </div> */}
       
-      {/* メインコンテンツ（AI検索最適化 + Fragment ID対応） */}
-      <section id="ai-solutions" className="scroll-mt-20">
-        <HeroSectionSSR />
-      </section>
+      {/* 🎯 ai-solutions Fragment ID（AI検索最適化） */}
+      <div id="ai-solutions" className="absolute -top-20" aria-hidden="true" />
 
-      <section id="services-training" className="scroll-mt-20 relative">
+      {/* サービスFragment IDアンカー（AI検索最適化 - ヘッダーに移管済み）*/}
+      <div id="services-training" className="scroll-mt-20 relative" aria-hidden="true">
         {/* 12個のサービスFragment ID（NANDS=AI強化）- スクロール機能有効化 */}
         <div id="service-system-development" className="absolute -top-24" aria-hidden="true"></div>
         <div id="service-aio-seo" className="absolute -top-24" aria-hidden="true"></div>
@@ -1167,139 +1309,34 @@ export default async function Home() {
         <div id="service-video-generation" className="absolute -top-24" aria-hidden="true"></div>
         <div id="service-corporate-reskilling" className="absolute -top-24" aria-hidden="true"></div>
         <div id="service-individual-reskilling" className="absolute -top-24" aria-hidden="true"></div>
-        
-        <ServicesSectionSSR />
-      </section>
+            </div>
+            
+      {/* ServicesSectionSSR は削除（ヘッダーに移管済み）*/}
 
-      {/* NANDSのAIサイトセクション（NANDS=AIサイト関連付け強化） */}
-      <section id="ai-site-showcase" className="py-16 bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white scroll-mt-20" role="region" aria-labelledby="ai-site-heading">
-        {/* AIサイト関連Fragment ID - スクロール機能有効化 */}
-        <div id="nands-ai-site" className="absolute -top-20" aria-hidden="true" />
-        <div id="ai-site-features" className="absolute -top-20" aria-hidden="true" />
-        <div id="ai-site-technology" className="absolute -top-20" aria-hidden="true" />
-        
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 id="ai-site-heading" className="text-4xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400 bg-clip-text text-transparent">
-                NANDSのAIサイト
-              </span>
-            </h2>
-            <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-              <span className="font-bold text-cyan-400">AIに引用されるサイト</span> — すべてが資産になる。<br />
-              ChatGPT・Claude・Perplexityが正確に理解し、引用する価値のある<br />
-              デジタル資産として設計されたWebサイト。
-            </p>
-            
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="mb-3 flex justify-center">
-                  <Image 
-                    src="/images/icons/ai-site/digital-asset-cyan.png"
-                    alt="デジタル資産化アイコン"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32"
-                  />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">デジタル資産化</h3>
-                <p className="text-sm text-slate-300">すべてのコンテンツがAI検索エンジンに引用される価値ある資産として機能</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="mb-3 flex justify-center">
-                  <Image 
-                    src="/images/icons/ai-site/ai-targeting-cyan.png"
-                    alt="AI引用精度向上アイコン"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32"
-                  />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">AI引用精度向上</h3>
-                <p className="text-sm text-slate-300">Fragment ID・構造化データ・Mike King理論による正確な情報伝達</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="mb-3 flex justify-center">
-                  <Image 
-                    src="/images/icons/ai-site/value-cycle-cyan.png"
-                    alt="継続的価値創造アイコン"
-                    width={128}
-                    height={128}
-                    className="w-32 h-32"
-                  />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">継続的価値創造</h3>
-                <p className="text-sm text-slate-300">NANDS=AIの認識をAI検索エンジンに確立し、ブランド価値を蓄積</p>
-              </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <a 
-                href="/ai-site#ai-site-overview" 
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                role="button"
-                aria-label="NANDSのAIサイトを見る"
-              >
-                <span className="mr-2">AIサイトを見る</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* NANDSのAIサイトセクション（NANDS=AIサイト関連付け強化）- Apple風カードデザイン */}
+      <AISiteShowcaseSection />
       
-      {/* 記事セクション（自社RAG活用・AI Overviews最適化） */}
-      <section id="knowledge-insights" className="py-16 bg-gray-50 blog-section scroll-mt-20" role="region" aria-labelledby="latest-posts-heading">
-        <div className="container mx-auto px-4">
-          <h2 id="latest-posts-heading" className="text-3xl font-bold text-center mb-12">
-            最新知見・専門情報 - Mike King理論・LLMO対策
-          </h2>
-          <p className="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
-            Mike King理論準拠のレリバンスエンジニアリング、Google AI Overviews最適化、LLMO対策の最新情報をお届けします。
-            滋賀県・関西地方でのAI導入事例や生成AI研修の実績もご紹介しています。
-          </p>
-          <PostsGridSSR initialPosts={posts} />
-          <Suspense fallback={null}>
-            <PostsGridAnimations />
-          </Suspense>
-        </div>
-      </section>
+      {/* 記事セクション（自社RAG活用・AI Overviews最適化）- ライト/ダークモード対応、最新6件表示 */}
+      <KnowledgeInsightsSection initialPosts={recentPosts} />
       
-      <section id="company-expertise" className="scroll-mt-20">
+      {/* NANDSについて - 非表示（ヘッダーの会社概要に移管） */}
+      {/* <section id="company-expertise" className="scroll-mt-20">
         <AboutSectionSSR />
-      </section>
+      </section> */}
 
-      <section id="sustainability" className="scroll-mt-20">
+      {/* サステナビリティへの取り組み - 非表示 */}
+      {/* <section id="sustainability" className="scroll-mt-20">
         <SustainabilitySection />
-      </section>
+      </section> */}
 
       <section id="premium-solutions" className="scroll-mt-20">
         <FeaturedSection />
       </section>
 
-      {/* 📱 最新YouTubeショート動画セクション（ISRキャッシュ対応） */}
+      {/* 📱 最新YouTubeショート動画セクション（ISRキャッシュ対応）- ライト/ダークモード対応 */}
       {youtubeShorts.length > 0 && (
-        <section id="youtube-shorts" className="py-12 bg-gray-50 scroll-mt-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
-              <YouTubeShortSlider 
-                videos={youtubeShorts} 
-                currentArticleTitle="株式会社エヌアンドエス" 
-              />
-            </div>
-          </div>
-        </section>
+        <YouTubeShortsSection videos={youtubeShorts} />
       )}
-
-      <section id="faq-support" className="scroll-mt-20 relative">
-        <FAQSection />
-      </section>
-
-      <section id="contact" className="scroll-mt-20">
-        <ContactSection />
-      </section>
     </main>
   )
 } 

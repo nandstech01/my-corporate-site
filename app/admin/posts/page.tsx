@@ -265,7 +265,14 @@ export default function PostsPage() {
         scriptMode: scriptMode
       });
 
-      const response = await fetch('/api/admin/generate-youtube-script', {
+      // 🏗️ AIアーキテクト・ショートのみV2 APIを使用
+      const apiEndpoint = (scriptMode === 'architect' && scriptType === 'short')
+        ? '/api/generate-architect-short-v2'
+        : '/api/admin/generate-youtube-script';
+
+      console.log('📡 使用API:', apiEndpoint);
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CSSTransition } from 'react-transition-group';
 import { 
   ChevronDownIcon,
+  SunIcon,
+  MoonIcon,
   ComputerDesktopIcon,
   RocketLaunchIcon,
   ChatBubbleLeftRightIcon,
@@ -21,14 +23,79 @@ import {
   ShareIcon,
   VideoCameraIcon
 } from '@heroicons/react/24/outline';
+import { getStoredTheme, toggleStoredTheme } from '@/app/components/portal/ThemeContext';
+
+// モードの取得と保存（localStorageベース）
+const getStoredMode = (): 'individual' | 'corporate' => {
+  if (typeof window === 'undefined') return 'individual';
+  return (localStorage.getItem('nands-selected-mode') as 'individual' | 'corporate') || 'individual';
+};
+
+const setStoredMode = (mode: 'individual' | 'corporate') => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('nands-selected-mode', mode);
+  // カスタムイベントで他のコンポーネントに通知
+  window.dispatchEvent(new CustomEvent('nands-mode-change', { detail: { mode } }));
+};
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [mode, setMode] = useState<'individual' | 'corporate'>('individual');
   const pathname = usePathname();
   const isTopPage = pathname === '/';
+  
+  // テーマ状態の同期（トップページのみ）
+  useEffect(() => {
+    if (!isTopPage) return;
+    
+    // 初期値を取得
+    setTheme(getStoredTheme());
+    
+    // カスタムイベントを監視して同期
+    const handleThemeChange = (e: CustomEvent) => {
+      setTheme(e.detail.theme);
+    };
+    
+    window.addEventListener('nands-theme-change', handleThemeChange as EventListener);
+    return () => {
+      window.removeEventListener('nands-theme-change', handleThemeChange as EventListener);
+    };
+  }, [isTopPage]);
+  
+  // モード状態の同期（トップページのみ）
+  useEffect(() => {
+    if (!isTopPage) return;
+    
+    // 初期値を取得
+    setMode(getStoredMode());
+    
+    // カスタムイベントを監視して同期
+    const handleModeChange = (e: CustomEvent) => {
+      setMode(e.detail.mode);
+    };
+    
+    window.addEventListener('nands-mode-change', handleModeChange as EventListener);
+    return () => {
+      window.removeEventListener('nands-mode-change', handleModeChange as EventListener);
+    };
+  }, [isTopPage]);
+  
+  // モード切り替えハンドラ
+  const handleModeChange = (newMode: 'individual' | 'corporate') => {
+    setMode(newMode);
+    setStoredMode(newMode);
+    // カスタムイベントを発行
+    window.dispatchEvent(new CustomEvent('nands-mode-change', { detail: { mode: newMode } }));
+  };
+
+  const handleToggleTheme = () => {
+    const newTheme = toggleStoredTheme();
+    setTheme(newTheme);
+  };
   const isReskillingPage = pathname === '/reskilling';
   const isLPPage = pathname === '/lp';
 
@@ -52,7 +119,9 @@ export default function Header() {
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${
         isTopPage && !isLPPage
-          ? 'bg-black border-b border-gray-800/50'
+          ? (theme === 'light' 
+              ? 'bg-white border-b border-gray-200/50' 
+              : 'bg-black border-b border-gray-800/50')
           : 'bg-white border-b border-gray-200/50' 
       }`}>
         <div className="container mx-auto px-4 py-4">
@@ -60,6 +129,16 @@ export default function Header() {
             {/* ロゴ */}
             <Link href="/" className="flex items-center">
               {isTopPage && !isLPPage ? (
+                theme === 'light' ? (
+                  <Image
+                    src="/images/logo.svg"
+                    alt="N&S Logo"
+                    width={120}
+                    height={40}
+                    className="w-auto h-8"
+                    priority
+                  />
+                ) : (
                 <Image
                   src="/images/logo-white.svg"
                   alt="N&S Logo"
@@ -68,6 +147,7 @@ export default function Header() {
                   className="w-auto h-12"
                   priority
                 />
+                )
               ) : (
                 <Image
                   src="/images/logo.svg"
@@ -80,215 +160,265 @@ export default function Header() {
               )}
             </Link>
 
+            {/* 個人様/法人様 セグメントコントロール（トップページのみ・全デバイス表示） */}
+            {isTopPage && (
+              <div 
+                className="relative flex items-center rounded-full p-0.5 transition-all duration-300 md:ml-auto"
+                style={{
+                  background: theme === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.08)' 
+                    : 'rgba(0, 0, 0, 0.06)',
+                  border: theme === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.08)'
+                }}
+              >
+                {/* スライディングインジケーター */}
+                <motion.div
+                  className="absolute top-0.5 bottom-0.5 rounded-full"
+                  style={{
+                    background: theme === 'dark'
+                      ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(99, 102, 241, 0.9) 100%)'
+                      : 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+                    boxShadow: theme === 'dark'
+                      ? '0 2px 8px rgba(59, 130, 246, 0.3)'
+                      : '0 2px 8px rgba(59, 130, 246, 0.25)',
+                    width: 'calc(50% - 2px)',
+                  }}
+                  initial={false}
+                  animate={{
+                    x: mode === 'individual' ? 2 : 'calc(100% + 2px)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+                
+                {/* 個人様ボタン */}
+                <button
+                  onClick={() => handleModeChange('individual')}
+                  className="relative z-10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium transition-colors duration-200"
+                  style={{
+                    color: mode === 'individual'
+                      ? '#ffffff'
+                      : (theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.5)')
+                  }}
+                >
+                  個人様
+                </button>
+                
+                {/* 法人様ボタン */}
+                <button
+                  onClick={() => handleModeChange('corporate')}
+                  className="relative z-10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium transition-colors duration-200"
+                  style={{
+                    color: mode === 'corporate'
+                      ? '#ffffff'
+                      : (theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.5)')
+                  }}
+                >
+                  法人様
+                </button>
+              </div>
+            )}
+
             {/* PC用ナビゲーション - メインページのみ */}
             {isTopPage && (
-              <nav className="hidden md:flex items-center space-x-8">
-                <Link
-                  href="/reskilling"
-                  className={`${
-                    isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
-                  } transition-colors`}
-                >
-                  個人向けリスキリング
-                </Link>
-                <Link href="/corporate" className={`${
-                  isTopPage && !isLPPage ? 'text-white hover:text-gray-300' : 'text-gray-800 hover:text-gray-600'
-                } transition-colors`}>
-                  法人向けリスキリング
-                </Link>
+              <nav className="hidden md:flex items-center space-x-6">
                 
-                {/* システム開発ドロップダウン */}
+                {/* サービス ドロップダウン - Apple風 */}
                 <div className="relative">
                   <motion.button
                     onMouseEnter={() => setSystemDropdownOpen(true)}
                     onMouseLeave={() => setSystemDropdownOpen(false)}
-                    className={`flex items-center transition-all duration-300 px-3 py-2 rounded-lg backdrop-blur-sm ${
+                    className={`flex items-center transition-all duration-300 px-3 py-2 ${
                       isTopPage && !isLPPage
-                        ? 'text-white hover:text-cyan-300 hover:bg-white/10'
-                        : 'text-gray-800 hover:text-blue-600 hover:bg-gray-100/50' 
+                        ? (theme === 'light'
+                            ? 'text-gray-800 hover:text-black'
+                            : 'text-white/90 hover:text-white')
+                        : 'text-gray-800 hover:text-black'
                     }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    システム開発
-                    <motion.div
-                      animate={{ rotate: systemDropdownOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDownIcon className="ml-1 h-4 w-4" />
-                    </motion.div>
+                    <span className="text-sm font-normal">サービス</span>
+                    <ChevronDownIcon className={`ml-1 h-3 w-3 transition-transform duration-200 ${systemDropdownOpen ? 'rotate-180' : ''}`} />
                   </motion.button>
                   
                   <AnimatePresence>
                     {systemDropdownOpen && (
                       <motion.div 
-                        className="absolute top-full left-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl py-3 z-50 border border-white/20 overflow-hidden"
+                        className="fixed left-0 right-0 top-[80px] bg-white shadow-lg z-50 border-b border-gray-200"
                         onMouseEnter={() => setSystemDropdownOpen(true)}
                         onMouseLeave={() => setSystemDropdownOpen(false)}
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                       >
-                        {/* グラデーション背景 */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white/90 to-cyan-50/80" />
-                        
-                        {/* ヘッダー */}
-                        <div className="relative px-4 py-2 border-b border-gray-100/50">
-                          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            AI・テクノロジーサービス
+                        <div className="max-w-6xl mx-auto px-8 py-10">
+                          <div className="grid grid-cols-3 gap-x-16 gap-y-1">
+                            {/* 左列: AI開発サービス */}
+                            <div>
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
+                                AI開発サービス
                           </h3>
-                        </div>
-                        
-                        {/* メニュー項目 */}
-                        <div className="relative py-2">
-                          {[
-                            { label: 'システム開発', href: '/system-development', icon: ComputerDesktopIcon, description: 'Webアプリ・AIシステム構築' },
-                            { label: 'AIO対策', href: '/aio-seo', icon: RocketLaunchIcon, description: 'AI時代のSEO最適化' },
-                            { label: 'チャットボット開発', href: '/chatbot-development', icon: ChatBubbleLeftRightIcon, description: 'AI搭載チャットボット' },
-                            { label: 'ベクトルRAG検索', href: '/vector-rag', icon: MagnifyingGlassIcon, description: '高精度文書検索システム' },
-                            { label: 'AIエージェント', href: '/ai-agents', icon: BoltIcon, description: '自動化エージェント開発' },
-                            { label: 'MCPサーバー', href: '/mcp-servers', icon: LinkIcon, description: 'AIモデル連携サーバー' },
-                            { label: '人材ソリューション', href: '/hr-solutions', icon: UsersIcon, description: '人材管理システム構築' },
-                            { label: 'SNS自動化', href: '/sns-automation', icon: ShareIcon, description: 'SNS API連携・自動投稿' },
-                            { label: 'AI動画生成', href: '/video-generation', icon: VideoCameraIcon, description: 'Midjourney・Veo 3連携' }
-                          ].map((item) => {
-                            const IconComponent = item.icon;
-                            return (
-                              <Link 
-                                key={item.href} 
-                                href={item.href} 
-                                className="group flex items-center px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-cyan-50/50 transition-all duration-200 relative overflow-hidden"
-                              >
-                                {/* ホバー時の背景エフェクト */}
-                                <motion.div
-                                  className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100"
-                                  initial={false}
-                                  transition={{ duration: 0.2 }}
-                                />
-                                
-                                <div className="relative flex items-center w-full">
-                                  <IconComponent className="w-5 h-5 mr-3 text-blue-600 group-hover:text-blue-700 group-hover:scale-110 transition-all duration-200" />
-                                  <div className="flex-1">
-                                    <div className="font-medium text-sm group-hover:text-blue-700 transition-colors">
+                              <ul className="space-y-3">
+                                {[
+                                  { label: 'システム開発', href: '/system-development' },
+                                  { label: 'チャットボット開発', href: '/chatbot-development' },
+                                  { label: 'ベクトルRAG検索', href: '/vector-rag' },
+                                  { label: 'AIエージェント', href: '/ai-agents' },
+                                  { label: 'MCPサーバー', href: '/mcp-servers' },
+                                ].map((item) => (
+                                  <li key={item.href}>
+                                    <Link 
+                                      href={item.href}
+                                      className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                    >
                                       {item.label}
-                                    </div>
-                                    <div className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors">
-                                      {item.description}
-                                    </div>
-                                  </div>
-                                  <motion.span
-                                    className="text-blue-500 opacity-0 group-hover:opacity-100 ml-2"
-                                    whileHover={{ x: 3 }}
-                                    transition={{ duration: 0.2 }}
-                                  >
-                                    →
-                                  </motion.span>
-                                </div>
-                              </Link>
-                            );
-                          })}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
                         </div>
                         
-                        {/* フッター */}
-                        <div className="relative px-4 py-2 border-t border-gray-100/50 bg-gradient-to-r from-blue-50/30 to-cyan-50/30">
+                            {/* 中央列: マーケティング・支援 */}
+                            <div>
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
+                                マーケティング・支援
+                              </h3>
+                              <ul className="space-y-3">
+                                {[
+                                  { label: 'AIO対策', href: '/aio-seo' },
+                                  { label: 'SNS自動化', href: '/sns-automation' },
+                                  { label: 'AI動画生成', href: '/video-generation' },
+                                  { label: '人材ソリューション', href: '/hr-solutions' },
+                                  { label: 'AI副業', href: '/fukugyo' },
+                                ].map((item) => (
+                                  <li key={item.href}>
+                              <Link 
+                                href={item.href} 
+                                      className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                    >
+                                      {item.label}
+                              </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                        </div>
+                        
+                            {/* 右列: リスキリング */}
+                            <div>
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
+                                リスキリング
+                              </h3>
+                              <ul className="space-y-3">
+                                {[
+                                  { label: '個人向けリスキリング', href: '/reskilling' },
+                                  { label: '法人向けリスキリング', href: '/corporate' },
+                                ].map((item) => (
+                                  <li key={item.href}>
+                                    <Link 
+                                      href={item.href}
+                                      className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                              
+                              {/* 追加リンク */}
+                              <div className="mt-8 pt-6 border-t border-gray-200">
                           <Link 
                             href="/faq" 
-                            className="text-xs text-blue-600 hover:text-blue-700 transition-colors flex items-center"
+                                  className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
                           >
-                            <QuestionMarkCircleIcon className="w-4 h-4 mr-1" />
-                            <span>よくある質問</span>
+                                  よくある質問
                           </Link>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
-                {/* 会社概要ドロップダウン */}
+                {/* 会社概要 ドロップダウン - Apple風 */}
                 <div className="relative">
                   <motion.button
                     onMouseEnter={() => setCompanyDropdownOpen(true)}
                     onMouseLeave={() => setCompanyDropdownOpen(false)}
-                    className={`flex items-center transition-all duration-300 px-3 py-2 rounded-lg backdrop-blur-sm ${
+                    className={`flex items-center transition-all duration-300 px-3 py-2 ${
                       isTopPage && !isLPPage
-                        ? 'text-white hover:text-cyan-300 hover:bg-white/10'
-                        : 'text-gray-800 hover:text-blue-600 hover:bg-gray-100/50' 
+                        ? (theme === 'light'
+                            ? 'text-gray-800 hover:text-black'
+                            : 'text-white/90 hover:text-white')
+                        : 'text-gray-800 hover:text-black'
                     }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    会社概要
-                    <motion.div
-                      animate={{ rotate: companyDropdownOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDownIcon className="ml-1 h-4 w-4" />
-                    </motion.div>
+                    <span className="text-sm font-normal">会社概要</span>
+                    <ChevronDownIcon className={`ml-1 h-3 w-3 transition-transform duration-200 ${companyDropdownOpen ? 'rotate-180' : ''}`} />
                   </motion.button>
                   
                   <AnimatePresence>
                     {companyDropdownOpen && (
                       <motion.div 
-                        className="absolute top-full left-0 mt-3 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl py-3 z-50 border border-white/20 overflow-hidden"
+                        className="fixed left-0 right-0 top-[80px] bg-white shadow-lg z-50 border-b border-gray-200"
                         onMouseEnter={() => setCompanyDropdownOpen(true)}
                         onMouseLeave={() => setCompanyDropdownOpen(false)}
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                       >
-                        {/* グラデーション背景 */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-white/90 to-blue-50/80" />
-                        
-                        {/* ヘッダー */}
-                        <div className="relative px-4 py-2 border-b border-gray-100/50">
-                          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <div className="max-w-6xl mx-auto px-8 py-10">
+                          <div className="grid grid-cols-2 gap-x-16 gap-y-1">
+                            {/* 左列: 企業情報 */}
+                            <div>
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
                             企業情報
                           </h3>
-                        </div>
-                        
-                        {/* メニュー項目 */}
-                        <div className="relative py-2">
+                              <ul className="space-y-3">
                           {[
-                            { label: '会社概要', href: '/about', icon: BuildingOfficeIcon, description: '企業理念・事業内容' },
-                            { label: 'サステナビリティ', href: '/sustainability', icon: GlobeAltIcon, description: '持続可能な取り組み' }
-                          ].map((item) => {
-                            const IconComponent = item.icon;
-                            return (
+                                  { label: '会社概要', href: '/about' },
+                                  { label: 'サステナビリティ', href: '/sustainability' },
+                                ].map((item) => (
+                                  <li key={item.href}>
                               <Link 
-                                key={item.href} 
                                 href={item.href} 
-                                className="group flex items-center px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-blue-50/50 transition-all duration-200 relative overflow-hidden"
-                              >
-                                {/* ホバー時の背景エフェクト */}
-                                <motion.div
-                                  className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100"
-                                  initial={false}
-                                  transition={{ duration: 0.2 }}
-                                />
-                                
-                                <div className="relative flex items-center w-full">
-                                  <IconComponent className="w-5 h-5 mr-3 text-emerald-600 group-hover:text-emerald-700 group-hover:scale-110 transition-all duration-200" />
-                                  <div className="flex-1">
-                                    <div className="font-medium text-sm group-hover:text-emerald-700 transition-colors">
+                                      className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                    >
                                       {item.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
                                     </div>
-                                    <div className="text-xs text-gray-500 group-hover:text-emerald-600 transition-colors">
-                                      {item.description}
-                                    </div>
-                                  </div>
-                                  <motion.span
-                                    className="text-emerald-500 opacity-0 group-hover:opacity-100 ml-2"
-                                    whileHover={{ x: 3 }}
-                                    transition={{ duration: 0.2 }}
+                            
+                            {/* 右列: 空白またはサポートリンク */}
+                            <div>
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
+                                サポート
+                              </h3>
+                              <ul className="space-y-3">
+                                <li>
+                                  <Link 
+                                    href="/faq"
+                                    className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
                                   >
-                                    →
-                                  </motion.span>
+                                    よくある質問
+                                  </Link>
+                                </li>
+                                <li>
+                                  <Link 
+                                    href="/contact"
+                                    className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                  >
+                                    お問い合わせ
+                                  </Link>
+                                </li>
+                              </ul>
+                            </div>
                                 </div>
-                              </Link>
-                            );
-                          })}
                         </div>
                       </motion.div>
                     )}
@@ -296,6 +426,7 @@ export default function Header() {
                 </div>
               </nav>
             )}
+
 
             {/* シンプルハンバーガーメニューボタン */}
             <motion.button
@@ -315,7 +446,7 @@ export default function Header() {
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
-                        ? 'bg-white' 
+                        ? (theme === 'light' ? 'bg-gray-700' : 'bg-white')
                         : 'bg-gray-700'
                   }`}
                   style={{ transformOrigin: 'center' }}
@@ -343,7 +474,7 @@ export default function Header() {
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
-                        ? 'bg-white' 
+                        ? (theme === 'light' ? 'bg-gray-700' : 'bg-white')
                         : 'bg-gray-700'
                   }`}
                   style={{ transformOrigin: 'center' }}
@@ -371,7 +502,7 @@ export default function Header() {
                     isOpen 
                       ? 'bg-gray-700' 
                       : isTopPage && !isLPPage
-                        ? 'bg-white' 
+                        ? (theme === 'light' ? 'bg-gray-700' : 'bg-white')
                         : 'bg-gray-700'
                   }`}
                   style={{ transformOrigin: 'center' }}
@@ -589,23 +720,54 @@ export default function Header() {
                     </div>
                   </div>
                   
-                  {/* ボタン部分 */}
-                  <div className="flex justify-center space-x-3 pb-4">
-                    <Link
-                      href="/reskilling"
-                      onClick={() => setIsOpen(false)}
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105 border border-cyan-300/30"
-                    >
-                      個人様
-                    </Link>
-                    <Link
-                      href="/corporate"
-                      onClick={() => setIsOpen(false)}
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105 border border-blue-300/30"
-                    >
-                      法人様
-                    </Link>
-                  </div>
+                  {/* トップページの場合：テーマ切り替えのみ（モード切り替えはヘッダーに常時表示） */}
+                  {isTopPage ? (
+                    <div className="pb-4">
+                      {/* テーマ切り替えボタン */}
+                      <div className="flex justify-center">
+                        <motion.button
+                          onClick={handleToggleTheme}
+                          className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300"
+                          style={{
+                            background: 'rgba(0, 0, 0, 0.05)',
+                            border: '1px solid rgba(0, 0, 0, 0.1)'
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {theme === 'dark' ? (
+                            <>
+                              <SunIcon className="w-5 h-5 text-yellow-500" />
+                              <span className="text-sm font-medium text-gray-700">ライトモード</span>
+                            </>
+                          ) : (
+                            <>
+                              <MoonIcon className="w-5 h-5 text-gray-700" />
+                              <span className="text-sm font-medium text-gray-700">ダークモード</span>
+                            </>
+                          )}
+                        </motion.button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* その他のページ：従来のボタン */
+                    <div className="flex justify-center space-x-3 pb-4">
+                      <Link
+                        href="/reskilling"
+                        onClick={() => setIsOpen(false)}
+                        className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105 border border-cyan-300/30"
+                      >
+                        個人様
+                      </Link>
+                      <Link
+                        href="/corporate"
+                        onClick={() => setIsOpen(false)}
+                        className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-xl rounded-lg transform hover:scale-105 border border-blue-300/30"
+                      >
+                        法人様
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 {/* メインナビゲーション */}

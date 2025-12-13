@@ -2,6 +2,422 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts Import - JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap');
+
+/* ============================================
+   NANDS TECH Hybrid Architecture Design System
+   "見た目はApple、中身はデジライズ"
+   ============================================ */
+
+:root {
+  /* Core Colors - Deep Ocean Palette */
+  --deep-ocean: #050505;
+  --deep-ocean-light: #0a0a0f;
+  --deep-ocean-dark: #000000;
+  
+  /* Accent Colors - Neon Purple (Brand) */
+  --neon-purple: #9333ea;
+  --neon-purple-light: #a855f7;
+  --neon-purple-dark: #7c3aed;
+  --neon-purple-glow: rgba(147, 51, 234, 0.5);
+  
+  /* Accent Colors - Cyber Blue (Technology) */
+  --cyber-blue: #00d4ff;
+  --cyber-blue-light: #22d3ee;
+  --cyber-blue-dark: #0891b2;
+  --cyber-blue-glow: rgba(0, 212, 255, 0.5);
+  
+  /* Neutral - Architect Silver */
+  --architect-silver: #c0c0c0;
+  --architect-silver-light: #e5e7eb;
+  --architect-silver-dark: #9ca3af;
+  
+  /* Grid Lines */
+  --grid-color: rgba(255, 255, 255, 0.03);
+  --grid-color-active: rgba(0, 212, 255, 0.1);
+  
+  /* Shadows */
+  --shadow-purple: 0 0 40px rgba(147, 51, 234, 0.3);
+  --shadow-cyan: 0 0 40px rgba(0, 212, 255, 0.3);
+  --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  
+  /* Typography Scale */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Consolas', monospace;
+  --font-sans: 'Noto Sans JP', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================
+   Light Mode Theme - Apple/デジライズ風
+   トップページ専用（data-theme="light"でスコープ限定）
+   ============================================ */
+[data-theme="light"] {
+  /* 背景色 */
+  --light-bg-primary: #ffffff;
+  --light-bg-secondary: #f8f9fa;
+  --light-bg-tertiary: #f1f3f5;
+  
+  /* テキスト色 */
+  --light-text-primary: #1a1a1a;
+  --light-text-secondary: #4a5568;
+  --light-text-tertiary: #718096;
+  
+  /* アクセントカラー */
+  --light-accent-blue: #0066cc;
+  --light-accent-purple: #6b46c1;
+  --light-accent-cyan: #00b4d8;
+  
+  /* シャドウ */
+  --light-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --light-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --light-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --light-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* ボーダー */
+  --light-border-color: rgba(0, 0, 0, 0.1);
+  --light-border-color-light: rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================
+   Base Layer - Deep Ocean Background
+   ============================================ */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Monospace elements */
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* ============================================
+   Utility Classes - Hybrid Architecture
+   ============================================ */
+@layer utilities {
+  /* Deep Ocean Backgrounds */
+  .bg-deep-ocean {
+    background-color: var(--deep-ocean);
+  }
+  
+  .bg-deep-ocean-light {
+    background-color: var(--deep-ocean-light);
+  }
+  
+  /* Grid Pattern Overlay */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+  
+  /* Neon Glow Effects */
+  .glow-purple {
+    box-shadow: var(--shadow-purple);
+  }
+  
+  .glow-cyan {
+    box-shadow: var(--shadow-cyan);
+  }
+  
+  .text-glow-purple {
+    text-shadow: 0 0 20px var(--neon-purple-glow);
+  }
+  
+  .text-glow-cyan {
+    text-shadow: 0 0 20px var(--cyber-blue-glow);
+  }
+  
+  /* Premium Gradients */
+  .gradient-architect {
+    background: linear-gradient(135deg, var(--neon-purple) 0%, var(--cyber-blue) 100%);
+  }
+  
+  .gradient-ocean {
+    background: linear-gradient(180deg, var(--deep-ocean) 0%, var(--deep-ocean-light) 50%, var(--deep-ocean) 100%);
+  }
+  
+  /* Vector Link Visualization */
+  .vector-line {
+    stroke: url(#vectorGradient);
+    stroke-width: 1;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+  }
+  
+  .vector-line:hover {
+    opacity: 1;
+  }
+  
+  .vector-node {
+    fill: var(--cyber-blue);
+    filter: drop-shadow(0 0 4px var(--cyber-blue-glow));
+  }
+  
+  /* Dynamic Island Switch Style */
+  .dynamic-island {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 44px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .dynamic-island:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+  }
+  
+  /* Bento Grid Card */
+  .bento-card {
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    transition: all 0.3s ease;
+  }
+  
+  .bento-card:hover {
+    border-color: rgba(147, 51, 234, 0.3);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-premium);
+  }
+  
+  /* Philosophy Quote Style */
+  .philosophy-quote {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 4px solid transparent;
+    border-image: linear-gradient(180deg, var(--neon-purple), var(--cyber-blue)) 1;
+  }
+  
+  /* CTA Button Styles */
+  .cta-corporate {
+    background: linear-gradient(135deg, var(--cyber-blue-dark) 0%, var(--cyber-blue) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .cta-corporate:hover {
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .cta-individual {
+    background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2),
+                0 0 60px rgba(34, 197, 94, 0.1);
+    animation: neonPulseGreen 2s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+  
+  .cta-individual:hover {
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.5),
+                0 0 80px rgba(34, 197, 94, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+/* Neon Pulse Animation for Green CTA */
+@keyframes neonPulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2),
+                0 0 60px rgba(34, 197, 94, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.4),
+                0 0 80px rgba(34, 197, 94, 0.2);
+  }
+}
+
+/* ============================================
+   Component Styles - The Great Switch
+   ============================================ */
+.the-great-switch {
+  position: relative;
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  padding: 4px;
+  backdrop-filter: blur(20px);
+}
+
+.the-great-switch-indicator {
+  position: absolute;
+  top: 4px;
+  height: calc(100% - 8px);
+  border-radius: 9999px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.the-great-switch-indicator.individual {
+  left: 4px;
+  background: linear-gradient(135deg, var(--neon-purple) 0%, var(--cyber-blue) 100%);
+}
+
+.the-great-switch-indicator.corporate {
+  left: calc(50% + 2px);
+  background: linear-gradient(135deg, var(--cyber-blue) 0%, var(--neon-purple) 100%);
+}
+
+.the-great-switch-btn {
+  position: relative;
+  z-index: 10;
+  padding: 1rem 2rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  border-radius: 9999px;
+  transition: color 0.3s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.the-great-switch-btn.active {
+  color: white;
+}
+
+.the-great-switch-btn:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================
+   Vector Link 3D Background Styles
+   ============================================ */
+.vector-link-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.vector-link-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, var(--deep-ocean) 70%);
+  pointer-events: none;
+}
+
+/* ============================================
+   Pricing Card Styles
+   ============================================ */
+.pricing-card-corporate {
+  background: linear-gradient(135deg, 
+    rgba(22, 101, 52, 0.1) 0%, 
+    rgba(34, 197, 94, 0.05) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 24px;
+}
+
+.pricing-card-individual {
+  background: linear-gradient(135deg, 
+    rgba(0, 212, 255, 0.1) 0%, 
+    rgba(147, 51, 234, 0.05) 100%);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 24px;
+}
+
+/* Certificate/Award Badge Style */
+.certificate-badge {
+  position: relative;
+  padding: 2rem;
+  background: linear-gradient(135deg, 
+    rgba(22, 101, 52, 0.2) 0%, 
+    rgba(34, 197, 94, 0.1) 100%);
+  border: 2px solid rgba(34, 197, 94, 0.4);
+  border-radius: 16px;
+}
+
+.certificate-badge::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.8), transparent);
+}
+
+/* ============================================
+   Section Transitions
+   ============================================ */
+.section-fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.section-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   Light Mode Utilities - トップページ専用
+   ============================================ */
+[data-theme="light"] .theme-bg-primary {
+  background-color: var(--light-bg-primary);
+}
+
+[data-theme="light"] .theme-bg-secondary {
+  background-color: var(--light-bg-secondary);
+}
+
+[data-theme="light"] .theme-bg-tertiary {
+  background-color: var(--light-bg-tertiary);
+}
+
+[data-theme="light"] .theme-text-primary {
+  color: var(--light-text-primary);
+}
+
+[data-theme="light"] .theme-text-secondary {
+  color: var(--light-text-secondary);
+}
+
+[data-theme="light"] .theme-text-tertiary {
+  color: var(--light-text-tertiary);
+}
+
+[data-theme="light"] .theme-accent-blue {
+  color: var(--light-accent-blue);
+}
+
+[data-theme="light"] .theme-accent-purple {
+  color: var(--light-accent-purple);
+}
+
+[data-theme="light"] .theme-shadow-card {
+  box-shadow: var(--light-shadow-lg);
+}
+
+[data-theme="light"] .theme-border {
+  border-color: var(--light-border-color);
+}
+
+/* ライトモード: グラデーション背景 */
+[data-theme="light"] .theme-gradient-bg {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%);
+}
+
+/* ライトモード: カードスタイル */
+[data-theme="light"] .theme-card {
+  background: white;
+  border: 1px solid var(--light-border-color-light);
+  box-shadow: var(--light-shadow-md);
+}
+
+[data-theme="light"] .theme-card:hover {
+  box-shadow: var(--light-shadow-xl);
+}
+
 /* Fragment ID最適化 - スムーススクロール対応 */
 html {
   scroll-behavior: smooth;
@@ -1242,4 +1658,15 @@ body {
 
 .animate-shine-continuous {
   animation: shine-continuous 3s ease-in-out infinite;
+}
+
+/* YouTube Shorts Swiper - フィルター無効化 */
+.youtube-shorts-swiper .swiper-slide {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.youtube-shorts-swiper .swiper-slide * {
+  opacity: 1 !important;
+  filter: none !important;
 } 

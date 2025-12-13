@@ -24,6 +24,23 @@ import 'swiper/css/pagination'
 import 'swiper/css/effect-coverflow'
 import 'swiper/css/free-mode'
 
+// メディアクエリフック
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    if (media.matches !== matches) {
+      setMatches(media.matches)
+    }
+    const listener = () => setMatches(media.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [matches, query])
+
+  return matches
+}
+
 interface HeroSlide {
   id: string
   image: string
@@ -88,6 +105,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
   const { mode, isIndividual } = useMode()
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   // デバッグログ
   useEffect(() => {
@@ -143,8 +161,8 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
               className="relative rounded-2xl overflow-hidden shadow-2xl"
               style={{ 
                 width: '100%',
-                height: '480px',
-                maxHeight: '60vh'
+                height: isMobile ? '80vh' : '480px',
+                minHeight: isMobile ? '650px' : '480px'
               }}
             >
               {/* プレースホルダー背景 */}
@@ -160,12 +178,12 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                 {index === 0 ? (
                   /* 1枚目：メインコピー（背景画像付き） */
                   <>
-                    {/* 背景画像 */}
+                    {/* 背景画像（PC版とスマホ版で切り替え） */}
                     <Image
-                      src={slide.image}
+                      src={isMobile ? '/images/hero-slide-1-mobile.jpg' : slide.image}
                       alt={slide.alt}
                       fill
-                      className="object-cover"
+                      className={isMobile ? "object-cover object-center" : "object-cover"}
                       priority
                       sizes="(max-width: 768px) 90vw, 1400px"
                       quality={90}
@@ -184,7 +202,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         <div className="text-left">
                         {/* 2026年...を上に */}
                         <p 
-                          className="text-sm sm:text-base mb-3"
+                          className="text-base sm:text-base mb-3"
                           style={{ color: '#1a1a1a' }}
                         >
                           {isIndividual ? (
@@ -217,7 +235,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </p>
                         {/* AIを...をその下に */}
                         <h2
-                          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight"
+                          className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight"
                           style={{ 
                             fontFamily: "'Noto Sans JP', sans-serif",
                             color: '#1a1a1a'
@@ -286,7 +304,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           href="https://lin.ee/s5dmFuD"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 hover:scale-105"
+                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base sm:text-base transition-all duration-300 hover:scale-105"
                           style={{
                             background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
                             color: '#ffffff',
@@ -299,7 +317,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           href="https://nands.tech/dm-form"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 hover:scale-105"
+                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base sm:text-base transition-all duration-300 hover:scale-105"
                           style={{
                             background: 'rgba(255, 255, 255, 0.9)',
                             color: '#1a1a1a',
@@ -333,7 +351,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         className="text-center"
                       >
                         <p 
-                          className="text-xs mb-2"
+                          className="text-sm mb-2"
                           style={{ 
                             color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'
                           }}
@@ -341,7 +359,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           バズらない成果の出し方
                         </p>
                         <h3
-                          className="text-xl sm:text-2xl font-black leading-tight"
+                          className="text-3xl sm:text-2xl font-black leading-tight"
                           style={{ 
                             fontFamily: "'Noto Sans JP', sans-serif",
                             color: theme === 'dark' ? '#ffffff' : '#1a1a1a'
@@ -374,7 +392,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         <Swiper
                           modules={[FreeMode]}
                           spaceBetween={16}
-                          slidesPerView={2.5}
+                          slidesPerView={1.8}
                           freeMode={true}
                           className="youtube-shorts-swiper"
                         >
@@ -418,13 +436,13 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                                     {/* 再生ボタン */}
                                     <div className="absolute top-2 right-2 z-10">
                                       <div 
-                                        className="w-7 h-7 rounded-full flex items-center justify-center"
+                                        className="w-8 h-8 rounded-full flex items-center justify-center"
                                         style={{
                                           background: 'rgba(0, 0, 0, 0.7)',
                                           border: '1.5px solid rgba(255, 255, 255, 0.4)'
                                         }}
                                       >
-                                        <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                                           <path d="M8 5v14l11-7z"/>
                                         </svg>
                                       </div>
@@ -441,7 +459,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                                     {/* タイトル */}
                                     <div className="absolute bottom-0 left-0 right-0 p-2">
                                       <p 
-                                        className="text-[10px] font-medium line-clamp-2 leading-tight"
+                                        className="text-xs font-medium line-clamp-2 leading-tight"
                                         style={{ color: '#ffffff' }}
                                       >
                                         {short.title}
@@ -466,7 +484,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           href="https://lin.ee/s5dmFuD"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300 active:scale-95"
+                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 active:scale-95"
                           style={{
                             background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
                             color: '#ffffff',
@@ -479,7 +497,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           href="https://nands.tech/dm-form"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300 active:scale-95"
+                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 active:scale-95"
                           style={{
                             background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
                             color: theme === 'dark' ? '#ffffff' : '#1a1a1a',
@@ -664,7 +682,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         className="text-center"
                       >
                         <p 
-                          className="text-xs mb-2"
+                          className="text-sm mb-2"
                           style={{ 
                             color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'
                           }}
@@ -673,7 +691,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </p>
                         
                         <h3
-                          className="text-xl sm:text-2xl font-black leading-tight mb-2"
+                          className="text-3xl sm:text-2xl font-black leading-tight mb-2"
                           style={{ 
                             fontFamily: "'Noto Sans JP', sans-serif",
                             color: theme === 'dark' ? '#ffffff' : '#1a1a1a'
@@ -690,7 +708,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </h3>
                         
                         <p 
-                          className="text-sm mb-1"
+                          className="text-base mb-2"
                           style={{ 
                             color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'
                           }}
@@ -699,7 +717,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </p>
                         
                         <p 
-                          className="text-base sm:text-lg mb-1"
+                          className="text-lg sm:text-lg mb-1"
                           style={{ 
                             color: theme === 'dark' ? '#ffffff' : '#1a1a1a'
                           }}
@@ -708,7 +726,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </p>
                         
                         <p 
-                          className="text-sm font-semibold"
+                          className="text-base font-semibold"
                           style={{ 
                             color: '#a855f7'
                           }}
@@ -801,7 +819,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                       >
                         <Link href="https://lin.ee/s5dmFuD" target="_blank" rel="noopener noreferrer">
                           <motion.div
-                            className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300"
+                            className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{
                               background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
                               color: '#ffffff',
@@ -814,7 +832,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </Link>
                         <Link href="https://nands.tech/dm-form" target="_blank" rel="noopener noreferrer">
                           <motion.div
-                            className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300"
+                            className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{
                               background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
                               color: theme === 'dark' ? '#ffffff' : '#1a1a1a',
@@ -968,17 +986,17 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         transition={{ duration: 0.8 }}
                         className="text-center"
                       >
-                        <p className="text-xs mb-2" style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}>
+                        <p className="text-sm mb-2" style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}>
                           全自動化を目指すなら
                         </p>
-                        <h3 className="text-xl sm:text-2xl font-black leading-tight mb-2"
+                        <h3 className="text-3xl sm:text-2xl font-black leading-tight mb-2"
                           style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}>
                           <span className="text-transparent bg-clip-text bg-gradient-to-r"
                             style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)' }}>
                             AI駆動開発
                           </span>
                         </h3>
-                        <p className="text-sm mb-1" style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}>
+                        <p className="text-base mb-2" style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}>
                           カスタマイズ研修可能
                         </p>
                         <p className="text-base font-semibold" style={{ color: '#a855f7' }}>
@@ -1051,14 +1069,14 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
                         className="flex flex-col gap-3">
                         <Link href="https://lin.ee/s5dmFuD" target="_blank" rel="noopener noreferrer">
-                          <motion.div className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300"
+                          <motion.div className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
                             whileTap={{ scale: 0.95 }}>
                             すぐに無料相談する
                           </motion.div>
                         </Link>
                         <Link href="https://nands.tech/dm-form" target="_blank" rel="noopener noreferrer">
-                          <motion.div className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300"
+                          <motion.div className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{ background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)', color: theme === 'dark' ? '#ffffff' : '#1a1a1a',
                               border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '2px solid #1e3a8a', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)' }}
                             whileTap={{ scale: 0.95 }}>

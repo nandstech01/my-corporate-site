@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase as supabaseClient } from '@/lib/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/lib/database.types';
 
 interface YouTubeScript {
@@ -60,6 +61,7 @@ interface YouTubeScript {
 export default function YouTubeScriptDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const scriptId = params.scriptId as string;
   
   const [script, setScript] = React.useState<YouTubeScript | null>(null);
@@ -84,8 +86,6 @@ export default function YouTubeScriptDetailPage() {
   const [veoPromptPatterns, setVeoPromptPatterns] = React.useState<any[]>([]);
   const [isGeneratingVeoPrompt, setIsGeneratingVeoPrompt] = React.useState(false);
   const [selectedVeoPattern, setSelectedVeoPattern] = React.useState<number | null>(null);
-  
-  const supabase = createClientComponentClient<Database>();
 
   React.useEffect(() => {
     fetchScript();
@@ -96,7 +96,7 @@ export default function YouTubeScriptDetailPage() {
       setError(null);
       
       // 現在の台本データ取得
-      const { data: scriptData, error: scriptError } = await supabase
+      const { data: scriptData, error: scriptError } = await supabaseClient
         .from('company_youtube_shorts')
         .select('*')
         .eq('id', scriptId)
@@ -107,42 +107,44 @@ export default function YouTubeScriptDetailPage() {
         throw new Error('台本が見つかりません');
       }
 
-      setScript(scriptData as unknown as YouTubeScript);
-      setRelatedBlogPostId(scriptData.related_blog_post_id);
+      const script = scriptData as any;
+      setScript(script as YouTubeScript);
+      setRelatedBlogPostId(script.related_blog_post_id);
 
       // ★ 関連する全ての台本を取得（ショート & 中尺）
-      if (scriptData.related_blog_post_id) {
-        const { data: allScripts, error: allScriptsError } = await supabase
+      if (script.related_blog_post_id) {
+        const { data: allScripts, error: allScriptsError } = await supabaseClient
           .from('company_youtube_shorts')
           .select('*')
-          .eq('related_blog_post_id', scriptData.related_blog_post_id);
+          .eq('related_blog_post_id', script.related_blog_post_id);
 
         if (allScriptsError) {
           console.error('関連台本の取得エラー:', allScriptsError);
         } else if (allScripts) {
           // content_typeで分類
-          const short = allScripts.find(s => s.content_type === 'youtube-short');
-          const medium = allScripts.find(s => s.content_type === 'youtube-medium');
+          const short = allScripts.find((s: any) => s.content_type === 'youtube-short');
+          const medium = allScripts.find((s: any) => s.content_type === 'youtube-medium');
           
           setShortScript(short as unknown as YouTubeScript || null);
           setMediumScript(medium as unknown as YouTubeScript || null);
 
           console.log('📊 関連台本:', {
-            short: short ? `ID: ${short.id}` : '未作成',
-            medium: medium ? `ID: ${medium.id}` : '未作成'
+            short: short ? `ID: ${(short as any).id}` : '未作成',
+            medium: medium ? `ID: ${(medium as any).id}` : '未作成'
           });
         }
 
         // 関連記事情報取得
-        const { data: postData } = await supabase
+        const { data: postData } = await supabaseClient
           .from('posts')
           .select('title, slug')
-          .eq('id', scriptData.related_blog_post_id)
+          .eq('id', script.related_blog_post_id)
           .single();
         
         if (postData) {
-          setBlogPostTitle(postData.title);
-          setBlogSlug(postData.slug);
+          const post = postData as any;
+          setBlogPostTitle(post.title);
+          setBlogSlug(post.slug);
         }
       }
     } catch (error: any) {
@@ -215,7 +217,7 @@ export default function YouTubeScriptDetailPage() {
     setIsGenerating(true);
     try {
       // 記事本文を取得
-      const { data: postData, error: postError } = await supabase
+      const { data: postData, error: postError } = await supabaseClient
         .from('posts')
         .select('content')
         .eq('id', relatedBlogPostId)
@@ -225,6 +227,7 @@ export default function YouTubeScriptDetailPage() {
         throw new Error('記事本文の取得に失敗しました');
       }
 
+      const post = postData as any;
       const response = await fetch('/api/admin/generate-youtube-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,7 +235,7 @@ export default function YouTubeScriptDetailPage() {
           postId: relatedBlogPostId,
           postSlug: blogSlug,
           postTitle: blogPostTitle,
-          postContent: postData.content,
+          postContent: post.content,
           scriptType: scriptType
         })
       });
@@ -270,7 +273,7 @@ export default function YouTubeScriptDetailPage() {
       console.log(`🗑️ ${typeName}台本削除開始: ID ${scriptId}`);
       
       // 1. company_youtube_shortsテーブルから削除（現在の台本のみ）
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await supabaseClient
         .from('company_youtube_shorts')
         .delete()
         .eq('id', scriptId);
@@ -281,7 +284,7 @@ export default function YouTubeScriptDetailPage() {
       // 2. fragment_vectorsテーブルからも削除（ベクトルリンク解除）
       if (script.youtube_url && script.fragment_id) {
         console.log(`🔗 Fragment Vector削除中: ${script.fragment_id}`);
-        const { error: fragmentError } = await supabase
+        const { error: fragmentError } = await supabaseClient
           .from('fragment_vectors')
           .delete()
           .eq('fragment_id', script.fragment_id);
@@ -359,6 +362,60 @@ export default function YouTubeScriptDetailPage() {
       alert(`サムネイル生成に失敗しました\n\n${error.message}`);
     } finally {
       setIsGeneratingThumbnail(false);
+    }
+  };
+
+  // VIDEO Job作成関数
+  const handleCreateVideoJob = async () => {
+    if (!script) return;
+    
+    if (!user) {
+      alert('ログインが必要です');
+      return;
+    }
+
+    const typeName = script.content_type === 'youtube-short' ? 'ショート（30秒）' : '中尺（130秒）';
+    
+    if (!window.confirm(`この${typeName}台本からVIDEO Jobを作成しますか？\n\n台本とYouTubeメタデータが自動的に転送されます。`)) {
+      return;
+    }
+
+    try {
+      console.log('🎬 VIDEO Job作成開始');
+
+      // 台本全体を結合（読み上げ用）
+      const fullScript = `${script.script_hook} ${script.script_empathy || ''} ${script.script_body} ${script.script_cta}`.replace(/\s+/g, ' ').trim();
+
+      const videoJobData = {
+        user_id: user.id,
+        title_internal: script.script_title,
+        youtube_title: script.metadata?.youtube_metadata?.youtube_title || script.script_title,
+        youtube_description: script.metadata?.youtube_metadata?.youtube_description || null,
+        youtube_tags: script.metadata?.youtube_metadata?.youtube_tags || [],
+        script_raw: fullScript,
+        status: 'draft' as const,
+        related_blog_post_id: script.related_blog_post_id,
+        article_slug: script.blog_slug,
+      };
+
+      const { data: newVideoJob, error: insertError } = await supabaseClient
+        .from('video_jobs')
+        .insert([videoJobData] as any)
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      const videoJob = newVideoJob as any;
+      console.log('✅ VIDEO Job作成完了:', videoJob.id);
+      alert(`✅ VIDEO Jobを作成しました！\n\nID: ${videoJob.id}\n\nVIDEO Job詳細ページに移動します。`);
+      
+      // VIDEO Jobの詳細ページにリダイレクト
+      router.push(`/admin/video-jobs/${videoJob.id}`);
+
+    } catch (error: any) {
+      console.error('❌ VIDEO Job作成エラー:', error);
+      alert(`VIDEO Jobの作成に失敗しました\n\n${error.message}`);
     }
   };
 
@@ -876,6 +933,25 @@ ${script.script_cta}`;
           </div>
         </div>
       )}
+
+      {/* 🎬 VIDEO Job作成ボタン */}
+      <div className="bg-gradient-to-r from-red-900 to-pink-900 border-2 border-red-500 rounded-lg p-6 mt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-2">🎬 VIDEO Job作成（アバター動画生成）</h3>
+            <p className="text-sm text-red-200">
+              この台本からVIDEO Jobを自動作成し、Akool APIでアバター動画を生成できます。<br />
+              ✨ 台本・YouTubeメタデータが自動転送されます
+            </p>
+          </div>
+          <button
+            onClick={handleCreateVideoJob}
+            className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition-all whitespace-nowrap"
+          >
+            🎬 VIDEO Job作成
+          </button>
+        </div>
+      </div>
 
       {/* YouTube投稿用メタデータ */}
       {script.metadata?.youtube_metadata && (

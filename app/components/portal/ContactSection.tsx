@@ -1,104 +1,36 @@
 "use client";
 
-"use client";
-
-import React, { useRef, useEffect, useState } from "react";
-import { motion, useInView, useAnimation } from "framer-motion";
-
-/**
- * =========================================================
- * ContactSection.tsx (フォーム版)
- *
- * 主なポイント:
- * ---------------------------------------------------------
- * 1. 波形(WaveSVG)とパララックス背景
- *    - 前セクションとの境界を自然につなぎ、
- *      単調な色ブロックにならないよう淡く演出
- *
- * 2. フォーム
- *    - 名前、お問い合わせ内容などをユーザーが入力
- *    - Tailwind CSSでシンプル & 上品に
- *    - フォーカス時にやや強調 (border色の変化, box-shadow)
- *    - framer-motionでフォーム各要素をフェードイン
- *
- * 3. ボタン
- *    - "送信する" ボタンを丸み + subtle hoverで洗練
- *    - 押した時のscale変化などをframer-motionで実装
- *
- * 4. コードを長すぎず保守しやすく
- *    - 余計な3D回転やギラギラを排除
- *    - LINEボタンを削除
- *
- * 5. バグを減らし、かつ高級感を高める
- * ---------------------------------------------------------
- */
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useTheme } from './ThemeContext';
 
 export default function ContactSection() {
-  // Intersection Observer
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const inView = useInView(sectionRef, { once: true, amount: 0.2 });
-  const controls = useAnimation();
-
-  // Form state (簡易例)
+  const { theme } = useTheme();
+  
+  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    if (inView) {
-      controls.start("visible");
-    }
-  }, [inView, controls]);
-
-  // タイトル等のフェードアップ
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 1, ease: "easeOut" },
-    },
-  };
-
-  // フォーム要素それぞれ
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  // ボタン
-  const buttonVariants = {
-    rest: { scale: 1 },
-    hover: {
-      scale: 1.03,
-      transition: { duration: 0.3, ease: "easeInOut" },
-    },
-    tap: { scale: 0.97, transition: { duration: 0.2 } },
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // フォーム送信
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
       const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP89a1VvqlldbOXkaomiBSf_49tdd8UGVAzNBzKP7LA7rmcy1i3s9inzAVOuyYDF1jjA/exec';
       
-      // 送信データの準備
       const formData = {
         name,
         email,
         message
       };
 
-      // Google Apps Scriptに送信
-      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors', // CORS対策
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -109,250 +41,310 @@ export default function ContactSection() {
       setName("");
       setEmail("");
       setMessage("");
-
-      // 成功メッセージを表示
       alert('お問い合わせを受け付けました。');
       
     } catch (error) {
       console.error('Error:', error);
       alert('送信に失敗しました。もう一度お試しください。');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <section
       id="contact-section"
-      ref={sectionRef}
-      className="relative py-16 bg-indigo-50 text-gray-800 overflow-hidden"
-    >
-      {/* 波形で前セクションとの境界を演出 */}
-      <WaveSVG />
-
-      {/* 背景のパララックス模様 */}
-      <div
-        className="absolute inset-0 bg-[url('/images/indigo-pattern.png')] bg-cover bg-center bg-fixed opacity-10 pointer-events-none"
-        aria-hidden="true"
-      />
-
-      {/* 全体コンテナ */}
-      <motion.div
-        className="relative z-10 max-w-4xl mx-auto px-4"
-        initial="hidden"
-        animate={controls}
-        variants={{
-          visible: { transition: { staggerChildren: 0.2 } },
-        }}
-      >
-        {/* タイトル */}
-        <motion.h2
-          className="text-3xl md:text-4xl font-bold text-center mb-6"
-          variants={textVariants}
-        >
-          無料相談・お問い合わせ
-        </motion.h2>
-        {/* 説明文 */}
-        <motion.p
-          className="text-center text-gray-600 mb-12"
-          variants={textVariants}
-          transition={{ delay: 0.1 }}
-        >
-          AI時代の学び直しや副業など、まずは気軽にご相談ください。
-        </motion.p>
-
-        {/* フォーム */}
-        <motion.form
-          onSubmit={handleSubmit}
-                      className="mx-auto w-full md:w-3/4 bg-white p-6 border border-gray-200 shadow-md"
-          variants={itemVariants}
-        >
-          {/* お名前 */}
-          <div className="mb-4">
-            <label
-              htmlFor="name"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              お名前
-            </label>
-            <input
-              id="name"
-              type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded
-                         focus:border-indigo-500 focus:ring focus:ring-indigo-200
-                         transition-colors"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div className="mb-4">
-            <label
-              htmlFor="email"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              メールアドレス
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded
-                         focus:border-indigo-500 focus:ring focus:ring-indigo-200
-                         transition-colors"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* お問い合わせ内容 */}
-          <div className="mb-6">
-            <label
-              htmlFor="message"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              お問い合わせ内容
-            </label>
-            <textarea
-              id="message"
-              className="w-full px-4 py-2 border border-gray-300 rounded
-                         focus:border-indigo-500 focus:ring focus:ring-indigo-200
-                         transition-colors"
-              rows={5}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-            ></textarea>
-          </div>
-
-          {/* ボタン */}
-          <motion.button
-            type="submit"
-            className="relative overflow-hidden px-12 py-5 font-bold text-white mx-auto block
-                       bg-gradient-to-r from-indigo-800 via-indigo-600 to-indigo-500
-                       hover:from-indigo-900 hover:via-indigo-700 hover:to-indigo-600
-                       transition-all duration-300"
-            variants={buttonVariants}
-            initial="rest"
-            whileHover="hover"
-            whileTap="tap"
-            onHoverStart={() => setHovered(true)}
-            onHoverEnd={() => setHovered(false)}
-            style={{
-              transformStyle: "preserve-3d",
-            }}
-          >
-            {/* 外側の白い枠 */}
-            <div className="absolute inset-0 border border-white opacity-30"></div>
-            
-            {/* 内側の白い枠 */}
-            <div 
-              className="absolute inset-[2px]"
-              style={{
-                border: '1px solid rgba(255, 255, 255, 0.6)',
-                background: 'linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
-                opacity: 0.2,
-              }}
-            ></div>
-
-            {/* ボタンテキスト */}
-            <span className="relative z-10 tracking-wider">送信する</span>
-
-            {/* 光沢エフェクト */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)",
-                mixBlendMode: "overlay",
-              }}
-            ></div>
-
-            {/* 反射レイヤー */}
-            <ReflectionOverlay hovered={hovered} />
-
-            {/* ホバー時のグロー効果 */}
-            <div
-              className="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
-              style={{
-                background: "radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%)",
-                opacity: hovered ? 0.6 : 0,
-              }}
-            ></div>
-          </motion.button>
-        </motion.form>
-      </motion.div>
-    </section>
-  );
-}
-
-/**
- * WaveSVG
- * - 前セクションとの境界を波形にし、デザインを柔らかく
- */
-function WaveSVG() {
-  return (
-    <div className="absolute top-0 left-0 w-full overflow-hidden leading-[0]">
-      <svg
-        className="block w-[200%] h-32 transform -translate-x-1/4 text-indigo-200"
-        viewBox="0 0 1200 120"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M985.66 3.22C860.46 33.55 739.99 74.43 614.2 90.49 
-             C542 100.08 466.93 98.99 394.8 89.28 
-             C316.67 78.39 240.72 55.99 163.39 43.59 
-             C99.23 33.34 34.55 33.17 0 33.11V120H1200V0
-             C1141.78 3.49 1070.04 -0.77 985.66 3.22Z"
-          fill="currentColor"
-        />
-      </svg>
-    </div>
-  );
-}
-
-/**
- * ReflectionOverlay コンポーネント
- */
-function ReflectionOverlay({ hovered }: { hovered: boolean }) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!overlayRef.current) return;
-
-    if (hovered) {
-      overlayRef.current.animate(
-        [
-          { transform: "translateX(-120%)", opacity: 0 },
-          { transform: "translateX(120%)", opacity: 0.2 },
-        ],
-        {
-          duration: 800,
-          easing: "ease-out",
-          fill: "forwards",
-        }
-      );
-    } else {
-      overlayRef.current.animate(
-        [{ transform: "translateX(-120%)", opacity: 0 }],
-        {
-          duration: 300,
-          fill: "forwards",
-        }
-      );
-    }
-  }, [hovered]);
-
-  return (
-    <div
-      ref={overlayRef}
-      className="absolute top-0 left-0 w-1/3 h-full
-      bg-white bg-opacity-20
-      pointer-events-none
-      mix-blend-screen
-      rounded-full"
+      className="relative py-20 sm:py-28 overflow-hidden scroll-mt-20"
       style={{
-        borderRadius: "9999px",
+        background: theme === 'dark'
+          ? 'linear-gradient(180deg, #0A1628 0%, #0D1B2A 100%)'
+          : 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)'
       }}
-    ></div>
+    >
+      <div className="container mx-auto px-4 relative z-10">
+        {/* ヘッダー */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <p 
+            className="text-sm font-semibold uppercase tracking-wider mb-3"
+            style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+          >
+            Contact
+          </p>
+          <h2 
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4"
+            style={{ color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}
+          >
+            お問い合わせ
+          </h2>
+          <p 
+            className="text-base sm:text-lg max-w-3xl mx-auto"
+            style={{ color: theme === 'dark' ? '#9ca3af' : '#4a5568' }}
+          >
+            AIアーキテクト育成、AI駆動開発、システム開発など、<br className="hidden sm:block" />
+            まずは気軽にご相談ください。
+          </p>
+        </motion.div>
+
+        {/* メインコンテンツ */}
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12">
+          
+          {/* 左側：フォーム */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* お名前 */}
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
+                >
+                  お名前
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  className={`
+                    w-full px-4 py-3 rounded-xl
+                    ${theme === 'dark'
+                      ? 'bg-gray-900 border-gray-800 text-white placeholder-gray-500'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }
+                    border focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none
+                    transition-all duration-300
+                  `}
+                  placeholder="山田 太郎"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* メールアドレス */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
+                >
+                  メールアドレス
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className={`
+                    w-full px-4 py-3 rounded-xl
+                    ${theme === 'dark'
+                      ? 'bg-gray-900 border-gray-800 text-white placeholder-gray-500'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }
+                    border focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none
+                    transition-all duration-300
+                  `}
+                  placeholder="example@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* お問い合わせ内容 */}
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
+                >
+                  お問い合わせ内容
+                </label>
+                <textarea
+                  id="message"
+                  className={`
+                    w-full px-4 py-3 rounded-xl resize-none
+                    ${theme === 'dark'
+                      ? 'bg-gray-900 border-gray-800 text-white placeholder-gray-500'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }
+                    border focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none
+                    transition-all duration-300
+                  `}
+                  rows={6}
+                  placeholder="お問い合わせ内容をご記入ください"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                ></textarea>
+              </div>
+
+              {/* 送信ボタン */}
+              <motion.button
+                type="submit"
+                disabled={isSubmitting}
+                className={`
+                  w-full px-8 py-4 rounded-full font-bold text-base sm:text-lg
+                  bg-gradient-to-r from-cyan-500 to-blue-600 text-white
+                  shadow-lg shadow-cyan-500/40
+                  hover:scale-105 transition-all duration-300
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                `}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isSubmitting ? '送信中...' : '送信する'}
+              </motion.button>
+            </form>
+          </motion.div>
+
+          {/* 右側：その他の連絡方法 */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="space-y-8"
+          >
+            {/* LINE相談 */}
+            <div 
+              className={`
+                rounded-3xl p-8 shadow-xl
+                ${theme === 'dark'
+                  ? 'bg-gray-900/50 border border-gray-800'
+                  : 'bg-white border border-gray-200'
+                }
+              `}
+            >
+              <div className="flex items-start mb-4">
+                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                  <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 5.94 2 10.82c0 2.99 1.91 5.65 4.86 7.23-.12.52-.78 3.37-.9 3.91-.14.66.24.65.51.47.21-.14 3.38-2.24 4.31-2.86C11.5 19.73 12.74 20 14 20c5.52 0 10-3.94 10-8.82S19.52 2 12 2z"/>
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 
+                    className="text-xl font-bold mb-2"
+                    style={{ color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}
+                  >
+                    LINE無料相談
+                  </h3>
+                  <p 
+                    className="text-sm mb-4"
+                    style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                  >
+                    最も早くご返信できます。<br />
+                    お気軽にご相談ください。
+                  </p>
+                  <Link
+                    href="https://lin.ee/s5dmFuD"
+                    className="inline-flex items-center justify-center px-6 py-3 rounded-full font-bold text-sm
+                               bg-green-500 text-white hover:bg-green-600
+                               transition-all duration-300 hover:scale-105"
+                  >
+                    <span className="mr-2">LINEで相談</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* 電話相談 */}
+            <div 
+              className={`
+                rounded-3xl p-8 shadow-xl
+                ${theme === 'dark'
+                  ? 'bg-gray-900/50 border border-gray-800'
+                  : 'bg-white border border-gray-200'
+                }
+              `}
+            >
+              <div className="flex items-start mb-4">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 
+                    className="text-xl font-bold mb-2"
+                    style={{ color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}
+                  >
+                    お電話でのお問い合わせ
+                  </h3>
+                  <p 
+                    className="text-sm mb-2"
+                    style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                  >
+                    平日 9:00 - 18:00
+                  </p>
+                  <a
+                    href="tel:0120407638"
+                    className="text-2xl font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    0120-407-638
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* 資料請求 */}
+            <div 
+              className={`
+                rounded-3xl p-8 shadow-xl
+                ${theme === 'dark'
+                  ? 'bg-gray-900/50 border border-gray-800'
+                  : 'bg-white border border-gray-200'
+                }
+              `}
+            >
+              <div className="flex items-start mb-4">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 
+                    className="text-xl font-bold mb-2"
+                    style={{ color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}
+                  >
+                    資料請求
+                  </h3>
+                  <p 
+                    className="text-sm mb-4"
+                    style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                  >
+                    サービス資料を無料でお送りします。<br />
+                    助成金活用ガイドも同梱。
+                  </p>
+                  <Link
+                    href="https://nands.tech/dm-form"
+                    className="inline-flex items-center justify-center px-6 py-3 rounded-full font-bold text-sm
+                               bg-gradient-to-r from-purple-500 to-indigo-600 text-white
+                               shadow-lg shadow-purple-500/40
+                               hover:scale-105 transition-all duration-300"
+                  >
+                    <span className="mr-2">資料請求</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
   );
 }

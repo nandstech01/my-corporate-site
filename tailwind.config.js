@@ -19,6 +19,45 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        // NANDS TECH Hybrid Architecture Design System
+        'deep-ocean': {
+          DEFAULT: '#050505',
+          light: '#0a0a0f',
+          dark: '#000000',
+        },
+        'neon-purple': {
+          DEFAULT: '#9333ea',
+          light: '#a855f7',
+          dark: '#7c3aed',
+          glow: 'rgba(147, 51, 234, 0.5)',
+        },
+        'cyber-blue': {
+          DEFAULT: '#00d4ff',
+          light: '#22d3ee',
+          dark: '#0891b2',
+          glow: 'rgba(0, 212, 255, 0.5)',
+        },
+        'architect-silver': {
+          DEFAULT: '#c0c0c0',
+          light: '#e5e7eb',
+          dark: '#9ca3af',
+        },
+        // ライトモード専用カラー（Apple/デジライズ風）
+        'light-bg': {
+          DEFAULT: '#ffffff',
+          secondary: '#f8f9fa',
+          tertiary: '#f1f3f5',
+        },
+        'light-text': {
+          primary: '#1a1a1a',
+          secondary: '#4a5568',
+          tertiary: '#718096',
+        },
+        'light-accent': {
+          blue: '#0066cc',
+          purple: '#6b46c1',
+          cyan: '#00b4d8',
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -56,9 +95,16 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        'mono': ['JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Consolas', 'monospace'],
+        'sans': ['Noto Sans JP', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       animation: {
         'blob': 'blob 7s infinite',
         'pulse': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'vector-rotate': 'vectorRotate 60s linear infinite',
+        'node-pulse': 'nodePulse 3s ease-in-out infinite',
+        'gradient-shift': 'gradientShift 8s ease infinite',
       },
       keyframes: {
         blob: {
@@ -74,7 +120,26 @@ module.exports = {
           "100%": {
             transform: "translate(0px, 0px) scale(1)",
           },
-        }
+        },
+        vectorRotate: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        nodePulse: {
+          "0%, 100%": { 
+            opacity: "0.5",
+            transform: "scale(1)",
+          },
+          "50%": { 
+            opacity: "1",
+            transform: "scale(1.1)",
+          },
+        },
+        gradientShift: {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
       },
       animationDelay: {
         '2000': '2s',
