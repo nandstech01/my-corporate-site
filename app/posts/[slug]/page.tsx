@@ -102,10 +102,9 @@ interface PageProps {
   }
 }
 
+// 🚀 記事取得（ISR最適化 - キャッシュなしでISR十分）
 async function getPost(slug: string): Promise<Post | null> {
   const supabase = createClient()
-  
-  console.log('🔍 記事検索開始 - slug:', slug)
   
   // URLデコードを安全に実行
   let decodedSlug: string;
@@ -113,19 +112,13 @@ async function getPost(slug: string): Promise<Post | null> {
     decodedSlug = decodeURIComponent(slug);
   } catch (error) {
     console.error('❌ URL decode error:', error);
-    decodedSlug = slug; // デコードに失敗した場合は元のslugを使用
+    decodedSlug = slug;
   }
   
-  console.log('✅ デコード完了 - 元:', slug, '→ 後:', decodedSlug)
-  
   try {
-    // 長いslugの場合は部分検索も試行（URL エンコード前後両方チェック）
     const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
     
-    console.log(`🔄 検索実行中 - 長いslug: ${isLongSlug}`)
-    
     // まず正確なslugで検索（新しいpostsテーブル）
-    // youtube_script_idも取得
     let { data: newPost, error: newError } = await supabase
       .from('posts')
       .select('*, youtube_script_id')
@@ -138,7 +131,6 @@ async function getPost(slug: string): Promise<Post | null> {
     }
     
     if (newPost) {
-      console.log('✅ 新記事テーブルで発見:', newPost.title)
       return newPost
     }
     
@@ -155,15 +147,11 @@ async function getPost(slug: string): Promise<Post | null> {
     }
     
     if (oldPost) {
-      console.log('✅ 旧記事テーブルで発見:', oldPost.title)
       return oldPost
     }
     
     // 長いslugの場合は部分検索を実行
     if (isLongSlug) {
-      console.log('🔄 長いslugのため部分検索を実行')
-      
-      // 部分検索（両テーブル）
       const { data: partialResults } = await supabase
         .from('posts')
         .select('*')
@@ -172,12 +160,10 @@ async function getPost(slug: string): Promise<Post | null> {
         .limit(5)
       
       if (partialResults && partialResults.length > 0) {
-        console.log('✅ 部分検索で発見:', partialResults[0].title)
         return partialResults[0]
       }
     }
     
-    console.log('❌ 記事が見つかりませんでした:', decodedSlug)
     return null
     
   } catch (error) {

@@ -176,6 +176,7 @@ type Post = {
 };
 
 // 🆕 最新ショート動画を取得（トップページ用・ISRキャッシュ対応）
+// 🚀 ISR + Promise.all で最適化済み（キャッシュなし - ISRで十分）
 async function getLatestYouTubeShorts(): Promise<YouTubeShortVideo[]> {
   const supabase = createClient();
   
@@ -220,6 +221,7 @@ const FEATURED_POST_SLUGS = [
 
 /**
  * ヒーロー用固定記事を取得（4件）
+ * 🚀 ISR + Promise.all で最適化済み（キャッシュなし - ISRで十分）
  */
 async function getLatestPosts(): Promise<Post[]> {
   const supabase = createClient();
@@ -301,6 +303,7 @@ async function getLatestPosts(): Promise<Post[]> {
 
 /**
  * 最新記事を取得（6件）- 最新知見セクション用
+ * 🚀 ISR + Promise.all で最適化済み（キャッシュなし - ISRで十分）
  */
 async function getRecentPosts(): Promise<Post[]> {
   const supabase = createClient();
@@ -369,17 +372,7 @@ async function getRecentPosts(): Promise<Post[]> {
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     
-    const recentPosts = sortedPosts.slice(0, 6);
-    
-    // デバッグ: 画像URLを確認
-    console.log('🖼️ Recent Posts with images:', recentPosts.map(p => ({
-      title: p.title,
-      thumbnail_url: p.thumbnail_url,
-      featured_image: p.featured_image,
-      hasImage: !!(p.thumbnail_url || p.featured_image)
-    })));
-    
-    return recentPosts;
+    return sortedPosts.slice(0, 6);
 
   } catch (error) {
     console.error('getRecentPosts error:', error);

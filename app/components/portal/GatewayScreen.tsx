@@ -46,6 +46,29 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
     }
   }, [])
 
+  // ゲートウェイ表示中は背景のスクロールを無効化
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isExiting) {
+      // 現在のスクロール位置を保存
+      const scrollY = window.scrollY
+      
+      // スクロールを無効化
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      
+      return () => {
+        // クリーンアップ: スクロールを復元
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        window.scrollTo(0, scrollY)
+      }
+    }
+  }, [isExiting])
+
   // テーマが検出されるまでダークで表示（ちらつき防止）
   if (systemTheme === null) {
     return (
@@ -77,11 +100,12 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
           style={{
             background: systemTheme === 'dark'
               ? 'linear-gradient(180deg, #000000 0%, #0a0a0f 50%, #050510 100%)'
-              : 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%)'
+              : 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%)',
+            touchAction: 'none' // タッチスクロールも無効化
           }}
         >
           {/* 背景のサブトルなグロー */}
@@ -101,34 +125,26 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
           />
 
           {/* メインコンテンツ */}
-          <div className="relative z-10 w-full max-w-5xl mx-auto px-6">
+          <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pt-24 sm:pt-8">
             {/* ロゴ・タイトル */}
             <motion.div
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-center mb-16"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h1 
-                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight"
+              {/* メインコピー */}
+              <div 
+                className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 leading-relaxed sm:leading-relaxed"
                 style={{ 
                   fontFamily: "'Noto Sans JP', sans-serif",
-                  color: systemTheme === 'dark' ? '#ffffff' : '#1a1a1a'
+                  color: systemTheme === 'dark' ? '#ffffff' : '#1a1a1a',
+                  lineHeight: '1.6'
                 }}
               >
-                NANDS
-              </h1>
-              <p 
-                className="text-base sm:text-lg font-light"
-                style={{ 
-                  letterSpacing: '0.1em',
-                  color: systemTheme === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.8)' 
-                    : 'rgba(0, 0, 0, 0.7)'
-                }}
-              >
-                あなたに最適な体験をお届けします
-              </p>
+                AIに「使われる」側で終わるか。<br />
+                「動かす」側になるか。
+              </div>
             </motion.div>
 
             {/* 選択カード */}
@@ -175,51 +191,60 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
 
                 <div className="relative z-10 h-full flex flex-col justify-between p-8 sm:p-10">
                   <div>
-                    <span 
-                      className="inline-block px-4 py-1.5 rounded-full text-xs font-medium mb-6"
+                    {/* 高品質バッジ */}
+                    <div 
+                      className="inline-block px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-4"
                       style={{
-                        background: systemTheme === 'dark'
-                          ? 'rgba(59, 130, 246, 0.2)'
-                          : 'rgba(59, 130, 246, 0.15)',
-                        color: systemTheme === 'dark' ? '#60a5fa' : '#1e40af',
+                        backgroundColor: systemTheme === 'dark' 
+                          ? 'rgba(37, 99, 235, 0.12)' 
+                          : 'rgba(219, 234, 254, 1)',
+                        color: systemTheme === 'dark' ? '#3b82f6' : '#1e40af',
                         border: systemTheme === 'dark'
                           ? '1px solid rgba(59, 130, 246, 0.3)'
-                          : '1px solid rgba(59, 130, 246, 0.2)'
+                          : '1px solid rgba(59, 130, 246, 0.25)',
+                        boxShadow: systemTheme === 'dark'
+                          ? '0 1px 3px rgba(0, 0, 0, 0.3)'
+                          : '0 1px 2px rgba(0, 0, 0, 0.05)'
                       }}
                     >
-                      For Individual
-                    </span>
-                    <h2 
-                      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3"
+                      稼げるAI人材への最短ルート
+                    </div>
+                    
+                    {/* 個人様（大きく黒文字） */}
+                    <div 
+                      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-5"
                       style={{ 
                         fontFamily: "'Noto Sans JP', sans-serif",
                         color: systemTheme === 'dark' ? '#ffffff' : '#1a1a1a'
                       }}
                     >
                       個人様
-                    </h2>
+                    </div>
+                    
+                    {/* 説明文 */}
                     <p 
-                      className="text-sm sm:text-base leading-relaxed"
+                      className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
                       style={{
-                        color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563'
+                        color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563',
+                        lineHeight: '1.7'
                       }}
                     >
-                      AIキャリア構築・スキルアップ<br />
-                      あなたの未来を設計する
+                      1日333円で未経験でもプログラミング目指せる<br />
+                      年収1000万の「AIアーキテクト」養成講座
                     </p>
                   </div>
 
                   {/* 矢印 */}
                   <motion.div
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 mt-auto"
                     style={{
                       color: systemTheme === 'dark' ? '#60a5fa' : '#2563eb'
                     }}
                     animate={{ x: hoveredCard === 'individual' ? 10 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <span className="text-sm font-medium">始める</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="text-xs sm:text-sm font-medium">今すぐ始める</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </motion.div>
@@ -268,51 +293,60 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
 
                 <div className="relative z-10 h-full flex flex-col justify-between p-8 sm:p-10">
                   <div>
-                    <span 
-                      className="inline-block px-4 py-1.5 rounded-full text-xs font-medium mb-6"
+                    {/* 高品質バッジ */}
+                    <div 
+                      className="inline-block px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-4"
                       style={{
-                        background: systemTheme === 'dark'
-                          ? 'rgba(168, 85, 247, 0.2)'
-                          : 'rgba(168, 85, 247, 0.15)',
-                        color: systemTheme === 'dark' ? '#c084fc' : '#6b21a8',
+                        backgroundColor: systemTheme === 'dark' 
+                          ? 'rgba(109, 40, 217, 0.12)' 
+                          : 'rgba(237, 233, 254, 1)',
+                        color: systemTheme === 'dark' ? '#a855f7' : '#6b21a8',
                         border: systemTheme === 'dark'
                           ? '1px solid rgba(168, 85, 247, 0.3)'
-                          : '1px solid rgba(168, 85, 247, 0.2)'
+                          : '1px solid rgba(168, 85, 247, 0.25)',
+                        boxShadow: systemTheme === 'dark'
+                          ? '0 1px 3px rgba(0, 0, 0, 0.3)'
+                          : '0 1px 2px rgba(0, 0, 0, 0.05)'
                       }}
                     >
-                      For Business
-                    </span>
-                    <h2 
-                      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3"
+                      AIをコストではなく戦力に
+                    </div>
+                    
+                    {/* 法人様（大きく黒文字） */}
+                    <div 
+                      className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-5"
                       style={{ 
                         fontFamily: "'Noto Sans JP', sans-serif",
                         color: systemTheme === 'dark' ? '#ffffff' : '#1a1a1a'
                       }}
                     >
                       法人様
-                    </h2>
+                    </div>
+                    
+                    {/* 説明文 */}
                     <p 
-                      className="text-sm sm:text-base leading-relaxed"
+                      className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
                       style={{
-                        color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563'
+                        color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563',
+                        lineHeight: '1.7'
                       }}
                     >
-                      AI導入支援・企業OS設計<br />
-                      組織を変革する
+                      導入して終わりではない<br />
+                      利益を生み続ける仕組みを社内に構築
                     </p>
                   </div>
 
                   {/* 矢印 */}
                   <motion.div
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 mt-auto"
                     style={{
                       color: systemTheme === 'dark' ? '#c084fc' : '#7c3aed'
                     }}
                     animate={{ x: hoveredCard === 'corporate' ? 10 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <span className="text-sm font-medium">始める</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="text-xs sm:text-sm font-medium">相談する</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </motion.div>
@@ -325,14 +359,15 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.8 }}
-              className="text-center text-xs mt-12"
+              className="text-center text-[10px] sm:text-xs mt-8 sm:mt-10"
               style={{ 
                 color: systemTheme === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.7)' 
-                  : 'rgba(0, 0, 0, 0.6)'
+                  ? 'rgba(255, 255, 255, 0.5)' 
+                  : 'rgba(0, 0, 0, 0.4)',
+                letterSpacing: '0.05em'
               }}
             >
-              選択はいつでも変更できます
+              ※選択はヘッダーからいつでも変更できます
             </motion.p>
           </div>
         </motion.div>
