@@ -283,7 +283,7 @@ export default function CompanyRagPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">自社RAG システム</h1>
         </div>
         <p className="text-blue-100 text-sm sm:text-base">
-          27個のベクトルデータによる自社コンテンツ検索システム（検索成功率100%）
+          54個のベクトルデータによる自社コンテンツ検索システム（検索成功率100%）
         </p>
       </div>
 
@@ -785,12 +785,12 @@ export default function CompanyRagPage() {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">メインページFragment ID専用ベクトル化</h2>
-              <p className="text-sm text-gray-400">23個のFragment ID（12サービス + 8FAQ + 3AIサイト）をfragment_vectorsテーブルにベクトル化</p>
+              <p className="text-sm text-gray-400">54個のFragment ID（12サービス + 3AIサイト + 21FAQ + 18新セクション）をfragment_vectorsテーブルにベクトル化</p>
             </div>
           </div>
 
           <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
-            <h3 className="text-lg font-medium text-white mb-3">対象Fragment ID（23個）</h3>
+            <h3 className="text-lg font-medium text-white mb-3">対象Fragment ID（54個）</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <h4 className="text-sm font-medium text-emerald-400 mb-2">🛠️ サービス（12個）</h4>
@@ -800,23 +800,38 @@ export default function CompanyRagPage() {
                   <li>• service-chatbot-development</li>
                   <li>• service-vector-rag</li>
                   <li>• service-ai-agents</li>
-                  <li>• service-hr-support</li>
-                  <li>• その他6サービス</li>
+                  <li>• service-mcp-servers</li>
+                  <li>• service-sns-automation</li>
+                  <li>• その他5サービス</li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-cyan-400 mb-2">❓ FAQ（8個）</h4>
+                <h4 className="text-sm font-medium text-cyan-400 mb-2">❓ FAQ（21個）</h4>
                 <ul className="text-xs text-gray-300 space-y-1">
-                  <li>• faq-main-1（主要サービス）</li>
-                  <li>• faq-main-2（AI検索最適化）</li>
-                  <li>• faq-main-3（Fragment ID）</li>
-                  <li>• faq-main-4（ベクトルRAG）</li>
-                  <li>• faq-main-5（AIエージェント）</li>
-                  <li>• その他3FAQ</li>
+                  <li>• faq-main-1（AIアーキテクト）</li>
+                  <li>• faq-main-2（Cursor 2.0）</li>
+                  <li>• faq-main-3（MCP, Mastra）</li>
+                  <li>• faq-main-4（Vector Link）</li>
+                  <li>• faq-main-7（個人リスキリング料金）</li>
+                  <li>• faq-main-8（法人リスキリング料金）</li>
+                  <li>• その他15FAQ</li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-purple-400 mb-2">🤖 AIサイト（3個）</h4>
+                <h4 className="text-sm font-medium text-purple-400 mb-2">🎯 新セクション（18個）</h4>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li>• ProblemSection（4個）</li>
+                  <li>• PhilosophySection（1個）</li>
+                  <li>• SolutionBentoGrid（4個）</li>
+                  <li>• PricingSection（4個）</li>
+                  <li>• CTASection（4個）</li>
+                  <li>• ContactSection（1個）</li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-4 grid md:grid-cols-1 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-orange-400 mb-2">🤖 AIサイト（3個）</h4>
                 <ul className="text-xs text-gray-300 space-y-1">
                   <li>• nands-ai-site</li>
                   <li>• ai-site-features</li>
@@ -854,7 +869,7 @@ export default function CompanyRagPage() {
                     });
                     const result = await response.json();
                     if (result.success) {
-                      alert(`メインページFragment IDベクトル化完了！\n${result.results.vectorizedCount}/${result.results.totalFragments}個のFragment IDをベクトル化しました。\n\n成功率: ${result.results.successRate}\n新テーブル: fragment_vectors\n完全URI: 23個生成完了`);
+                      alert(`メインページFragment IDベクトル化完了！\n${result.results.vectorizedCount}/${result.results.totalFragments}個のFragment IDをベクトル化しました。\n\n成功率: ${result.results.successRate}\n新テーブル: fragment_vectors\n完全URI: 54個生成完了`);
                       loadVectorStats(); // 統計更新
                     } else {
                       alert(`エラー: ${result.error}\n詳細: ${result.details || '不明'}`);
