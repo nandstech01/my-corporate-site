@@ -53,7 +53,10 @@ export default function ContactSection() {
 
   return (
     <section
-      id="contact-section"
+      id="contact-form"
+      data-fragment-id="contact-form"
+      data-fragment-title="お問い合わせフォーム - AIアーキテクト直接対応"
+      data-fragment-description="AIに関するご相談、サービスのお問い合わせはこちらから。名前、メールアドレス、お問い合わせ内容を入力してください。営業マンではなく、技術者が直接対応します。"
       className="relative py-20 sm:py-28 overflow-hidden scroll-mt-20"
       style={{
         background: theme === 'dark'

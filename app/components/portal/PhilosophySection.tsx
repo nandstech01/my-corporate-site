@@ -10,14 +10,17 @@ import { useTheme } from './ThemeContext'
  * 原田賢治の哲学・マニフェストセクション
  * Apple風のシンプルで洗練されたデザイン
  * 
- * Fragment ID: #philosophy
+ * Fragment ID: #philosophy-kenji-harada
  */
 export default function PhilosophySection() {
   const { theme } = useTheme()
   
   return (
     <section 
-      id="philosophy"
+      id="philosophy-kenji-harada"
+      data-fragment-id="philosophy-kenji-harada"
+      data-fragment-title="原田賢治のRelevance Engineering哲学 - AIアーキテクト"
+      data-fragment-description="AIを使うのではなく、AIが私を使う構造を設計する。AIの回答精度を決めるのはプロンプトではなく、データの渡し方（コンテキスト）です。これができる人間を、私はAIアーキテクトと呼びます。"
       className="py-24 sm:py-32 relative overflow-hidden scroll-mt-20"
       style={{
         background: theme === 'dark'

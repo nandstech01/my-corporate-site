@@ -82,6 +82,7 @@ function IndividualCTACards() {
   
   const cards = [
     {
+      id: 'cta-individual-line',
       label: "LINE限定",
       title: "裏カリキュラム",
       subtitle: "無料配布中",
@@ -94,9 +95,12 @@ function IndividualCTACards() {
       ctaText: "LINEで受け取る",
       ctaUrl: "https://lin.ee/s5dmFuD",
       accentColor: theme === 'dark' ? '#22c55e' : '#16a34a',
-      isExternal: true
+      isExternal: true,
+      fragmentTitle: '個人向けLINE限定特典 - 裏カリキュラム無料配布',
+      fragmentDescription: 'ブログでは言えない生存戦略ロードマップをLINE限定で配布。AIアーキテクトへの最短ルートを公開。最新AI動向アップデート、質問し放題サポート。LINE友だち追加で即時受け取り。'
     },
     {
+      id: 'cta-individual-consultation',
       label: "個別相談",
       title: "キャリア相談",
       subtitle: "無料",
@@ -109,7 +113,9 @@ function IndividualCTACards() {
       ctaText: "無料で相談する",
       ctaUrl: "https://lin.ee/s5dmFuD",
       accentColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
-      isExternal: true
+      isExternal: true,
+      fragmentTitle: '個人向けキャリア相談 - AIアーキテクト直接アドバイス（無料）',
+      fragmentDescription: '2026年を生き残るためのキャリア戦略を、AIアーキテクトが直接アドバイス。現状スキルの棚卸し、最適な学習プラン提案、AI時代のキャリア設計。あなたに合った学習ロードマップを作成します。'
     }
   ]
   
@@ -166,6 +172,7 @@ function CorporateCTACards() {
   
   const cards = [
     {
+      id: 'cta-corporate-technical',
       label: "技術相談",
       title: "AIアーキテクト",
       subtitle: "直接対応",
@@ -178,9 +185,12 @@ function CorporateCTACards() {
       ctaText: "すぐに無料相談",
       ctaUrl: "https://lin.ee/s5dmFuD",
       accentColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
-      isExternal: true
+      isExternal: true,
+      fragmentTitle: '法人向け技術相談 - AIアーキテクト直接対応（無料）',
+      fragmentDescription: '御社のAI課題を、営業マンではなく技術者が直接ヒアリング。現状課題のヒアリング、技術的な解決策の提案、概算見積もりの作成。技術的な本質を議論し、最適なソリューションを提案します。'
     },
     {
+      id: 'cta-corporate-documents',
       label: "資料請求",
       title: "サービス資料",
       subtitle: "無料",
@@ -193,7 +203,9 @@ function CorporateCTACards() {
       ctaText: "無料で資料請求",
       ctaUrl: "https://nands.tech/dm-form",
       accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2',
-      isExternal: true
+      isExternal: true,
+      fragmentTitle: '法人向け資料請求 - サービス資料無料配布',
+      fragmentDescription: 'AI導入事例、料金プラン、助成金活用方法などをまとめた資料を無料配布。AI導入事例集、料金プラン詳細、助成金活用ガイド。社内検討にお役立てください。'
     }
   ]
   
@@ -247,6 +259,7 @@ function CorporateCTACards() {
  */
 interface CTACardProps {
   theme: 'light' | 'dark'
+  id: string
   label: string
   title: string
   subtitle: string
@@ -256,10 +269,13 @@ interface CTACardProps {
   ctaUrl: string
   accentColor: string
   isExternal?: boolean
+  fragmentTitle: string
+  fragmentDescription: string
 }
 
 function CTACard({
   theme,
+  id,
   label,
   title,
   subtitle,
@@ -268,10 +284,16 @@ function CTACard({
   ctaText,
   ctaUrl,
   accentColor,
-  isExternal = false
+  isExternal = false,
+  fragmentTitle,
+  fragmentDescription
 }: CTACardProps) {
   return (
     <motion.div
+      id={id}
+      data-fragment-id={id}
+      data-fragment-title={fragmentTitle}
+      data-fragment-description={fragmentDescription}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}

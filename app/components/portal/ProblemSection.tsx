@@ -49,6 +49,7 @@ function IndividualProblemCards() {
   
   const cards = [
     {
+      id: 'problem-individual-ai-career',
       title: "2026年、そのコードは",
       subtitle: "AIが1秒で書く。",
       description: "GitHub Copilot、Devin、Claude... 「作る」だけのエンジニアの価値は暴落しています。今必要なのは、AIを部下として指揮し、システム全体を俯瞰する「設計力」です。",
@@ -56,9 +57,12 @@ function IndividualProblemCards() {
       linkUrl: "https://nands.tech/posts/ai--949889",
       linkText: "AIキャリアを読む",
       gradient: theme === 'dark' ? 'from-purple-900/20 to-cyan-900/20' : 'from-purple-50 to-cyan-50',
-      accentColor: theme === 'dark' ? '#ef4444' : '#dc2626'
+      accentColor: theme === 'dark' ? '#ef4444' : '#dc2626',
+      fragmentTitle: '2026年、そのコードはAIが1秒で書く - AIキャリア戦略',
+      fragmentDescription: 'GitHub Copilot、Devin、Claude...「作る」だけのエンジニアの価値は暴落。今必要なのは、AIを部下として指揮し、システム全体を俯瞰する「設計力」です。あなたのライバルは人間ではなく、月額20ドルのAIです。'
     },
     {
+      id: 'problem-individual-relevance',
       title: "AIは「質問」に答えるのではなく",
       subtitle: "「意図」に応える。",
       description: "検索から対話へ。AIが理解するのは「キーワード」ではなく「Context（文脈）」です。レリバンスエンジニアリングなしに、AIの真価は引き出せません。",
@@ -66,7 +70,9 @@ function IndividualProblemCards() {
       linkUrl: "https://nands.tech/posts/ai-950781",
       linkText: "レリバンスエンジニアリングを読む",
       gradient: theme === 'dark' ? 'from-cyan-900/20 to-blue-900/20' : 'from-cyan-50 to-blue-50',
-      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2'
+      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2',
+      fragmentTitle: 'AIは質問に答えるのではなく意図に応える - レリバンスエンジニアリング',
+      fragmentDescription: '検索から対話へ。AIが理解するのは「キーワード」ではなく「Context（文脈）」です。レリバンスエンジニアリングなしに、AIの真価は引き出せません。AIに正しく質問する時代は終わりました。'
     }
   ]
   
@@ -123,6 +129,7 @@ function CorporateProblemCards() {
   
   const cards = [
     {
+      id: 'problem-corporate-vector-link',
       title: "RAGを入れたのに、なぜ御社のAIは",
       subtitle: "「バカ」なのか？",
       description: "ChatGPTにPDFを読ませただけのRAGは、ただの「検索窓」です。AIはファイルを読みません。データの「意味（Context）」を読みます。構造なきデータは、AIにとってノイズでしかありません。",
@@ -130,9 +137,12 @@ function CorporateProblemCards() {
       linkUrl: "https://nands.tech/posts/-571903",
       linkText: "ベクトルリンクを読む",
       gradient: theme === 'dark' ? 'from-red-900/20 to-orange-900/20' : 'from-red-50 to-orange-50',
-      accentColor: theme === 'dark' ? '#ef4444' : '#dc2626'
+      accentColor: theme === 'dark' ? '#ef4444' : '#dc2626',
+      fragmentTitle: 'RAGを入れたのに、なぜ御社のAIはバカなのか - ベクトルリンク構造化',
+      fragmentDescription: 'ChatGPTにPDFを読ませただけのRAGは、ただの検索窓。AIはファイルを読まず、データの意味(Context)を読みます。構造なきデータは、AIにとってノイズでしかありません。必要なのはベクトルリンクによる構造化です。'
     },
     {
+      id: 'problem-corporate-ai-architect',
       title: "社員を雇うのではなく",
       subtitle: "AIを構築する時代。",
       description: "AIアーキテクトは、システム全体を俯瞰し、AIを「部品」として組み込む設計者です。もはやコードは書きません。MCP、RAG、Agentsを統合し、企業OS全体を設計します。",
@@ -140,7 +150,9 @@ function CorporateProblemCards() {
       linkUrl: "https://nands.tech/posts/ai-ai20251000-097498",
       linkText: "AIアーキテクトを読む",
       gradient: theme === 'dark' ? 'from-purple-900/20 to-indigo-900/20' : 'from-purple-50 to-indigo-50',
-      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed'
+      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed',
+      fragmentTitle: '社員を雇うのではなくAIを構築する時代 - AIアーキテクト',
+      fragmentDescription: 'AIアーキテクトは、システム全体を俯瞰し、AIを部品として組み込む設計者。もはやコードは書きません。MCP、RAG、Agentsを統合し、企業OS全体を設計します。2026年、エンジニアは作る人から設計する人へ。'
     }
   ]
   
@@ -194,6 +206,7 @@ function CorporateProblemCards() {
  */
 interface ProblemCardProps {
   theme: 'light' | 'dark'
+  id: string
   title: string
   subtitle: string
   description: string
@@ -202,10 +215,13 @@ interface ProblemCardProps {
   linkText: string
   gradient: string
   accentColor: string
+  fragmentTitle: string
+  fragmentDescription: string
 }
 
 function ProblemCard({
   theme,
+  id,
   title,
   subtitle,
   description,
@@ -213,10 +229,16 @@ function ProblemCard({
   linkUrl,
   linkText,
   gradient,
-  accentColor
+  accentColor,
+  fragmentTitle,
+  fragmentDescription
 }: ProblemCardProps) {
   return (
     <motion.div
+      id={id}
+      data-fragment-id={id}
+      data-fragment-title={fragmentTitle}
+      data-fragment-description={fragmentDescription}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}

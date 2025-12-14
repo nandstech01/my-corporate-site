@@ -84,6 +84,7 @@ function IndividualSolutionCards() {
   
   const cards = [
     {
+      id: 'solution-individual-step1',
       label: "STEP 1",
       title: "Cursor 2.0",
       subtitle: "完全習得",
@@ -96,9 +97,12 @@ function IndividualSolutionCards() {
       highlight: "もう「書く」時代は終わりました。",
       linkUrl: "https://nands.tech/posts/ai-ai20251000-097498",
       linkText: "AIアーキテクト記事を読む",
-      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed'
+      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed',
+      fragmentTitle: 'STEP 1: Cursor 2.0 完全習得 - AIペアプログラミング',
+      fragmentDescription: 'AIペアプログラミング環境で効率10倍。Claude・GPT-4統合によるコード生成。Composer機能でプロジェクト全体を操る。6ヶ月で実務レベルに到達。もう書く時代は終わりました。'
     },
     {
+      id: 'solution-individual-step2',
       label: "STEP 2",
       title: "AIアーキテクト",
       subtitle: "養成プログラム",
@@ -111,7 +115,9 @@ function IndividualSolutionCards() {
       highlight: "「使う側」から「操る側」へ。",
       linkUrl: "https://nands.tech/posts/ai--949889",
       linkText: "AIキャリア記事を読む",
-      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2'
+      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2',
+      fragmentTitle: 'STEP 2: AIアーキテクト養成プログラム - Vector Link & Mastra',
+      fragmentDescription: 'Vector Link構造化設計、Mastra Frameworkによるエージェント開発、MCP統合でツール連携。システム全体を俯瞰するアーキテクト思考を習得。使う側から操る側へ。'
     }
   ]
   
@@ -168,6 +174,7 @@ function CorporateSolutionCards() {
   
   const cards = [
     {
+      id: 'solution-corporate-layer1',
       label: "LAYER 1",
       title: "Brain",
       subtitle: "構造化基盤",
@@ -180,9 +187,12 @@ function CorporateSolutionCards() {
       highlight: "AIは「ファイル」を読まない。「意味」を読む。",
       linkUrl: "https://nands.tech/posts/-571903",
       linkText: "ベクトルリンク記事を読む",
-      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed'
+      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed',
+      fragmentTitle: 'LAYER 1: Brain 構造化基盤 - Vector Link & RAG',
+      fragmentDescription: 'Vector Linkによるデータ再構築。RAGの正しい使い方を設計。コンテキストをAIに正確に伝える。構造なきデータはノイズでしかない。AIはファイルを読まず、意味を読む。'
     },
     {
+      id: 'solution-corporate-layer2',
       label: "LAYER 2-3",
       title: "Agent & Output",
       subtitle: "業務自動化",
@@ -195,7 +205,9 @@ function CorporateSolutionCards() {
       highlight: "社員を雇うのではなく、AIを構築する時代。",
       linkUrl: "https://nands.tech/posts/ai-ai20251000-097498",
       linkText: "AIアーキテクト記事を読む",
-      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2'
+      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2',
+      fragmentTitle: 'LAYER 2-3: Agent & Output 業務自動化 - マーケティング自動実行',
+      fragmentDescription: '問い合わせ対応・調査・要約の自動化。マーケティング施策の自動実行。SNS・動画・記事の自動生成。人間は設計に集中できる。社員を雇うのではなく、AIを構築する時代。'
     }
   ]
   
@@ -249,6 +261,7 @@ function CorporateSolutionCards() {
  */
 interface SolutionCardProps {
   theme: 'light' | 'dark'
+  id: string
   label: string
   title: string
   subtitle: string
@@ -257,10 +270,13 @@ interface SolutionCardProps {
   linkUrl: string
   linkText: string
   accentColor: string
+  fragmentTitle: string
+  fragmentDescription: string
 }
 
 function SolutionCard({
   theme,
+  id,
   label,
   title,
   subtitle,
@@ -268,10 +284,16 @@ function SolutionCard({
   highlight,
   linkUrl,
   linkText,
-  accentColor
+  accentColor,
+  fragmentTitle,
+  fragmentDescription
 }: SolutionCardProps) {
   return (
     <motion.div
+      id={id}
+      data-fragment-id={id}
+      data-fragment-title={fragmentTitle}
+      data-fragment-description={fragmentDescription}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}

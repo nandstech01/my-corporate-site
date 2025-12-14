@@ -44,15 +44,36 @@ export function getStructuredData() {
     'nands-ai-site',
     'ai-site-features', 
     'ai-site-technology',
-    // 🆕 FAQ関連Fragment ID（AI引用FAQ最適化）
-    'faq-main-reskilling',
-    'faq-main-system-dev',
-    'faq-main-pricing',
-    'faq-main-remote',
-    'faq-main-aio',
-    'faq-main-ai-site-definition',
-    'faq-main-ai-site-features',
-    'faq-main-ai-site-benefits',
+    // 🆕 ProblemSection Fragment ID (4個)
+    'problem-individual-ai-career',
+    'problem-individual-relevance',
+    'problem-corporate-vector-link',
+    'problem-corporate-ai-architect',
+    // 🆕 PhilosophySection Fragment ID (1個)
+    'philosophy-kenji-harada',
+    // 🆕 SolutionBentoGrid Fragment ID (4個)
+    'solution-individual-step1',
+    'solution-individual-step2',
+    'solution-corporate-layer1',
+    'solution-corporate-layer2',
+    // 🆕 PricingSection Fragment ID (4個)
+    'pricing-individual-main',
+    'pricing-individual-bonus',
+    'pricing-corporate-main',
+    'pricing-corporate-support',
+    // 🆕 CTASection Fragment ID (4個)
+    'cta-individual-line',
+    'cta-individual-consultation',
+    'cta-corporate-technical',
+    'cta-corporate-documents',
+    // 🆕 ContactSection Fragment ID (1個)
+    'contact-form',
+    // 🆕 FAQSection Fragment ID (21個 - 新しいFAQ)
+    'faq-main-1', 'faq-main-2', 'faq-main-3', 'faq-main-4', 'faq-main-5',
+    'faq-main-6', 'faq-main-7', 'faq-main-8', 'faq-main-9', 'faq-main-10',
+    'faq-main-11', 'faq-main-12', 'faq-main-13', 'faq-main-14', 'faq-main-15',
+    'faq-main-16', 'faq-main-17', 'faq-main-18', 'faq-main-19', 'faq-main-20',
+    'faq-main-21',
     // 🆕 /faqページFAQ Fragment ID（全26項目 - レリバンスエンジニアリング強化）
     'faq-tech-1', 'faq-tech-2', 'faq-tech-3', 'faq-tech-4', 'faq-tech-5',
     'faq-pricing-1', 'faq-pricing-2', 'faq-pricing-3', 'faq-pricing-4',

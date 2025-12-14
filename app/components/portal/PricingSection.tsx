@@ -54,7 +54,7 @@ export default function PricingSection() {
             style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
           >
             {isIndividual 
-              ? '飲み会2回分で、一生食いっぱぐれない「設計力」を。'
+              ? '1日333円で、一生食いっぱぐれない「設計力」を。'
               : '人材開発助成金で、国が75%負担。1人1日333円から。'}
           </p>
         </motion.div>
@@ -80,12 +80,13 @@ function IndividualPricingCards() {
   
   const cards = [
     {
+      id: 'pricing-individual-main',
       label: "MAIN PLAN",
-      title: "月額 10,000円",
+      title: "1日 333円",
       subtitle: "生存戦略プラン",
       price: "180,000",
       priceUnit: "円（税込）",
-      priceNote: "18ヶ月分割で月額10,000円",
+      priceNote: "18ヶ月分割で1日333円",
       features: [
         'Cursor 2.0 完全習得',
         'AIアーキテクト養成',
@@ -95,9 +96,12 @@ function IndividualPricingCards() {
       highlight: "コーダーからアーキテクトへ。",
       ctaText: "LINEで無料相談",
       ctaUrl: "https://lin.ee/s5dmFuD",
-      accentColor: theme === 'dark' ? '#22c55e' : '#16a34a'
+      accentColor: theme === 'dark' ? '#22c55e' : '#16a34a',
+      fragmentTitle: '個人向けメインプラン - 1日333円で生存戦略',
+      fragmentDescription: 'Cursor 2.0完全習得、AIアーキテクト養成、Vector Link構造化設計。6ヶ月で実務レベル到達。1日333円で、一生食いっぱぐれない設計力を。コーダーからアーキテクトへ。'
     },
     {
+      id: 'pricing-individual-bonus',
       label: "BONUS",
       title: "裏カリキュラム",
       subtitle: "LINE限定特典",
@@ -113,7 +117,9 @@ function IndividualPricingCards() {
       highlight: "2026年を生き残るための全て。",
       ctaText: "特典を受け取る",
       ctaUrl: "https://lin.ee/s5dmFuD",
-      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed'
+      accentColor: theme === 'dark' ? '#a855f7' : '#7c3aed',
+      fragmentTitle: '個人向け裏カリキュラム - LINE限定特典（無料）',
+      fragmentDescription: '生存戦略ロードマップ、ブログでは言えない本音、最新AI動向アップデート、質問し放題サポート。2026年を生き残るための全て。LINE友だち追加で即時配布。'
     }
   ]
   
@@ -170,6 +176,7 @@ function CorporatePricingCards() {
   
   const cards = [
     {
+      id: 'pricing-corporate-main',
       label: "🏛️ 人材開発助成金対象",
       title: "実質1人1日 333円",
       subtitle: "6ヶ月コース",
@@ -186,9 +193,12 @@ function CorporatePricingCards() {
       highlight: "1日333円で社員をAIアーキテクトに。",
       ctaText: "無料で資料請求",
       ctaUrl: "https://nands.tech/dm-form",
-      accentColor: theme === 'dark' ? '#3b82f6' : '#2563eb'
+      accentColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+      fragmentTitle: '法人向けメインプラン - 実質1人1日333円（助成金活用）',
+      fragmentDescription: '人材開発助成金対象。正規240,000円→国が75%負担で実質60,000円/人。国が認めたプログラム。助成金申請サポート付き。社員のAIリスキリング、法人向けカスタマイズ可能。1日333円で社員をAIアーキテクトに。'
     },
     {
+      id: 'pricing-corporate-support',
       label: "SUPPORT",
       title: "AIアーキテクト",
       subtitle: "直接対応",
@@ -204,7 +214,9 @@ function CorporatePricingCards() {
       highlight: "設計から運用まで伴走します。",
       ctaText: "すぐに無料相談",
       ctaUrl: "https://lin.ee/s5dmFuD",
-      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2'
+      accentColor: theme === 'dark' ? '#22d3ee' : '#0891b2',
+      fragmentTitle: '法人向けサポート - AIアーキテクト直接対応（無料相談）',
+      fragmentDescription: '企業OS設計コンサルティング、Vector Link導入支援、RAG・Agent構築サポート、継続的な技術顧問。営業マンではなく技術者が対応。設計から運用まで伴走します。無料技術相談。'
     }
   ]
   
@@ -258,6 +270,7 @@ function CorporatePricingCards() {
  */
 interface PricingCardProps {
   theme: 'light' | 'dark'
+  id: string
   label: string
   title: string
   subtitle: string
@@ -269,10 +282,13 @@ interface PricingCardProps {
   ctaText: string
   ctaUrl: string
   accentColor: string
+  fragmentTitle: string
+  fragmentDescription: string
 }
 
 function PricingCard({
   theme,
+  id,
   label,
   title,
   subtitle,
@@ -283,10 +299,16 @@ function PricingCard({
   highlight,
   ctaText,
   ctaUrl,
-  accentColor
+  accentColor,
+  fragmentTitle,
+  fragmentDescription
 }: PricingCardProps) {
   return (
     <motion.div
+      id={id}
+      data-fragment-id={id}
+      data-fragment-title={fragmentTitle}
+      data-fragment-description={fragmentDescription}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
