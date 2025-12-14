@@ -125,13 +125,13 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
           />
 
           {/* メインコンテンツ */}
-          <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pt-24 sm:pt-8">
+          <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pt-20 sm:pt-8">
             {/* ロゴ・タイトル */}
             <motion.div
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-center mb-8 sm:mb-12"
+              className="text-center mb-6 sm:mb-12"
             >
               {/* メインコピー */}
               <div 
@@ -148,7 +148,7 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
             </motion.div>
 
             {/* 選択カード */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10">
               {/* 個人様カード */}
               <motion.button
                 initial={{ opacity: 0, x: -50 }}
@@ -223,7 +223,7 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
                     
                     {/* 説明文 */}
                     <p 
-                      className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
+                      className="text-xs sm:text-sm leading-relaxed mb-4 sm:mb-8"
                       style={{
                         color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563',
                         lineHeight: '1.7'
@@ -325,7 +325,7 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
                     
                     {/* 説明文 */}
                     <p 
-                      className="text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
+                      className="text-xs sm:text-sm leading-relaxed mb-4 sm:mb-8"
                       style={{
                         color: systemTheme === 'dark' ? '#9ca3af' : '#4b5563',
                         lineHeight: '1.7'
@@ -359,7 +359,7 @@ export default function GatewayScreen({ onComplete }: GatewayScreenProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.8 }}
-              className="text-center text-[10px] sm:text-xs mt-8 sm:mt-10"
+              className="text-center text-[10px] sm:text-xs mt-6 sm:mt-10"
               style={{ 
                 color: systemTheme === 'dark' 
                   ? 'rgba(255, 255, 255, 0.5)' 

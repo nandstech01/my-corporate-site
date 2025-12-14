@@ -13,7 +13,6 @@
 
 import { ModeProvider } from './ModeContext'
 import { ThemeProvider } from './ThemeContext'
-import DevResetButton from './DevResetButton'
 import GatewayScreen, { useGatewayState } from './GatewayScreen'
 import NewHeroSection from './NewHeroSection'
 import ProblemSection from './ProblemSection'
@@ -66,9 +65,6 @@ function TopPageContent({ posts, youtubeShorts }: NewTopPageSectionsProps) {
       {showGateway && (
         <GatewayScreen onComplete={completeGateway} />
       )}
-
-      {/* 開発用リセットボタン（本番では削除） */}
-      <DevResetButton />
       
       {/* Hero Area - ファーストビュー */}
       <section id="hero" className="scroll-mt-0">
