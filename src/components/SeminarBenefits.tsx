@@ -30,7 +30,7 @@ export default function SeminarBenefits() {
     { title: "無料退職相談", subtitle: "経験豊富なキャリアコンサルタンが丁寧にサポート", icon: <Users size={24} color="white" /> },
     { title: "無料転職相談", subtitle: "AI業界への転職をプロがバックアップ", icon: <Compass size={24} color="white" /> },
     { title: "プロンプトテンプレ50選", subtitle: "即実践できるプロンプト集", icon: <Star size={24} color="white" /> },
-    { title: "ChatGTP大全集", subtitle: "ChatGTP基礎知識構築・業務効率化", icon: <Target size={24} color="white" /> },
+    { title: "ChatGPT大全集", subtitle: "ChatGPT基礎知識構築・業務効率化", icon: <Target size={24} color="white" /> },
     { title: "AI面接対策講座", subtitle: "AIを活用した面接突破テクニックを伝授", icon: <Brain size={24} color="white" /> },
     { title: "最新AI技術トレンドレポート", subtitle: "市場価値の高いスキルを先取り", icon: <TrendingUp size={24} color="white" /> },
     { title: "AI業界人脈構築セミナー", subtitle: "キャリアを加速させる人脈作りのコツ", icon: <Users size={24} color="white" /> },

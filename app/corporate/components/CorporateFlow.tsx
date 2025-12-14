@@ -147,7 +147,7 @@ export default function CorporateFlow() {
             </span>
           </button>
           <p className="mt-6 text-blue-200/80 text-sm">
-          ※ 初回相談限定で『ChatGTP完全マスター』無料提供
+          ※ 初回相談限定で『ChatGPT完全マスター』無料提供
           </p>
         </div>
       </div>
