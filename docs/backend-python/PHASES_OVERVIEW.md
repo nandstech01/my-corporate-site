@@ -16,8 +16,10 @@ Phase 3: ML評価システム（2週間）
     ↓ Recall@k、MRR、NDCG評価・A/Bテスト
 Phase 4: MLflow統合（1週間）
     ↓ 実験トラッキング・パラメータ最適化
-Phase 5: Grafana + MLflow統合（任意）
-    ↓ 統合ダッシュボード・アラート
+Phase 5: Production Deployment（保留中）
+    ↓ GCP無料枠・Cloudflare・GitHub Actions
+Phase 6: 自動ブログ改善エンジン（2-3週間）🆕
+    ↓ 自動評価→改善→生成ループ
 ```
 
 ---
@@ -80,6 +82,8 @@ Phase 5: Grafana + MLflow統合（任意）
 | **Phase 2** | 1週間 | 評価データセット（10件）、Precision@5/MRR、BM25再ランキング | ML評価基盤が動作 | ✅ 完了 |
 | **Phase 3** | 2週間 | 評価データセット拡張（25件）、NDCG/Recall@20、RRF、run_id変数 | BM25で+56.5% MRR改善 | ✅ 完了 |
 | **Phase 4** | 2週間 | MLflow統合、自動ログ、dataset_version変数、相互参照 | 実験管理自動化、効率67%向上 | ✅ 完了 |
+| **Phase 5** | - | GCP無料枠デプロイ、Cloudflare、GitHub Actions | 本番環境構築 | ⏸️ 保留 |
+| **Phase 6** | 2-3週間 | 自動評価→改善→生成ループ、A/Bテスト、ML最適化 | ブログ品質の継続的向上 | 📋 設計完了 |
 
 **🔄 スコープ変更の経緯**: Phase 1完了後の実験0（Embedding統一検証）により、Phase 2以降のスコープを再定義しました。詳細は `archived/ARCHIVE_README.md` を参照してください。
 
@@ -132,8 +136,19 @@ docs/
 ├── phase-3-ml-evaluation-expansion/    # Phase 3: ML評価拡張 ⏳ 計画中
 │   └── README.md                       # Phase 3実装計画
 │
-├── phase-4-mlflow-integration/         # Phase 4: MLflow統合 ⏳ 計画中
+├── phase-4-mlflow-integration/         # Phase 4: MLflow統合 ✅ 完了
 │   └── README.md                       # Phase 4実装計画
+│
+├── phase-5-production-deployment/     # Phase 5: 本番デプロイ ⏸️ 保留
+│   ├── README.md                       # Phase 5概要
+│   ├── ARCHITECTURE_OPTIONS.md         # アーキテクチャ選択肢
+│   ├── DECISION.md                     # 最終決定事項
+│   └── DEPLOYMENT_GUIDE.md             # デプロイガイド
+│
+├── phase-6-auto-blog-improvement/     # Phase 6: 自動ブログ改善エンジン 🆕 設計完了
+│   ├── INDEX.md                        # ドキュメント索引
+│   ├── README.md                       # Phase 6概要・実装計画
+│   └── ARCHITECTURE.md                 # 技術アーキテクチャ設計書
 │
 └── archived/                           # アーカイブドキュメント（旧定義）
     ├── ARCHIVE_README.md               # アーカイブ説明
