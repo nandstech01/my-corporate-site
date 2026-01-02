@@ -343,10 +343,10 @@ export default function HybridArticleGenerator() {
   const [runDeepResearch, setRunDeepResearch] = useState(true);
   
   // 🔄 モデル選択（コスト節約用）
-  // deepseek = DeepSeek V3.2（低コスト・練習用）
-  // gemini = Gemini 3 Pro Preview（高品質・本番用）
-  const [researchModel, setResearchModel] = useState<'deepseek' | 'gemini'>('deepseek');
-  const [generationModel, setGenerationModel] = useState<'deepseek' | 'gemini'>('deepseek');
+  // deepseek = DeepSeek V3.2（ディープリサーチ専用）
+  // gpt-5.2 = GPT-5.2（記事生成専用・高品質）
+  const [researchModel, setResearchModel] = useState<'deepseek' | 'gpt-5.2'>('deepseek');
+  const [generationModel, setGenerationModel] = useState<'deepseek' | 'gpt-5.2'>('gpt-5.2');
   
   // 🔬 ディープリサーチタイプ
   // trend = トレンド調査、comparison = 比較調査、technical = 技術調査、market = 市場調査
@@ -457,7 +457,7 @@ export default function HybridArticleGenerator() {
       setProgress(50);
 
       await new Promise(resolve => setTimeout(resolve, 500));
-      const modelLabel = generationModel === 'deepseek' ? 'DeepSeek V3.2' : 'Gemini 3 Pro';
+      const modelLabel = generationModel === 'deepseek' ? 'DeepSeek V3.2' : 'GPT-5.2';
       setCurrentStep(`🤖 ${modelLabel}で記事生成中...`);
       setProgress(70);
 
@@ -879,14 +879,14 @@ export default function HybridArticleGenerator() {
                 <span className="block text-xs opacity-70">低コスト</span>
               </button>
               <button
-                onClick={() => setResearchModel('gemini')}
+                onClick={() => setResearchModel('gpt-5.2')}
                 className={`flex-1 px-3 py-2 text-sm font-medium transition-all ${
-                  researchModel === 'gemini'
+                  researchModel === 'gpt-5.2'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                 }`}
               >
-                ⭐ Gemini 3 Pro
+                🚀 GPT-5.2
                 <span className="block text-xs opacity-70">高品質</span>
               </button>
             </div>
@@ -908,14 +908,14 @@ export default function HybridArticleGenerator() {
                 <span className="block text-xs opacity-70">低コスト</span>
               </button>
               <button
-                onClick={() => setGenerationModel('gemini')}
+                onClick={() => setGenerationModel('gpt-5.2')}
                 className={`flex-1 px-3 py-2 text-sm font-medium transition-all ${
-                  generationModel === 'gemini'
-                    ? 'bg-purple-600 text-white'
+                  generationModel === 'gpt-5.2'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                 }`}
               >
-                ⭐ Gemini 3 Pro
+                🚀 GPT-5.2
                 <span className="block text-xs opacity-70">高品質</span>
               </button>
             </div>
@@ -927,11 +927,11 @@ export default function HybridArticleGenerator() {
           {researchModel === 'deepseek' && generationModel === 'deepseek' && (
             <p>💡 全てDeepSeek: 最大コスト節約モード（練習・テスト用）</p>
           )}
-          {researchModel === 'gemini' && generationModel === 'gemini' && (
-            <p>⭐ 全てGemini: 最高品質モード（本番用）</p>
+          {researchModel === 'deepseek' && generationModel === 'gpt-5.2' && (
+            <p>🚀 推奨設定: ディープリサーチ=DeepSeek（節約）/ 記事生成=GPT-5.2（高品質・10,000-20,000文字対応）</p>
           )}
-          {researchModel !== generationModel && (
-            <p>🔀 ハイブリッド: リサーチ={researchModel === 'deepseek' ? 'DeepSeek' : 'Gemini'}, 生成={generationModel === 'deepseek' ? 'DeepSeek' : 'Gemini'}</p>
+          {researchModel !== generationModel && generationModel !== 'gpt-5.2' && (
+            <p>🔀 ハイブリッド: リサーチ={researchModel === 'deepseek' ? 'DeepSeek' : 'GPT-5.2'}, 生成={generationModel === 'deepseek' ? 'DeepSeek' : 'GPT-5.2'}</p>
           )}
         </div>
       </div>

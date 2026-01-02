@@ -92,6 +92,10 @@ export default function EditPostPage({
   const [postId, setPostId] = React.useState<string>('');
   const [tableType, setTableType] = React.useState<'posts' | 'chatgpt_posts'>('posts');
   const [isGeneratingSEO, setIsGeneratingSEO] = React.useState(false);
+  
+  // 🆕 再ベクトル化機能用のState
+  const [isReVectorizing, setIsReVectorizing] = React.useState(false);
+  const [reVectorizeResult, setReVectorizeResult] = React.useState<any>(null);
 
   // 両方のテーブルから記事を検索する関数
   const fetchPost = async (slug: string): Promise<Post | null> => {
@@ -403,6 +407,88 @@ export default function EditPostPage({
       alert('SEOメタデータの生成に失敗しました。しばらく時間をおいて再度お試しください。');
     } finally {
       setIsGeneratingSEO(false);
+    }
+  };
+
+  // 🆕 再ベクトル化ハンドラー
+  const handleReVectorize = async () => {
+    if (!postId) {
+      alert('記事IDが見つかりません');
+      return;
+    }
+
+    // 🔍 デバッグログ
+    console.log('🔍 デバッグ情報:');
+    console.log('  - postId:', postId);
+    console.log('  - tableType:', tableType);
+    console.log('  - slug:', params.slug);
+    console.log('  - status:', status);
+
+    // postsテーブルの記事のみ対象（chatgpt_postsは未対応）
+    if (tableType !== 'posts') {
+      alert(`この機能はRAG記事（postsテーブル）のみ対応しています。\n\n現在のテーブル: ${tableType}`);
+      return;
+    }
+
+    const confirmed = confirm(
+      '⚠️ この記事のFragment IDを全て再ベクトル化します。\n\n' +
+      '処理時間: 約15-30秒\n' +
+      'AI検索最適化（AIO/GEO）と構造化データを最新状態に同期します。\n\n' +
+      '実行しますか？'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsReVectorizing(true);
+    setReVectorizeResult(null);
+
+    try {
+      console.log('🔄 再ベクトル化開始:', postId);
+
+      // 🆕 新規API使用（既存ベクトル削除 + 再生成）
+      const response = await fetch('/api/re-vectorize-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: parseInt(postId) })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // レスポンス形式を統一形式に変換
+        const unifiedResult = {
+          success: true,
+          results: {
+            totalFragments: data.result.fragmentsFound,
+            vectorizedCount: data.result.vectorizedCount,
+            successRate: data.result.successRate,
+            deletedVectors: data.result.deletedVectors,
+            errors: data.result.errors
+          }
+        };
+        
+        setReVectorizeResult(unifiedResult);
+        
+        alert(
+          '✅ 再ベクトル化成功！\n\n' +
+          `削除した古いベクトル: ${data.result.deletedVectors}個\n` +
+          `Fragment ID数: ${data.result.fragmentsFound}\n` +
+          `ベクトル化成功: ${data.result.vectorizedCount}\n` +
+          `成功率: ${data.result.successRate}\n\n` +
+          'AI検索最適化と構造化データが最新状態に同期されました。'
+        );
+        
+        console.log('✅ 再ベクトル化完了:', data);
+      } else {
+        throw new Error(data.error || '再ベクトル化に失敗しました');
+      }
+    } catch (error) {
+      console.error('❌ 再ベクトル化エラー:', error);
+      alert(`❌ エラー: ${error instanceof Error ? error.message : '不明なエラー'}\n\n再度お試しください。`);
+    } finally {
+      setIsReVectorizing(false);
     }
   };
 
@@ -754,6 +840,89 @@ export default function EditPostPage({
             </div>
           </div>
         </div>
+
+        {/* 🆕 Fragment ID 再ベクトル化セクション */}
+        {tableType === 'posts' && (
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+              <span className="text-2xl mr-2">🔄</span>
+              Fragment ID ベクトル化
+            </h2>
+            
+            <div className="bg-gray-900/50 border border-gray-700 rounded-md p-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-300 mb-2">💡 この機能について</h3>
+              <ul className="text-sm text-gray-400 space-y-1.5 list-disc list-inside">
+                <li>H1/H2タイトルや本文をリライトした場合に使用</li>
+                <li>AI検索最適化（AIO/GEO）を最新状態に同期</li>
+                <li>構造化データ（Schema.org）を自動更新</li>
+                <li>ChatGPT/Perplexity等の引用精度を向上</li>
+              </ul>
+            </div>
+
+            <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-md p-3 mb-4">
+              <p className="text-xs text-yellow-300 flex items-start">
+                <span className="mr-2">⚠️</span>
+                <span>記事を保存してから再ベクトル化を実行してください。処理時間は約15-30秒かかります。</span>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleReVectorize}
+              disabled={isReVectorizing || !postId}
+              className="w-full px-4 py-3 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+            >
+              {isReVectorizing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>処理中... (15-30秒)</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">🔄</span>
+                  <span>Fragment IDを全て再ベクトル化</span>
+                </>
+              )}
+            </button>
+
+            {reVectorizeResult && (
+              <div className="mt-4 p-4 bg-green-900/30 border border-green-700 rounded-md">
+                <p className="text-green-400 font-semibold mb-3 flex items-center">
+                  <span className="text-xl mr-2">✅</span>
+                  再ベクトル化成功
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="bg-gray-900/50 rounded p-3">
+                    <p className="text-xs text-gray-400 mb-1">削除した古いベクトル</p>
+                    <p className="text-2xl font-bold text-red-400">{reVectorizeResult.results.deletedVectors || 0}</p>
+                  </div>
+                  <div className="bg-gray-900/50 rounded p-3">
+                    <p className="text-xs text-gray-400 mb-1">Fragment ID数</p>
+                    <p className="text-2xl font-bold text-white">{reVectorizeResult.results.totalFragments}</p>
+                  </div>
+                  <div className="bg-gray-900/50 rounded p-3">
+                    <p className="text-xs text-gray-400 mb-1">ベクトル化成功</p>
+                    <p className="text-2xl font-bold text-green-400">{reVectorizeResult.results.vectorizedCount}</p>
+                  </div>
+                  <div className="bg-gray-900/50 rounded p-3">
+                    <p className="text-xs text-gray-400 mb-1">成功率</p>
+                    <p className="text-2xl font-bold text-purple-400">{reVectorizeResult.results.successRate}</p>
+                  </div>
+                </div>
+                {reVectorizeResult.results.errors && reVectorizeResult.results.errors.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-yellow-700">
+                    <p className="text-xs text-yellow-400">
+                      ⚠️ エラー: <span className="text-white font-semibold">{reVectorizeResult.results.errors.length}件</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 送信ボタン */}
         <div className="flex justify-end">

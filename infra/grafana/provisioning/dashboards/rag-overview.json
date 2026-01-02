@@ -1,0 +1,1297 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  date_trunc('hour', created_at) as time,\n  COUNT(*) as \"検索回数\"\nFROM rag_search_logs\nWHERE created_at >= NOW() - INTERVAL '24 hours'\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "id"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "rag_search_logs",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "検索回数（24時間）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "value",
+            "desc": true
+          }
+        ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  'Fragment Vectors' as metric,\n  COUNT(*) as value\nFROM fragment_vectors\nUNION ALL\nSELECT\n  'Company Vectors' as metric,\n  COUNT(*) as value\nFROM company_vectors\nUNION ALL\nSELECT\n  'Trend Vectors' as metric,\n  COUNT(*) as value\nFROM trend_vectors\nUNION ALL\nSELECT\n  'YouTube Vectors' as metric,\n  COUNT(*) as value\nFROM youtube_vectors\nUNION ALL\nSELECT\n  'Knowledge Vectors' as metric,\n  COUNT(*) as value\nFROM knowledge_vectors",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "id"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "fragment_vectors",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "RAGソース別データ件数",
+      "transformations": [],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  jsonb_array_elements_text(sources) as source,\n  COUNT(*) as count\nFROM rag_search_logs\nWHERE created_at >= NOW() - INTERVAL '7 days'\nGROUP BY source\nORDER BY count DESC",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "sources"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "rag_search_logs",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "検索ソース別利用率（7日間）",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  date_trunc('hour', created_at) as time,\n  AVG(avg_similarity) as \"平均類似度\"\nFROM rag_search_logs\nWHERE created_at >= NOW() - INTERVAL '24 hours'\n  AND avg_similarity IS NOT NULL\nGROUP BY time\nORDER BY time",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "avg_similarity"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "rag_search_logs",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "平均類似度推移（24時間）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Precision@5",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 0.3
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                        created_at as time,\n                        variant as metric,\n                        AVG(precision_at_5) as value\n                    FROM evaluation_results\n                    WHERE $__timeFilter(created_at)\n                    GROUP BY created_at, variant\n                    ORDER BY created_at\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "precision_at_5"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Precision@5 推移（Baseline vs BM25）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "MRR",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 0.3
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                        created_at as time,\n                        variant as metric,\n                        AVG(mrr) as value\n                    FROM evaluation_results\n                    WHERE $__timeFilter(created_at)\n                    GROUP BY created_at, variant\n                    ORDER BY created_at\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "mrr"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "MRR 推移（Baseline vs BM25）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "showHeader": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    WITH latest_evaluation AS (\n                        SELECT DISTINCT ON (variant)\n                            variant,\n                            AVG(precision_at_5) as avg_precision_at_5,\n                            AVG(mrr) as avg_mrr,\n                            COUNT(*) as query_count,\n                            MAX(created_at) as last_updated\n                        FROM evaluation_results\n                        WHERE created_at >= NOW() - INTERVAL '7 days'\n                        GROUP BY variant, created_at\n                        ORDER BY variant, created_at DESC\n                    )\n                    SELECT \n                        variant as \"バリアント\",\n                        ROUND(avg_precision_at_5::numeric, 4) as \"Precision@5\",\n                        ROUND(avg_mrr::numeric, 4) as \"MRR\",\n                        query_count as \"評価クエリ数\",\n                        last_updated as \"最終更新\"\n                    FROM latest_evaluation\n                    ORDER BY variant\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "precision_at_5"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "最新評価結果（7日間）",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "orange",
+                "value": 0.4
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 8,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      er.variant AS metric,\n                      ROUND(AVG(er.mrr)::numeric, 4) AS \"MRR\",\n                      ROUND(AVG(er.ndcg)::numeric, 4) AS \"NDCG@20\",\n                      ROUND(AVG(er.recall_at_20)::numeric, 4) AS \"Recall@20\"\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'technical'\n                      AND er.run_id = '$run_id'::uuid\n                      AND er.variant IN ('baseline', 'bm25')\n                    GROUP BY\n                      er.variant\n                    ORDER BY\n                      er.variant;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "mrr"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "📊 Technical カテゴリ評価指標（Selected run）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "orange",
+                "value": 0.4
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 9,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      er.variant AS metric,\n                      ROUND(AVG(er.mrr)::numeric, 4) AS \"MRR\",\n                      ROUND(AVG(er.ndcg)::numeric, 4) AS \"NDCG@20\",\n                      ROUND(AVG(er.recall_at_20)::numeric, 4) AS \"Recall@20\"\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'general'\n                      AND er.run_id = '$run_id'::uuid\n                      AND er.variant IN ('baseline', 'bm25')\n                    GROUP BY\n                      er.variant\n                    ORDER BY\n                      er.variant;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "mrr"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "title": "📊 General カテゴリ評価指標（Selected run）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "MRR",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1,
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      MAX(er.created_at) AS time,\n                      er.variant,\n                      AVG(er.mrr) AS value\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'technical'\n                      AND er.variant IN ('baseline', 'bm25')\n                      AND $__timeFilter(er.created_at)\n                    GROUP BY\n                      er.run_id, er.variant\n                    ORDER BY\n                      time ASC;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "mrr"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "📈 Technical カテゴリ MRR 推移（All runs）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "MRR",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1,
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      MAX(er.created_at) AS time,\n                      er.variant,\n                      AVG(er.mrr) AS value\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'general'\n                      AND er.variant IN ('baseline', 'bm25')\n                      AND $__timeFilter(er.created_at)\n                    GROUP BY\n                      er.run_id, er.variant\n                    ORDER BY\n                      time ASC;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "mrr"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "📈 General カテゴリ MRR 推移（All runs）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "NDCG@20",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1,
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      MAX(er.created_at) AS time,\n                      er.variant,\n                      AVG(er.ndcg) AS value\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'technical'\n                      AND er.variant IN ('baseline', 'bm25')\n                      AND $__timeFilter(er.created_at)\n                    GROUP BY\n                      er.run_id, er.variant\n                    ORDER BY\n                      time ASC;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "ndcg"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "📈 Technical カテゴリ NDCG@20 推移（All runs）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "P01B10AD872D9061B"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "NDCG@20",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 1,
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "P01B10AD872D9061B"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\n                    SELECT\n                      MAX(er.created_at) AS time,\n                      er.variant,\n                      AVG(er.ndcg) AS value\n                    FROM\n                      evaluation_results er\n                      INNER JOIN evaluation_queries eq ON er.query_id = eq.id\n                    WHERE\n                      eq.category = 'general'\n                      AND er.variant IN ('baseline', 'bm25')\n                      AND $__timeFilter(er.created_at)\n                    GROUP BY\n                      er.run_id, er.variant\n                    ORDER BY\n                      time ASC;\n                ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "ndcg"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "evaluation_results",
+          "timeColumn": "created_at",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "📈 General カテゴリ NDCG@20 推移（All runs）",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "rag",
+    "phase1"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "29f25cb4-4880-463d-9a3a-2b3ce6b3ba1c",
+          "value": "29f25cb4-4880-463d-9a3a-2b3ce6b3ba1c"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "P01B10AD872D9061B"
+        },
+        "definition": "SELECT er.run_id::text AS __value, er.run_id::text AS __text FROM evaluation_results er GROUP BY er.run_id ORDER BY MAX(er.created_at) DESC LIMIT 50",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Selected run (Run ID)",
+        "multi": false,
+        "name": "run_id",
+        "options": [],
+        "query": "SELECT er.run_id::text AS __value, er.run_id::text AS __text FROM evaluation_results er GROUP BY er.run_id ORDER BY MAX(er.created_at) DESC LIMIT 50",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "RAG Overview Dashboard",
+  "uid": "rag-overview",
+  "version": 1,
+  "weekStart": ""
+}

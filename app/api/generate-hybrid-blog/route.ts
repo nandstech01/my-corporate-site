@@ -72,8 +72,8 @@ interface HybridBlogRequest {
   regionKeywords?: string[];      // 例: ["滋賀県 大津", "東京 関東圏"]
 
   // 🔄 モデル選択（コスト節約用）
-  researchModel?: 'deepseek' | 'gemini';    // リサーチ用モデル（デフォルト: 'deepseek'）
-  generationModel?: 'deepseek' | 'gemini';  // 記事生成用モデル（デフォルト: 'deepseek'）
+  researchModel?: 'deepseek' | 'gpt-5.2';    // リサーチ用モデル（デフォルト: 'deepseek'）
+  generationModel?: 'deepseek' | 'gpt-5.2';  // 記事生成用モデル（デフォルト: 'deepseek'）
 
   // 🔬 ディープリサーチタイプ
   researchType1?: 'trend' | 'comparison' | 'technical' | 'market';  // リサーチ1のタイプ
@@ -86,10 +86,9 @@ const deepseekClient = new OpenAI({
   baseURL: 'https://api.deepseek.com',
 });
 
-// 🔄 Gemini 3 Pro APIクライアント
-import { GoogleGenerativeAI } from '@google/generative-ai';
-const geminiClient = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
-const geminiModel = geminiClient.getGenerativeModel({ model: 'gemini-3-pro-preview' });
+// 🚀 GPT-5.2 APIクライアント（OpenAI標準クライアント使用）
+// GPT-5.2: 128,000 max output tokens, $1.75/$14 per 1M tokens
+// 最適な記事生成のためのフラッグシップモデル
 
 export async function POST(request: NextRequest) {
   try {
@@ -124,13 +123,13 @@ export async function POST(request: NextRequest) {
     console.log(`🎯 ターゲットキーワード: ${targetKeyword}`);
     console.log(`📂 カテゴリ: ${categorySlug}`);
     console.log(`📊 目標文字数: ${targetLength}文字`);
-    console.log(`🔄 リサーチモデル: ${researchModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'Gemini 3 Pro ⭐'}`);
-    console.log(`🔄 生成モデル: ${generationModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'Gemini 3 Pro ⭐'}`);
+    console.log(`🔄 リサーチモデル: ${researchModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'GPT-5.2 🚀'}`);
+    console.log(`🔄 生成モデル: ${generationModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'GPT-5.2 🚀'}`);
     
-    // 🔄 モデルに応じてクライアントを選択（Geminiは別処理）
-    const useGemini = generationModel === 'gemini';
+    // 🔄 モデルに応じてクライアントとモデル名を選択
+    const useGPT52 = generationModel === 'gpt-5.2';
     const generationClient = generationModel === 'deepseek' ? deepseekClient : openai;
-    const generationModelName = generationModel === 'deepseek' ? 'deepseek-chat' : 'gpt-4o-mini';
+    const generationModelName = generationModel === 'deepseek' ? 'deepseek-chat' : 'gpt-5.2';
 
     // ============================================
     // ステップ1: スクレイピング実行（2クエリ）
@@ -251,7 +250,9 @@ export async function POST(request: NextRequest) {
             researchResults1 = await researchResponse1.json();
             console.log(`  ✅ リサーチ1完了: ${researchResults1.totalLearnings || researchResults1.totalResults}件の知識`);
           } else {
+            const errorBody = await researchResponse1.text();
             console.warn(`  ⚠️ リサーチ1エラー: ${researchResponse1.status}`);
+            console.warn(`  📛 エラー詳細: ${errorBody.substring(0, 500)}`);
           }
         } catch (e) {
           clearTimeout(researchTimeout1);
@@ -286,7 +287,9 @@ export async function POST(request: NextRequest) {
             researchResults2 = await researchResponse2.json();
             console.log(`  ✅ リサーチ2完了: ${researchResults2.totalLearnings || researchResults2.totalResults}件の知識`);
           } else {
+            const errorBody = await researchResponse2.text();
             console.warn(`  ⚠️ リサーチ2エラー: ${researchResponse2.status}`);
+            console.warn(`  📛 エラー詳細: ${errorBody.substring(0, 500)}`);
           }
         } catch (e) {
           clearTimeout(researchTimeout2);
@@ -495,56 +498,59 @@ ${formatResearchResults(researchResults2)}
 
     let generatedContent: string | null = null;
 
-    // 🔄 Gemini 3 Pro で記事生成
-    if (useGemini) {
-      console.log(`\n  🤖 Gemini 3 Pro ⭐ で記事生成開始...`);
+    // 🚀 GPT-5.2 または DeepSeek で記事生成
+    if (useGPT52) {
+      console.log(`\n  🚀 GPT-5.2 で記事生成開始...`);
+      console.log(`  📊 最大出力トークン: 40,000 (約10,000-20,000文字対応)`);
+      console.log(`  ⚠️ GPT-5.2は推論モデルのため temperature パラメータなし`);
       let retryCount = 0;
       const maxRetries = 1;
-      const timeoutMs = 180000; // 180秒
+      const timeoutMs = 480000; // 480秒（8分）- GPT-5.2は大規模生成のため長めに設定
 
       while (retryCount <= maxRetries) {
         try {
-          console.log(`  🔄 API呼び出し試行 ${retryCount + 1}/${maxRetries + 1} (Gemini 3 Pro)`);
+          console.log(`  🔄 API呼び出し試行 ${retryCount + 1}/${maxRetries + 1} (GPT-5.2)`);
 
-          const geminiResult = await Promise.race([
-            geminiModel.generateContent({
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: {
-                maxOutputTokens: 60000, // 約120,000文字（40,000文字目標に十分）
-                temperature: 0.7, // 少し下げて一貫性向上
-              }
+          const completion = await Promise.race([
+            openai.chat.completions.create({
+              model: 'gpt-5.2',
+              messages: [{ role: 'user', content: prompt }],
+              max_completion_tokens: 40000, // GPT-5.2は max_completion_tokens を使用
+              // GPT-5シリーズは推論モデルのため temperature を指定しない（デフォルト値1のみサポート）
             }),
             new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`Gemini 3 Pro API timeout after ${timeoutMs / 1000} seconds`)), timeoutMs)
+              setTimeout(() => reject(new Error(`GPT-5.2 API timeout after ${timeoutMs / 1000} seconds`)), timeoutMs)
             )
           ]) as any;
 
-          generatedContent = geminiResult.response?.text() || null;
+          generatedContent = completion.choices[0]?.message?.content || null;
           if (generatedContent) {
-            console.log(`  ✅ Gemini 3 Pro API呼び出し成功`);
+            console.log(`  ✅ GPT-5.2 API呼び出し成功`);
+            console.log(`  📝 生成文字数: ${generatedContent.length}文字`);
             break;
           }
         } catch (error) {
           retryCount++;
-          console.error(`  ❌ Gemini 3 Pro API呼び出しエラー (試行 ${retryCount}):`, error);
+          console.error(`  ❌ GPT-5.2 API呼び出しエラー (試行 ${retryCount}):`, error);
 
-          // Gemini失敗時はGPT-5 miniにフォールバック
+          // GPT-5.2失敗時はGPT-5 miniにフォールバック
           if (retryCount > maxRetries) {
-            console.log('  🔄 Gemini 3 Pro失敗、GPT-5 miniにフォールバック...');
+            console.log('  🔄 GPT-5.2失敗、GPT-5 miniにフォールバック...');
             try {
               const fallbackCompletion = await openai.chat.completions.create({
-                model: 'gpt-4o-mini',
+                model: 'gpt-5-mini',
                 messages: [{ role: 'user', content: prompt }],
-                max_tokens: 16000,
-                temperature: 0.8,
+                max_completion_tokens: 32000, // GPT-5 miniも max_completion_tokens を使用
+                // GPT-5 miniも推論モデルのため temperature を指定しない
               });
               generatedContent = fallbackCompletion.choices[0]?.message?.content || null;
               if (generatedContent) {
                 console.log(`  ✅ GPT-5 mini (フォールバック) API呼び出し成功`);
+                console.log(`  📝 生成文字数: ${generatedContent.length}文字`);
               }
             } catch (fallbackError) {
               console.error('  ❌ フォールバックも失敗:', fallbackError);
-              throw new Error('Gemini 3 ProとGPT-5 miniの両方が失敗しました');
+              throw new Error('GPT-5.2とGPT-5 miniの両方が失敗しました');
             }
             break;
           }
@@ -555,8 +561,8 @@ ${formatResearchResults(researchResults2)}
         }
       }
     } else {
-      // 🔄 DeepSeek / GPT-5 mini で記事生成（フォールバック機能付き）
-      let modelLabel = generationModel === 'deepseek' ? 'DeepSeek V3.2' : 'GPT-5 mini';
+      // 🔄 DeepSeek で記事生成（フォールバック機能付き）
+      let modelLabel = 'DeepSeek V3.2';
       let currentClient = generationClient;
       let currentModelName = generationModelName;
       console.log(`\n  🤖 ${modelLabel}で記事生成開始...`);
@@ -564,19 +570,29 @@ ${formatResearchResults(researchResults2)}
       let completion;
       let retryCount = 0;
       const maxRetries = 1;
-      const timeoutMs = generationModel === 'deepseek' ? 120000 : 180000;
+      const timeoutMs = 120000;
 
       while (retryCount <= maxRetries) {
         try {
           console.log(`  🔄 API呼び出し試行 ${retryCount + 1}/${maxRetries + 1} (${modelLabel})`);
 
+          // DeepSeekは max_completion_tokens、それ以外は max_tokens
+          const apiParams = generationModel === 'deepseek'
+            ? {
+                model: currentModelName,
+                messages: [{ role: "user", content: prompt }],
+                max_completion_tokens: 8000,
+                temperature: 0.8,
+              }
+            : {
+                model: currentModelName,
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 16000,
+                temperature: 0.8,
+              };
+
           completion = await Promise.race([
-            currentClient.chat.completions.create({
-              model: currentModelName,
-              messages: [{ role: "user", content: prompt }],
-              max_tokens: generationModel === 'deepseek' ? 8000 : 16000,
-              temperature: 0.8,
-            }),
+            currentClient.chat.completions.create(apiParams),
             new Promise((_, reject) =>
               setTimeout(() => reject(new Error(`${modelLabel} API timeout after ${timeoutMs / 1000} seconds`)), timeoutMs)
             )
@@ -595,7 +611,7 @@ ${formatResearchResults(researchResults2)}
             console.log('  🔄 DeepSeek失敗、GPT-5 miniにフォールバック...');
             modelLabel = 'GPT-5 mini (フォールバック)';
             currentClient = openai;
-            currentModelName = 'gpt-4o-mini';
+            currentModelName = 'gpt-5-mini';
             retryCount = 0;
             continue;
           }

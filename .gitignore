@@ -25,7 +25,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -36,3 +41,32 @@ next-env.d.ts
 
 # AI Enhanced Cache (auto-generated)
 /.ai-cache/
+
+# Python / Django
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# Django migrations (keep structure, ignore generated)
+# backend/rag_api/migrations/*.py
+# !backend/rag_api/migrations/__init__.py
+
+# Docker volumes data
+infra/mlflow/mlruns/
+infra/mlflow/mlflow.db
+infra/grafana/data/

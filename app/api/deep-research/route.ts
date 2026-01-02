@@ -61,6 +61,32 @@ export async function POST(request: NextRequest) {
     console.log(`📊 タイプ: ${researchType}`);
     console.log(`🔄 深さ: ${depth} / 幅: ${breadth}`);
     console.log(`⏱️  予想時間: ${depth * breadth * 20}〜${depth * breadth * 40}秒`);
+    
+    // 🔑 APIキーチェック
+    const hasTavilyKey = !!process.env.TAVILY_API_KEY;
+    const hasDeepSeekKey = !!process.env.DEEPSEEK_API_KEY;
+    console.log(`🔑 TAVILY_API_KEY: ${hasTavilyKey ? '✅ 設定済み' : '❌ 未設定'}`);
+    console.log(`🔑 DEEPSEEK_API_KEY: ${hasDeepSeekKey ? '✅ 設定済み' : '❌ 未設定'}`);
+    
+    if (!hasTavilyKey || !hasDeepSeekKey) {
+      const missingKeys = [];
+      if (!hasTavilyKey) missingKeys.push('TAVILY_API_KEY');
+      if (!hasDeepSeekKey) missingKeys.push('DEEPSEEK_API_KEY');
+      
+      console.error(`\n❌ 必要なAPIキーが未設定です: ${missingKeys.join(', ')}`);
+      console.error('ディープリサーチを実行できません。');
+      
+      return NextResponse.json(
+        { 
+          error: `必要なAPIキーが未設定です: ${missingKeys.join(', ')}`,
+          missingKeys,
+          hasTavilyKey,
+          hasDeepSeekKey
+        },
+        { status: 500 }
+      );
+    }
+    
     console.log('='.repeat(70));
 
     // 全ての学習内容を蓄積
@@ -200,8 +226,29 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const elapsedTime = Math.round((Date.now() - startTime) / 1000);
     console.error(`\n❌ ディープリサーチエラー (${elapsedTime}秒経過):`, error);
+    
+    // 🔍 詳細なエラーログを出力
+    if (error instanceof Error) {
+      console.error(`  📛 エラー名: ${error.name}`);
+      console.error(`  💬 エラーメッセージ: ${error.message}`);
+      console.error(`  📚 スタックトレース:\n${error.stack}`);
+    }
+    
+    // 🔍 環境変数チェック
+    console.error('\n🔑 環境変数チェック:');
+    console.error(`  TAVILY_API_KEY: ${process.env.TAVILY_API_KEY ? '✅ 設定済み' : '❌ 未設定'}`);
+    console.error(`  DEEPSEEK_API_KEY: ${process.env.DEEPSEEK_API_KEY ? '✅ 設定済み' : '❌ 未設定'}`);
+    
     return NextResponse.json(
-      { error: 'ディープリサーチでエラーが発生しました: ' + (error as Error).message },
+      { 
+        error: 'ディープリサーチでエラーが発生しました: ' + (error as Error).message,
+        errorName: (error as Error).name,
+        errorMessage: (error as Error).message,
+        hasRequiredKeys: {
+          tavily: !!process.env.TAVILY_API_KEY,
+          deepseek: !!process.env.DEEPSEEK_API_KEY
+        }
+      },
       { status: 500 }
     );
   }
