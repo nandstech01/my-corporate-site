@@ -15,23 +15,42 @@
  * @created 2026-01-18
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// ランタイムで初期化（ビルド時エラー回避）
+let stripeInstance: Stripe | null = null;
+let supabaseAdminInstance: SupabaseClient | null = null;
 
-// Service Role クライアント（Webhook用、RLSをバイパス）
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
+const getStripe = (): Stripe => {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not configured');
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
-);
+  return stripeInstance;
+};
+
+const getSupabaseAdmin = (): SupabaseClient => {
+  if (!supabaseAdminInstance) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables are not configured');
+    }
+    supabaseAdminInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  }
+  return supabaseAdminInstance;
+};
 
 // Price ID から Tier へのマッピング
 function priceIdToTier(priceId: string): string {
@@ -78,6 +97,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
+    const stripe = getStripe();
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -148,6 +168,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // サブスクリプション詳細を取得
+  const stripe = getStripe();
   const subscriptionResponse = await stripe.subscriptions.retrieve(subscriptionId);
   // Stripe SDK v20+ の型定義に対応
   const subscriptionObj = subscriptionResponse as unknown as Record<string, unknown>;
@@ -160,6 +181,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const subscriptionStatus = String(subscriptionObj.status || 'active');
 
   // テナント更新
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.rpc('update_stripe_subscription', {
     p_stripe_customer_id: customerId,
     p_stripe_subscription_id: subscriptionId,
@@ -197,6 +219,7 @@ async function handleSubscriptionUpdated(subscriptionData: Stripe.Subscription) 
   const cancelAtPeriodEnd = Boolean(subscriptionObj.cancel_at_period_end);
   const subscriptionStatus = String(subscriptionObj.status || 'active');
 
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.rpc('update_stripe_subscription', {
     p_stripe_customer_id: customerId,
     p_stripe_subscription_id: subscriptionId,
@@ -225,6 +248,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const customerId = subscription.customer as string;
 
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.rpc('update_stripe_subscription', {
     p_stripe_customer_id: customerId,
     p_subscription_status: 'canceled',
@@ -255,12 +279,14 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 
   const customerId = String(invoiceObj.customer || '');
+  const stripe = getStripe();
   const subscriptionResponse = await stripe.subscriptions.retrieve(subscriptionId);
   const subscriptionObj = subscriptionResponse as unknown as Record<string, unknown>;
   const rawPeriodEnd = subscriptionObj.current_period_end;
   const periodEnd = typeof rawPeriodEnd === 'number' ? rawPeriodEnd : Date.now() / 1000;
 
   // period_end を更新
+  const supabaseAdmin = getSupabaseAdmin();
   const { data: tenant, error: tenantError } = await supabaseAdmin
     .rpc('get_tenant_by_stripe_customer', { p_stripe_customer_id: customerId });
 
@@ -304,6 +330,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   const customerId = String(invoiceObj.customer || '');
 
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.rpc('update_stripe_subscription', {
     p_stripe_customer_id: customerId,
     p_subscription_status: 'past_due',

@@ -13,7 +13,13 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// ランタイムで初期化（ビルド時エラー回避）
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+};
 
 // Price ID マッピング
 const PRICE_IDS: Record<string, string | undefined> = {
@@ -101,6 +107,7 @@ export async function POST(request: Request) {
     }
 
     // 5. Stripe Customer 取得または作成
+    const stripe = getStripe();
     let customerId = tenant.stripe_customer_id;
 
     if (!customerId) {
