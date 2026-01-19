@@ -3,14 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { 
-  CubeIcon, 
-  MagnifyingGlassIcon,
+import {
+  CubeIcon,
   DocumentTextIcon,
   ChartBarIcon,
-  CheckCircleIcon,
-  ChevronDownIcon,
-  ChevronUpIcon
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -27,13 +24,6 @@ interface VectorDetailItem {
   created_at: string;
   metadata?: any;
   additional_info?: any;
-}
-
-interface VectorDetailsResponse {
-  success: boolean;
-  content_type: string;
-  total_count: number;
-  data: VectorDetailItem[];
 }
 
 interface VectorStats {
@@ -93,15 +83,15 @@ export default function CompanyRagPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<VectorStats | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [searchQuery, _setSearchQuery] = useState('');
+  const [_searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [_loading, setLoading] = useState(false);
   const [vectorLoading, setVectorLoading] = useState(true);
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
   const [cardDetails, setCardDetails] = useState<{ [key: string]: VectorDetailItem[] }>({});
-  const [detailsLoading, setDetailsLoading] = useState<{ [key: string]: boolean }>({});
+  const [_detailsLoading, setDetailsLoading] = useState<{ [key: string]: boolean }>({});
 
-  const [showAllFragments, setShowAllFragments] = useState(false);
+  const [_showAllFragments, _setShowAllFragments] = useState(false);
   const [isVectorizing, setIsVectorizing] = useState(false);
 
   // 認証チェック
@@ -141,7 +131,7 @@ export default function CompanyRagPage() {
   };
 
   // ベクトル検索の実行
-  const handleSearch = async () => {
+  const _handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
@@ -245,14 +235,14 @@ export default function CompanyRagPage() {
   };
 
   // RAGカードの展開/折りたたみ
-  const toggleCardExpansion = async (contentType: string) => {
+  const _toggleCardExpansion = async (contentType: string) => {
     const isCurrentlyExpanded = expandedCards[contentType];
-    
+
     if (!isCurrentlyExpanded) {
       // 展開する場合は詳細データを取得
       // detailed_プレフィックスがある場合は除去
-      const actualContentType = contentType.startsWith('detailed_') 
-        ? contentType.replace('detailed_', '') 
+      const _actualContentType = contentType.startsWith('detailed_')
+        ? contentType.replace('detailed_', '')
         : contentType;
       await loadCardDetails(contentType);
     }
@@ -265,7 +255,7 @@ export default function CompanyRagPage() {
 
 
 
-  const predefinedQueries = [
+  const _predefinedQueries = [
     'AIエージェント開発の技術的な詳細について',
     'チャットボットの開発方法',
     'ベクトル検索システムの構築',

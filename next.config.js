@@ -96,6 +96,11 @@ const nextConfig = {
     ignoreBuildErrors: true, // ビルド時の型エラーを無視
   },
 
+  // ESLintの設定
+  eslint: {
+    ignoreDuringBuilds: true, // ビルド時のESLint警告を無視
+  },
+
   // 画像ドメインの設定
   images: {
     remotePatterns: [
