@@ -1,0 +1,79 @@
+[
+  {
+    "url": "https://www.mercedes-benz.com",
+    "status": 500,
+    "success": false,
+    "error": "Failed to crawl URL",
+    "response": {
+      "error": "Failed to crawl URL",
+      "details": "HTTP 403"
+    },
+    "timestamp": "2026-01-10T18:54:27.837Z",
+    "duration_ms": 7553
+  },
+  {
+    "url": "https://www.usain-bolt.com",
+    "status": 500,
+    "success": false,
+    "error": "Failed to crawl URL",
+    "response": {
+      "error": "Failed to crawl URL",
+      "details": "net::ERR_NAME_NOT_RESOLVED at https://www.usain-bolt.com"
+    },
+    "timestamp": "2026-01-10T18:54:37.328Z",
+    "duration_ms": 7488
+  },
+  {
+    "url": "https://www.sony.com",
+    "status": 500,
+    "success": false,
+    "error": "Failed to crawl URL",
+    "response": {
+      "error": "Failed to crawl URL",
+      "details": "HTTP 403"
+    },
+    "timestamp": "2026-01-10T18:54:47.410Z",
+    "duration_ms": 8080
+  },
+  {
+    "url": "https://mail.google.com",
+    "status": 0,
+    "success": false,
+    "error": "fetch failed",
+    "timestamp": "2026-01-10T19:00:38.521Z",
+    "duration_ms": 301452
+  },
+  {
+    "url": "https://www.youtube.com",
+    "status": 401,
+    "success": false,
+    "error": "Unauthorized",
+    "response": {
+      "error": "Unauthorized"
+    },
+    "timestamp": "2026-01-10T19:06:31.140Z",
+    "duration_ms": 60
+  },
+  {
+    "url": "https://www.google.com/recaptcha",
+    "status": 401,
+    "success": false,
+    "error": "Unauthorized",
+    "response": {
+      "error": "Unauthorized"
+    },
+    "timestamp": "2026-01-10T19:06:33.202Z",
+    "duration_ms": 59
+  },
+  {
+    "url": "https://this-url-does-not-exist-12345.com",
+    "status": 401,
+    "success": false,
+    "error": "Unauthorized",
+    "response": {
+      "error": "Unauthorized"
+    },
+    "timestamp": "2026-01-10T19:06:35.259Z",
+    "duration_ms": 54
+  }
+]

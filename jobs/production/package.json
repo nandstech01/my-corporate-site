@@ -1,0 +1,28 @@
+{
+  "name": "aso-cloud-run-jobs",
+  "version": "1.0.0",
+  "description": "AI Search Optimizer Cloud Run Jobs (Production)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "cloud-run-jobs",
+    "supabase",
+    "oidc",
+    "multi-tenant"
+  ],
+  "author": "nands.tech",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "google-auth-library": "^9.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+

@@ -64,14 +64,15 @@ export default function NewHeroSection({ posts = [], youtubeShorts = [] }: NewHe
         connectionDistance={120} 
       />
       
-      {/* グラデーションオーバーレイ（控えめ・プレミアム） */}
+      {/* グラデーションオーバーレイ（洗練された複数レイヤー） */}
       {theme === 'dark' && (
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background: `
-              radial-gradient(ellipse 80% 50% at 50% 0%, rgba(30, 58, 138, 0.15), transparent 60%),
-              radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6, 78, 92, 0.1), transparent 50%)
+              radial-gradient(ellipse 120% 80% at 20% 0%, rgba(59, 130, 246, 0.08), transparent 50%),
+              radial-gradient(ellipse 80% 60% at 80% 20%, rgba(168, 85, 247, 0.06), transparent 45%),
+              radial-gradient(ellipse 100% 50% at 50% 100%, rgba(6, 182, 212, 0.05), transparent 40%)
             `
           }}
           aria-hidden="true"
@@ -105,7 +106,7 @@ export default function NewHeroSection({ posts = [], youtubeShorts = [] }: NewHe
         </motion.div>
       )}
 
-      {/* スクロール誘導 */}
+      {/* スクロール誘導（洗練されたミニマルデザイン） */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -113,30 +114,25 @@ export default function NewHeroSection({ posts = [], youtubeShorts = [] }: NewHe
         className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2"
       >
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          className="flex flex-col items-center gap-2"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+          className="flex flex-col items-center gap-3"
         >
-          <span 
-            className="text-xs tracking-wider"
-            style={{ color: theme === 'dark' ? '#6b7280' : '#9ca3af' }}
+          <span
+            className="text-[10px] font-medium tracking-[0.2em] uppercase"
+            style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)' }}
           >
-            SCROLL
+            Scroll
           </span>
-          <svg 
-            className="w-5 h-5"
-            style={{ color: theme === 'dark' ? '#6b7280' : '#9ca3af' }} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M19 14l-7 7m0 0l-7-7m7 7V3" 
-            />
-          </svg>
+          {/* 縦線のグラデーションフェード */}
+          <div
+            className="w-[1px] h-8"
+            style={{
+              background: theme === 'dark'
+                ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0))'
+                : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0))'
+            }}
+          />
         </motion.div>
       </motion.div>
 

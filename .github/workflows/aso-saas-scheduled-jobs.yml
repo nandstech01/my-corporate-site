@@ -1,0 +1,314 @@
+name: ASO SaaS Scheduled Jobs
+
+on:
+  schedule:
+    # 毎日午前3時（JST） = UTC 18:00
+    - cron: '0 18 * * *'
+    # 毎週月曜日午前4時（JST） = UTC 19:00（日曜日）
+    - cron: '0 19 * * 0'
+  
+  workflow_dispatch:  # 手動実行も可能
+
+env:
+  API_BASE_URL: ${{ secrets.ASO_API_BASE_URL }}
+
+jobs:
+  # ==========================================
+  # 毎日: 監査ログクリーンアップ
+  # ==========================================
+  cleanup-audit-logs:
+    name: 🧹 Cleanup Audit Logs
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 18 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: 🧹 Cleanup old audit logs (90 days)
+        run: |
+          curl -X POST ${{ env.API_BASE_URL }}/api/admin/cleanup-audit-logs \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"retention_days": 90}' \
+            --fail-with-body \
+            -o response.json
+          
+          echo "✅ Audit logs cleanup completed"
+          cat response.json
+      
+      - name: 📢 Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🧹 監査ログクリーンアップ完了",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*監査ログクリーンアップ*\n${{ job.status == 'success' && '✅ 成功' || '❌ 失敗' }}\n保持期間: 90日"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  # ==========================================
+  # 毎日: 古いジョブ実行ログクリーンアップ
+  # ==========================================
+  cleanup-job-runs:
+    name: 🗑️ Cleanup Job Runs
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 18 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: 🗑️ Cleanup old job runs (90 days)
+        run: |
+          curl -X POST ${{ env.API_BASE_URL }}/api/admin/cleanup-job-runs \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"retention_days": 90}' \
+            --fail-with-body \
+            -o response.json
+          
+          echo "✅ Job runs cleanup completed"
+          cat response.json
+      
+      - name: 📢 Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🗑️ ジョブ実行ログクリーンアップ完了",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*ジョブ実行ログクリーンアップ*\n${{ job.status == 'success' && '✅ 成功' || '❌ 失敗' }}\n保持期間: 90日"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  # ==========================================
+  # 毎週: パフォーマンスレポート生成
+  # ==========================================
+  weekly-performance-report:
+    name: 📊 Weekly Performance Report
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 19 * * 0' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: 📊 Generate weekly performance report
+        run: |
+          curl -X POST ${{ env.API_BASE_URL }}/api/admin/reports/weekly \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body \
+            -o report.json
+          
+          echo "✅ Weekly performance report generated"
+          cat report.json
+      
+      - name: 📤 Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-performance-report-${{ github.run_number }}
+          path: report.json
+          retention-days: 90
+      
+      - name: 📊 Parse report
+        id: parse_report
+        run: |
+          TOTAL_JOBS=$(jq -r '.total_jobs' report.json)
+          SUCCESS_RATE=$(jq -r '.success_rate' report.json)
+          AVG_PROCESSING_TIME=$(jq -r '.avg_processing_time_seconds' report.json)
+          
+          echo "total_jobs=$TOTAL_JOBS" >> $GITHUB_OUTPUT
+          echo "success_rate=$SUCCESS_RATE" >> $GITHUB_OUTPUT
+          echo "avg_processing_time=$AVG_PROCESSING_TIME" >> $GITHUB_OUTPUT
+      
+      - name: 📢 Notify Slack with report
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "📊 週次パフォーマンスレポート",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*週次パフォーマンスレポート（過去7日間）*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*総ジョブ数:*\n${{ steps.parse_report.outputs.total_jobs }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*成功率:*\n${{ steps.parse_report.outputs.success_rate }}%"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*平均処理時間:*\n${{ steps.parse_report.outputs.avg_processing_time }}秒"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*ステータス:*\n${{ job.status == 'success' && '✅ 正常' || '⚠️ 要確認' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "詳細レポートを見る"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  # ==========================================
+  # 毎週: 失敗ジョブの分析レポート
+  # ==========================================
+  weekly-failed-jobs-report:
+    name: ❌ Failed Jobs Report
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 19 * * 0' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: ❌ Get failed jobs report
+        run: |
+          curl -X GET "${{ env.API_BASE_URL }}/api/admin/reports/failed-jobs?days=7" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            --fail-with-body \
+            -o failed-jobs.json
+          
+          echo "✅ Failed jobs report generated"
+          cat failed-jobs.json
+      
+      - name: 📤 Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-jobs-report-${{ github.run_number }}
+          path: failed-jobs.json
+          retention-days: 90
+      
+      - name: 📊 Parse failed jobs
+        id: parse_failed
+        run: |
+          FAILED_COUNT=$(jq -r '.failed_count' failed-jobs.json)
+          COMMON_ERRORS=$(jq -r '.common_errors[0].error' failed-jobs.json)
+          
+          echo "failed_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
+          echo "common_errors=$COMMON_ERRORS" >> $GITHUB_OUTPUT
+      
+      - name: 📢 Notify Slack if failures exist
+        if: steps.parse_failed.outputs.failed_count > 0
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "⚠️ 失敗ジョブの分析レポート",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*失敗ジョブの分析レポート（過去7日間）*\n⚠️ 失敗ジョブが検出されました"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*失敗数:*\n${{ steps.parse_failed.outputs.failed_count }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*主なエラー:*\n${{ steps.parse_failed.outputs.common_errors }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "詳細を確認"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+
+  # ==========================================
+  # 毎週: データベースバックアップ確認
+  # ==========================================
+  verify-database-backups:
+    name: 💾 Verify Database Backups
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 19 * * 0' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: 💾 Verify Supabase backups
+        run: |
+          curl -X GET "${{ env.API_BASE_URL }}/api/admin/backups/verify" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            --fail-with-body \
+            -o backup-status.json
+          
+          echo "✅ Backup verification completed"
+          cat backup-status.json
+      
+      - name: 📢 Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "💾 データベースバックアップ確認",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*データベースバックアップ確認*\n${{ job.status == 'success' && '✅ バックアップ正常' || '⚠️ バックアップ要確認' }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+

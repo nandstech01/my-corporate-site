@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Fragment ID生成テスト</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+    h1 { color: #333; }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    input { width: 100%; padding: 8px; font-size: 14px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Phase 4.1 テスト: Fragment ID生成</h1>
+  
+  <div>
+    <label for="testUrl">テストURL:</label>
+    <input type="url" id="testUrl" value="https://example.com" placeholder="https://example.com">
+    <button onclick="testFragmentId()">分析実行</button>
+  </div>
+  
+  <div id="authStatus"></div>
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <script>
+    // ページ読み込み時に認証状態を確認
+    window.addEventListener('DOMContentLoaded', async () => {
+      const authStatusDiv = document.getElementById('authStatus');
+      authStatusDiv.innerHTML = '<p class="info">🔐 認証状態を確認中...</p>';
+      
+      // デバッグ: Cookie確認
+      console.log('🍪 Cookies:', document.cookie);
+      console.log('🌐 Origin:', window.location.origin);
+      
+      try {
+        // /api/aso/me で認証状態を確認
+        const response = await fetch('/api/aso/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log('📡 /api/aso/me Response:', response.status, response.statusText);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ User data:', data);
+          
+          // tenants配列の最初のテナント名を取得
+          const tenantName = data.tenants && data.tenants.length > 0 
+            ? data.tenants[0].tenants?.name || 'N/A'
+            : 'N/A';
+          
+          authStatusDiv.innerHTML = `
+            <p class="success">✅ ログイン済み: ${data.email}</p>
+            <p class="info">テナント: ${tenantName} (ID: ${data.tenant_id || 'N/A'})</p>
+            <details>
+              <summary>詳細情報</summary>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            </details>
+          `;
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ Auth error:', response.status, errorData);
+          
+          authStatusDiv.innerHTML = `
+            <p class="error">❌ 未ログイン（${response.status}）</p>
+            <p><strong>デバッグ情報:</strong></p>
+            <ul style="text-align: left; margin: 10px 0;">
+              <li>Cookies: ${document.cookie ? '✅ あり' : '❌ なし'}</li>
+              <li>Response: ${response.status} ${response.statusText}</li>
+            </ul>
+            <p>→ <a href="/aso/login" target="_blank" style="color: blue; text-decoration: underline;">ログインページ</a> でログイン後、<strong>同じタブで</strong>このページに戻ってください</p>
+            <p style="font-size: 12px; color: #666;">※別タブでログインした場合は、このページをリロードしてください</p>
+          `;
+        }
+      } catch (error) {
+        console.error('❌ Fetch error:', error);
+        authStatusDiv.innerHTML = `<p class="error">❌ 認証確認エラー: ${error.message}</p>`;
+      }
+    });
+    
+    async function testFragmentId() {
+      const url = document.getElementById('testUrl').value;
+      const statusDiv = document.getElementById('status');
+      const resultDiv = document.getElementById('result');
+      
+      statusDiv.innerHTML = '<p class="info">⏳ 分析実行中...</p>';
+      resultDiv.innerHTML = '';
+      
+      try {
+        const response = await fetch('/api/aso/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          statusDiv.innerHTML = `<p class="error">❌ エラー: ${data.error || response.statusText}</p>`;
+          resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          return;
+        }
+        
+        statusDiv.innerHTML = '<p class="success">✅ 分析完了！</p>';
+        
+        // 分析結果を取得
+        const analysisId = data.analysis_id;
+        const detailResponse = await fetch(`/api/aso/results/${analysisId}`, {
+          credentials: 'include'
+        });
+        
+        const detailData = await detailResponse.json();
+        
+        // Fragment IDsをチェック
+        const fragmentIds = detailData.analysis_data?.fragment_ids || [];
+        const fragmentSchemas = detailData.analysis_data?.fragment_schemas || [];
+        
+        let html = '<h2>📊 分析結果</h2>';
+        html += `<p><strong>URL:</strong> ${detailData.url}</p>`;
+        html += `<p><strong>分析ID:</strong> ${detailData.id}</p>`;
+        html += `<p><strong>ステータス:</strong> ${detailData.status}</p>`;
+        html += `<p><strong>AI構造化スコア:</strong> ${detailData.ai_structure_score}/100</p>`;
+        
+        html += '<h3>🎯 Fragment IDs（Phase 4.1の成果）</h3>';
+        if (fragmentIds.length > 0) {
+          html += `<p class="success">✅ Fragment ID生成成功: ${fragmentIds.length}件</p>`;
+          html += '<pre>' + JSON.stringify(fragmentIds, null, 2) + '</pre>';
+          
+          html += '<h3>📋 Fragment Schemas</h3>';
+          html += '<pre>' + JSON.stringify(fragmentSchemas, null, 2) + '</pre>';
+        } else {
+          html += '<p class="error">❌ Fragment IDが生成されていません</p>';
+        }
+        
+        html += '<h3>📝 見出し情報</h3>';
+        const headings = detailData.analysis_data?.headings || [];
+        html += `<p>見出し数: ${headings.length}件</p>`;
+        html += '<pre>' + JSON.stringify(headings, null, 2) + '</pre>';
+        
+        resultDiv.innerHTML = html;
+        
+      } catch (error) {
+        statusDiv.innerHTML = `<p class="error">❌ エラー: ${error.message}</p>`;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -164,18 +164,14 @@ class Command(BaseCommand):
     def _run_rrf_evaluation_with_custom_k(self, evaluation_service, variant, rrf_k, dataset_version, run_id):
         """
         カスタムRRF_Kで評価を実行
-        注: これは簡易実装。本来はRAGSearchServiceのRRF_Kを動的に変更すべき
+        注: EvaluationService.run_evaluation は rrf_k を受け取れるため、それを使用する
         """
-        # 暫定: EvaluationServiceを直接呼び出し
-        # RRF_Kの動的変更はここでは未実装（要改善）
-        
-        # 簡易的にuse_rrfを使用（rrf_kは固定値60になる問題がある）
-        # TODO: RAGSearchServiceにrrf_kパラメータを追加する
         results = evaluation_service.run_evaluation(
             variant=variant,
             limit=20,
             use_bm25=False,
             use_rrf=True,  # 注: rrf_k=60固定
+            rrf_k=rrf_k,
             dataset_version=dataset_version,
             run_id=run_id
         )

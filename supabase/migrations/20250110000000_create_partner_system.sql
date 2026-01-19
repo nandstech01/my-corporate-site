@@ -2,10 +2,17 @@
 -- 2段階アフィリエイトシステム（直接50%、間接15%+35%）
 
 -- 1. パートナーテーブル
-CREATE TYPE partner_type_enum AS ENUM ('kol', 'corporate');
-CREATE TYPE partner_status_enum AS ENUM ('pending', 'approved', 'rejected', 'suspended');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'partner_type_enum') THEN
+    CREATE TYPE partner_type_enum AS ENUM ('kol', 'corporate');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'partner_status_enum') THEN
+    CREATE TYPE partner_status_enum AS ENUM ('pending', 'approved', 'rejected', 'suspended');
+  END IF;
+END $$;
 
-CREATE TABLE partners (
+CREATE TABLE IF NOT EXISTS partners (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   referral_code VARCHAR(20) UNIQUE NOT NULL,
   partner_type partner_type_enum NOT NULL,
@@ -43,10 +50,17 @@ CREATE TABLE partners (
 );
 
 -- 2. パートナー売上テーブル
-CREATE TYPE sale_status_enum AS ENUM ('pending', 'confirmed', 'paid');
-CREATE TYPE course_type_enum AS ENUM ('ai_development', 'aio_re_implementation', 'sns_consulting');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sale_status_enum') THEN
+    CREATE TYPE sale_status_enum AS ENUM ('pending', 'confirmed', 'paid');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'course_type_enum') THEN
+    CREATE TYPE course_type_enum AS ENUM ('ai_development', 'aio_re_implementation', 'sns_consulting');
+  END IF;
+END $$;
 
-CREATE TABLE partner_sales (
+CREATE TABLE IF NOT EXISTS partner_sales (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   partner_id UUID REFERENCES partners(id) NOT NULL,
   referrer_id UUID REFERENCES partners(id),
@@ -75,7 +89,7 @@ CREATE TABLE partner_sales (
 );
 
 -- 3. リファーラルリンクテーブル
-CREATE TABLE referral_links (
+CREATE TABLE IF NOT EXISTS referral_links (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   partner_id UUID REFERENCES partners(id) NOT NULL,
   referral_url VARCHAR(500) UNIQUE NOT NULL,
@@ -88,7 +102,7 @@ CREATE TABLE referral_links (
 );
 
 -- 4. 管理者テーブル
-CREATE TABLE admin_users (
+CREATE TABLE IF NOT EXISTS admin_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
@@ -100,14 +114,14 @@ CREATE TABLE admin_users (
   last_login_at TIMESTAMP WITH TIME ZONE
 );
 
--- インデックス作成
-CREATE INDEX idx_partners_referral_code ON partners(referral_code);
-CREATE INDEX idx_partners_parent_id ON partners(parent_partner_id);
-CREATE INDEX idx_partners_email ON partners(email);
-CREATE INDEX idx_partner_sales_partner_id ON partner_sales(partner_id);
-CREATE INDEX idx_partner_sales_referrer_id ON partner_sales(referrer_id);
-CREATE INDEX idx_partner_sales_sale_date ON partner_sales(sale_date);
-CREATE INDEX idx_referral_links_partner_id ON referral_links(partner_id);
+-- インデックス作成（冪等化）
+CREATE INDEX IF NOT EXISTS idx_partners_referral_code ON partners(referral_code);
+CREATE INDEX IF NOT EXISTS idx_partners_parent_id ON partners(parent_partner_id);
+CREATE INDEX IF NOT EXISTS idx_partners_email ON partners(email);
+CREATE INDEX IF NOT EXISTS idx_partner_sales_partner_id ON partner_sales(partner_id);
+CREATE INDEX IF NOT EXISTS idx_partner_sales_referrer_id ON partner_sales(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_partner_sales_sale_date ON partner_sales(sale_date);
+CREATE INDEX IF NOT EXISTS idx_referral_links_partner_id ON referral_links(partner_id);
 
 -- 関数：リファーラルコード生成
 CREATE OR REPLACE FUNCTION generate_referral_code()
@@ -200,7 +214,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- トリガー設定
+-- トリガー設定（冪等化）
+DROP TRIGGER IF EXISTS trigger_update_partner_stats ON partner_sales;
 CREATE TRIGGER trigger_update_partner_stats
   AFTER INSERT OR UPDATE ON partner_sales
   FOR EACH ROW EXECUTE FUNCTION update_partner_stats();
@@ -214,17 +229,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_partners_updated_at ON partners;
 CREATE TRIGGER trigger_partners_updated_at
   BEFORE UPDATE ON partners
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS trigger_partner_sales_updated_at ON partner_sales;
 CREATE TRIGGER trigger_partner_sales_updated_at
   BEFORE UPDATE ON partner_sales
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 初期管理者アカウント作成（パスワード: admin123）
-INSERT INTO admin_users (email, password_hash, name) VALUES 
-('admin@nands.tech', '$2b$10$rEgz.QoJ8mYqLpzRKt1IReQgV8gYJNhQjNfv5Nh8jLqkZoMzKjHjW', 'システム管理者');
+-- 初期管理者アカウント作成（パスワード: admin123）（冪等化）
+INSERT INTO admin_users (email, password_hash, name) VALUES
+('admin@nands.tech', '$2b$10$rEgz.QoJ8mYqLpzRKt1IReQgV8gYJNhQjNfv5Nh8jLqkZoMzKjHjW', 'システム管理者')
+ON CONFLICT (email) DO NOTHING;
 
 -- Row Level Security (RLS) 設定
 ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
@@ -232,20 +250,25 @@ ALTER TABLE partner_sales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
--- パートナーは自分のデータのみ閲覧可能
+-- パートナーは自分のデータのみ閲覧可能（冪等化）
+DROP POLICY IF EXISTS "Partners can view own data" ON partners;
 CREATE POLICY "Partners can view own data" ON partners
   FOR ALL USING (auth.uid()::text = id::text);
 
+DROP POLICY IF EXISTS "Partners can view own sales" ON partner_sales;
 CREATE POLICY "Partners can view own sales" ON partner_sales
   FOR ALL USING (auth.uid()::text = partner_id::text OR auth.uid()::text = referrer_id::text);
 
+DROP POLICY IF EXISTS "Partners can view own referral links" ON referral_links;
 CREATE POLICY "Partners can view own referral links" ON referral_links
   FOR ALL USING (auth.uid()::text = partner_id::text);
 
--- 管理者は全データ閲覧可能
+-- 管理者は全データ閲覧可能（冪等化）
+DROP POLICY IF EXISTS "Admins can view all data" ON partners;
 CREATE POLICY "Admins can view all data" ON partners
   FOR ALL USING (EXISTS (SELECT 1 FROM admin_users WHERE id::text = auth.uid()::text));
 
+DROP POLICY IF EXISTS "Admins can view all sales" ON partner_sales;
 CREATE POLICY "Admins can view all sales" ON partner_sales
   FOR ALL USING (EXISTS (SELECT 1 FROM admin_users WHERE id::text = auth.uid()::text));
 

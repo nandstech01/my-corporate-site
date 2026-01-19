@@ -1,0 +1,82 @@
+{
+  "total": 5,
+  "success": 5,
+  "failed": 0,
+  "results": [
+    {
+      "url": "https://nands.tech",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "a6dcceb3-f2bb-4f61-ae79-8ae6d96ec411",
+        "url": "https://nands.tech",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:42:33.230Z",
+      "duration_ms": 1558
+    },
+    {
+      "url": "https://nands.tech/about",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "aefa9ce1-0567-40e1-879b-e0215a40b5bb",
+        "url": "https://nands.tech/about",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:42:40.625Z",
+      "duration_ms": 5390
+    },
+    {
+      "url": "https://example.com",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "ec13b5ae-a154-42e3-a068-b43d56cefc8d",
+        "url": "https://example.com",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:42:42.853Z",
+      "duration_ms": 227
+    },
+    {
+      "url": "https://wordpress.org",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "4bbf38a0-b721-49b4-b2c6-3c6b0d641172",
+        "url": "https://wordpress.org",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:42:48.129Z",
+      "duration_ms": 3275
+    },
+    {
+      "url": "https://nextjs.org",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "e32531b4-c5f0-41a3-b4f2-6fd7eed78ae7",
+        "url": "https://nextjs.org",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:42:52.547Z",
+      "duration_ms": 2416
+    }
+  ],
+  "summary": {
+    "started_at": "2026-01-10T18:42:31.668Z",
+    "completed_at": "2026-01-10T18:42:52.547Z",
+    "total_duration_ms": 20877
+  }
+}

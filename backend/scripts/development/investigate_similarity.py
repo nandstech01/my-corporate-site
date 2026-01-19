@@ -205,7 +205,8 @@ def main():
     print("="*80)
     print(f"Model: {settings.RAG_CONFIG['EMBEDDING_MODEL']}")
     print(f"Dimensions: {settings.RAG_CONFIG['EMBEDDING_DIMENSIONS']}")
-    print(f"Current Threshold: {settings.RAG_CONFIG['SEARCH_THRESHOLD']}")
+    threshold = settings.RAG_CONFIG.get('SEARCH_THRESHOLD')
+    print(f"Current Threshold: {threshold if threshold is not None else '(not set)'}")
     print("="*80)
     
     # 固有名詞クエリ

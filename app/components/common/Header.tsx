@@ -47,6 +47,11 @@ export default function Header() {
   const [mode, setMode] = useState<'individual' | 'corporate'>('individual');
   const pathname = usePathname();
   const isTopPage = pathname === '/';
+
+  // /asoパスではグローバルヘッダーを非表示（ASO専用ヘッダーを使用）
+  if (pathname?.startsWith('/aso')) {
+    return null;
+  }
   
   // テーマ状態の同期（トップページのみ）
   useEffect(() => {

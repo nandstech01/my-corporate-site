@@ -1660,6 +1660,72 @@ body {
   animation: shine-continuous 3s ease-in-out infinite;
 }
 
+/* ============================================
+   Hero Section Micro-animations
+   ============================================ */
+
+/* グラデーントテキストアニメーション */
+@keyframes gradient-text-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-text {
+  background-size: 200% 200%;
+  animation: gradient-text-shift 4s ease infinite;
+}
+
+/* ボタンシマーエフェクト */
+@keyframes button-shimmer {
+  0% { transform: skewX(-15deg) translateX(-100%); }
+  100% { transform: skewX(-15deg) translateX(200%); }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: button-shimmer 3s ease-in-out infinite;
+}
+
+/* カード浮遊アニメーション */
+@keyframes card-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-card-float {
+  animation: card-float 3s ease-in-out infinite;
+}
+
+/* パルスグローエフェクト */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
 /* YouTube Shorts Swiper - フィルター無効化 */
 .youtube-shorts-swiper .swiper-slide {
   opacity: 1 !important;

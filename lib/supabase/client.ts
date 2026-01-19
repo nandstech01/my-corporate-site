@@ -1,15 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Database } from './database.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// シングルトンパターンでSupabaseクライアントを作成
-let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+// シングルトンパターンでSupabaseクライアントを作成（既存コード用）
+let supabaseInstance: ReturnType<typeof createSupabaseClient<Database>> | null = null;
 
 export const supabase = (() => {
   if (!supabaseInstance) {
-    supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    supabaseInstance = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
@@ -20,6 +20,18 @@ export const supabase = (() => {
   }
   return supabaseInstance;
 })();
+
+// App Router用のクライアント作成関数（ASO SaaS用）
+export function createClient() {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
+  });
+}
 
 // レビュー数を取得する関数
 export async function getReviewStats(serviceId: string) {
@@ -44,7 +56,10 @@ export async function getReviewStats(serviceId: string) {
     }
 
     const totalReviews = data.length;
-    const averageRating = data.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+    type ReviewRatingRow = { rating: number | null };
+    const rows = data as unknown as ReviewRatingRow[];
+    const averageRating =
+      rows.reduce((sum, review) => sum + (review.rating ?? 0), 0) / totalReviews;
 
     return {
       totalReviews,

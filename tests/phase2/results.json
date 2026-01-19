@@ -1,0 +1,411 @@
+{
+  "total": 30,
+  "success": 23,
+  "failed": 7,
+  "results": [
+    {
+      "url": "https://nands.tech",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "a6dcceb3-f2bb-4f61-ae79-8ae6d96ec411",
+        "url": "https://nands.tech",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:53:50.618Z",
+      "duration_ms": 889
+    },
+    {
+      "url": "https://nands.tech/about",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "aefa9ce1-0567-40e1-879b-e0215a40b5bb",
+        "url": "https://nands.tech/about",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:53:53.205Z",
+      "duration_ms": 426
+    },
+    {
+      "url": "https://wordpress.org",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "4bbf38a0-b721-49b4-b2c6-3c6b0d641172",
+        "url": "https://wordpress.org",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:53:55.483Z",
+      "duration_ms": 275
+    },
+    {
+      "url": "https://wordpress.com/blog",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "7b70eceb-9cd9-43f6-9812-1d5fbda06a1f",
+        "url": "https://wordpress.com/blog",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:54:00.775Z",
+      "duration_ms": 3291
+    },
+    {
+      "url": "https://make.wordpress.org",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "62cf6a1f-e33c-41eb-8d22-074b8b9178ac",
+        "url": "https://make.wordpress.org",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:54:06.107Z",
+      "duration_ms": 3330
+    },
+    {
+      "url": "https://www.smashingmagazine.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "1d118215-4673-41ae-85ec-bf05ec93079c",
+        "url": "https://www.smashingmagazine.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:54:12.681Z",
+      "duration_ms": 4572
+    },
+    {
+      "url": "https://css-tricks.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "ccad1d06-99b3-481d-914c-9d7694ab1246",
+        "url": "https://css-tricks.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:54:18.282Z",
+      "duration_ms": 3599
+    },
+    {
+      "url": "https://www.mercedes-benz.com",
+      "status": 500,
+      "success": false,
+      "error": "Failed to crawl URL",
+      "response": {
+        "error": "Failed to crawl URL",
+        "details": "HTTP 403"
+      },
+      "timestamp": "2026-01-10T18:54:27.837Z",
+      "duration_ms": 7553
+    },
+    {
+      "url": "https://www.usain-bolt.com",
+      "status": 500,
+      "success": false,
+      "error": "Failed to crawl URL",
+      "response": {
+        "error": "Failed to crawl URL",
+        "details": "net::ERR_NAME_NOT_RESOLVED at https://www.usain-bolt.com"
+      },
+      "timestamp": "2026-01-10T18:54:37.328Z",
+      "duration_ms": 7488
+    },
+    {
+      "url": "https://www.sony.com",
+      "status": 500,
+      "success": false,
+      "error": "Failed to crawl URL",
+      "response": {
+        "error": "Failed to crawl URL",
+        "details": "HTTP 403"
+      },
+      "timestamp": "2026-01-10T18:54:47.410Z",
+      "duration_ms": 8080
+    },
+    {
+      "url": "https://example.com",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "ec13b5ae-a154-42e3-a068-b43d56cefc8d",
+        "url": "https://example.com",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:54:49.606Z",
+      "duration_ms": 193
+    },
+    {
+      "url": "https://nextjs.org",
+      "status": 200,
+      "success": true,
+      "response": {
+        "analysis_id": "e32531b4-c5f0-41a3-b4f2-6fd7eed78ae7",
+        "url": "https://nextjs.org",
+        "status": "completed",
+        "created": false,
+        "message": "Analysis already exists for this URL and pipeline version"
+      },
+      "timestamp": "2026-01-10T18:54:51.762Z",
+      "duration_ms": 155
+    },
+    {
+      "url": "https://react.dev",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "5ba6c8f6-2383-49fc-9160-1b3c8f90eee1",
+        "url": "https://react.dev",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:54:56.278Z",
+      "duration_ms": 2514
+    },
+    {
+      "url": "https://vercel.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "1a906fb0-6e62-4599-b6bb-bf5a466b082f",
+        "url": "https://vercel.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:02.031Z",
+      "duration_ms": 3749
+    },
+    {
+      "url": "https://gohugo.io",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "fa59aec9-def0-46bd-9aee-c0a077f60689",
+        "url": "https://gohugo.io",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:07.365Z",
+      "duration_ms": 3332
+    },
+    {
+      "url": "https://jekyllrb.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "7c73a1d8-0f12-4027-a946-760a4f5140f5",
+        "url": "https://jekyllrb.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:11.799Z",
+      "duration_ms": 2434
+    },
+    {
+      "url": "https://docs.github.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "54145651-a570-4c5f-8c52-7c33cc0a46cf",
+        "url": "https://docs.github.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:15.987Z",
+      "duration_ms": 2187
+    },
+    {
+      "url": "https://developer.mozilla.org",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "7c8210a6-d27c-4520-9671-76f6be3646f6",
+        "url": "https://developer.mozilla.org",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:20.404Z",
+      "duration_ms": 2414
+    },
+    {
+      "url": "https://stripe.com/docs",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "50527c47-939e-4755-b607-3e1cd0ceb15d",
+        "url": "https://stripe.com/docs",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:30.397Z",
+      "duration_ms": 7993
+    },
+    {
+      "url": "https://nodejs.org",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "87de10ec-69ed-4c2c-8a08-d4de1f2fd161",
+        "url": "https://nodejs.org",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T18:55:35.067Z",
+      "duration_ms": 2668
+    },
+    {
+      "url": "https://mail.google.com",
+      "status": 0,
+      "success": false,
+      "error": "fetch failed",
+      "timestamp": "2026-01-10T19:00:38.521Z",
+      "duration_ms": 301452
+    },
+    {
+      "url": "https://www.notion.so",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "5a1b3775-70ea-4086-bf6c-d085cdb49871",
+        "url": "https://www.notion.so",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:03:36.604Z",
+      "duration_ms": 176079
+    },
+    {
+      "url": "https://www.figma.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "48ce3681-bc45-4545-bcea-36d8cec3477b",
+        "url": "https://www.figma.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:06:09.248Z",
+      "duration_ms": 150641
+    },
+    {
+      "url": "https://github.com/settings",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "1a67d787-cfe1-4dc9-a4e9-2bb09824460c",
+        "url": "https://github.com/settings",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:06:14.345Z",
+      "duration_ms": 3095
+    },
+    {
+      "url": "https://www.linkedin.com/feed",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "b81a35cd-4a1e-42c6-99e9-ae9f7324aee9",
+        "url": "https://www.linkedin.com/feed",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:06:19.546Z",
+      "duration_ms": 3199
+    },
+    {
+      "url": "https://twitter.com",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "cf34d9a2-9f1c-4a1d-a20d-49dbd2d7fa8e",
+        "url": "https://twitter.com",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:06:24.783Z",
+      "duration_ms": 3235
+    },
+    {
+      "url": "https://www.adobe.com/acrobat.html",
+      "status": 201,
+      "success": true,
+      "response": {
+        "analysis_id": "1ac39b62-c49a-41d3-88be-cc02f599438c",
+        "url": "https://www.adobe.com/acrobat.html",
+        "status": "completed",
+        "created": true,
+        "message": "URL analysis completed successfully"
+      },
+      "timestamp": "2026-01-10T19:06:29.079Z",
+      "duration_ms": 2294
+    },
+    {
+      "url": "https://www.youtube.com",
+      "status": 401,
+      "success": false,
+      "error": "Unauthorized",
+      "response": {
+        "error": "Unauthorized"
+      },
+      "timestamp": "2026-01-10T19:06:31.140Z",
+      "duration_ms": 60
+    },
+    {
+      "url": "https://www.google.com/recaptcha",
+      "status": 401,
+      "success": false,
+      "error": "Unauthorized",
+      "response": {
+        "error": "Unauthorized"
+      },
+      "timestamp": "2026-01-10T19:06:33.202Z",
+      "duration_ms": 59
+    },
+    {
+      "url": "https://this-url-does-not-exist-12345.com",
+      "status": 401,
+      "success": false,
+      "error": "Unauthorized",
+      "response": {
+        "error": "Unauthorized"
+      },
+      "timestamp": "2026-01-10T19:06:35.259Z",
+      "duration_ms": 54
+    }
+  ],
+  "summary": {
+    "started_at": "2026-01-10T18:53:49.724Z",
+    "completed_at": "2026-01-10T19:06:35.260Z",
+    "total_duration_ms": 765532
+  }
+}

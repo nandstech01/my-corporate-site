@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS video_jobs (
   youtube_url           TEXT,
   youtube_published_at  TIMESTAMP WITH TIME ZONE,
   metrics               JSONB,
-  related_blog_post_id  INTEGER REFERENCES posts(id) ON DELETE SET NULL,
+  related_blog_post_id  INTEGER, -- ⚠️ 一時的に外部キー制約を削除（posts テーブル未作成のため）
   article_slug          TEXT,
   created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -51,12 +51,19 @@ CREATE INDEX IF NOT EXISTS idx_video_jobs_youtube_id ON video_jobs(youtube_video
 CREATE INDEX IF NOT EXISTS idx_video_jobs_blog_post ON video_jobs(related_blog_post_id) WHERE related_blog_post_id IS NOT NULL;
 
 -- ===================================
--- 制約追加
+-- 制約追加（冪等化）
 -- ===================================
 
-ALTER TABLE video_jobs
-ADD CONSTRAINT check_video_jobs_status
-CHECK (status IN ('draft', 'akool_processing', 'akool_done', 'final_uploaded', 'youtube_uploaded', 'error'));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'check_video_jobs_status'
+  ) THEN
+    ALTER TABLE video_jobs
+    ADD CONSTRAINT check_video_jobs_status
+    CHECK (status IN ('draft', 'akool_processing', 'akool_done', 'final_uploaded', 'youtube_uploaded', 'error'));
+  END IF;
+END $$;
 
 -- ===================================
 -- トリガー作成（updated_at自動更新）

@@ -70,3 +70,10 @@ db.sqlite3-journal
 infra/mlflow/mlruns/
 infra/mlflow/mlflow.db
 infra/grafana/data/
+
+# Python virtual environments
+backend/venv*/
+venv*/
+
+# Jobs node_modules
+jobs/*/node_modules/

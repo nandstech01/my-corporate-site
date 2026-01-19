@@ -161,43 +161,55 @@ async function fetchRAGData(dataSources: string[], query?: string): Promise<any[
   
   console.log(`🔍 RAGデータ取得開始: クエリ="${searchQuery}", ソース=[${dataSources.join(', ')}]`);
   
-  try {
-    // 開発環境ではlocalhostを使用、本番環境では適切なURLを設定
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://nands.tech')
-      : 'http://localhost:3000';
-    
-    console.log(`🌐 RAG検索URL: ${baseUrl}/api/search-rag`);
-    
-    const response = await fetch(`${baseUrl}/api/search-rag`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: searchQuery,
-        sources: dataSources, // 修正: sources (複数形) として配列を送信
-        limit: 10,
-        threshold: 0.3,
-        dateFilter: '7days',
-        latestNewsMode: true // 最新情報を重視
-      })
-    });
+  // 開発環境ではlocalhostを使用、本番環境では適切なURLを設定
+  const baseUrl = process.env.NODE_ENV === 'production'
+    ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://nands.tech')
+    : 'http://localhost:3000';
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log(`✅ RAG検索成功: ${data.results?.length || 0}件取得`);
-      console.log(`📊 データソース内訳:`, data.summary);
-      
-      return data.results || [];
-    } else {
-      console.error(`❌ RAG検索失敗: ${response.status} ${response.statusText}`);
-      const errorData = await response.text();
-      console.error('エラー詳細:', errorData);
+  console.log(`🌐 RAG検索URL: ${baseUrl}/api/search-rag`);
+
+  // タイムアウト付きfetch（10秒）
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/search-rag`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: searchQuery,
+          sources: dataSources,
+          limit: 10,
+          threshold: 0.3,
+          dateFilter: '7days',
+          latestNewsMode: true
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ RAG検索成功: ${data.results?.length || 0}件取得`);
+        console.log(`📊 データソース内訳:`, data.summary);
+
+        return data.results || [];
+      } else {
+        console.error(`❌ RAG検索失敗: ${response.status} ${response.statusText}`);
+        const errorData = await response.text();
+        console.error('エラー詳細:', errorData);
+        return [];
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.error('❌ RAG検索タイムアウト（10秒）: 内部fetch呼び出しがハングしています');
+      } else {
+        console.error('❌ RAG検索API呼び出しエラー:', error);
+      }
       return [];
     }
-  } catch (error) {
-    console.error('❌ RAG検索API呼び出しエラー:', error);
-    return [];
-  }
 }
 
 /**

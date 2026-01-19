@@ -1,0 +1,248 @@
+name: ASO SaaS CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'lib/aso/**'
+      - 'app/api/aso/**'
+      - 'app/aso/**'
+      - 'jobs/production/**'
+      - 'supabase/migrations/**'
+      - '.github/workflows/aso-saas-ci-cd.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/aso/**'
+      - 'app/api/aso/**'
+      - 'app/aso/**'
+      - 'jobs/production/**'
+
+env:
+  NODE_VERSION: '20'
+  GCP_REGION: 'asia-northeast1'
+
+jobs:
+  # ==========================================
+  # CI: テスト・型チェック・Lint
+  # ==========================================
+  test:
+    name: 🧪 Test & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: npm ci
+      
+      - name: 🔍 TypeScript type check
+        run: npx tsc --noEmit
+      
+      - name: 🎨 ESLint
+        run: npx eslint lib/aso app/api/aso app/aso --ext .ts,.tsx
+        continue-on-error: true
+      
+      - name: 🧪 Run unit tests (ASO modules only)
+        run: |
+          npm test -- --testPathPattern='(lib/aso|app/api/aso)' --coverage
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      
+      - name: 📊 Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          flags: aso-saas
+        continue-on-error: true
+
+  # ==========================================
+  # Security: 依存関係の脆弱性チェック
+  # ==========================================
+  security:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔒 Run npm audit
+        run: npm audit --production
+        continue-on-error: true
+      
+      - name: 🔍 Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+        continue-on-error: true
+
+  # ==========================================
+  # Build: Cloud Run Jobsイメージビルド
+  # ==========================================
+  build-jobs:
+    name: 🐳 Build Cloud Run Jobs Image
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🔧 Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: 🔑 Configure Docker for GCR
+        run: gcloud auth configure-docker gcr.io
+      
+      - name: 🐳 Build Docker image
+        run: |
+          cd jobs/production
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --build-arg SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+            --build-arg OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+            -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:${{ github.sha }} \
+            -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:latest \
+            .
+      
+      - name: 🚀 Push Docker image
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:latest
+      
+      - name: 📝 Image digest
+        run: |
+          echo "Image pushed: gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:${{ github.sha }}"
+
+  # ==========================================
+  # Deploy: Cloud Run Jobsデプロイ
+  # ==========================================
+  deploy-jobs:
+    name: 🚀 Deploy Cloud Run Jobs
+    runs-on: ubuntu-latest
+    needs: [build-jobs]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🔧 Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: 🚀 Deploy to Cloud Run Jobs
+        run: |
+          gcloud run jobs update aso-url-analyzer \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/aso-url-analyzer:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --max-retries 3 \
+            --task-timeout 600s \
+            --set-env-vars NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --set-env-vars SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+            --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+      
+      - name: ✅ Deployment complete
+        run: |
+          echo "✅ Cloud Run Jobs deployed successfully"
+          echo "🔗 Job name: aso-url-analyzer"
+          echo "📍 Region: ${{ env.GCP_REGION }}"
+
+  # ==========================================
+  # Deploy: Vercelデプロイ（Next.js）
+  # ==========================================
+  deploy-vercel:
+    name: 🌐 Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🚀 Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+      
+      - name: ✅ Deployment complete
+        run: echo "✅ Vercel deployment complete"
+
+  # ==========================================
+  # Notify: Slack通知
+  # ==========================================
+  notify:
+    name: 📢 Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-jobs, deploy-vercel]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📢 Slack Notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚀 ASO SaaS Deployment",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*ASO SaaS Deployment*\n${{ needs.deploy-jobs.result == 'success' && needs.deploy-vercel.result == 'success' && '✅ Succeeded' || '❌ Failed' }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n${{ github.actor }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Cloud Run Jobs:*\n${{ needs.deploy-jobs.result }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Vercel:*\n${{ needs.deploy-vercel.result }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+

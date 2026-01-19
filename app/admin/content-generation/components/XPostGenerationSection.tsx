@@ -55,6 +55,11 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
   const [customMode, setCustomMode] = useState(false);
   const [customQuery, setCustomQuery] = useState('');
 
+  // X投稿機能用State（既存機能に影響なし）
+  const [xApiConfigured, setXApiConfigured] = useState<boolean | null>(null);
+  const [postingToX, setPostingToX] = useState<number | null>(null);
+  const [postResult, setPostResult] = useState<{ index: number; success: boolean; message: string; url?: string } | null>(null);
+
   // 3つのカテゴリに整理されたタブ
   const tabCategories = {
     general: {
@@ -225,6 +230,20 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
     }
   }, [activeCategory]);
 
+  // X API設定確認（既存機能に影響なし）
+  useEffect(() => {
+    const checkXApiConfig = async () => {
+      try {
+        const response = await fetch('/api/post-to-x');
+        const data = await response.json();
+        setXApiConfigured(data.configured);
+      } catch {
+        setXApiConfigured(false);
+      }
+    };
+    checkXApiConfig();
+  }, []);
+
   // X投稿生成処理
   const handlePatternGenerate = async (patternId: string, options: { diagram?: boolean; thread?: boolean } = {}) => {
     setLoading(patternId);
@@ -289,6 +308,59 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
     const text = post.generatedPost;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  /**
+   * Xに自動投稿（既存機能に影響なし）
+   */
+  const postToX = async (post: GeneratedXPost, index: number) => {
+    if (postingToX !== null) return;
+
+    // 280文字を超える場合は切り詰め
+    let text = post.generatedPost;
+    if (text.length > 280) {
+      text = text.substring(0, 277) + '...';
+    }
+
+    setPostingToX(index);
+    setPostResult(null);
+
+    try {
+      const response = await fetch('/api/post-to-x', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPostResult({
+          index,
+          success: true,
+          message: 'Xへの投稿が完了しました！',
+          url: data.tweetUrl,
+        });
+      } else {
+        setPostResult({
+          index,
+          success: false,
+          message: data.error || '投稿に失敗しました',
+        });
+      }
+    } catch (err) {
+      setPostResult({
+        index,
+        success: false,
+        message: 'APIエラーが発生しました',
+      });
+    } finally {
+      setPostingToX(null);
+    }
   };
 
   /**
@@ -533,11 +605,39 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
                       >
                         <span className="text-white text-sm font-bold">𝕏</span>
                       </button>
+                      {/* Xに投稿ボタン（API設定時のみ表示） */}
+                      {xApiConfigured && (
+                        <button
+                          onClick={() => postToX(post, index)}
+                          disabled={postingToX !== null}
+                          className={`px-3 py-2 transition-colors transform hover:scale-105 flex items-center space-x-1 ${
+                            postingToX === index
+                              ? 'bg-gray-600 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
+                          }`}
+                          title="Xに自動投稿"
+                        >
+                          {postingToX === index ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin"></div>
+                              <span className="text-white text-xs">投稿中...</span>
+                            </>
+                          ) : (
+                            <span className="text-white text-xs font-bold">Xに投稿</span>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                   
                   <div className="text-sm text-gray-300 line-clamp-2">
                     {post.generatedPost}
+                  </div>
+
+                  {/* 文字数表示 */}
+                  <div className={`mt-1 text-xs ${post.generatedPost.length > 280 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                    {post.generatedPost.length}/280文字
+                    {post.generatedPost.length > 280 && ' (投稿時に自動切り詰め)'}
                   </div>
                   
                   {post.tags && post.tags.length > 0 && (
@@ -563,6 +663,30 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
                       {new Date(post.metadata.generatedAt).toLocaleString('ja-JP')}
                     </div>
                   </div>
+
+                  {/* 投稿結果表示 */}
+                  {postResult && postResult.index === index && (
+                    <div className={`mt-3 p-3 border ${
+                      postResult.success
+                        ? 'bg-green-900/50 border-green-500/50 text-green-200'
+                        : 'bg-red-900/50 border-red-500/50 text-red-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">{postResult.message}</span>
+                        {postResult.url && (
+                          <a
+                            href={postResult.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:text-blue-300 text-sm underline flex items-center"
+                          >
+                            <LinkIcon className="w-3 h-3 mr-1" />
+                            投稿を見る
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

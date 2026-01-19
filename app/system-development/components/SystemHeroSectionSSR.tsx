@@ -182,6 +182,18 @@ export default function SystemHeroSectionSSR() {
         {/* 3Dアニメーション（動的インポート） */}
         {/* ========================= */}
         <div className="absolute inset-0 bg-black/70 z-[1]" />
+
+        {/* グラデーションオーバーレイ */}
+        <div
+          className="absolute inset-0 pointer-events-none z-[3]"
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59, 130, 246, 0.1), transparent 50%),
+              radial-gradient(ellipse 60% 40% at 100% 50%, rgba(6, 182, 212, 0.08), transparent 40%),
+              radial-gradient(ellipse 50% 30% at 0% 80%, rgba(168, 85, 247, 0.06), transparent 35%)
+            `
+          }}
+        />
         
         <Suspense fallback={
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-cyan-900/20">
@@ -236,13 +248,25 @@ export default function SystemHeroSectionSSR() {
           {/* SSR用の静的バッジ */}
           <div className="mb-6">
             <noscript>
-              <span className="inline-block px-4 py-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-sm font-medium mb-4">
+              <span
+                className="inline-block px-5 py-2.5 rounded-full text-sm font-semibold text-blue-300"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                  boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
+                }}
+              >
                 業界最速・最安値のAIシステム開発
               </span>
             </noscript>
-            
-            <motion.span 
-              className="inline-block px-4 py-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-sm font-medium mb-4"
+
+            <motion.span
+              className="inline-block px-5 py-2.5 rounded-full text-sm font-semibold text-blue-300"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
+              }}
               initial="hidden"
               animate={mainControls}
               variants={itemVariants}
@@ -252,8 +276,15 @@ export default function SystemHeroSectionSSR() {
           </div>
           
           {/* メインタイトル */}
-          <motion.h1 
-            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent"
+          <motion.h1
+            className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight text-white mb-6"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 40%, #22d3ee 60%, #3b82f6 100%)',
+              backgroundSize: '200% 200%',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent'
+            }}
             initial="hidden"
             animate={mainControls}
             variants={titleVariants}
@@ -262,7 +293,7 @@ export default function SystemHeroSectionSSR() {
             <noscript>
               <span>AIシステム開発</span>
             </noscript>
-            
+
             <span>AIシステム開発</span>
           </motion.h1>
           
@@ -276,13 +307,19 @@ export default function SystemHeroSectionSSR() {
             <noscript>
               <p>
                 レリバンスエンジニアリング・AIO対策・RAGシステムなど<br className="hidden md:block" />
-                <span className="text-cyan-400 font-semibold">最新AI技術</span>によるシステム開発を実現
+                <span className="text-cyan-400 font-bold" style={{ textShadow: '0 0 20px rgba(34, 211, 238, 0.5)' }}>最新AI技術</span>によるシステム開発を実現
               </p>
             </noscript>
-            
+
             <p>
               レリバンスエンジニアリング・AIO対策・RAGシステムなど<br className="hidden md:block" />
-              <span className="text-cyan-400 font-semibold">最新AI技術</span>によるシステム開発を実現
+              <span
+                className="text-cyan-400 font-bold"
+                style={{ textShadow: '0 0 20px rgba(34, 211, 238, 0.5)' }}
+              >
+                最新AI技術
+              </span>
+              によるシステム開発を実現
             </p>
           </motion.div>
 
@@ -296,8 +333,17 @@ export default function SystemHeroSectionSSR() {
             {SYSTEM_ACHIEVEMENTS.map((achievement) => (
               <motion.div
                 key={achievement.id}
-                className="bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-all duration-300 group"
+                className="rounded-xl p-5 transition-all duration-300 group hover:translate-y-[-2px]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0, 0, 0, 0.3)'
+                }}
                 variants={itemVariants}
+                whileHover={{
+                  boxShadow: '0 0 30px rgba(34, 211, 238, 0.15), 0 8px 30px rgba(0, 0, 0, 0.4)'
+                }}
               >
                 <div className="text-cyan-400 mb-2">{achievement.icon}</div>
                 <h3 className="text-white font-bold text-sm mb-1 group-hover:text-cyan-400 transition-colors">
@@ -350,7 +396,11 @@ export default function SystemHeroSectionSSR() {
             
             <a
               href="#consultation-section"
-              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold border border-gray-200 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="px-8 py-4 rounded-lg font-bold text-white transition-all duration-300 transform hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)',
+                boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset'
+              }}
             >
               <span className="flex items-center justify-center">
                 無料システム相談
@@ -373,14 +423,24 @@ export default function SystemHeroSectionSSR() {
             
             <a
               href="#project-showcase"
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-bold transition-all duration-300"
+              className="px-8 py-4 rounded-lg text-white font-bold transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05) inset'
+              }}
             >
               開発実績を見る
             </a>
 
             <a
               href="/reviews"
-              className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="px-8 py-4 rounded-lg text-white font-bold transition-all duration-300 transform hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)',
+                boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.3), 0 10px 15px -3px rgba(249, 115, 22, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+              }}
             >
               <span className="flex items-center justify-center">
                 レビューを見る
@@ -430,24 +490,77 @@ export default function SystemHeroSectionSSR() {
               </div>
             </noscript>
             
-            <motion.div className="bg-white/5 backdrop-blur-sm border border-white/10 px-6 py-4" variants={itemVariants}>
+            <motion.div
+              className="rounded-xl px-6 py-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              variants={itemVariants}
+            >
               <div className="text-2xl md:text-3xl font-bold text-cyan-400">30分</div>
               <div className="text-sm text-gray-300">自動生成間隔</div>
             </motion.div>
-            <motion.div className="bg-white/5 backdrop-blur-sm border border-white/10 px-6 py-4" variants={itemVariants}>
+            <motion.div
+              className="rounded-xl px-6 py-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              variants={itemVariants}
+            >
               <div className="text-2xl md:text-3xl font-bold text-green-400">24時間</div>
               <div className="text-sm text-gray-300">無停止運用</div>
             </motion.div>
-            <motion.div className="bg-white/5 backdrop-blur-sm border border-white/10 px-6 py-4" variants={itemVariants}>
+            <motion.div
+              className="rounded-xl px-6 py-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              variants={itemVariants}
+            >
               <div className="text-2xl md:text-3xl font-bold text-yellow-400">372項目</div>
               <div className="text-sm text-gray-300">法令データベース</div>
             </motion.div>
-            <motion.div className="bg-white/5 backdrop-blur-sm border border-white/10 px-6 py-4" variants={itemVariants}>
+            <motion.div
+              className="rounded-xl px-6 py-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              variants={itemVariants}
+            >
               <div className="text-2xl md:text-3xl font-bold text-purple-400">AIO対策</div>
               <div className="text-sm text-gray-300">AI検索最適化</div>
             </motion.div>
           </motion.div>
         </div>
+
+        {/* スクロールインジケーター（LP的要素） */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/40">
+              Scroll
+            </span>
+            <div
+              className="w-[1px] h-8"
+              style={{ background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent)' }}
+            />
+          </div>
+        </motion.div>
       </section>
     </>
   );

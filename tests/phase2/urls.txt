@@ -1,0 +1,99 @@
+# Phase 2 最小実験 - 完全版テストURL（30件）
+# 
+# 目的: Phase 1基盤の運用安定性を検証
+# 内訳:
+#   - 成功想定: 20件（WordPress 10件 + 静的HTML 10件）
+#   - 失敗想定: 10件（SPA 3件 + ログイン必要 2件 + その他 5件）
+#
+# 期待結果:
+#   - 成功率: 70%以上（21件以上成功）
+#   - needs_review率: 30%未満（9件未満）
+
+# ========================================
+# 成功想定URL - WordPress（10件）
+# ========================================
+
+# 1-2. 自社サイト
+https://nands.tech
+https://nands.tech/about
+
+# 3-5. WordPress公式・関連サイト
+https://wordpress.org
+https://wordpress.com/blog
+https://make.wordpress.org
+
+# 6-7. 技術系WordPressブログ
+https://www.smashingmagazine.com
+https://css-tricks.com
+
+# 8-10. 企業サイト（WordPress）
+https://www.mercedes-benz.com
+https://www.usain-bolt.com
+https://www.sony.com
+
+# ========================================
+# 成功想定URL - 静的HTML（10件）
+# ========================================
+
+# 11. シンプルな静的HTML
+https://example.com
+
+# 12-14. Next.js / React 公式（SSG）
+https://nextjs.org
+https://react.dev
+https://vercel.com
+
+# 15-16. Hugo / Jekyll（静的サイトジェネレーター）
+https://gohugo.io
+https://jekyllrb.com
+
+# 17-19. 技術ドキュメントサイト
+https://docs.github.com
+https://developer.mozilla.org
+https://stripe.com/docs
+
+# 20. Node.js公式
+https://nodejs.org
+
+# ========================================
+# 失敗想定URL - SPA（3件）
+# ========================================
+
+# 21. Gmail（完全なSPA、ログイン必要）
+https://mail.google.com
+
+# 22. Notion（SPA、動的レンダリング）
+https://www.notion.so
+
+# 23. Figma（SPA、WebGL使用）
+https://www.figma.com
+
+# ========================================
+# 失敗想定URL - ログイン必要（2件）
+# ========================================
+
+# 24. GitHub（一部ページはログイン不要だが、制限あり）
+https://github.com/settings
+
+# 25. LinkedIn（ログイン必須）
+https://www.linkedin.com/feed
+
+# ========================================
+# 失敗想定URL - その他（5件）
+# ========================================
+
+# 26. 無限スクロール（Twitter/X）
+https://twitter.com
+
+# 27. PDF埋め込みメイン
+https://www.adobe.com/acrobat.html
+
+# 28. 動画埋め込みメイン（YouTube）
+https://www.youtube.com
+
+# 29. CAPTCHA保護
+https://www.google.com/recaptcha
+
+# 30. 存在しないURL（404エラー）
+https://this-url-does-not-exist-12345.com
+

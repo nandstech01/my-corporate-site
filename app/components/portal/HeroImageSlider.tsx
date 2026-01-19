@@ -157,21 +157,27 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={slide.id} style={{ width: '1400px', maxWidth: '90vw' }}>
-            <div 
-              className="relative rounded-2xl overflow-hidden shadow-2xl"
-              style={{ 
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
                 width: '100%',
                 height: isMobile ? '80vh' : '480px',
-                minHeight: isMobile ? '650px' : '480px'
+                minHeight: isMobile ? '650px' : '480px',
+                boxShadow: theme === 'dark'
+                  ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 40px rgba(59, 130, 246, 0.08), 0 25px 80px -20px rgba(0, 0, 0, 0.6)'
+                  : '0 0 0 1px rgba(0, 0, 0, 0.03), 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.1)'
               }}
             >
               {/* プレースホルダー背景 */}
-              <div 
+              <div
                 className="absolute inset-0 flex items-center justify-center"
                 style={{
                   background: theme === 'dark'
                     ? 'linear-gradient(135deg, #1a2332 0%, #0d1b2a 100%)'
-                    : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                    : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                  boxShadow: theme === 'dark'
+                    ? 'inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+                    : 'inset 0 1px 0 rgba(255, 255, 255, 0.8)'
                 }}
               >
                 {/* スライド内容の分岐 */}
@@ -235,20 +241,22 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         </p>
                         {/* AIを...をその下に */}
                         <h2
-                          className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight"
-                          style={{ 
+                          className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight"
+                          style={{
                             fontFamily: "'Noto Sans JP', sans-serif",
-                            color: '#1a1a1a'
+                            color: '#1a1a1a',
+                            letterSpacing: '-0.02em'
                           }}
                         >
                           {isIndividual ? (
                             <>
                               <span className="block">
                                 AIを
-                                <span 
-                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1"
+                                <span
+                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1 animate-gradient-text"
                                   style={{
-                                    backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)'
+                                    backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)',
+                                    backgroundSize: '200% 200%'
                                   }}
                                 >
                                   『使う側』
@@ -256,10 +264,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                                 から
                               </span>
                               <span className="block mt-1">
-                                <span 
-                                  className="text-transparent bg-clip-text bg-gradient-to-r"
+                                <span
+                                  className="text-transparent bg-clip-text bg-gradient-to-r animate-gradient-text"
                                   style={{
-                                    backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)'
+                                    backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)',
+                                    backgroundSize: '200% 200%'
                                   }}
                                 >
                                   『操る人』
@@ -271,10 +280,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                             <>
                               <span className="block">
                                 社員を
-                                <span 
-                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1"
+                                <span
+                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1 animate-gradient-text"
                                   style={{
-                                    backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)'
+                                    backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)',
+                                    backgroundSize: '200% 200%'
                                   }}
                                 >
                                   『雇う』
@@ -283,10 +293,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                               </span>
                               <span className="block mt-1">
                                 AIを
-                                <span 
-                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1"
+                                <span
+                                  className="text-transparent bg-clip-text bg-gradient-to-r mx-1 animate-gradient-text"
                                   style={{
-                                    backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)'
+                                    backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)',
+                                    backgroundSize: '200% 200%'
                                   }}
                                 >
                                   『構築する』
@@ -304,11 +315,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           href="https://lin.ee/s5dmFuD"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base sm:text-base transition-all duration-300 hover:scale-105"
+                          className="btn-shimmer inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base sm:text-base transition-all duration-300 hover:scale-105"
                           style={{
-                            background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
+                            background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)',
                             color: '#ffffff',
-                            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                            boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset'
                           }}
                         >
                           すぐに無料相談する
@@ -319,10 +330,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           rel="noopener noreferrer"
                           className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base sm:text-base transition-all duration-300 hover:scale-105"
                           style={{
-                            background: 'rgba(255, 255, 255, 0.9)',
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(10px)',
                             color: '#1a1a1a',
-                            border: '2px solid #1e3a8a',
-                            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
                           }}
                         >
                           無料で資料請求する
@@ -486,9 +498,9 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           rel="noopener noreferrer"
                           className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 active:scale-95"
                           style={{
-                            background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
+                            background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)',
                             color: '#ffffff',
-                            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                            boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset'
                           }}
                         >
                           すぐに無料相談する
@@ -564,9 +576,9 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                               rel="noopener noreferrer"
                               className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 hover:scale-105"
                               style={{
-                                background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
+                                background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)',
                                 color: '#ffffff',
-                                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                                boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset'
                               }}
                             >
                               すぐに無料相談する
@@ -577,10 +589,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                               rel="noopener noreferrer"
                               className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 hover:scale-105"
                               style={{
-                                background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
+                                background: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.95)',
+                                backdropFilter: 'blur(10px)',
                                 color: theme === 'dark' ? '#ffffff' : '#1a1a1a',
-                                border: '2px solid #1e3a8a',
-                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
                               }}
                             >
                               無料で資料請求する
@@ -700,7 +713,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           <span 
                             className="text-transparent bg-clip-text bg-gradient-to-r"
                             style={{
-                              backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)'
+                              backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)'
                             }}
                           >
                             法人リスキリング
@@ -821,9 +834,9 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           <motion.div
                             className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{
-                              background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)',
+                              background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)',
                               color: '#ffffff',
-                              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                              boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset'
                             }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -834,10 +847,11 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           <motion.div
                             className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
                             style={{
-                              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.9)',
+                              background: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(10px)',
                               color: theme === 'dark' ? '#ffffff' : '#1a1a1a',
-                              border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '2px solid #1e3a8a',
-                              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
                             }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -861,7 +875,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-4"
                           style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}>
                           <span className="text-transparent bg-clip-text bg-gradient-to-r"
-                            style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)' }}>
+                            style={{ backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)' }}>
                             法人リスキリング
                           </span>
                           <span className="block mt-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl">1人1日333円から</span>
@@ -878,7 +892,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                           className="flex flex-row gap-3 sm:gap-4">
                           <Link href="https://lin.ee/s5dmFuD" target="_blank" rel="noopener noreferrer">
                             <motion.div className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300"
-                              style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
+                              style={{ background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset' }}
                               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)" }} whileTap={{ scale: 0.95 }}>
                               すぐに無料相談する
                             </motion.div>
@@ -992,7 +1006,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         <h3 className="text-3xl sm:text-2xl font-black leading-tight mb-2"
                           style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}>
                           <span className="text-transparent bg-clip-text bg-gradient-to-r"
-                            style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)' }}>
+                            style={{ backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)' }}>
                             AI駆動開発
                           </span>
                         </h3>
@@ -1070,7 +1084,7 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         className="flex flex-col gap-3">
                         <Link href="https://lin.ee/s5dmFuD" target="_blank" rel="noopener noreferrer">
                           <motion.div className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg font-bold text-base transition-all duration-300"
-                            style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
+                            style={{ background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset' }}
                             whileTap={{ scale: 0.95 }}>
                             すぐに無料相談する
                           </motion.div>
@@ -1094,14 +1108,14 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                         <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-4"
                           style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1a1a1a' }}>
                           <span className="text-transparent bg-clip-text bg-gradient-to-r"
-                            style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #22d3ee, #a855f7)' }}>AI駆動開発</span>
+                            style={{ backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 20%, #22d3ee 50%, #06b6d4 70%, #a855f7 100%)' }}>AI駆動開発</span>
                         </h3>
                         <p className="text-base sm:text-lg mb-2" style={{ color: theme === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.7)' }}>カスタマイズ研修可能</p>
                         <p className="text-lg sm:text-xl font-semibold mb-8" style={{ color: '#a855f7' }}>全自動化AIアーキテクト</p>
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="flex flex-row gap-3 sm:gap-4">
                           <Link href="https://lin.ee/s5dmFuD" target="_blank" rel="noopener noreferrer">
                             <motion.div className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-300"
-                              style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
+                              style={{ background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #0ea5e9 75%, #06b6d4 100%)', color: '#ffffff', boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.25), 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 1px 0 rgba(255, 255, 255, 0.15) inset' }}
                               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)" }} whileTap={{ scale: 0.95 }}>
                               すぐに無料相談する
                             </motion.div>
@@ -1211,13 +1225,19 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
         }
 
         .hero-swiper .swiper-pagination-bullet {
+          width: 8px;
+          height: 8px;
           background: ${theme === 'dark' ? '#ffffff' : '#1a1a1a'};
           opacity: 0.3;
+          border-radius: 4px;
+          transition: all 0.3s ease;
         }
 
         .hero-swiper .swiper-pagination-bullet-active {
+          width: 24px;
           opacity: 1;
-          background: ${theme === 'dark' ? '#22d3ee' : '#0066cc'};
+          background: linear-gradient(90deg, #3b82f6, #06b6d4);
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
 
         /* YouTube Shorts スワイパー用スタイル */
