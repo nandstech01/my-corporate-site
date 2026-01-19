@@ -1,216 +1,152 @@
-# NANDS Corporate Site - ドキュメントルート
+# NANDS Corporate Site - ドキュメント
 
-このディレクトリには、NANDS コーポレートサイトの全機能に関するドキュメントが格納されています。
-
----
-
-## 📂 ディレクトリ構成
-
-### 🐍 Backend Python (Django RAG / ML評価)
-**ディレクトリ**: `backend-python/`
-
-Django RAG API、ML評価システム、MLflow統合に関するすべてのドキュメント。
-
-- Phase 1: Django RAG Foundation（完了）
-- Phase 2: ML評価基盤構築（完了）
-- Phase 3: ML評価システム拡張（進行中）
-- Phase 4: MLflow統合（計画中）
-
-**詳細**: [backend-python/INDEX.md](./backend-python/INDEX.md)
+**最終更新**: 2026-01-19
 
 ---
 
-### 🎨 Frontend Features (Next.js)
+## コアアーキテクチャ
 
-#### Top Page Redesign
-**ディレクトリ**: `top-page-redesign/`
+**[CORE_ARCHITECTURE.md](./CORE_ARCHITECTURE.md)** - レリバンスエンジニアリング＆ベクトル検索の技術仕様
 
-トップページのデザインリニューアル。
-
-**詳細**: [top-page-redesign/README.md](./top-page-redesign/README.md)
-
----
-
-#### Hero Slider Implementation
-**ファイル**: `hero-slider-implementation.md`
-
-ヒーロースライダーの実装ドキュメント。
+| システム | 場所 | 概要 |
+|---------|------|------|
+| レリバンスエンジニアリング | `lib/structured-data/` | Mike King理論準拠のAI検索最適化 |
+| ベクトル検索 | `lib/vector/` | Fragment ID + ハイブリッド検索 |
 
 ---
 
-#### Thumbnail AI Generation
-**ディレクトリ**: `thumbnail-ai-generation/`
+## 現在のプロジェクト状態
 
-AIを使用したサムネイル自動生成機能。
+### アクティブ: AI Search Optimizer SaaS
 
-**詳細**: [thumbnail-ai-generation/README.md](./thumbnail-ai-generation/README.md)
+| 項目 | パス | 状態 |
+|------|------|------|
+| **SaaS Product** | [saas-product/TASKS.md](./saas-product/TASKS.md) | Phase 5 実験待ち |
+| **Carve-Out基盤** | [carve-out/TASKS.md](./carve-out/TASKS.md) | Phase 0-6 完了 |
 
----
-
-#### YouTube Short Embed
-**ディレクトリ**: `youtube-short-embed/`
-
-YouTube Shorts の埋め込み機能。
-
-**詳細**: [youtube-short-embed/README.md](./youtube-short-embed/README.md)
+**概要**: マルチテナントSaaS基盤でAI検索最適化サービスを提供。Stripe課金統合済み。
 
 ---
 
-### 🔗 Vector Link & Entity Management
+## 完了プロジェクト一覧
 
-#### Vector Link Reconstruction 2025
-**ディレクトリ**: `vector-link-reconstruction-2025/`
-
-Fragment ID設計とベクトルリンクの再構築。
-
-**詳細**: [vector-link-reconstruction-2025/README.md](./vector-link-reconstruction-2025/README.md)
-
----
-
-#### Re-Vectorization
-**ディレクトリ**: `re-vectorization/`
-
-ベクトルデータの再生成プロセス。
-
-**詳細**: [re-vectorization/README.md](./re-vectorization/README.md)
+| プロジェクト | パス | 内容 |
+|-------------|------|------|
+| Backend Python (RAG/ML) | [backend-python/](./backend-python/) | Django RAG API, ML評価, MLflow統合 |
+| Top Page Redesign | [top-page-redesign/](./top-page-redesign/) | トップページリニューアル |
+| Architect Short V2 | [architect-short-v2/](./architect-short-v2/) | YouTube台本生成V2 |
+| Hybrid Article Generator | [hybrid-article-generator/](./hybrid-article-generator/) | AI記事自動生成 |
+| Thumbnail AI Generation | [thumbnail-ai-generation/](./thumbnail-ai-generation/) | サムネイル自動生成 |
+| Re-Vectorization | [re-vectorization/](./re-vectorization/) | 記事編集時のベクトル再生成 |
+| Vector Link Reconstruction | [vector-link-reconstruction-2025/](./vector-link-reconstruction-2025/) | Fragment ID設計 |
+| YouTube Short Embed | [youtube-short-embed/](./youtube-short-embed/) | Shorts埋め込み機能 |
+| Video Job | [video-job/](./video-job/) | 動画メタデータ管理 |
+| X Auto Post | [x-auto-post/](./x-auto-post/) | X(Twitter)自動投稿 |
 
 ---
 
-### 📝 Content Generation
+## ディレクトリ構成
 
-#### Hybrid Article Generator
-**ディレクトリ**: `hybrid-article-generator/`
-
-AI + スクレイピングを組み合わせたハイブリッド記事生成システム。
-
-**詳細**: [hybrid-article-generator/README.md](./hybrid-article-generator/README.md)
-
----
-
-### 🎥 Video Management
-
-#### Video Job System
-**ディレクトリ**: `video-job/`
-
-YouTube動画のメタデータ収集・管理システム。
-
-**詳細**: [video-job/README.md](./video-job/README.md)
-
----
-
-### 🏗️ Architect Mode
-
-#### Architect Mode Implementation
-**ファイル**: `ARCHITECT_MODE_IMPLEMENTATION.md`
-
-AIアーキテクトモードの実装ドキュメント。
+```
+docs/
+├── README.md                          # このファイル
+│
+├── saas-product/                      # 🔥 アクティブ: ASO SaaS
+│   ├── TASKS.md                       # タスク管理（Phase 5-8）
+│   └── phase5-data/                   # 実験データ
+│
+├── carve-out/                         # マルチテナント基盤
+│   ├── TASKS.md                       # タスク管理（Phase 0-6 完了）
+│   └── RLS_ROLLBACK.sql               # 緊急ロールバック用
+│
+├── backend-python/                    # Python バックエンド
+│   ├── PHASES_OVERVIEW.md             # Phase概要
+│   ├── hybrid-search-optimization.md  # ハイブリッド検索最適化
+│   ├── vector-system-architecture.md  # ベクトルシステム設計
+│   └── phase-{1-6}-*/README.md        # 各Phase詳細
+│
+└── [完了プロジェクト]/README.md        # 各プロジェクトの概要
+```
 
 ---
 
-#### Architect Short v2
-**ディレクトリ**: `architect-short-v2/`
+## 技術スタック概要
 
-Architect Short v2 の実装詳細。
+### フロントエンド
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Supabase Auth**
 
-**詳細**: [architect-short-v2/README.md](./architect-short-v2/README.md)
+### バックエンド
+- **Next.js API Routes** (TypeScript)
+- **Django REST API** (Python) - RAG/ML
+- **Supabase** (PostgreSQL + pgvector)
 
----
+### AI/ML
+- **OpenAI GPT-5.2** - 記事生成
+- **OpenAI Embeddings** (1536/3072次元)
+- **ハイブリッド検索** (BM25 + Vector + RRF)
 
-### 📊 Data & Research
-
-#### AI Architect Market Research
-**ファイル**: `AI_ARCHITECT_MARKET_RESEARCH.md`
-
-AIアーキテクト市場調査レポート。
-
----
-
-#### Kenji Thought Data Collection
-**ファイル**: `KENJI_THOUGHT_DATA_COLLECTION.md`
-
-Kenjiの思考データ収集に関するドキュメント。
-
----
-
-#### Kenji Implementation Experience
-**ファイル**: `KENJI_IMPLEMENTATION_EXPERIENCE.md`
-
-Kenjiの実装経験に関するドキュメント。
+### インフラ
+- **Vercel** - Next.js ホスティング
+- **Cloud Run** - Django API
+- **Supabase** - DB/Auth
+- **Stripe** - 課金
 
 ---
 
-### 🤖 GPT-5.2 Implementation
-**ファイル**: `GPT-5.2_IMPLEMENTATION.md`
+## 主要な実装ファイル
 
-GPT-5.2 実装ガイド。
+### ASO SaaS（71ファイル）
 
----
+| カテゴリ | パス | ファイル数 |
+|---------|------|-----------|
+| API | `app/api/aso/` | 20 |
+| Frontend | `app/aso/` | 18 |
+| Components | `components/aso/` | 13 |
+| Library | `lib/aso/` | 20 |
 
-### 📋 Project Management
+### ベクトルシステム
 
-#### Project Tree Structure
-**ファイル**: `PROJECT_TREE_STRUCTURE.md`
+| ファイル | 説明 |
+|---------|------|
+| `lib/vector/fragment-vectorizer.ts` | Fragment ID抽出・ベクトル化 |
+| `lib/vector/hybrid-search.ts` | ハイブリッド検索 |
+| `lib/vector/content-extractor.ts` | コンテンツ抽出 |
 
-プロジェクトのディレクトリ構造。
+### 構造化データ
 
----
-
-## 🚀 クイックリンク
-
-### Django RAG / ML評価
-- [Backend Python ドキュメント](./backend-python/INDEX.md)
-- [Phase 3 Week 1 作業ログ](./backend-python/phase-3-ml-evaluation-expansion/WEEK1_WORK_LOG.md)
-- [タスク管理サマリー](./backend-python/TASK_MANAGEMENT_SUMMARY.md)
-
-### フロントエンド機能
-- [Top Page Redesign](./top-page-redesign/README.md)
-- [Thumbnail AI Generation](./thumbnail-ai-generation/README.md)
-- [YouTube Short Embed](./youtube-short-embed/README.md)
-
-### データ管理
-- [Vector Link Reconstruction](./vector-link-reconstruction-2025/README.md)
-- [Re-Vectorization](./re-vectorization/README.md)
-- [Hybrid Article Generator](./hybrid-article-generator/README.md)
+| ファイル | 説明 |
+|---------|------|
+| `lib/structured-data/entity-relationships.ts` | エンティティ関係 |
+| `lib/structured-data/unified-integration.ts` | 統合システム |
 
 ---
 
-## 📝 ドキュメント管理方針
+## クイックリンク
 
-### ディレクトリ整理
+### 開発中
+- [SaaS Product タスク](./saas-product/TASKS.md)
+- [Carve-Out タスク](./carve-out/TASKS.md)
 
-各機能・プロジェクトごとにディレクトリを分けて管理：
-- **Backend Python系**: `backend-python/`
-- **Frontend機能系**: 各機能ごとのディレクトリ
-- **データ管理系**: vector-link, re-vectorization 等
-- **コンテンツ生成系**: hybrid-article-generator 等
+### 技術リファレンス
+- [ハイブリッド検索最適化](./backend-python/hybrid-search-optimization.md)
+- [ベクトルシステム設計](./backend-python/vector-system-architecture.md)
+- [Backend Python Phase概要](./backend-python/PHASES_OVERVIEW.md)
 
-### ドキュメント更新ルール
-
-1. **作業ログ**: 詳細な手順を `WORK_LOG.md` に記載
-2. **進捗レポート**: 定期的に `PROGRESS_REPORT_YYYYMMDD.md` 作成
-3. **完了報告**: Phase/機能完了時に `COMPLETION_REPORT.md` 作成
-4. **README更新**: 構造変更時は必ず README を更新
+### 緊急時
+- [RLS ロールバック](./carve-out/RLS_ROLLBACK.sql)
 
 ---
 
-## 🔍 ドキュメント検索
+## ドキュメント方針
 
-### 機能別検索
-
-- **Django RAG**: `backend-python/`
-- **ML評価**: `backend-python/phase-2-*`, `backend-python/phase-3-*`
-- **Grafana**: `backend-python/phase-1-*/GRAFANA*`
-- **Fragment ID**: `vector-link-reconstruction-2025/`
-- **記事生成**: `hybrid-article-generator/`
-- **動画管理**: `video-job/`
-
-### ステータス別検索
-
-- **完了**: Phase 1, Phase 2
-- **進行中**: Phase 3 Week 1
-- **計画中**: Phase 4
+- 各プロジェクトは **README.md** 1ファイルに集約
+- タスク管理は **TASKS.md** で一元管理
+- 完了プロジェクトの詳細ドキュメントは削除済み
+- 実装ベースで最新状態を反映
 
 ---
 
-**最終更新**: 2025-12-29  
 **管理者**: NANDS 開発チーム
