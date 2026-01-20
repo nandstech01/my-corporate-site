@@ -97,11 +97,14 @@ export async function GET(request: Request) {
     } else {
       supabase = createRouteHandlerClient({ cookies });
     }
-    
+
+    console.log('[ASO] Getting user...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('[ASO] Auth result:', { user: user?.id, error: authError?.message });
+
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', _authDebug: { error: authError?.message, hasUser: !!user } },
         { status: 401 }
       );
     }
