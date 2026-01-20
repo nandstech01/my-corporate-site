@@ -1,6 +1,6 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AsoHeader from '@/components/aso/AsoHeader';

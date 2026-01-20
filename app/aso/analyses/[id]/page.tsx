@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import ScoreBar from '@/components/aso/ScoreBar';
 import JsonViewer from '@/components/aso/JsonViewer';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import { useAsoTheme } from '@/app/aso/context';
 
 interface AnalysisDetail {

@@ -1,7 +1,7 @@
 # AI Search Optimizer SaaS - タスク管理
 
-**最終更新**: 2026-01-19
-**現在地**: Phase 7（Stripe課金統合）完了
+**最終更新**: 2026-01-20
+**現在地**: Phase 8（sameAs + Author + マージ機能）完了
 **次アクション**: Phase 5 実験（GSC検証）
 
 ---
@@ -13,8 +13,8 @@
 | Phase 0-4 | ✅ 完了 | ベクトルリンク化・分析基盤 |
 | Phase 5 | ⏳ **準備完了** | 実験開始待ち（GSC検証） |
 | Phase 6 | ✅ 完了 | 運営管理画面 |
-| Phase 7 | ✅ **完了** | Stripe課金統合 |
-| Phase 8 | ⏸️ 未着手 | 本番リリース |
+| Phase 7 | ✅ 完了 | Stripe課金統合 |
+| Phase 8 | ✅ **完了** | sameAs + Author + マージ機能 |
 
 **関連**: Carve-Out基盤 → [`/docs/carve-out/TASKS.md`](../carve-out/TASKS.md)
 
@@ -37,7 +37,7 @@
 
 ## 実装済みファイル一覧
 
-### API（20ファイル）
+### API（21ファイル）
 
 | ファイル | 説明 |
 |---------|------|
@@ -45,9 +45,10 @@
 | `app/api/aso/onboard/route.ts` | オンボーディング |
 | `app/api/aso/tenant/route.ts` | テナント情報（GET/PATCH/DELETE） |
 | `app/api/aso/switch-tenant/route.ts` | テナント切替 |
-| `app/api/aso/analyze/route.ts` | URL分析実行 |
+| `app/api/aso/analyze/route.ts` | URL分析実行（Phase 8拡張） |
 | `app/api/aso/analyses/route.ts` | 分析一覧取得 |
 | `app/api/aso/results/[id]/route.ts` | 分析結果詳細 |
+| `app/api/aso/settings/route.ts` | テナント設定（GET/PATCH）（Phase 8） |
 | `app/api/aso/job-token/route.ts` | ジョブトークン発行 |
 | `app/api/aso/invitations/route.ts` | 招待作成・取消 |
 | `app/api/aso/invitations/accept/route.ts` | 招待受諾 |
@@ -85,7 +86,7 @@
 | `app/aso/admin/jobs/page.tsx` | ジョブ監視 |
 | `app/aso/admin/stats/page.tsx` | システム統計 |
 
-### コンポーネント（13ファイル）
+### コンポーネント（15ファイル）
 
 | ファイル | 説明 |
 |---------|------|
@@ -102,6 +103,8 @@
 | `components/aso/StatsDailyChart.tsx` | 日次推移グラフ |
 | `components/aso/StatsScoreChart.tsx` | スコア推移グラフ |
 | `components/aso/StatsDistribution.tsx` | スコア分布 |
+| `components/aso/SameAsInputForm.tsx` | sameAs入力フォーム（Phase 8） |
+| `components/aso/AuthorInputForm.tsx` | Author入力フォーム（Phase 8） |
 
 ### ライブラリ（20ファイル）
 
@@ -236,11 +239,93 @@ GSC指標が10%以上悪化した場合:
 
 ---
 
-## Phase 8+: 今後のロードマップ
+## Phase 8: sameAs + Author + マージ機能 ✅ 完了
+
+**完了日**: 2026-01-20
+
+### 概要
+
+Google AIO（AI Overviews）表示最適化のための機能追加:
+- **sameAs入力機能**: テナント設定でSNSリンクを一括入力
+- **Author/Person Schema**: テナント設定で代表者情報を登録
+- **型別マージロジック**: 既存JSON-LD（WordPress等）とASO生成をインテリジェントにマージ
+
+### 実装内容
+
+| 機能 | ファイル |
+|------|---------|
+| 型定義 | `lib/aso/types/tenant-settings.ts` |
+| スキーママージャー | `lib/aso/schema-merger.ts` |
+| sameAs入力フォーム | `components/aso/SameAsInputForm.tsx` |
+| Author入力フォーム | `components/aso/AuthorInputForm.tsx` |
+| 設定API | `app/api/aso/settings/route.ts` |
+| 設定ページ更新 | `app/aso/settings/page.tsx` |
+| Schema Generator拡張 | `lib/aso/schema-generator.ts` |
+| 分析API更新 | `app/api/aso/analyze/route.ts` |
+
+### マイグレーション
+
+- `20260120000000_add_tenant_settings.sql`: aso.tenants.settings JSONB追加
+
+### 生成されるスキーマ例
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://example.com#organization",
+      "name": "Example Corp",
+      "sameAs": [
+        "https://twitter.com/example",
+        "https://linkedin.com/company/example"
+      ],
+      "knowsAbout": ["AI検索最適化", "SEO"]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://example.com#author",
+      "name": "山田太郎",
+      "jobTitle": "代表取締役",
+      "knowsAbout": ["AI検索最適化", "マーケティング"],
+      "sameAs": ["https://twitter.com/yamada"],
+      "worksFor": { "@id": "https://example.com#organization" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://example.com#website",
+      "url": "https://example.com",
+      "publisher": { "@id": "https://example.com#organization" }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://example.com/page",
+      "author": { "@id": "https://example.com#author" },
+      "hasPart": [...]
+    }
+  ]
+}
+```
+
+### 重複検出・マージ動作
+
+| シナリオ | 動作 |
+|---------|------|
+| 既存Organization検出 | sameAs/knowsAboutを追加 |
+| 既存WebSite検出 | そのまま使用 |
+| 既存WebPage検出 | hasPart追加、authorリンク追加 |
+| Author設定あり | Person Schemaを常に追加 |
+
+---
+
+## Phase 9+: 今後のロードマップ
 
 | Phase | 内容 |
 |-------|------|
-| Phase 8 | 本番リリース・マーケティング |
+| Phase 9 | knowsAbout拡張（5→25個）、hasCredential追加 |
+| Phase 10 | potentialAction、additionalType追加 |
+| Phase 11 | 本番リリース・マーケティング |
 
 詳細は Phase 5 実験結果を踏まえて計画。
 

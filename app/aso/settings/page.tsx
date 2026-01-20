@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Settings as SettingsIcon, User, Building2, Key, Check, Copy, CreditCard, BarChart3, ExternalLink, Share2, UserCircle, Save, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import { useAsoTheme } from '@/app/aso/context';
 import SameAsInputForm from '@/components/aso/SameAsInputForm';
 import AuthorInputForm from '@/components/aso/AuthorInputForm';

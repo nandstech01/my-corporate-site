@@ -1,0 +1,52 @@
+Phase 5: JSON-LD生成レポート（Phase 8 sameAs/Author統合版）
+================================================================
+
+URL: https://nands.tech/ai-agents
+生成日時: 2026-01-20T06:12:29.657Z
+設定: nands
+
+■ クロール結果
+- タイトル: AIエージェント開発・カスタマイズ | Mastra Framework | 株式会社エヌアンドエス | 株式会社エヌアンドエス
+- メタディスクリプション: Mastra Framework・ChatGPT・Claude等最新AI技術によるインテリジェントエージェント開発。自然言語処理・RAGシステム・機械学習で24時間365日稼働する高精度自動化システムを構築。Function Calling・Tool Use対応。
+- 見出し数: 1
+- コンテンツサイズ: 11865 文字
+- 既存JSON-LD: 7個
+
+■ エンティティ抽出結果
+- Organization: Nands
+- Service数: 0
+- Product数: 0
+- knowsAbout数: 0
+
+■ テナント設定（Phase 8）
+- Author: 原田賢治
+- Author jobTitle: 代表取締役 / AI検索最適化コンサルタント
+- Author expertise: 10個
+- Organization sameAs: 5個
+- Author sameAs: 4個
+
+■ マージ結果
+- 追加プロパティ: Organization.sameAs, Person/Author, WebPage.author
+- 警告: 1件
+  - 既存のOrganizationスキーマが検出されました。sameAs/knowsAboutを追加しました。
+
+■ Fragment ID
+- 生成数: 0
+
+
+■ 生成された@graph要素
+- Organization (no @id)
+- Person (#author)
+- WebSite (https://nands.tech#website)
+- WebPage (https://nands.tech/ai-agents)
+
+■ 次のステップ
+1. 生成されたJSON-LDをコピー
+2. WordPress管理画面で該当ページを開く
+3. カスタムフィールドまたはテーマのJSON-LD設定欄に貼り付け
+4. Rich Results Testで検証: https://search.google.com/test/rich-results
+5. 警告ゼロを確認
+
+■ ファイル
+- JSON-LD: docs/saas-product/phase5-data/jsonld-output/ai-agents-2026-01-20T06-12-29.json
+- サマリー: docs/saas-product/phase5-data/jsonld-output/ai-agents-2026-01-20T06-12-29-summary.txt

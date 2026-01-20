@@ -1,0 +1,107 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "株式会社エヌアンドエス",
+      "alternateName": "N&S",
+      "url": "https://nands.tech",
+      "logo": "https://nands.tech/images/logo.png",
+      "description": "滋賀県を拠点とする総合人材支援・生成AIリスキリング研修企業。生成AI活用のリスキリング研修から、キャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合キャリア支援企業です。",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "皇子が丘２丁目10-25-3004号",
+        "addressLocality": "大津市",
+        "addressRegion": "滋賀県",
+        "postalCode": "520-0025",
+        "addressCountry": "JP"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+81-120-407-638",
+        "contactType": "customer service",
+        "email": "contact@nands.tech",
+        "availableLanguage": [
+          "日本語"
+        ],
+        "areaServed": [
+          "JP",
+          "関西地方",
+          "滋賀県"
+        ]
+      },
+      "sameAs": [
+        "https://twitter.com/nands_tech",
+        "https://www.facebook.com/nands.tech",
+        "https://www.linkedin.com/company/nands-tech",
+        "https://x.com/NANDS_AI",
+        "https://www.youtube.com/@kenjiharada_ai_site",
+        "https://github.com/nands-tech",
+        "https://taishoku-anshin-daiko.com/"
+      ],
+      "foundingDate": "2008",
+      "founders": [
+        {
+          "@type": "Person",
+          "name": "代表取締役"
+        }
+      ],
+      "numberOfEmployees": {
+        "@type": "QuantitativeValue",
+        "value": "10-50"
+      },
+      "slogan": "次のステージへ"
+    },
+    {
+      "@type": "Person",
+      "@id": "#author",
+      "name": "原田賢治",
+      "jobTitle": "代表取締役 / AI検索最適化コンサルタント",
+      "description": "AI検索最適化（ASO）とレリバンスエンジニアリングの専門家。Google AIO、ChatGPT、Perplexity等のAI検索エンジン対策を手掛ける。",
+      "image": "https://nands.tech/wp-content/uploads/2025/01/author-kenji-harada.jpg",
+      "knowsAbout": [
+        "AI検索最適化",
+        "レリバンスエンジニアリング",
+        "AIO対策",
+        "ChatGPT SEO",
+        "Perplexity最適化",
+        "構造化データ",
+        "Schema.org",
+        "JSON-LD",
+        "E-E-A-T最適化",
+        "Knowledge Graph"
+      ],
+      "sameAs": [
+        "https://x.com/NANDS_AI",
+        "https://www.linkedin.com/in/賢治-原田-77a4b7353/",
+        "https://www.youtube.com/@kenjiharada_ai_site",
+        "https://github.com/nands-tech"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://nands.tech#website",
+      "url": "https://nands.tech",
+      "name": "Nands",
+      "publisher": {
+        "@id": "https://nands.tech#organization"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://nands.tech/ai-agents",
+      "url": "https://nands.tech/ai-agents",
+      "name": "AIエージェント開発・カスタマイズ | Mastra Framework | 株式会社エヌアンドエス | 株式会社エヌアンドエス",
+      "description": "Mastra Framework・ChatGPT・Claude等最新AI技術によるインテリジェントエージェント開発。自然言語処理・RAGシステム・機械学習で24時間365日稼働する高精度自動化システムを構築。Function Calling・Tool Use対応。",
+      "isPartOf": {
+        "@id": "https://nands.tech#website"
+      },
+      "publisher": {
+        "@id": "https://nands.tech#organization"
+      },
+      "author": {
+        "@id": "#author"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+Phase 5: JSON-LD生成レポート（Phase 8 sameAs/Author統合版）
+================================================================
+
+URL: https://nands.tech/faq
+生成日時: 2026-01-20T06:15:50.550Z
+設定: nands
+
+■ クロール結果
+- タイトル: よくある質問 | 株式会社エヌアンドエス - AI・テクノロジー・研修・サポート | 株式会社エヌアンドエス
+- メタディスクリプション: AI・テクノロジーサービス、料金・契約、サポート・導入、人材・研修、マーケティング・AIO、AIサイト・ブランディングに関するよくある質問。専門スタッフが丁寧にお答えします。
+- 見出し数: 1
+- コンテンツサイズ: 4624 文字
+- 既存JSON-LD: 3個
+
+■ エンティティ抽出結果
+- Organization: Nands
+- Service数: 0
+- Product数: 0
+- knowsAbout数: 0
+
+■ テナント設定（Phase 8）
+- Author: 原田賢治
+- Author jobTitle: 代表取締役 / AI検索最適化コンサルタント
+- Author expertise: 10個
+- Organization sameAs: 5個
+- Author sameAs: 4個
+
+■ マージ結果
+- 追加プロパティ: Organization.sameAs, Person/Author, WebPage.author
+- 警告: 1件
+  - 既存のOrganizationスキーマが検出されました。sameAs/knowsAboutを追加しました。
+
+■ Fragment ID
+- 生成数: 0
+
+
+■ 生成された@graph要素
+- Organization (no @id)
+- Person (#author)
+- WebSite (https://nands.tech#website)
+- WebPage (https://nands.tech/faq)
+
+■ 次のステップ
+1. 生成されたJSON-LDをコピー
+2. WordPress管理画面で該当ページを開く
+3. カスタムフィールドまたはテーマのJSON-LD設定欄に貼り付け
+4. Rich Results Testで検証: https://search.google.com/test/rich-results
+5. 警告ゼロを確認
+
+■ ファイル
+- JSON-LD: docs/saas-product/phase5-data/jsonld-output/faq-2026-01-20T06-15-50.json
+- サマリー: docs/saas-product/phase5-data/jsonld-output/faq-2026-01-20T06-15-50-summary.txt

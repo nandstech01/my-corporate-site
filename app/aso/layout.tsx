@@ -1,6 +1,6 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AsoHeader from '@/components/aso/AsoHeader';
@@ -46,8 +46,8 @@ export default function AsoLayout({
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // 未ログインユーザーは /aso と /aso/login のみアクセス可能
-        if (pathname !== '/aso' && pathname !== '/aso/login') {
+        // 未ログインユーザーは /aso, /aso/login, /aso/signup のみアクセス可能
+        if (pathname !== '/aso' && pathname !== '/aso/login' && pathname !== '/aso/signup') {
           router.push('/aso');
         }
       }
@@ -61,8 +61,8 @@ export default function AsoLayout({
 
   const isDark = theme === 'dark';
 
-  // ランディングページとログインページはレイアウトなしで表示
-  if (pathname === '/aso' || pathname === '/aso/login') {
+  // ランディングページ、ログインページ、新規登録ページはレイアウトなしで表示
+  if (pathname === '/aso' || pathname === '/aso/login' || pathname === '/aso/signup') {
     return <>{children}</>;
   }
 

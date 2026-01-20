@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import { motion } from 'framer-motion';
 import {
   Layers,
@@ -411,34 +411,21 @@ export default function ASOLoginPage() {
                 <span className="text-xs">256-bit SSL暗号化で保護</span>
               </motion.div>
 
-              {/* Divider */}
+              {/* Signup Link */}
               <motion.div
                 variants={itemVariants}
-                className="mt-6 pt-6 border-t"
+                className="mt-6 pt-6 border-t text-center"
                 style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
               >
-                <p
-                  className="text-sm font-medium mb-3"
-                  style={{ color: isDark ? '#94a3b8' : '#64748b' }}
-                >
-                  テスト用アカウント
+                <p style={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                  アカウントをお持ちでないですか？{' '}
+                  <Link
+                    href="/aso/signup"
+                    className="font-medium text-purple-500 hover:text-purple-400 transition-colors"
+                  >
+                    新規登録
+                  </Link>
                 </p>
-                <div
-                  className="p-4 rounded-xl font-mono text-xs space-y-1.5"
-                  style={{
-                    background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                    color: isDark ? '#94a3b8' : '#64748b'
-                  }}
-                >
-                  <p>
-                    <span className="opacity-60">Email:</span>{' '}
-                    <span style={{ color: isDark ? '#ffffff' : '#0f172a' }}>aso-test@nands.tech</span>
-                  </p>
-                  <p>
-                    <span className="opacity-60">Pass:</span>{' '}
-                    <span style={{ color: isDark ? '#ffffff' : '#0f172a' }}>Test1234!@#$</span>
-                  </p>
-                </div>
               </motion.div>
             </div>
           </motion.div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FileSearch, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/browser';
 import AnalysesTable from '@/components/aso/AnalysesTable';
 import AnalysesFilters from '@/components/aso/AnalysesFilters';
 import NewAnalysisModal from '@/components/aso/NewAnalysisModal';
