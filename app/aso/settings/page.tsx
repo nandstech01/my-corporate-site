@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, User, Building2, Key, Check, Copy, CreditCard, BarChart3, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building2, Key, Check, Copy, CreditCard, BarChart3, ExternalLink, Share2, UserCircle, Save, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAsoTheme } from '@/app/aso/context';
+import SameAsInputForm from '@/components/aso/SameAsInputForm';
+import AuthorInputForm from '@/components/aso/AuthorInputForm';
+import type { TenantSettings, SameAsSettings, AuthorSettings } from '@/lib/aso/types/tenant-settings';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -75,6 +78,12 @@ export default function SettingsPage() {
   const { theme } = useAsoTheme();
   const isDark = theme === 'dark';
 
+  // Phase 8: sameAs & Author settings
+  const [tenantSettings, setTenantSettings] = useState<TenantSettings>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
@@ -88,52 +97,85 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     try {
       setIsLoading(true);
+
+      // Supabaseクライアントからユーザー情報を直接取得
       const supabase = createClient();
-      
-      // ユーザー情報取得
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        setProfile({
-          email: user.email || '',
-          id: user.id,
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      setProfile({
+        email: user.email || '',
+        id: user.id,
+      });
+
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      // テナント情報を取得（RPC経由）
+      const { data: tenantContext } = await supabase.rpc('get_current_tenant_context') as { data: { tenant_id: string; tenant_role: string } | null };
+
+      // user_tenantsからテナント一覧を取得
+      const { data: userTenants } = await supabase
+        .from('user_tenants')
+        .select('tenant_id, role')
+        .eq('user_id', user.id) as { data: Array<{ tenant_id: string; role: string }> | null };
+
+      const currentTenantId = tenantContext?.tenant_id || (userTenants && userTenants[0]?.tenant_id);
+      const currentRole = tenantContext?.tenant_role || (userTenants && userTenants[0]?.role);
+
+      if (currentTenantId) {
+        // テナント名を取得
+        const { data: tenantInfo } = await supabase
+          .from('tenants')
+          .select('name')
+          .eq('id', currentTenantId)
+          .single();
+
+        setTenant({
+          tenant_id: currentTenantId,
+          tenant_name: (tenantInfo as { name: string } | null)?.name || 'Unknown',
+          role: currentRole || 'member',
         });
 
-        // テナント情報取得
-        const { data: tenantData } = await supabase
-          .rpc('get_user_tenant_by_id', { p_user_id: user.id })
-          .single<{ tenant_id: string; role: string }>();
-
-        if (tenantData) {
-          // テナント名取得
-          const { data: tenantInfo } = await supabase
-            .from('aso.tenants')
-            .select('name')
-            .eq('id', tenantData.tenant_id)
-            .single();
-
-          setTenant({
-            tenant_id: tenantData.tenant_id,
-            tenant_name: tenantInfo?.name || 'Unknown',
-            role: tenantData.role,
+        // サブスクリプション情報取得
+        try {
+          const subResponse = await fetch('/api/aso/stripe/subscription', {
+            credentials: 'include',
+            headers,
           });
-
-          // サブスクリプション情報取得
-          try {
-            const subResponse = await fetch('/api/aso/stripe/subscription');
-            if (subResponse.ok) {
-              const subData = await subResponse.json();
-              setSubscription({
-                tier: subData.subscription.tier,
-                status: subData.subscription.status,
-                current_period_end: subData.subscription.current_period_end,
-                cancel_at_period_end: subData.subscription.cancel_at_period_end,
-              });
-              setUsage(subData.usage);
-            }
-          } catch (subError) {
-            console.error('Error fetching subscription:', subError);
+          if (subResponse.ok) {
+            const subData = await subResponse.json();
+            setSubscription({
+              tier: subData.subscription.tier,
+              status: subData.subscription.status,
+              current_period_end: subData.subscription.current_period_end,
+              cancel_at_period_end: subData.subscription.cancel_at_period_end,
+            });
+            setUsage(subData.usage);
           }
+        } catch (subError) {
+          console.error('Error fetching subscription:', subError);
+        }
+
+        // Phase 8: テナント設定取得
+        try {
+          const settingsResponse = await fetch('/api/aso/settings', {
+            credentials: 'include',
+            headers,
+          });
+          if (settingsResponse.ok) {
+            const settingsData = await settingsResponse.json();
+            setTenantSettings(settingsData.settings || {});
+          }
+        } catch (settingsError) {
+          console.error('Error fetching tenant settings:', settingsError);
         }
       }
     } catch (error) {
@@ -142,6 +184,65 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
   };
+
+  // Phase 8: 設定保存
+  const saveSettings = async () => {
+    try {
+      setIsSaving(true);
+      setSaveMessage(null);
+
+      // Supabaseセッションからトークンを取得してBearer認証
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch('/api/aso/settings', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({
+          sameAs: tenantSettings.sameAs,
+          author: tenantSettings.author,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: '設定を保存しました' });
+        setHasChanges(false);
+        setTenantSettings(data.settings);
+      } else {
+        setSaveMessage({ type: 'error', text: data.error || '保存に失敗しました' });
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setSaveMessage({ type: 'error', text: '保存に失敗しました' });
+    } finally {
+      setIsSaving(false);
+      // 3秒後にメッセージをクリア
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
+
+  const handleSameAsChange = (sameAs: SameAsSettings) => {
+    setTenantSettings((prev) => ({ ...prev, sameAs }));
+    setHasChanges(true);
+  };
+
+  const handleAuthorChange = (author: AuthorSettings | undefined) => {
+    setTenantSettings((prev) => ({ ...prev, author }));
+    setHasChanges(true);
+  };
+
+  // 編集権限チェック
+  const canEdit = tenant?.role === 'owner' || tenant?.role === 'admin';
 
   if (isLoading) {
     return (
@@ -164,27 +265,84 @@ export default function SettingsPage() {
       className="space-y-6"
     >
       {/* ヘッダー */}
-      <motion.div variants={itemVariants} className="flex items-center gap-3">
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center"
+      <motion.div variants={itemVariants} className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(34,211,238,0.2))'
+            }}
+          >
+            <SettingsIcon className="w-6 h-6" style={{ color: '#a855f7' }} />
+          </div>
+          <div>
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+            >
+              設定
+            </h1>
+            <p style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+              アカウント・テナント情報・Schema.org設定
+            </p>
+          </div>
+        </div>
+
+        {/* 保存ボタン */}
+        {canEdit && hasChanges && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={saveSettings}
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"
+            style={{
+              background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+              color: '#ffffff',
+              opacity: isSaving ? 0.7 : 1,
+            }}
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {isSaving ? '保存中...' : '変更を保存'}
+          </motion.button>
+        )}
+      </motion.div>
+
+      {/* 保存メッセージ */}
+      {saveMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="rounded-xl p-4"
           style={{
-            background: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(34,211,238,0.2))'
+            background: saveMessage.type === 'success'
+              ? 'rgba(34,197,94,0.1)'
+              : 'rgba(239,68,68,0.1)',
+            border: `1px solid ${
+              saveMessage.type === 'success'
+                ? 'rgba(34,197,94,0.2)'
+                : 'rgba(239,68,68,0.2)'
+            }`,
           }}
         >
-          <SettingsIcon className="w-6 h-6" style={{ color: '#a855f7' }} />
-        </div>
-        <div>
-          <h1
-            className="text-2xl font-bold tracking-tight"
-            style={{ color: isDark ? '#ffffff' : '#0f172a' }}
-          >
-            設定
-          </h1>
-          <p style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
-            アカウント・テナント情報
-          </p>
-        </div>
-      </motion.div>
+          <div className="flex items-center gap-2">
+            <Check
+              className="w-5 h-5"
+              style={{ color: saveMessage.type === 'success' ? '#22c55e' : '#ef4444' }}
+            />
+            <span style={{ color: saveMessage.type === 'success' ? '#22c55e' : '#ef4444' }}>
+              {saveMessage.text}
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* プロフィールセクション */}
       <motion.div
@@ -361,6 +519,118 @@ export default function SettingsPage() {
           ) : (
             <div className="text-center py-8" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
               テナント情報を取得できませんでした
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Phase 8: ソーシャルリンク（sameAs）セクション */}
+      <motion.div
+        variants={itemVariants}
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
+        }}
+      >
+        <div
+          className="px-6 py-4 border-b"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Share2 className="w-5 h-5" style={{ color: '#22c55e' }} />
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+              >
+                ソーシャルリンク（sameAs）
+              </h2>
+            </div>
+            <span
+              className="text-xs px-2 py-1 rounded"
+              style={{
+                background: 'rgba(168,85,247,0.1)',
+                color: '#a855f7',
+              }}
+            >
+              Schema.org
+            </span>
+          </div>
+          <p className="mt-2 text-sm" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+            SNSアカウントを登録すると、JSON-LDのsameAsプロパティに追加され、Google Knowledge Graphでの認識が向上します。
+          </p>
+        </div>
+
+        <div className="p-6">
+          {canEdit ? (
+            <SameAsInputForm
+              sameAs={tenantSettings.sameAs}
+              onChange={handleSameAsChange}
+              isDark={isDark}
+            />
+          ) : (
+            <div className="text-center py-8" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+              設定の編集にはオーナーまたは管理者権限が必要です
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Phase 8: 代表者情報（Author）セクション */}
+      <motion.div
+        variants={itemVariants}
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
+        }}
+      >
+        <div
+          className="px-6 py-4 border-b"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserCircle className="w-5 h-5" style={{ color: '#f59e0b' }} />
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+              >
+                代表者情報（Author）
+              </h2>
+            </div>
+            <span
+              className="text-xs px-2 py-1 rounded"
+              style={{
+                background: 'rgba(245,158,11,0.1)',
+                color: '#f59e0b',
+              }}
+            >
+              E-E-A-T
+            </span>
+          </div>
+          <p className="mt-2 text-sm" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+            代表者情報を設定すると、PersonスキーマとしてJSON-LDに追加され、E-E-A-T評価の向上に貢献します。
+          </p>
+        </div>
+
+        <div className="p-6">
+          {canEdit ? (
+            <AuthorInputForm
+              author={tenantSettings.author}
+              onChange={handleAuthorChange}
+              isDark={isDark}
+            />
+          ) : (
+            <div className="text-center py-8" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+              設定の編集にはオーナーまたは管理者権限が必要です
             </div>
           )}
         </div>
@@ -671,8 +941,8 @@ export default function SettingsPage() {
               ロールについて
             </h3>
             <ul className="space-y-2 text-sm" style={{ color: isDark ? '#c4b5fd' : '#8b5cf6' }}>
-              <li>• <strong style={{ color: '#f59e0b' }}>オーナー</strong>: テナントの全権限を持ちます</li>
-              <li>• <strong style={{ color: '#a855f7' }}>管理者</strong>: メンバー管理と分析の全機能を使用できます</li>
+              <li>• <strong style={{ color: '#f59e0b' }}>オーナー</strong>: テナントの全権限を持ちます（sameAs/Author設定可能）</li>
+              <li>• <strong style={{ color: '#a855f7' }}>管理者</strong>: メンバー管理と分析の全機能を使用できます（sameAs/Author設定可能）</li>
               <li>• <strong style={{ color: '#22d3ee' }}>メンバー</strong>: 分析の閲覧・実行ができます</li>
             </ul>
           </div>
@@ -681,4 +951,3 @@ export default function SettingsPage() {
     </motion.div>
   );
 }
-

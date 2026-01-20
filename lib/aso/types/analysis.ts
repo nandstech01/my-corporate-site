@@ -107,6 +107,21 @@ export interface AnalysisData {
 
   /** Fragment Schema一覧（HasPartSchema互換） */
   fragment_schemas?: HasPartSchema[];
+
+  // Phase 8 追加フィールド（オプショナル）
+
+  /** 生成・マージ済みJSON-LDスキーマ */
+  structured_data?: any;
+
+  /** スキーママージレポート */
+  merge_report?: {
+    /** 衝突情報 */
+    conflicts: any[];
+    /** 追加されたプロパティ */
+    additions: string[];
+    /** 警告メッセージ */
+    warnings: string[];
+  };
 }
 
 // ========================================

@@ -1,12 +1,14 @@
 /**
  * ASO SaaS - URL分析API
- * 
+ *
  * @description
  * URLを受け取り、クロール→分析→保存を実行
  * carve-out基盤と統合（認証、RLS、テナント分離）
- * 
+ * Phase 8: sameAs, Author Schema, 型別マージ機能追加
+ *
  * @author NANDS SaaS開発チーム
  * @created 2025-01-10
+ * @updated 2026-01-20
  */
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
@@ -15,7 +17,11 @@ import { NextResponse } from 'next/server';
 import { crawlUrl } from '@/lib/aso/crawler';
 import { HasPartSchemaSystem } from '@/lib/structured-data/haspart-schema-system';
 import { ASOFragmentVectorizer } from '@/lib/aso/fragment-vectorizer';
+import { ASOSchemaMerger } from '@/lib/aso/schema-merger';
+import { ASOSchemaGenerator } from '@/lib/aso/schema-generator';
+import { ASOEntityExtractor } from '@/lib/aso/entity-extractor';
 import type { AnalysisData, HasPartSchema } from '@/lib/aso/types/analysis';
+import type { TenantSettings } from '@/lib/aso/types/tenant-settings';
 import * as crypto from 'crypto';
 
 /**
@@ -351,8 +357,86 @@ export async function POST(request: Request) {
     // analysis_data に追加（型安全）
     analysis_data.fragment_ids = fragmentSchemas.map((f: HasPartSchema) => f['@id']);
     analysis_data.fragment_schemas = fragmentSchemas;
-    
+
     console.log(`[ASO] Generated ${fragmentSchemas.length} Fragment IDs`);
+
+    // 7.2. Phase 8: テナント設定取得 & Schema生成 & マージ
+    let tenantSettings: TenantSettings = {};
+    let structuredData: any = null;
+    let mergeReport: any = null;
+
+    try {
+      // テナント設定取得（RPC経由 - asoスキーマはREST APIで公開されていないため）
+      const { data: settingsData, error: settingsError } = await supabase
+        .rpc('get_tenant_settings_by_id', { p_tenant_id: tenant_id });
+
+      if (!settingsError && settingsData) {
+        tenantSettings = settingsData as TenantSettings;
+        console.log(`[ASO] Tenant settings loaded: sameAs=${!!tenantSettings.sameAs}, author=${!!tenantSettings.author}`);
+      } else if (settingsError) {
+        console.warn('[ASO] Failed to load tenant settings:', settingsError.message);
+      }
+
+      // Schema Generator でJSON-LD生成（sameAs, Author追加）
+      const schemaGenerator = new ASOSchemaGenerator();
+      const generatedSchema = schemaGenerator.generateSchema({
+        url,
+        title: crawlResult.metadata.title || 'Untitled',
+        description: crawlResult.metadata.description || '',
+        fragments: crawlResult.headings.map((heading, index) => ({
+          fragmentId: fragmentIds[index],
+          title: heading.text,
+          fullContent: heading.text, // 見出しテキストを使用（本文抽出は将来拡張）
+        })),
+        entities: {
+          organization: crawlResult.entities.find(e => e.type === 'Organization') ? {
+            name: crawlResult.entities.find(e => e.type === 'Organization')?.text || '',
+            url: url,
+            description: crawlResult.metadata.description || '',
+            evidence: 'Extracted from page metadata'
+          } : undefined,
+          services: crawlResult.entities.filter(e => e.type === 'Service').map(e => ({
+            name: e.text,
+            description: '',
+            evidence: 'Extracted from page content'
+          })),
+          products: crawlResult.entities.filter(e => e.type === 'Product').map(e => ({
+            name: e.text,
+            description: '',
+            evidence: 'Extracted from page content'
+          })),
+          knowsAbout: crawlResult.entities.filter(e => e.type === 'Other').map(e => e.text).slice(0, 5),
+        },
+        tenantSettings,
+      });
+
+      // Schema Merger で既存JSON-LDとマージ
+      const schemaMerger = new ASOSchemaMerger();
+      const mergeResult = schemaMerger.mergeWithExisting(
+        crawlResult.jsonLd,
+        generatedSchema,
+        tenantSettings
+      );
+
+      structuredData = mergeResult.merged;
+      mergeReport = {
+        conflicts: mergeResult.conflicts,
+        additions: mergeResult.additions,
+        warnings: mergeResult.warnings,
+      };
+
+      console.log(`[ASO] Schema merge completed: ${mergeResult.additions.length} additions, ${mergeResult.warnings.length} warnings`);
+    } catch (schemaError) {
+      console.error('[ASO] Schema generation/merge error (non-blocking):', schemaError);
+    }
+
+    // Phase 8: structured_data と merge_report を analysis_data に追加
+    if (structuredData) {
+      analysis_data.structured_data = structuredData;
+    }
+    if (mergeReport) {
+      analysis_data.merge_report = mergeReport;
+    }
 
     // 8. AI構造化スコア計算（簡易版）
     const ai_structure_score = calculateAiStructureScore(crawlResult);
