@@ -8,8 +8,12 @@
  *
  * @author NANDS SaaS開発チーム
  * @created 2025-01-10
- * @updated 2026-01-20
+ * @updated 2026-01-21
  */
+
+// Vercel Function Configuration
+// Extend timeout for URL crawling and analysis
+export const maxDuration = 60; // 60 seconds (Pro plan required for >10s)
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
@@ -265,8 +269,8 @@ export async function POST(request: Request) {
     // 6. URLクロール実行
     console.log(`[ASO] Crawling URL: ${url} (serverless: ${isServerlessEnvironment()})`);
     const crawlResult = await crawlUrlServerless(url, {
-      timeout: 30000,
-      maxRetries: 3,
+      timeout: 15000, // 15秒（サーバーレス対応）
+      maxRetries: 2,
     });
 
     if (!crawlResult.success) {
