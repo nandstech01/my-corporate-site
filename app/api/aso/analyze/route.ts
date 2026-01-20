@@ -14,7 +14,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { crawlUrl } from '@/lib/aso/crawler';
+import { crawlUrlServerless, isServerlessEnvironment } from '@/lib/aso/crawler-serverless';
 import { HasPartSchemaSystem } from '@/lib/structured-data/haspart-schema-system';
 import { ASOFragmentVectorizer } from '@/lib/aso/fragment-vectorizer';
 import { ASOSchemaMerger } from '@/lib/aso/schema-merger';
@@ -263,8 +263,8 @@ export async function POST(request: Request) {
     }
 
     // 6. URLクロール実行
-    console.log(`[ASO] Crawling URL: ${url}`);
-    const crawlResult = await crawlUrl(url, {
+    console.log(`[ASO] Crawling URL: ${url} (serverless: ${isServerlessEnvironment()})`);
+    const crawlResult = await crawlUrlServerless(url, {
       timeout: 30000,
       maxRetries: 3,
     });
