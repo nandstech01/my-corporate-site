@@ -1,12 +1,13 @@
 /**
  * ASO SaaS - 分析一覧取得API
- * 
+ *
  * @description
  * テナント内の全分析一覧を取得（ページネーション、フィルタリング対応）
  * RLS（Row Level Security）により、テナント分離が保証される
- * 
+ *
  * @author NANDS SaaS開発チーム
  * @created 2025-01-10
+ * @updated 2026-01-21 - RPC関数でリスト取得に変更
  */
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';

@@ -32,23 +32,29 @@ AS $$
 DECLARE
   v_user_id uuid;
   v_is_member boolean;
+  v_is_service_role boolean;
 BEGIN
-  -- 現在のユーザーIDを取得
-  v_user_id := auth.uid();
+  -- Check if service_role (bypass auth check)
+  v_is_service_role := (current_setting('request.jwt.claims', true)::jsonb)->>'role' = 'service_role';
 
-  IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'Not authenticated';
-  END IF;
+  IF NOT v_is_service_role THEN
+    -- 現在のユーザーIDを取得
+    v_user_id := auth.uid();
 
-  -- ユーザーがこのテナントのメンバーかどうか確認
-  SELECT EXISTS (
-    SELECT 1 FROM aso.user_tenants ut
-    WHERE ut.tenant_id = p_tenant_id
-      AND ut.user_id = v_user_id
-  ) INTO v_is_member;
+    IF v_user_id IS NULL THEN
+      RAISE EXCEPTION 'Not authenticated';
+    END IF;
 
-  IF NOT v_is_member THEN
-    RAISE EXCEPTION 'User is not a member of this tenant';
+    -- ユーザーがこのテナントのメンバーかどうか確認
+    SELECT EXISTS (
+      SELECT 1 FROM aso.user_tenants ut
+      WHERE ut.tenant_id = p_tenant_id
+        AND ut.user_id = v_user_id
+    ) INTO v_is_member;
+
+    IF NOT v_is_member THEN
+      RAISE EXCEPTION 'User is not a member of this tenant';
+    END IF;
   END IF;
 
   -- テナントの分析一覧を返す
