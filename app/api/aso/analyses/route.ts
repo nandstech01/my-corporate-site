@@ -146,7 +146,7 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log('[ASO] Listing analyses for tenant:', tenant_id);
+    console.log('[ASO] Listing analyses for tenant:', tenant_id, 'user:', user.id);
 
     // RPC関数で取得（Phase 5準拠）
     const offset = (page - 1) * limit;
@@ -157,7 +157,13 @@ export async function GET(request: Request) {
         p_offset: offset,
       });
 
-    console.log('[ASO] List result:', { count: analyses?.length || 0, error: fetchError });
+    console.log('[ASO] List result:', {
+      count: analyses?.length || 0,
+      error: fetchError,
+      tenant_id,
+      user_id: user.id,
+      has_data: !!analyses && analyses.length > 0
+    });
 
     if (fetchError) {
       console.error('分析一覧取得エラー:', fetchError);
@@ -194,9 +200,15 @@ export async function GET(request: Request) {
     const total = filteredAnalyses.length;
     const total_pages = Math.ceil(total / limit);
 
-    return NextResponse.json<AnalysesListResponse>(
+    return NextResponse.json<AnalysesListResponse & { _debug?: any }>(
       {
         analyses: filteredAnalyses || [],
+        _debug: {
+          tenant_id,
+          user_id: user.id,
+          raw_count: analyses?.length || 0,
+          fetch_error: fetchError?.message || null
+        },
         pagination: {
           page,
           limit,
