@@ -128,40 +128,30 @@ export async function GET(request: Request) {
       supabase = await createSupabaseServerClient();
     }
 
-    console.log('[ASO] Getting user...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('[ASO] Auth result:', { user: user?.id, error: authError?.message });
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized', _authDebug: { error: authError?.message, hasUser: !!user } },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     // テナントコンテキスト取得（analyze APIと同じロジック）
     let tenant_id: string | null = null;
-    let tenant_role: string | null = null;
 
     const { data: context, error: contextError } = await supabase
       .rpc('get_current_tenant_context');
 
     if (!contextError && context?.tenant_id) {
       tenant_id = context.tenant_id;
-      tenant_role = context.tenant_role;
-      console.log('[ASO] Using tenant from RPC:', tenant_id, tenant_role);
     } else {
       // Fallback: analyze APIと同じRPC関数を使用
-      console.log('[ASO] RPC failed, using fallback. User ID:', user.id);
-      
       const { data: membership, error: membershipError } = await supabase
         .rpc('get_user_tenant_by_id', { p_user_id: user.id })
         .single<{ tenant_id: string; role: string }>();
 
-      console.log('[ASO] Membership query result:', { membership, error: membershipError });
-
       if (membershipError || !membership) {
-        console.error('[ASO] No tenant context:', membershipError);
         return NextResponse.json(
           { error: 'No tenant context. Please select or join a tenant.' },
           { status: 403 }
@@ -169,8 +159,6 @@ export async function GET(request: Request) {
       }
 
       tenant_id = membership.tenant_id;
-      tenant_role = membership.role;
-      console.log('[ASO] Using tenant from fallback:', tenant_id, tenant_role);
     }
 
     if (!tenant_id) {
@@ -179,8 +167,6 @@ export async function GET(request: Request) {
         { status: 403 }
       );
     }
-
-    console.log('[ASO] Listing analyses for tenant:', tenant_id, 'user:', user.id);
 
     // RPC関数で取得（Phase 5準拠）
     const offset = (page - 1) * limit;
@@ -191,16 +177,7 @@ export async function GET(request: Request) {
         p_offset: offset,
       });
 
-    console.log('[ASO] List result:', {
-      count: analyses?.length || 0,
-      error: fetchError,
-      tenant_id,
-      user_id: user.id,
-      has_data: !!analyses && analyses.length > 0
-    });
-
     if (fetchError) {
-      console.error('分析一覧取得エラー:', fetchError);
       return NextResponse.json(
         { error: 'Failed to fetch analyses' },
         { status: 500 }
@@ -234,14 +211,9 @@ export async function GET(request: Request) {
     const total = filteredAnalyses.length;
     const total_pages = Math.ceil(total / limit);
 
-    return NextResponse.json<AnalysesListResponse & { _debug?: any }>(
+    return NextResponse.json<AnalysesListResponse>(
       {
         analyses: filteredAnalyses || [],
-        _debug: {
-          tenant_id,
-          user_id: user.id,
-          raw_count: analyses?.length || 0
-        },
         pagination: {
           page,
           limit,
