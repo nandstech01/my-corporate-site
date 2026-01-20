@@ -240,8 +240,7 @@ export async function GET(request: Request) {
         _debug: {
           tenant_id,
           user_id: user.id,
-          raw_count: analyses?.length || 0,
-          fetch_error: fetchError?.message || null
+          raw_count: analyses?.length || 0
         },
         pagination: {
           page,
