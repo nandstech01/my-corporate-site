@@ -20,6 +20,9 @@ const PUBLIC_ROUTES = [
   '/clavi/blog',
 ];
 
+// Routes that require auth but NOT a tenant
+const AUTH_ONLY_ROUTES = ['/clavi/onboard'];
+
 const isPublicRoute = (pathname: string): boolean => {
   if (PUBLIC_ROUTES.includes(pathname)) return true;
   if (pathname.startsWith('/clavi/features/')) return true;
@@ -66,6 +69,23 @@ export default function AsoLayout({
 
       if (!user && !isPublicRoute(pathname)) {
         router.push('/clavi');
+        setIsLoading(false);
+        return;
+      }
+
+      // Authenticated user: check tenant membership (skip for public/onboard routes)
+      if (user && !isPublicRoute(pathname) && !AUTH_ONLY_ROUTES.includes(pathname)) {
+        const { data: tenants } = await supabase
+          .from('user_tenants')
+          .select('tenant_id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (!tenants || tenants.length === 0) {
+          router.push('/clavi/onboard');
+          setIsLoading(false);
+          return;
+        }
       }
 
       setUser(user);
@@ -82,6 +102,20 @@ export default function AsoLayout({
     return (
       <ClaviThemeContext.Provider value={{ theme, toggleTheme }}>
         {children}
+      </ClaviThemeContext.Provider>
+    );
+  }
+
+  // Onboard page renders without sidebar
+  if (AUTH_ONLY_ROUTES.includes(pathname)) {
+    return (
+      <ClaviThemeContext.Provider value={{ theme, toggleTheme }}>
+        <div
+          className="min-h-screen"
+          style={{ background: isDark ? '#101f22' : '#f3f5f8' }}
+        >
+          {children}
+        </div>
       </ClaviThemeContext.Provider>
     );
   }
