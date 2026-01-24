@@ -35,14 +35,24 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect ASO routes - redirect to login if not authenticated
-  if (request.nextUrl.pathname.startsWith('/aso') &&
-      !request.nextUrl.pathname.startsWith('/aso/login') &&
-      !request.nextUrl.pathname.startsWith('/aso/signup') &&
-      !request.nextUrl.pathname.startsWith('/aso/pricing') &&
-      !user) {
+  // Protect CLAVI routes - redirect to login if not authenticated
+  const claviPublicPrefixes = [
+    '/clavi/login',
+    '/clavi/signup',
+    '/clavi/pricing',
+    '/clavi/features',
+    '/clavi/contact',
+    '/clavi/case-studies',
+    '/clavi/blog',
+  ]
+
+  const isClaviPublic =
+    request.nextUrl.pathname === '/clavi' ||
+    claviPublicPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix))
+
+  if (request.nextUrl.pathname.startsWith('/clavi') && !isClaviPublic && !user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/aso/login'
+    url.pathname = '/clavi/login'
     return NextResponse.redirect(url)
   }
 

@@ -6,44 +6,44 @@
 -- - Stripeサブスクリプション管理に必要なカラムを追加
 -- - 使用量追跡テーブルと関数を作成
 --
--- 依存: 20250109000000_create_aso_core.sql
+-- 依存: 20250109000000_create_clavi_core.sql
 
 -- =========================================================
--- 1. aso.tenants に Stripe関連カラムを追加
+-- 1. clavi.tenants に Stripe関連カラムを追加
 -- =========================================================
 
 -- stripe_subscription_id: StripeサブスクリプションID
-ALTER TABLE aso.tenants
+ALTER TABLE clavi.tenants
 ADD COLUMN IF NOT EXISTS stripe_subscription_id text UNIQUE;
 
 -- stripe_price_id: 現在の価格ID
-ALTER TABLE aso.tenants
+ALTER TABLE clavi.tenants
 ADD COLUMN IF NOT EXISTS stripe_price_id text;
 
 -- subscription_current_period_end: 請求期間終了日
-ALTER TABLE aso.tenants
+ALTER TABLE clavi.tenants
 ADD COLUMN IF NOT EXISTS subscription_current_period_end timestamptz;
 
 -- subscription_cancel_at_period_end: 期間終了時キャンセル予定フラグ
-ALTER TABLE aso.tenants
+ALTER TABLE clavi.tenants
 ADD COLUMN IF NOT EXISTS subscription_cancel_at_period_end boolean NOT NULL DEFAULT false;
 
 -- インデックス追加（Webhook検索用）
 CREATE INDEX IF NOT EXISTS idx_tenants_stripe_subscription_id
-ON aso.tenants (stripe_subscription_id)
+ON clavi.tenants (stripe_subscription_id)
 WHERE stripe_subscription_id IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_tenants_stripe_customer_id
-ON aso.tenants (stripe_customer_id)
+ON clavi.tenants (stripe_customer_id)
 WHERE stripe_customer_id IS NOT NULL;
 
 -- =========================================================
--- 2. 使用量追跡テーブル: aso.usage_records
+-- 2. 使用量追跡テーブル: clavi.usage_records
 -- =========================================================
 
-CREATE TABLE IF NOT EXISTS aso.usage_records (
+CREATE TABLE IF NOT EXISTS clavi.usage_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL REFERENCES aso.tenants(id) ON DELETE CASCADE,
+  tenant_id uuid NOT NULL REFERENCES clavi.tenants(id) ON DELETE CASCADE,
   year_month text NOT NULL,  -- YYYY-MM形式
   url_analysis_count integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -54,31 +54,31 @@ CREATE TABLE IF NOT EXISTS aso.usage_records (
 );
 
 -- updated_at自動更新トリガー
-DROP TRIGGER IF EXISTS trg_usage_records_set_updated_at ON aso.usage_records;
+DROP TRIGGER IF EXISTS trg_usage_records_set_updated_at ON clavi.usage_records;
 CREATE TRIGGER trg_usage_records_set_updated_at
-BEFORE UPDATE ON aso.usage_records
-FOR EACH ROW EXECUTE FUNCTION aso.set_updated_at();
+BEFORE UPDATE ON clavi.usage_records
+FOR EACH ROW EXECUTE FUNCTION clavi.set_updated_at();
 
 -- RLS設定
-ALTER TABLE aso.usage_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clavi.usage_records ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS usage_records_select ON aso.usage_records;
+DROP POLICY IF EXISTS usage_records_select ON clavi.usage_records;
 CREATE POLICY usage_records_select
-ON aso.usage_records FOR SELECT TO authenticated
-USING (tenant_id = aso.current_tenant_id());
+ON clavi.usage_records FOR SELECT TO authenticated
+USING (tenant_id = clavi.current_tenant_id());
 
 -- =========================================================
 -- 3. 使用量インクリメント関数
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.increment_usage(
+CREATE OR REPLACE FUNCTION clavi.increment_usage(
   p_tenant_id uuid,
   p_year_month text DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_year_month text;
@@ -88,11 +88,11 @@ BEGIN
   v_year_month := COALESCE(p_year_month, to_char(now(), 'YYYY-MM'));
 
   -- UPSERT: 存在しなければINSERT、存在すればUPDATE
-  INSERT INTO aso.usage_records (tenant_id, year_month, url_analysis_count)
+  INSERT INTO clavi.usage_records (tenant_id, year_month, url_analysis_count)
   VALUES (p_tenant_id, v_year_month, 1)
   ON CONFLICT (tenant_id, year_month)
   DO UPDATE SET
-    url_analysis_count = aso.usage_records.url_analysis_count + 1,
+    url_analysis_count = clavi.usage_records.url_analysis_count + 1,
     updated_at = now()
   RETURNING url_analysis_count INTO v_new_count;
 
@@ -104,7 +104,7 @@ $$;
 -- 4. 使用量制限チェック関数
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.check_usage_limit(
+CREATE OR REPLACE FUNCTION clavi.check_usage_limit(
   p_tenant_id uuid,
   p_year_month text DEFAULT NULL
 )
@@ -118,7 +118,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_year_month text;
@@ -131,7 +131,7 @@ BEGIN
 
   -- テナントのtierを取得
   SELECT subscription_tier INTO v_tier
-  FROM aso.tenants
+  FROM clavi.tenants
   WHERE id = p_tenant_id;
 
   -- tier未取得の場合
@@ -149,7 +149,7 @@ BEGIN
 
   -- 現在の使用量を取得
   SELECT COALESCE(ur.url_analysis_count, 0) INTO v_current_usage
-  FROM aso.usage_records ur
+  FROM clavi.usage_records ur
   WHERE ur.tenant_id = p_tenant_id AND ur.year_month = v_year_month;
 
   -- レコードが存在しない場合は0
@@ -176,14 +176,14 @@ $$;
 -- 5. 月次使用量リセット関数（Webhook invoice.paid で使用）
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.reset_usage(
+CREATE OR REPLACE FUNCTION clavi.reset_usage(
   p_tenant_id uuid,
   p_year_month text DEFAULT NULL
 )
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_year_month text;
@@ -192,7 +192,7 @@ BEGIN
   v_year_month := COALESCE(p_year_month, to_char(now(), 'YYYY-MM'));
 
   -- 使用量を0にリセット（レコードがあれば更新、なければ何もしない）
-  UPDATE aso.usage_records
+  UPDATE clavi.usage_records
   SET url_analysis_count = 0, updated_at = now()
   WHERE tenant_id = p_tenant_id AND year_month = v_year_month;
 END;
@@ -202,7 +202,7 @@ $$;
 -- 6. Stripe顧客ID検索用関数（Webhook用）
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.get_tenant_by_stripe_customer(
+CREATE OR REPLACE FUNCTION clavi.get_tenant_by_stripe_customer(
   p_stripe_customer_id text
 )
 RETURNS TABLE (
@@ -216,7 +216,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
   RETURN QUERY
@@ -227,7 +227,7 @@ BEGIN
     t.subscription_status,
     t.stripe_subscription_id,
     t.stripe_price_id
-  FROM aso.tenants t
+  FROM clavi.tenants t
   WHERE t.stripe_customer_id = p_stripe_customer_id;
 END;
 $$;
@@ -236,7 +236,7 @@ $$;
 -- 7. Stripeサブスクリプション更新関数（Webhook用）
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.update_stripe_subscription(
+CREATE OR REPLACE FUNCTION clavi.update_stripe_subscription(
   p_stripe_customer_id text,
   p_stripe_subscription_id text DEFAULT NULL,
   p_stripe_price_id text DEFAULT NULL,
@@ -248,14 +248,14 @@ CREATE OR REPLACE FUNCTION aso.update_stripe_subscription(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_tenant_id uuid;
 BEGIN
   -- テナントIDを取得
   SELECT id INTO v_tenant_id
-  FROM aso.tenants
+  FROM clavi.tenants
   WHERE stripe_customer_id = p_stripe_customer_id;
 
   IF v_tenant_id IS NULL THEN
@@ -263,7 +263,7 @@ BEGIN
   END IF;
 
   -- 更新（NULLでない値のみ更新）
-  UPDATE aso.tenants
+  UPDATE clavi.tenants
   SET
     stripe_subscription_id = COALESCE(p_stripe_subscription_id, stripe_subscription_id),
     stripe_price_id = COALESCE(p_stripe_price_id, stripe_price_id),
@@ -282,7 +282,7 @@ $$;
 -- 8. Price IDからTier名へのマッピング関数
 -- =========================================================
 
-CREATE OR REPLACE FUNCTION aso.price_id_to_tier(
+CREATE OR REPLACE FUNCTION clavi.price_id_to_tier(
   p_price_id text
 )
 RETURNS text
@@ -324,19 +324,19 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_tenant_id uuid;
 BEGIN
   -- JWT claimからテナントID取得
-  v_tenant_id := aso.current_tenant_id();
+  v_tenant_id := clavi.current_tenant_id();
 
   IF v_tenant_id IS NULL THEN
     RAISE EXCEPTION 'No tenant context';
   END IF;
 
-  RETURN QUERY SELECT * FROM aso.check_usage_limit(v_tenant_id);
+  RETURN QUERY SELECT * FROM clavi.check_usage_limit(v_tenant_id);
 END;
 $$;
 
@@ -356,14 +356,14 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_tenant_id uuid;
   v_year_month text;
 BEGIN
   -- JWT claimからテナントID取得
-  v_tenant_id := aso.current_tenant_id();
+  v_tenant_id := clavi.current_tenant_id();
 
   IF v_tenant_id IS NULL THEN
     RAISE EXCEPTION 'No tenant context';
@@ -388,8 +388,8 @@ BEGIN
       WHEN 'enterprise' THEN -1
       ELSE 50
     END AS usage_limit
-  FROM aso.tenants t
-  LEFT JOIN aso.usage_records ur ON ur.tenant_id = t.id AND ur.year_month = v_year_month
+  FROM clavi.tenants t
+  LEFT JOIN clavi.usage_records ur ON ur.tenant_id = t.id AND ur.year_month = v_year_month
   WHERE t.id = v_tenant_id;
 END;
 $$;

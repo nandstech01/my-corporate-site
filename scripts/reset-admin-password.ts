@@ -46,7 +46,7 @@ async function resetPassword() {
   console.log('Email:', email);
   console.log('Password:', newPassword);
   console.log('');
-  console.log('URL: http://localhost:3000/aso/login');
+  console.log('URL: http://localhost:3000/clavi/login');
 }
 
 resetPassword();

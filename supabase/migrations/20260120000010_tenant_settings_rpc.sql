@@ -5,19 +5,19 @@
 -- 目的: sameAs, Author設定の取得・更新RPC
 --
 -- 背景:
--- - Supabase REST APIはasoスキーマを公開していない
--- - RPC経由でasoスキーマにアクセスする必要がある
+-- - Supabase REST APIはclaviスキーマを公開していない
+-- - RPC経由でclaviスキーマにアクセスする必要がある
 -- - SECURITY DEFINERでRLS bypassしつつ権限チェック
 
 -- ============================================
 -- 1. テナント設定取得 RPC
 -- ============================================
 
-CREATE OR REPLACE FUNCTION aso.get_tenant_settings()
+CREATE OR REPLACE FUNCTION clavi.get_tenant_settings()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
@@ -25,14 +25,14 @@ DECLARE
   _settings jsonb;
 BEGIN
   -- Step 1: JWT claimからtenant_idを取得
-  _tenant_id := aso.current_tenant_id();
+  _tenant_id := clavi.current_tenant_id();
   _user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認
   IF _tenant_id IS NULL THEN
     -- Fallback: user_tenantsから取得
     SELECT ut.tenant_id INTO _tenant_id
-    FROM aso.user_tenants ut
+    FROM clavi.user_tenants ut
     WHERE ut.user_id = _user_id
     LIMIT 1;
 
@@ -43,7 +43,7 @@ BEGIN
 
   -- Step 3: テナント設定取得
   SELECT t.settings INTO _settings
-  FROM aso.tenants t
+  FROM clavi.tenants t
   WHERE t.id = _tenant_id;
 
   IF NOT FOUND THEN
@@ -69,11 +69,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.get_tenant_settings() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.get_tenant_settings() TO authenticated;
+REVOKE ALL ON FUNCTION clavi.get_tenant_settings() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.get_tenant_settings() TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.get_tenant_settings IS
+COMMENT ON FUNCTION clavi.get_tenant_settings IS
 'テナント設定を取得（sameAs, Author等）';
 
 -- publicスキーマラッパー
@@ -81,10 +81,10 @@ CREATE OR REPLACE FUNCTION public.get_tenant_settings()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.get_tenant_settings();
+  RETURN clavi.get_tenant_settings();
 END;
 $$;
 
@@ -92,20 +92,20 @@ REVOKE ALL ON FUNCTION public.get_tenant_settings() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_tenant_settings() TO authenticated;
 
 COMMENT ON FUNCTION public.get_tenant_settings IS
-'aso.get_tenant_settings のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.get_tenant_settings のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- ============================================
 -- 2. テナント設定更新 RPC
 -- ============================================
 
-CREATE OR REPLACE FUNCTION aso.update_tenant_settings(
+CREATE OR REPLACE FUNCTION clavi.update_tenant_settings(
   p_same_as jsonb DEFAULT NULL,
   p_author jsonb DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
@@ -116,15 +116,15 @@ DECLARE
   _changes jsonb := '{}'::jsonb;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
   _user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認（Fallback付き）
   IF _tenant_id IS NULL THEN
     -- Fallback: user_tenantsから取得
     SELECT ut.tenant_id, ut.role INTO _tenant_id, _tenant_role
-    FROM aso.user_tenants ut
+    FROM clavi.user_tenants ut
     WHERE ut.user_id = _user_id
     LIMIT 1;
 
@@ -140,7 +140,7 @@ BEGIN
 
   -- Step 4: 現在の設定を取得
   SELECT t.settings INTO _current_settings
-  FROM aso.tenants t
+  FROM clavi.tenants t
   WHERE t.id = _tenant_id;
 
   IF NOT FOUND THEN
@@ -179,12 +179,12 @@ BEGIN
   END IF;
 
   -- Step 7: 設定を更新
-  UPDATE aso.tenants
+  UPDATE clavi.tenants
   SET settings = _new_settings, updated_at = now()
   WHERE id = _tenant_id;
 
   -- Step 8: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _tenant_id,
     _user_id,
     'settings_updated',
@@ -209,11 +209,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.update_tenant_settings(jsonb, jsonb) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.update_tenant_settings(jsonb, jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.update_tenant_settings(jsonb, jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.update_tenant_settings(jsonb, jsonb) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.update_tenant_settings IS
+COMMENT ON FUNCTION clavi.update_tenant_settings IS
 'テナント設定を更新（sameAs, Author - owner/admin専用）';
 
 -- publicスキーマラッパー
@@ -224,10 +224,10 @@ CREATE OR REPLACE FUNCTION public.update_tenant_settings(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.update_tenant_settings(p_same_as, p_author);
+  RETURN clavi.update_tenant_settings(p_same_as, p_author);
 END;
 $$;
 
@@ -235,7 +235,7 @@ REVOKE ALL ON FUNCTION public.update_tenant_settings(jsonb, jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.update_tenant_settings(jsonb, jsonb) TO authenticated;
 
 COMMENT ON FUNCTION public.update_tenant_settings IS
-'aso.update_tenant_settings のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.update_tenant_settings のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- 完了メッセージ
 DO $$ BEGIN

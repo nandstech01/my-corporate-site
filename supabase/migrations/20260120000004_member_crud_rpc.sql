@@ -4,12 +4,12 @@
 -- 作成日: 2026-01-20
 -- 目的: メンバー一覧取得・ロール変更・削除のためのRPC
 
--- メンバー一覧取得RPC（aso スキーマ）
-CREATE OR REPLACE FUNCTION aso.list_members()
+-- メンバー一覧取得RPC（clavi スキーマ）
+CREATE OR REPLACE FUNCTION clavi.list_members()
 RETURNS jsonb
 LANGUAGE plpgsql
 STABLE
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
@@ -17,8 +17,8 @@ DECLARE
   _members jsonb;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
 
   -- Step 2: テナントコンテキスト確認
   IF _tenant_id IS NULL THEN
@@ -35,7 +35,7 @@ BEGIN
       'updated_at', ut.updated_at
     ) ORDER BY ut.role, ut.created_at
   ) INTO _members
-  FROM aso.user_tenants ut
+  FROM clavi.user_tenants ut
   JOIN auth.users u ON u.id = ut.user_id
   WHERE ut.tenant_id = _tenant_id;
 
@@ -54,11 +54,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.list_members() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.list_members() TO authenticated;
+REVOKE ALL ON FUNCTION clavi.list_members() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.list_members() TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.list_members IS
+COMMENT ON FUNCTION clavi.list_members IS
 'テナントメンバー一覧を取得（全ロール参照可能）';
 
 -- publicスキーマラッパー
@@ -66,10 +66,10 @@ CREATE OR REPLACE FUNCTION public.list_members()
 RETURNS jsonb
 LANGUAGE plpgsql
 STABLE
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.list_members();
+  RETURN clavi.list_members();
 END;
 $$;
 
@@ -77,28 +77,28 @@ REVOKE ALL ON FUNCTION public.list_members() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.list_members() TO authenticated;
 
 COMMENT ON FUNCTION public.list_members IS
-'aso.list_members のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.list_members のpublicスキーマラッパー（Supabase JSクライアント用）';
 
--- メンバーロール変更RPC（aso スキーマ）
-CREATE OR REPLACE FUNCTION aso.update_member_role(
+-- メンバーロール変更RPC（clavi スキーマ）
+CREATE OR REPLACE FUNCTION clavi.update_member_role(
   p_user_id uuid,
   p_new_role text
 )
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
   _tenant_role text;
   _current_user_id uuid;
-  _target_membership aso.user_tenants%ROWTYPE;
+  _target_membership clavi.user_tenants%ROWTYPE;
   _old_role text;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
   _current_user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認
@@ -123,7 +123,7 @@ BEGIN
 
   -- Step 6: 対象メンバー取得
   SELECT * INTO _target_membership
-  FROM aso.user_tenants
+  FROM clavi.user_tenants
   WHERE tenant_id = _tenant_id AND user_id = p_user_id;
 
   IF NOT FOUND THEN
@@ -148,12 +148,12 @@ BEGIN
   END IF;
 
   -- Step 9: ロール更新
-  UPDATE aso.user_tenants
+  UPDATE clavi.user_tenants
   SET role = p_new_role, updated_at = now()
   WHERE tenant_id = _tenant_id AND user_id = p_user_id;
 
   -- Step 10: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _tenant_id,
     _current_user_id,
     'member_role_changed',
@@ -181,11 +181,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.update_member_role(uuid, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.update_member_role(uuid, text) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.update_member_role(uuid, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.update_member_role(uuid, text) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.update_member_role IS
+COMMENT ON FUNCTION clavi.update_member_role IS
 'メンバーのロールを変更（owner専用）';
 
 -- publicスキーマラッパー
@@ -196,10 +196,10 @@ CREATE OR REPLACE FUNCTION public.update_member_role(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.update_member_role(p_user_id, p_new_role);
+  RETURN clavi.update_member_role(p_user_id, p_new_role);
 END;
 $$;
 
@@ -207,25 +207,25 @@ REVOKE ALL ON FUNCTION public.update_member_role(uuid, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.update_member_role(uuid, text) TO authenticated;
 
 COMMENT ON FUNCTION public.update_member_role IS
-'aso.update_member_role のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.update_member_role のpublicスキーマラッパー（Supabase JSクライアント用）';
 
--- メンバー削除RPC（aso スキーマ）
-CREATE OR REPLACE FUNCTION aso.remove_member(p_user_id uuid)
+-- メンバー削除RPC（clavi スキーマ）
+CREATE OR REPLACE FUNCTION clavi.remove_member(p_user_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
   _tenant_role text;
   _current_user_id uuid;
-  _target_membership aso.user_tenants%ROWTYPE;
+  _target_membership clavi.user_tenants%ROWTYPE;
   _target_email text;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
   _current_user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認
@@ -245,7 +245,7 @@ BEGIN
 
   -- Step 5: 対象メンバー取得
   SELECT * INTO _target_membership
-  FROM aso.user_tenants
+  FROM clavi.user_tenants
   WHERE tenant_id = _tenant_id AND user_id = p_user_id;
 
   IF NOT FOUND THEN
@@ -268,11 +268,11 @@ BEGIN
   WHERE id = p_user_id;
 
   -- Step 9: メンバーシップ削除
-  DELETE FROM aso.user_tenants
+  DELETE FROM clavi.user_tenants
   WHERE tenant_id = _tenant_id AND user_id = p_user_id;
 
   -- Step 10: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _tenant_id,
     _current_user_id,
     'member_removed',
@@ -300,11 +300,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.remove_member(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.remove_member(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.remove_member(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.remove_member(uuid) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.remove_member IS
+COMMENT ON FUNCTION clavi.remove_member IS
 'メンバーを削除（owner: 全員、admin: memberのみ）';
 
 -- publicスキーマラッパー
@@ -312,10 +312,10 @@ CREATE OR REPLACE FUNCTION public.remove_member(p_user_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.remove_member(p_user_id);
+  RETURN clavi.remove_member(p_user_id);
 END;
 $$;
 
@@ -323,7 +323,7 @@ REVOKE ALL ON FUNCTION public.remove_member(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.remove_member(uuid) TO authenticated;
 
 COMMENT ON FUNCTION public.remove_member IS
-'aso.remove_member のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.remove_member のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- 完了メッセージ
 DO $$ BEGIN

@@ -6,18 +6,18 @@
 -- failure_type 列追加
 -- ========================================
 
-ALTER TABLE aso.job_runs 
+ALTER TABLE clavi.job_runs 
 ADD COLUMN IF NOT EXISTS failure_type text 
   CHECK (failure_type IN ('retryable', 'terminal', 'needs_review'));
 
-COMMENT ON COLUMN aso.job_runs.failure_type IS 'エラー分類: retryable（リトライ可）, terminal（完全失敗）, needs_review（人間判断必要）';
+COMMENT ON COLUMN clavi.job_runs.failure_type IS 'エラー分類: retryable（リトライ可）, terminal（完全失敗）, needs_review（人間判断必要）';
 
 -- ========================================
 -- エラー分類ロジック関数
 -- ========================================
 
 -- HTTPステータスコードから failure_type を判定
-CREATE OR REPLACE FUNCTION aso.classify_http_error(
+CREATE OR REPLACE FUNCTION clavi.classify_http_error(
   p_status_code integer
 ) RETURNS text
 LANGUAGE plpgsql
@@ -44,10 +44,10 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.classify_http_error IS 'HTTPステータスコードから failure_type を判定';
+COMMENT ON FUNCTION clavi.classify_http_error IS 'HTTPステータスコードから failure_type を判定';
 
 -- エラーメッセージから failure_type を判定
-CREATE OR REPLACE FUNCTION aso.classify_error_message(
+CREATE OR REPLACE FUNCTION clavi.classify_error_message(
   p_error_message text
 ) RETURNS text
 LANGUAGE plpgsql
@@ -89,13 +89,13 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.classify_error_message IS 'エラーメッセージから failure_type を判定';
+COMMENT ON FUNCTION clavi.classify_error_message IS 'エラーメッセージから failure_type を判定';
 
 -- ========================================
 -- エラー記録関数（分類付き）
 -- ========================================
 
-CREATE OR REPLACE FUNCTION aso.add_job_error_classified(
+CREATE OR REPLACE FUNCTION clavi.add_job_error_classified(
   p_job_run_id uuid,
   p_step_name text,
   p_error_message text,
@@ -103,7 +103,7 @@ CREATE OR REPLACE FUNCTION aso.add_job_error_classified(
 ) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_error_entry jsonb;
@@ -111,9 +111,9 @@ DECLARE
 BEGIN
   -- エラー分類
   IF p_http_status_code IS NOT NULL THEN
-    v_failure_type := aso.classify_http_error(p_http_status_code);
+    v_failure_type := clavi.classify_http_error(p_http_status_code);
   ELSE
-    v_failure_type := aso.classify_error_message(p_error_message);
+    v_failure_type := clavi.classify_error_message(p_error_message);
   END IF;
   
   -- エラーエントリ作成
@@ -126,7 +126,7 @@ BEGIN
   );
   
   -- エラーログ追加 + failure_type更新
-  UPDATE aso.job_runs
+  UPDATE clavi.job_runs
   SET 
     error_log = COALESCE(error_log, '[]'::jsonb) || v_error_entry,
     last_error = p_error_message,
@@ -135,19 +135,19 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.add_job_error_classified IS 'エラーログに追加（自動分類付き）';
+COMMENT ON FUNCTION clavi.add_job_error_classified IS 'エラーログに追加（自動分類付き）';
 
 -- ========================================
 -- リトライ判定関数（改善版）
 -- ========================================
 
 -- リトライ可能かどうかを判定（failure_typeを考慮）
-CREATE OR REPLACE FUNCTION aso.can_retry_job(
+CREATE OR REPLACE FUNCTION clavi.can_retry_job(
   p_job_run_id uuid
 ) RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_retry_count integer;
@@ -158,7 +158,7 @@ BEGIN
   -- ジョブ情報取得
   SELECT retry_count, max_retries, failure_type
   INTO v_retry_count, v_max_retries, v_failure_type
-  FROM aso.job_runs
+  FROM clavi.job_runs
   WHERE id = p_job_run_id;
   
   -- 基本条件: リトライ回数が上限未満
@@ -180,29 +180,29 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.can_retry_job IS 'リトライ可能かどうかを判定（failure_typeを考慮）';
+COMMENT ON FUNCTION clavi.can_retry_job IS 'リトライ可能かどうかを判定（failure_typeを考慮）';
 
 -- ========================================
 -- 失敗統計ビュー
 -- ========================================
 
 -- 失敗タイプ別の統計
-CREATE OR REPLACE VIEW aso.v_job_failure_stats AS
+CREATE OR REPLACE VIEW clavi.v_job_failure_stats AS
 SELECT 
   failure_type,
   count(*) as failure_count,
   round(avg(retry_count), 2) as avg_retries,
-  round(count(*) * 100.0 / (SELECT count(*) FROM aso.job_runs WHERE status IN ('failed', 'retrying')), 2) as percentage
-FROM aso.job_runs
+  round(count(*) * 100.0 / (SELECT count(*) FROM clavi.job_runs WHERE status IN ('failed', 'retrying')), 2) as percentage
+FROM clavi.job_runs
 WHERE status IN ('failed', 'retrying')
   AND failure_type IS NOT NULL
 GROUP BY failure_type
 ORDER BY failure_count DESC;
 
-COMMENT ON VIEW aso.v_job_failure_stats IS '失敗タイプ別の統計（運営管理用）';
+COMMENT ON VIEW clavi.v_job_failure_stats IS '失敗タイプ別の統計（運営管理用）';
 
 -- 最近の失敗ジョブ一覧（failure_type付き）
-CREATE OR REPLACE VIEW aso.v_recent_failures AS
+CREATE OR REPLACE VIEW clavi.v_recent_failures AS
 SELECT 
   jr.id AS job_run_id,
   jr.tenant_id,
@@ -218,20 +218,20 @@ SELECT
   jr.started_at,
   jr.completed_at,
   jr.created_at
-FROM aso.job_runs jr
-JOIN aso.tenants t ON jr.tenant_id = t.id
-JOIN aso.client_analyses ca ON jr.analysis_id = ca.id
+FROM clavi.job_runs jr
+JOIN clavi.tenants t ON jr.tenant_id = t.id
+JOIN clavi.client_analyses ca ON jr.analysis_id = ca.id
 WHERE jr.status IN ('failed', 'retrying')
 ORDER BY jr.created_at DESC
 LIMIT 100;
 
-COMMENT ON VIEW aso.v_recent_failures IS '最近の失敗ジョブ一覧（failure_type付き）';
+COMMENT ON VIEW clavi.v_recent_failures IS '最近の失敗ジョブ一覧（failure_type付き）';
 
 -- ========================================
 -- 人間介入が必要なジョブ一覧
 -- ========================================
 
-CREATE OR REPLACE VIEW aso.v_needs_review_jobs AS
+CREATE OR REPLACE VIEW clavi.v_needs_review_jobs AS
 SELECT 
   jr.id AS job_run_id,
   jr.tenant_id,
@@ -245,28 +245,28 @@ SELECT
   jr.error_log,
   jr.created_at,
   jr.updated_at
-FROM aso.job_runs jr
-JOIN aso.tenants t ON jr.tenant_id = t.id
-JOIN aso.client_analyses ca ON jr.analysis_id = ca.id
+FROM clavi.job_runs jr
+JOIN clavi.tenants t ON jr.tenant_id = t.id
+JOIN clavi.client_analyses ca ON jr.analysis_id = ca.id
 WHERE 
   jr.failure_type = 'needs_review'
   AND jr.status IN ('failed', 'retrying')
 ORDER BY jr.created_at DESC;
 
-COMMENT ON VIEW aso.v_needs_review_jobs IS '人間介入が必要なジョブ一覧';
+COMMENT ON VIEW clavi.v_needs_review_jobs IS '人間介入が必要なジョブ一覧';
 
 -- ========================================
 -- 統計関数（改善版）
 -- ========================================
 
 -- ジョブ統計（failure_type別）
-CREATE OR REPLACE FUNCTION aso.get_job_statistics_detailed(
+CREATE OR REPLACE FUNCTION clavi.get_job_statistics_detailed(
   p_tenant_id uuid DEFAULT NULL,
   p_days integer DEFAULT 7
 ) RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_stats jsonb;
@@ -292,7 +292,7 @@ BEGIN
     )
   )
   INTO v_stats
-  FROM aso.job_runs
+  FROM clavi.job_runs
   WHERE 
     created_at >= now() - (p_days || ' days')::interval
     AND (p_tenant_id IS NULL OR tenant_id = p_tenant_id);
@@ -301,7 +301,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.get_job_statistics_detailed IS 'ジョブ統計（failure_type別詳細版）';
+COMMENT ON FUNCTION clavi.get_job_statistics_detailed IS 'ジョブ統計（failure_type別詳細版）';
 
 -- ========================================
 -- テスト用サンプルクエリ
@@ -316,17 +316,17 @@ DECLARE
   v_job_run_id uuid;
 BEGIN
   -- テナント・分析取得
-  SELECT id INTO v_tenant_id FROM aso.tenants LIMIT 1;
-  SELECT id INTO v_analysis_id FROM aso.client_analyses WHERE tenant_id = v_tenant_id LIMIT 1;
+  SELECT id INTO v_tenant_id FROM clavi.tenants LIMIT 1;
+  SELECT id INTO v_analysis_id FROM clavi.client_analyses WHERE tenant_id = v_tenant_id LIMIT 1;
   
   IF v_analysis_id IS NULL THEN
-    INSERT INTO aso.client_analyses (tenant_id, url, company_name)
+    INSERT INTO clavi.client_analyses (tenant_id, url, company_name)
     VALUES (v_tenant_id, 'https://test-failure.com', 'Test Corp')
     RETURNING id INTO v_analysis_id;
   END IF;
   
   -- ジョブ開始
-  v_job_run_id := aso.start_job_run(
+  v_job_run_id := clavi.start_job_run(
     v_tenant_id,
     v_analysis_id,
     'url_analyzer',
@@ -336,7 +336,7 @@ BEGIN
   -- 各種エラーのテスト
   
   -- Test 1: リトライ可能エラー（429）
-  PERFORM aso.add_job_error_classified(
+  PERFORM clavi.add_job_error_classified(
     v_job_run_id,
     'crawl',
     'Too Many Requests',
@@ -344,7 +344,7 @@ BEGIN
   );
   
   -- Test 2: 完全失敗エラー（404）
-  PERFORM aso.add_job_error_classified(
+  PERFORM clavi.add_job_error_classified(
     v_job_run_id,
     'crawl',
     'Page Not Found',
@@ -352,7 +352,7 @@ BEGIN
   );
   
   -- Test 3: 人間判断必要エラー（validation）
-  PERFORM aso.add_job_error_classified(
+  PERFORM clavi.add_job_error_classified(
     v_job_run_id,
     'validate',
     'JSON-LD validation error: missing required field "name"',
@@ -360,14 +360,14 @@ BEGIN
   );
   
   -- リトライ可能性チェック
-  IF aso.can_retry_job(v_job_run_id) THEN
+  IF clavi.can_retry_job(v_job_run_id) THEN
     RAISE NOTICE '✅ リトライ可能と判定された';
   ELSE
     RAISE NOTICE '❌ リトライ不可と判定された';
   END IF;
   
   -- 統計表示
-  RAISE NOTICE '📊 ジョブ統計: %', aso.get_job_statistics_detailed();
+  RAISE NOTICE '📊 ジョブ統計: %', clavi.get_job_statistics_detailed();
 END $$;
 */
 

@@ -15,9 +15,9 @@
     "validate-phase2": "npx ts-node scripts/validate-phase2-llmo.ts",
     "vectorize-personal-story": "npx ts-node scripts/vectorize-personal-story.ts",
     "vectorize-catalyst": "npx ts-node scripts/vectorize-catalyst.ts",
-    "aso:batch-analyze": "npx tsx scripts/aso-batch-analyze.ts",
-    "aso:batch-analyze-small": "npx tsx scripts/aso-batch-analyze.ts --input tests/phase2/urls-small.txt --output tests/phase2/results-small.json",
-    "aso:batch-analyze-full": "npx tsx scripts/aso-batch-analyze.ts --input tests/phase2/urls.txt --output tests/phase2/results.json"
+    "clavi:batch-analyze": "npx tsx scripts/clavi-batch-analyze.ts",
+    "clavi:batch-analyze-small": "npx tsx scripts/clavi-batch-analyze.ts --input tests/phase2/urls-small.txt --output tests/phase2/results-small.json",
+    "clavi:batch-analyze-full": "npx tsx scripts/clavi-batch-analyze.ts --input tests/phase2/urls.txt --output tests/phase2/results.json"
   },
   "engines": {
     "node": "22.x"

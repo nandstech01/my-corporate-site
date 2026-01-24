@@ -36,10 +36,10 @@ Supabaseダッシュボードで確認：
 ```sql
 -- 1. user_idを確認（Supabase Auth Usersから）
 -- 2. テナントIDを確認
-SELECT id, name FROM aso.tenants LIMIT 5;
+SELECT id, name FROM clavi.tenants LIMIT 5;
 
 -- 3. ユーザーをテナントに紐付け
-INSERT INTO aso.user_tenants (user_id, tenant_id, role)
+INSERT INTO clavi.user_tenants (user_id, tenant_id, role)
 VALUES (
   'ユーザーUUID',
   'テナントUUID',
@@ -61,9 +61,9 @@ npm run dev
 
 ---
 
-## Step 3: ASO SaaSにログイン
+## Step 3: CLAVI SaaSにログイン
 
-1. ブラウザで http://localhost:3000/aso/login を開く
+1. ブラウザで http://localhost:3000/clavi/login を開く
 2. テストアカウントでログイン
 3. ダッシュボードに遷移することを確認
 
@@ -103,7 +103,7 @@ SELECT
   t.name,
   t.settings->'sameAs' as same_as,
   t.settings->'author' as author
-FROM aso.tenants t
+FROM clavi.tenants t
 WHERE t.settings IS NOT NULL;
 ```
 
@@ -154,7 +154,7 @@ cat docs/saas-product/phase5-data/jsonld-output/ai-agents-*.json | head -50
 
 - Supabaseでユーザーが存在するか確認
 - パスワードが正しいか確認
-- `aso.user_tenants`にレコードがあるか確認
+- `clavi.user_tenants`にレコードがあるか確認
 
 ### 設定が保存されない
 
@@ -167,14 +167,14 @@ cat docs/saas-product/phase5-data/jsonld-output/ai-agents-*.json | head -50
 
 ```sql
 -- ユーザーがテナントに紐付いているか確認
-SELECT * FROM aso.user_tenants WHERE user_id = 'ユーザーUUID';
+SELECT * FROM clavi.user_tenants WHERE user_id = 'ユーザーUUID';
 ```
 
 ---
 
 ## 関連ファイル
 
-- 設定画面: `/app/aso/settings/page.tsx`
-- 設定API: `/app/api/aso/settings/route.ts`
+- 設定画面: `/app/clavi/settings/page.tsx`
+- 設定API: `/app/api/clavi/settings/route.ts`
 - RPC関数: `/supabase/migrations/20260120000010_tenant_settings_rpc.sql`
-- 型定義: `/lib/aso/types/tenant-settings.ts`
+- 型定義: `/lib/clavi/types/tenant-settings.ts`

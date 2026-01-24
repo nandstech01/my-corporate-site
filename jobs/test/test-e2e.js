@@ -4,7 +4,7 @@
  * テスト対象:
  * 1. ジョブ専用ユーザー作成（aso.get_or_create_job_user）
  * 2. OIDC IDトークン取得
- * 3. /api/aso/job-token でSupabase JWT取得
+ * 3. /api/clavi/job-token でSupabase JWT取得
  * 4. Supabaseクライアント作成
  * 5. RLS確認（自テナントのみアクセス可能）
  * 6. 監査ログ確認
@@ -43,15 +43,15 @@ async function getOidcToken() {
 }
 
 /**
- * Supabase JWTトークン取得（/api/aso/job-token経由）
+ * Supabase JWTトークン取得（/api/clavi/job-token経由）
  * 注: ローカル環境ではOIDC検証をスキップするため、直接Service Role Keyを使用
  */
 async function getSupabaseToken(oidcToken) {
   console.log('Step 2: Supabase JWTトークン取得...');
   console.log('⚠️  ローカル環境のため、直接Service Role Keyを使用');
   
-  // 実際のCloud Run環境では /api/aso/job-token を呼び出す
-  // const response = await fetch(`${API_URL}/api/aso/job-token`, {
+  // 実際のCloud Run環境では /api/clavi/job-token を呼び出す
+  // const response = await fetch(`${API_URL}/api/clavi/job-token`, {
   //   method: 'POST',
   //   headers: {
   //     'Authorization': `Bearer ${oidcToken}`,

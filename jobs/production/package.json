@@ -1,5 +1,5 @@
 {
-  "name": "aso-cloud-run-jobs",
+  "name": "clavi-cloud-run-jobs",
   "version": "1.0.0",
   "description": "AI Search Optimizer Cloud Run Jobs (Production)",
   "main": "index.js",

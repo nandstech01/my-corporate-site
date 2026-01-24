@@ -1,9 +1,9 @@
 -- ============================================
--- ASO SaaS Phase 8: テナント設定カラム追加
+-- CLAVI SaaS Phase 8: テナント設定カラム追加
 -- ============================================
 -- 作成日: 2026-01-20
 -- 目的:
--- - aso.tenants テーブルに settings JSONB カラムを追加
+-- - clavi.tenants テーブルに settings JSONB カラムを追加
 -- - sameAs, Author 設定を保存
 -- - 既存データには影響なし（NULL許容）
 --
@@ -20,15 +20,15 @@
 -- }
 
 -- 1. settings カラム追加
-ALTER TABLE aso.tenants
+ALTER TABLE clavi.tenants
 ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}';
 
 -- 2. settings カラムにコメント追加
-COMMENT ON COLUMN aso.tenants.settings IS 'テナント設定（sameAs, Author等）- Phase 8追加';
+COMMENT ON COLUMN clavi.tenants.settings IS 'テナント設定（sameAs, Author等）- Phase 8追加';
 
 -- 3. インデックス追加（GIN: JSONB検索最適化）
 CREATE INDEX IF NOT EXISTS idx_tenants_settings
-ON aso.tenants USING GIN (settings);
+ON clavi.tenants USING GIN (settings);
 
 -- 4. RLSポリシー更新は不要（既存のtenants_selectとtenants_updateが適用される）
 

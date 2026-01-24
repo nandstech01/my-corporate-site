@@ -1,5 +1,5 @@
 -- ============================================
--- ASO SaaS - list_client_analyses RPC function
+-- CLAVI SaaS - list_client_analyses RPC function
 -- ============================================
 -- 作成日: 2026-01-21
 -- 目的: ユーザーのテナントに属する分析一覧を取得
@@ -9,7 +9,7 @@
 -- list_client_analyses RPC関数
 -- =============================================================================
 
-CREATE OR REPLACE FUNCTION aso.list_client_analyses(
+CREATE OR REPLACE FUNCTION clavi.list_client_analyses(
   p_tenant_id uuid,
   p_limit integer DEFAULT 100,
   p_offset integer DEFAULT 0
@@ -27,7 +27,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_user_id uuid;
@@ -47,7 +47,7 @@ BEGIN
 
     -- ユーザーがこのテナントのメンバーかどうか確認
     SELECT EXISTS (
-      SELECT 1 FROM aso.user_tenants ut
+      SELECT 1 FROM clavi.user_tenants ut
       WHERE ut.tenant_id = p_tenant_id
         AND ut.user_id = v_user_id
     ) INTO v_is_member;
@@ -69,7 +69,7 @@ BEGIN
     ca.status,
     ca.created_at,
     ca.updated_at
-  FROM aso.client_analyses ca
+  FROM clavi.client_analyses ca
   WHERE ca.tenant_id = p_tenant_id
   ORDER BY ca.created_at DESC
   LIMIT p_limit
@@ -78,11 +78,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.list_client_analyses FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.list_client_analyses TO authenticated;
-GRANT EXECUTE ON FUNCTION aso.list_client_analyses TO service_role;
+REVOKE ALL ON FUNCTION clavi.list_client_analyses FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.list_client_analyses TO authenticated;
+GRANT EXECUTE ON FUNCTION clavi.list_client_analyses TO service_role;
 
-COMMENT ON FUNCTION aso.list_client_analyses IS
+COMMENT ON FUNCTION clavi.list_client_analyses IS
 'テナントの分析一覧を取得。ユーザーメンバーシップを検証してからデータを返す。';
 
 -- =============================================================================
@@ -107,9 +107,9 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
-  SELECT * FROM aso.list_client_analyses(p_tenant_id, p_limit, p_offset);
+  SELECT * FROM clavi.list_client_analyses(p_tenant_id, p_limit, p_offset);
 $$;
 
 -- 権限設定
@@ -118,7 +118,7 @@ GRANT EXECUTE ON FUNCTION public.list_client_analyses TO authenticated;
 GRANT EXECUTE ON FUNCTION public.list_client_analyses TO service_role;
 
 COMMENT ON FUNCTION public.list_client_analyses IS
-'aso.list_client_analyses のpublicスキーマラッパー（Supabase JS Client用）';
+'clavi.list_client_analyses のpublicスキーマラッパー（Supabase JS Client用）';
 
 -- =============================================================================
 -- 完了メッセージ
@@ -126,6 +126,6 @@ COMMENT ON FUNCTION public.list_client_analyses IS
 
 DO $$ BEGIN
   RAISE NOTICE '✅ Migration 20260121000000_create_list_client_analyses_rpc.sql completed';
-  RAISE NOTICE '  - aso.list_client_analyses RPC関数作成完了';
+  RAISE NOTICE '  - clavi.list_client_analyses RPC関数作成完了';
   RAISE NOTICE '  - public.list_client_analyses ラッパー関数作成完了';
 END $$;

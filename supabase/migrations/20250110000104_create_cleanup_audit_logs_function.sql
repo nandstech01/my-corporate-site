@@ -4,13 +4,13 @@
 -- 作成日: 2025-01-10
 -- 目的: 保持期間を過ぎた監査ログを自動削除（デフォルト90日）
 
-CREATE OR REPLACE FUNCTION aso.cleanup_old_audit_logs(
+CREATE OR REPLACE FUNCTION clavi.cleanup_old_audit_logs(
   p_retention_days integer DEFAULT 90
 )
 RETURNS integer
 LANGUAGE plpgsql
 SECURITY DEFINER -- RLSをバイパスして削除
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _deleted_count integer;
@@ -29,7 +29,7 @@ BEGIN
   _cutoff_date := now() - (p_retention_days || ' days')::interval;
 
   -- 古い監査ログを削除
-  DELETE FROM aso.audit_log
+  DELETE FROM clavi.audit_log
   WHERE created_at < _cutoff_date;
 
   GET DIAGNOSTICS _deleted_count = ROW_COUNT;
@@ -48,15 +48,15 @@ $$;
 
 -- 権限設定（管理者のみ実行可能にする場合は制限可能）
 -- 現状は authenticated ユーザー全員が実行可能（Cloud Run Jobsから実行想定）
-REVOKE ALL ON FUNCTION aso.cleanup_old_audit_logs(integer) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.cleanup_old_audit_logs(integer) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.cleanup_old_audit_logs(integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.cleanup_old_audit_logs(integer) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.cleanup_old_audit_logs IS
+COMMENT ON FUNCTION clavi.cleanup_old_audit_logs IS
 '保持期間を過ぎた監査ログを削除（デフォルト90日、最小7日、最大365日）';
 
 -- 完了メッセージ
 DO $$ BEGIN
-  RAISE NOTICE '✅ aso.cleanup_old_audit_logs() 関数作成完了';
+  RAISE NOTICE '✅ clavi.cleanup_old_audit_logs() 関数作成完了';
 END $$;
 

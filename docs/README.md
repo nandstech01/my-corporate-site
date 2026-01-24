@@ -51,7 +51,7 @@
 docs/
 ├── README.md                          # このファイル
 │
-├── saas-product/                      # 🔥 アクティブ: ASO SaaS
+├── saas-product/                      # 🔥 アクティブ: CLAVI SaaS
 │   ├── TASKS.md                       # タスク管理（Phase 5-8）
 │   └── phase5-data/                   # 実験データ
 │
@@ -98,14 +98,14 @@ docs/
 
 ## 主要な実装ファイル
 
-### ASO SaaS（71ファイル）
+### CLAVI SaaS（71ファイル）
 
 | カテゴリ | パス | ファイル数 |
 |---------|------|-----------|
-| API | `app/api/aso/` | 20 |
-| Frontend | `app/aso/` | 18 |
-| Components | `components/aso/` | 13 |
-| Library | `lib/aso/` | 20 |
+| API | `app/api/clavi/` | 20 |
+| Frontend | `app/clavi/` | 18 |
+| Components | `components/clavi/` | 13 |
+| Library | `lib/clavi/` | 20 |
 
 ### ベクトルシステム
 

@@ -19,7 +19,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 async function main() {
-  const adminEmail = process.env.ASO_PLATFORM_ADMIN_EMAILS?.split(',')[0]?.trim() || 'contact@nands.tech';
+  const adminEmail = process.env.CLAVI_PLATFORM_ADMIN_EMAILS?.split(',')[0]?.trim() || 'contact@nands.tech';
 
   console.log('=== スーパーアドミン設定確認 ===\n');
   console.log('対象メール:', adminEmail);
@@ -40,7 +40,7 @@ async function main() {
     console.log('   Email:', existingUser.email);
     console.log('   確認済み:', existingUser.email_confirmed_at ? 'はい' : 'いいえ');
 
-    // テナント紐付け確認（asoスキーマ）
+    // テナント紐付け確認（claviスキーマ）
     const { data: tenants, error: tenantError } = await supabase
       .rpc('get_user_tenants_admin', { p_user_id: existingUser.id });
 
@@ -51,7 +51,7 @@ async function main() {
       });
     } else {
       console.log('\n⚠️ テナントに紐付けられていません');
-      console.log('   → プラットフォーム管理者として /aso/admin にアクセス可能です');
+      console.log('   → プラットフォーム管理者として /clavi/admin にアクセス可能です');
     }
   } else {
     console.log('\n❌ ユーザーが存在しません - 作成します...');
@@ -86,8 +86,8 @@ async function main() {
 
   console.log('\n=== 次のステップ ===');
   console.log('1. npm run dev でサーバー起動');
-  console.log('2. http://localhost:3000/aso/login でログイン');
-  console.log('3. /aso/admin でプラットフォーム管理画面にアクセス');
+  console.log('2. http://localhost:3000/clavi/login でログイン');
+  console.log('3. /clavi/admin でプラットフォーム管理画面にアクセス');
 }
 
 main().catch(console.error);

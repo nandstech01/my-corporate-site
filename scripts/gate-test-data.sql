@@ -2,7 +2,7 @@
 -- 作成日: 2026-01-12
 
 -- テナントA作成
-INSERT INTO aso.tenants (id, name)
+INSERT INTO clavi.tenants (id, name)
 VALUES (
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid,
   'Tenant A - Test Company'
@@ -13,7 +13,7 @@ SET name = EXCLUDED.name;
 \echo '✅ Tenant A created'
 
 -- 分析データ作成（テナントA）
-INSERT INTO aso.client_analyses (
+INSERT INTO clavi.client_analyses (
   id,
   tenant_id,
   url,
@@ -33,7 +33,7 @@ SET url = EXCLUDED.url;
 \echo '✅ Analysis data created'
 
 -- Fragment Vectors作成（ダミーデータ）
-INSERT INTO aso.fragment_vectors (
+INSERT INTO clavi.fragment_vectors (
   id,
   tenant_id,
   analysis_id,
@@ -74,13 +74,13 @@ SET content_title = EXCLUDED.content_title;
 
 -- 確認
 SELECT '=== Tenant A ===' as section;
-SELECT * FROM aso.tenants WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+SELECT * FROM clavi.tenants WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 
 SELECT '=== Client Analyses ===' as section;
-SELECT id, tenant_id, url, status FROM aso.client_analyses WHERE tenant_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+SELECT id, tenant_id, url, status FROM clavi.client_analyses WHERE tenant_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 
 SELECT '=== Fragment Vectors ===' as section;
 SELECT id, tenant_id, analysis_id, fragment_id, content_title 
-FROM aso.fragment_vectors 
+FROM clavi.fragment_vectors 
 WHERE tenant_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 

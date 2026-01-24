@@ -17,14 +17,14 @@ SELECT
     THEN ROUND(100.0 * COUNT(CASE WHEN status = 'completed' THEN 1 END) / COUNT(*), 2)
     ELSE 0
   END as success_rate_percent
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-10'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid;
 
 -- 2️⃣ 冪等性チェック（重複URL検出）
 WITH url_counts AS (
   SELECT url, COUNT(*) as count
-  FROM aso.client_analyses
+  FROM clavi.client_analyses
   WHERE created_at >= '2026-01-10'
     AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
   GROUP BY url
@@ -48,7 +48,7 @@ SELECT
   status,
   ai_structure_score,
   created_at
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-10'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
 ORDER BY created_at DESC
@@ -65,7 +65,7 @@ SELECT
   END as avg_score,
   MIN(ai_structure_score) as min_score,
   MAX(ai_structure_score) as max_score
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-10'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
   AND status = 'completed'

@@ -11,10 +11,10 @@
 | Phase | 状態 | 内容 |
 |-------|------|------|
 | Phase 0 | ✅ 完了 | 準備・検証 |
-| Phase 1 | ✅ 完了 | データベース境界（aso スキーマ） |
+| Phase 1 | ✅ 完了 | データベース境界（clavi スキーマ） |
 | Phase 2 | ✅ 完了 | 認証境界（JWT custom claim） |
 | Phase 3 | ✅ 完了 | RLS ポリシー（7ポリシー） |
-| Phase 4 | ✅ 完了 | API境界（/api/aso/*） |
+| Phase 4 | ✅ 完了 | API境界（/api/clavi/*） |
 | Phase 5 | ✅ 完了 | ジョブ基盤（Cloud Run OIDC） |
 | Phase 6 | ✅ 完了 | 招待・CRUD機能 |
 
@@ -24,10 +24,10 @@
 
 ```
 ✅ 許可:
-- 新規スキーマ作成（aso.*）
-- 新規テーブル作成（aso.* 配下のみ）
-- 新規API作成（/api/aso/* のみ）
-- 新規ページ作成（/aso/* のみ）
+- 新規スキーマ作成（clavi.*）
+- 新規テーブル作成（clavi.* 配下のみ）
+- 新規API作成（/api/clavi/* のみ）
+- 新規ページ作成（/clavi/* のみ）
 
 ❌ 禁止:
 - 既存テーブルの変更（public.*）
@@ -39,33 +39,33 @@
 
 ## 実装済みコンポーネント
 
-### データベース（aso スキーマ）
+### データベース（clavi スキーマ）
 
 | テーブル | 説明 |
 |---------|------|
-| `aso.tenants` | テナント管理 |
-| `aso.user_tenants` | ユーザー↔テナント紐付け |
-| `aso.invitations` | 招待管理 |
-| `aso.job_users` | ジョブ専用ユーザー |
-| `aso.audit_log` | 監査ログ |
+| `clavi.tenants` | テナント管理 |
+| `clavi.user_tenants` | ユーザー↔テナント紐付け |
+| `clavi.invitations` | 招待管理 |
+| `clavi.job_users` | ジョブ専用ユーザー |
+| `clavi.audit_log` | 監査ログ |
 
 ### 関数・RPC
 
 | 関数 | 説明 |
 |------|------|
-| `aso.current_tenant_id()` | JWT claimからテナントID取得 |
-| `aso.current_tenant_role()` | JWT claimからテナントロール取得 |
-| `aso.get_current_tenant_context()` | テナントコンテキスト取得 |
-| `aso.onboard()` | 新規テナント作成 |
-| `aso.get_or_create_job_user()` | ジョブユーザー作成 |
-| `aso.create_invitation()` | 招待トークン生成 |
-| `aso.accept_invitation()` | 招待受諾 |
-| `aso.update_tenant()` | テナント更新 |
-| `aso.delete_tenant()` | テナント削除 |
-| `aso.list_members()` | メンバー一覧 |
-| `aso.update_member_role()` | メンバーロール更新 |
-| `aso.remove_member()` | メンバー削除 |
-| `aso.log_audit()` | 監査ログ記録 |
+| `clavi.current_tenant_id()` | JWT claimからテナントID取得 |
+| `clavi.current_tenant_role()` | JWT claimからテナントロール取得 |
+| `clavi.get_current_tenant_context()` | テナントコンテキスト取得 |
+| `clavi.onboard()` | 新規テナント作成 |
+| `clavi.get_or_create_job_user()` | ジョブユーザー作成 |
+| `clavi.create_invitation()` | 招待トークン生成 |
+| `clavi.accept_invitation()` | 招待受諾 |
+| `clavi.update_tenant()` | テナント更新 |
+| `clavi.delete_tenant()` | テナント削除 |
+| `clavi.list_members()` | メンバー一覧 |
+| `clavi.update_member_role()` | メンバーロール更新 |
+| `clavi.remove_member()` | メンバー削除 |
+| `clavi.log_audit()` | 監査ログ記録 |
 
 ### RLS ポリシー（7つ）
 
@@ -125,7 +125,7 @@ vercel rollback
 ## 設計原則（3原則）
 
 1. **外部依存ゼロ**: ジョブユーザーは `@example.invalid` ドメイン（RFC 2606予約）
-2. **スケール耐性**: `aso.job_users` からO(1)正引き（listUsers不使用）
+2. **スケール耐性**: `clavi.job_users` からO(1)正引き（listUsers不使用）
 3. **冗長性排除**: OIDCのみ認証（内部APIキー廃止）
 
 ---

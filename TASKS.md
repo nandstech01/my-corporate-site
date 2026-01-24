@@ -10,7 +10,7 @@
 
 | プロジェクト | 状態 | 詳細 |
 |-------------|------|------|
-| **ASO SaaS** | Phase 5 実験待ち | [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) |
+| **CLAVI SaaS** | Phase 5 実験待ち | [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) |
 | **Carve-Out基盤** | Phase 0-6 完了 | [docs/carve-out/TASKS.md](./docs/carve-out/TASKS.md) |
 | **Django Backend** | Phase 1-4 完了 | [docs/backend-python/](./docs/backend-python/) |
 

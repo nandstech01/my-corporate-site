@@ -4,14 +4,14 @@
 -- 作成日: 2025-01-10
 -- 目的: テナントごとにジョブ専用ユーザーを取得/作成（冪等性あり）
 
-CREATE OR REPLACE FUNCTION aso.get_or_create_job_user(p_tenant_id uuid)
+CREATE OR REPLACE FUNCTION clavi.get_or_create_job_user(p_tenant_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER -- auth.users操作のため必要
-SET search_path = aso, public, auth, pg_temp
+SET search_path = clavi, public, auth, pg_temp
 AS $$
 DECLARE
-  _existing_job_user aso.job_users%ROWTYPE;
+  _existing_job_user clavi.job_users%ROWTYPE;
   _job_email text;
   _job_password text;
   _new_auth_user_id uuid;
@@ -19,7 +19,7 @@ DECLARE
 BEGIN
   -- Step 1: 既存のジョブユーザーを確認（O(1)正引き）
   SELECT * INTO _existing_job_user
-  FROM aso.job_users
+  FROM clavi.job_users
   WHERE tenant_id = p_tenant_id;
 
   -- 既に存在すれば返す（冪等性）
@@ -79,8 +79,8 @@ BEGIN
   )
   RETURNING id INTO _new_auth_user_id;
 
-  -- Step 4: aso.job_users に登録
-  INSERT INTO aso.job_users (
+  -- Step 4: clavi.job_users に登録
+  INSERT INTO clavi.job_users (
     tenant_id,
     auth_user_id,
     email,
@@ -92,8 +92,8 @@ BEGIN
     true
   );
 
-  -- Step 5: aso.user_tenants に member として登録
-  INSERT INTO aso.user_tenants (
+  -- Step 5: clavi.user_tenants に member として登録
+  INSERT INTO clavi.user_tenants (
     tenant_id,
     user_id,
     role
@@ -121,15 +121,15 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.get_or_create_job_user(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.get_or_create_job_user(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.get_or_create_job_user(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.get_or_create_job_user(uuid) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.get_or_create_job_user IS
+COMMENT ON FUNCTION clavi.get_or_create_job_user IS
 'テナントごとにジョブ専用ユーザーを取得/作成（冪等性あり、ログイン不能保証）';
 
 -- 完了メッセージ
 DO $$ BEGIN
-  RAISE NOTICE '✅ aso.get_or_create_job_user() RPC作成完了';
+  RAISE NOTICE '✅ clavi.get_or_create_job_user() RPC作成完了';
 END $$;
 

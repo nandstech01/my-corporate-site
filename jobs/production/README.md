@@ -4,7 +4,7 @@
 
 ## 📋 概要
 
-このディレクトリには、AI Search Optimizer（ASO）の本番環境で実行するCloud Run Jobs用のDockerfileとジョブスクリプトが含まれています。
+このディレクトリには、AI Search Optimizer（CLAVI）の本番環境で実行するCloud Run Jobs用のDockerfileとジョブスクリプトが含まれています。
 
 ### 特徴
 
@@ -58,7 +58,7 @@ jobs/production/
 | `SUPABASE_URL` | SupabaseプロジェクトURL | `https://xxx.supabase.co` |
 | `API_URL` | 本番APIのURL | `https://nands.tech` |
 | `GCP_PROJECT_ID` | Google CloudプロジェクトID | `your-project-id` |
-| `GCP_SERVICE_ACCOUNT_EMAIL` | サービスアカウントメール | `aso-job@...` |
+| `GCP_SERVICE_ACCOUNT_EMAIL` | サービスアカウントメール | `clavi-job@...` |
 | `TENANT_ID` | テナントID | UUID |
 
 ### オプション環境変数
@@ -82,7 +82,7 @@ npm install
 
 ```bash
 # プロジェクトルートから実行
-docker build -t aso-jobs:latest -f jobs/production/Dockerfile jobs/production
+docker build -t clavi-jobs:latest -f jobs/production/Dockerfile jobs/production
 ```
 
 ### 3. ローカルテスト実行
@@ -92,10 +92,10 @@ docker run --rm \
   -e SUPABASE_URL="https://xxx.supabase.co" \
   -e API_URL="http://localhost:3000" \
   -e GCP_PROJECT_ID="your-project-id" \
-  -e GCP_SERVICE_ACCOUNT_EMAIL="aso-job@your-project.iam.gserviceaccount.com" \
+  -e GCP_SERVICE_ACCOUNT_EMAIL="clavi-job@your-project.iam.gserviceaccount.com" \
   -e TENANT_ID="00000000-0000-0000-0000-000000000001" \
   -e JOB_TYPE="example-job" \
-  aso-jobs:latest
+  clavi-jobs:latest
 ```
 
 ## ☁️ Cloud Runデプロイ手順
@@ -106,20 +106,20 @@ docker run --rm \
 # GCPプロジェクトIDとリージョンを設定
 export GCP_PROJECT_ID="your-project-id"
 export GCP_REGION="us-central1"
-export IMAGE_NAME="aso-jobs"
+export IMAGE_NAME="clavi-jobs"
 export IMAGE_TAG="latest"
 
 # Artifact Registryの有効化（初回のみ）
 gcloud services enable artifactregistry.googleapis.com
 
 # Dockerリポジトリ作成（初回のみ）
-gcloud artifacts repositories create aso-docker \
+gcloud artifacts repositories create clavi-docker \
   --repository-format=docker \
   --location=${GCP_REGION} \
   --description="AI Search Optimizer Docker images"
 
 # Dockerイメージをビルド
-docker build -t ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/aso-docker/${IMAGE_NAME}:${IMAGE_TAG} \
+docker build -t ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/clavi-docker/${IMAGE_NAME}:${IMAGE_TAG} \
   -f jobs/production/Dockerfile \
   jobs/production
 
@@ -127,18 +127,18 @@ docker build -t ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/aso-docker/${IMAG
 gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
 
 # イメージプッシュ
-docker push ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/aso-docker/${IMAGE_NAME}:${IMAGE_TAG}
+docker push ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/clavi-docker/${IMAGE_NAME}:${IMAGE_TAG}
 ```
 
 ### 2. Cloud Run Jobsデプロイ
 
 ```bash
 # サービスアカウントを指定してデプロイ
-gcloud run jobs create aso-cleanup-audit-logs \
-  --image=${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/aso-docker/${IMAGE_NAME}:${IMAGE_TAG} \
+gcloud run jobs create clavi-cleanup-audit-logs \
+  --image=${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/clavi-docker/${IMAGE_NAME}:${IMAGE_TAG} \
   --region=${GCP_REGION} \
-  --service-account=aso-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
-  --set-env-vars="JOB_TYPE=cleanup-audit-logs,SUPABASE_URL=https://xxx.supabase.co,API_URL=https://nands.tech,GCP_PROJECT_ID=${GCP_PROJECT_ID},GCP_SERVICE_ACCOUNT_EMAIL=aso-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com,TENANT_ID=your-tenant-id,AUDIT_LOG_RETENTION_DAYS=90" \
+  --service-account=clavi-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+  --set-env-vars="JOB_TYPE=cleanup-audit-logs,SUPABASE_URL=https://xxx.supabase.co,API_URL=https://nands.tech,GCP_PROJECT_ID=${GCP_PROJECT_ID},GCP_SERVICE_ACCOUNT_EMAIL=clavi-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com,TENANT_ID=your-tenant-id,AUDIT_LOG_RETENTION_DAYS=90" \
   --max-retries=1 \
   --task-timeout=300s \
   --memory=512Mi \
@@ -148,7 +148,7 @@ gcloud run jobs create aso-cleanup-audit-logs \
 ### 3. ジョブ実行（手動）
 
 ```bash
-gcloud run jobs execute aso-cleanup-audit-logs --region=${GCP_REGION}
+gcloud run jobs execute clavi-cleanup-audit-logs --region=${GCP_REGION}
 ```
 
 ### 4. ジョブスケジューリング（Cloud Scheduler）
@@ -158,13 +158,13 @@ gcloud run jobs execute aso-cleanup-audit-logs --region=${GCP_REGION}
 gcloud services enable cloudscheduler.googleapis.com
 
 # 週1回実行（毎週日曜日 3:00 AM）
-gcloud scheduler jobs create http aso-cleanup-audit-logs-schedule \
+gcloud scheduler jobs create http clavi-cleanup-audit-logs-schedule \
   --location=${GCP_REGION} \
   --schedule="0 3 * * 0" \
   --time-zone="Asia/Tokyo" \
-  --uri="https://${GCP_REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${GCP_PROJECT_ID}/jobs/aso-cleanup-audit-logs:run" \
+  --uri="https://${GCP_REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${GCP_PROJECT_ID}/jobs/clavi-cleanup-audit-logs:run" \
   --http-method=POST \
-  --oauth-service-account-email=aso-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+  --oauth-service-account-email=clavi-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com
 ```
 
 ## 🔍 トラブルシューティング
@@ -178,16 +178,16 @@ gcloud scheduler jobs create http aso-cleanup-audit-logs-schedule \
 **解決策**:
 ```bash
 gcloud iam service-accounts add-iam-policy-binding \
-  aso-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+  clavi-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
   --role=roles/iam.serviceAccountTokenCreator \
-  --member=serviceAccount:aso-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+  --member=serviceAccount:clavi-job@${GCP_PROJECT_ID}.iam.gserviceaccount.com
 ```
 
 ### 2. Supabase JWT取得失敗
 
 **エラー**: `Invalid service account`
 
-**原因**: `/api/aso/job-token`のサービスアカウントメール検証で弾かれている
+**原因**: `/api/clavi/job-token`のサービスアカウントメール検証で弾かれている
 
 **解決策**: `GCP_SERVICE_ACCOUNT_EMAIL`環境変数が正しいか確認
 
@@ -200,7 +200,7 @@ gcloud iam service-accounts add-iam-policy-binding \
 **解決策**:
 ```sql
 -- ジョブ専用ユーザーを作成
-SELECT aso.get_or_create_job_user('your-tenant-id'::uuid);
+SELECT clavi.get_or_create_job_user('your-tenant-id'::uuid);
 ```
 
 ## 📚 関連ドキュメント

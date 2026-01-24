@@ -4,18 +4,18 @@
 -- 作成日: 2026-01-20
 -- 目的: 招待トークンを検証し、ユーザーをテナントに追加する
 
--- 招待受諾RPC（aso スキーマ）
-CREATE OR REPLACE FUNCTION aso.accept_invitation(p_token text)
+-- 招待受諾RPC（clavi スキーマ）
+CREATE OR REPLACE FUNCTION clavi.accept_invitation(p_token text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _user_id uuid;
   _user_email text;
-  _invitation aso.invitations%ROWTYPE;
-  _existing_membership aso.user_tenants%ROWTYPE;
+  _invitation clavi.invitations%ROWTYPE;
+  _existing_membership clavi.user_tenants%ROWTYPE;
 BEGIN
   -- Step 1: 認証ユーザー確認
   _user_id := auth.uid();
@@ -34,7 +34,7 @@ BEGIN
 
   -- Step 3: 招待トークン検証
   SELECT * INTO _invitation
-  FROM aso.invitations
+  FROM clavi.invitations
   WHERE token = p_token;
 
   IF NOT FOUND THEN
@@ -64,7 +64,7 @@ BEGIN
   -- Step 5: 有効期限チェック
   IF _invitation.expires_at < now() THEN
     -- ステータスを更新
-    UPDATE aso.invitations
+    UPDATE clavi.invitations
     SET status = 'expired', updated_at = now()
     WHERE id = _invitation.id;
 
@@ -78,13 +78,13 @@ BEGIN
 
   -- Step 7: 既存メンバーシップ確認（冪等性）
   SELECT * INTO _existing_membership
-  FROM aso.user_tenants
+  FROM clavi.user_tenants
   WHERE tenant_id = _invitation.tenant_id
     AND user_id = _user_id;
 
   IF FOUND THEN
     -- 既にメンバーの場合、招待をacceptedにして成功返却
-    UPDATE aso.invitations
+    UPDATE clavi.invitations
     SET status = 'accepted',
         accepted_at = now(),
         accepted_by = _user_id,
@@ -101,7 +101,7 @@ BEGIN
   END IF;
 
   -- Step 8: user_tenantsにメンバーシップ追加
-  INSERT INTO aso.user_tenants (
+  INSERT INTO clavi.user_tenants (
     tenant_id,
     user_id,
     role
@@ -112,7 +112,7 @@ BEGIN
   );
 
   -- Step 9: 招待ステータス更新
-  UPDATE aso.invitations
+  UPDATE clavi.invitations
   SET status = 'accepted',
       accepted_at = now(),
       accepted_by = _user_id,
@@ -120,7 +120,7 @@ BEGIN
   WHERE id = _invitation.id;
 
   -- Step 10: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _invitation.tenant_id,
     _user_id,
     'invitation_accepted',
@@ -148,11 +148,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.accept_invitation(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.accept_invitation(text) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.accept_invitation(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.accept_invitation(text) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.accept_invitation IS
+COMMENT ON FUNCTION clavi.accept_invitation IS
 '招待トークンを検証し、ユーザーをテナントに追加（メール一致必須、冪等性あり）';
 
 -- publicスキーマラッパー
@@ -160,10 +160,10 @@ CREATE OR REPLACE FUNCTION public.accept_invitation(p_token text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.accept_invitation(p_token);
+  RETURN clavi.accept_invitation(p_token);
 END;
 $$;
 
@@ -171,7 +171,7 @@ REVOKE ALL ON FUNCTION public.accept_invitation(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.accept_invitation(text) TO authenticated;
 
 COMMENT ON FUNCTION public.accept_invitation IS
-'aso.accept_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.accept_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- 完了メッセージ
 DO $$ BEGIN

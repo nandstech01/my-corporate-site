@@ -10,7 +10,7 @@ async function main() {
   // 環境変数確認
   const API_URL = process.env.API_URL || 'http://localhost:3000';
   const TENANT_ID = process.env.TENANT_ID || 'test-tenant-uuid';
-  const OIDC_AUDIENCE = process.env.OIDC_AUDIENCE || 'https://nands.tech/api/aso/job-token';
+  const OIDC_AUDIENCE = process.env.OIDC_AUDIENCE || 'https://nands.tech/api/clavi/job-token';
 
   console.log('📋 設定確認:');
   console.log(`  - API_URL: ${API_URL}`);
@@ -40,10 +40,10 @@ async function main() {
 
     // Step 2: ジョブトークン発行API呼び出し
     console.log('Step 2: ジョブトークン発行API呼び出し...');
-    console.log(`  - エンドポイント: ${API_URL}/api/aso/job-token`);
+    console.log(`  - エンドポイント: ${API_URL}/api/clavi/job-token`);
     console.log(`  - テナントID: ${TENANT_ID}\n`);
 
-    const response = await fetch(`${API_URL}/api/aso/job-token`, {
+    const response = await fetch(`${API_URL}/api/clavi/job-token`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${idToken}`,

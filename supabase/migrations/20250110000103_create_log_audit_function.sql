@@ -4,7 +4,7 @@
 -- 作成日: 2025-01-10
 -- 目的: 監査ログを簡単に記録できるヘルパー関数
 
-CREATE OR REPLACE FUNCTION aso.log_audit(
+CREATE OR REPLACE FUNCTION clavi.log_audit(
   p_tenant_id uuid,
   p_user_id uuid,
   p_action text,
@@ -15,13 +15,13 @@ CREATE OR REPLACE FUNCTION aso.log_audit(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER -- RLSをバイパスして監査ログに書き込み
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _log_id uuid;
 BEGIN
   -- 監査ログに記録
-  INSERT INTO aso.audit_log (
+  INSERT INTO clavi.audit_log (
     tenant_id,
     user_id,
     action,
@@ -52,15 +52,15 @@ END;
 $$;
 
 -- 権限設定（全ユーザーが呼び出せるが、SECURITY DEFINERで安全に実行）
-REVOKE ALL ON FUNCTION aso.log_audit(uuid, uuid, text, text, text, jsonb) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.log_audit(uuid, uuid, text, text, text, jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.log_audit(uuid, uuid, text, text, text, jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.log_audit(uuid, uuid, text, text, text, jsonb) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.log_audit IS
+COMMENT ON FUNCTION clavi.log_audit IS
 '監査ログを記録するヘルパー関数（SECURITY DEFINER、例外時は警告のみ）';
 
 -- 完了メッセージ
 DO $$ BEGIN
-  RAISE NOTICE '✅ aso.log_audit() 関数作成完了';
+  RAISE NOTICE '✅ clavi.log_audit() 関数作成完了';
 END $$;
 

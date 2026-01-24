@@ -1,8 +1,8 @@
 /**
  * AI Search Optimizer Cloud Run Jobs - Entry Point
- * 
+ *
  * 環境変数 JOB_TYPE で実行するジョブを動的に切り替え
- * 
+ *
  * 利用可能なジョブ:
  * - cleanup-audit-logs: 古い監査ログ削除
  * - example-job: サンプルジョブ（テスト用）
@@ -35,7 +35,7 @@ const JOB_TYPE = process.env.JOB_TYPE || 'cleanup-audit-logs';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const API_URL = process.env.API_URL; // https://your-domain.com
 const TENANT_ID = process.env.TENANT_ID;
-const OIDC_AUDIENCE = process.env.OIDC_AUDIENCE || `${API_URL}/api/aso/job-token`;
+const OIDC_AUDIENCE = process.env.OIDC_AUDIENCE || `${API_URL}/api/clavi/job-token`;
 
 console.log('=== AI Search Optimizer Cloud Run Job 開始 ===');
 console.log(`ジョブ種別: ${JOB_TYPE}`);
@@ -58,11 +58,11 @@ async function getOidcToken() {
 }
 
 /**
- * Supabase JWTトークン取得（/api/aso/job-token経由）
+ * Supabase JWTトークン取得（/api/clavi/job-token経由）
  */
 async function getSupabaseToken(oidcToken) {
   try {
-    const response = await fetch(`${API_URL}/api/aso/job-token`, {
+    const response = await fetch(`${API_URL}/api/clavi/job-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

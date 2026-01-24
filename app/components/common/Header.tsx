@@ -48,8 +48,8 @@ export default function Header() {
   const pathname = usePathname();
   const isTopPage = pathname === '/';
 
-  // /asoパスではグローバルヘッダーを非表示（ASO専用ヘッダーを使用）
-  if (pathname?.startsWith('/aso')) {
+  // /claviパスではグローバルヘッダーを非表示（CLAVI専用ヘッダーを使用）
+  if (pathname?.startsWith('/clavi')) {
     return null;
   }
   

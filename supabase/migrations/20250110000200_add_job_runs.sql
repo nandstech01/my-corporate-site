@@ -6,10 +6,10 @@
 -- ジョブ実行状態管理テーブル
 -- ========================================
 
-CREATE TABLE IF NOT EXISTS aso.job_runs (
+CREATE TABLE IF NOT EXISTS clavi.job_runs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL REFERENCES aso.tenants(id) ON DELETE CASCADE,
-  analysis_id uuid NOT NULL REFERENCES aso.client_analyses(id) ON DELETE CASCADE,
+  tenant_id uuid NOT NULL REFERENCES clavi.tenants(id) ON DELETE CASCADE,
+  analysis_id uuid NOT NULL REFERENCES clavi.client_analyses(id) ON DELETE CASCADE,
   
   -- ジョブ情報
   job_type text NOT NULL, -- 'url_analyzer', 'entity_extractor', 'schema_generator', etc.
@@ -38,47 +38,47 @@ CREATE TABLE IF NOT EXISTS aso.job_runs (
 );
 
 -- インデックス
-CREATE INDEX idx_job_runs_tenant_id ON aso.job_runs (tenant_id);
-CREATE INDEX idx_job_runs_analysis_id ON aso.job_runs (analysis_id);
-CREATE INDEX idx_job_runs_status ON aso.job_runs (status);
-CREATE INDEX idx_job_runs_created_at ON aso.job_runs (created_at DESC);
-CREATE INDEX idx_job_runs_cloud_run_execution_id ON aso.job_runs (cloud_run_execution_id) WHERE cloud_run_execution_id IS NOT NULL;
+CREATE INDEX idx_job_runs_tenant_id ON clavi.job_runs (tenant_id);
+CREATE INDEX idx_job_runs_analysis_id ON clavi.job_runs (analysis_id);
+CREATE INDEX idx_job_runs_status ON clavi.job_runs (status);
+CREATE INDEX idx_job_runs_created_at ON clavi.job_runs (created_at DESC);
+CREATE INDEX idx_job_runs_cloud_run_execution_id ON clavi.job_runs (cloud_run_execution_id) WHERE cloud_run_execution_id IS NOT NULL;
 
 -- コメント
-COMMENT ON TABLE aso.job_runs IS 'Cloud Run Jobsの実行状態、リトライ、エラーログを管理';
-COMMENT ON COLUMN aso.job_runs.job_type IS 'ジョブの種類（url_analyzer, entity_extractor等）';
-COMMENT ON COLUMN aso.job_runs.progress IS 'ジョブの進捗状況（ステップ番号、現在のステップ名）';
-COMMENT ON COLUMN aso.job_runs.error_log IS 'エラーログの配列（ステップごとのエラー情報）';
+COMMENT ON TABLE clavi.job_runs IS 'Cloud Run Jobsの実行状態、リトライ、エラーログを管理';
+COMMENT ON COLUMN clavi.job_runs.job_type IS 'ジョブの種類（url_analyzer, entity_extractor等）';
+COMMENT ON COLUMN clavi.job_runs.progress IS 'ジョブの進捗状況（ステップ番号、現在のステップ名）';
+COMMENT ON COLUMN clavi.job_runs.error_log IS 'エラーログの配列（ステップごとのエラー情報）';
 
 -- ========================================
 -- RLS（Row Level Security）
 -- ========================================
 
-ALTER TABLE aso.job_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clavi.job_runs ENABLE ROW LEVEL SECURITY;
 
 -- テナント分離ポリシー
-DROP POLICY IF EXISTS job_runs_tenant_isolation ON aso.job_runs;
+DROP POLICY IF EXISTS job_runs_tenant_isolation ON clavi.job_runs;
 CREATE POLICY job_runs_tenant_isolation
-  ON aso.job_runs
+  ON clavi.job_runs
   FOR ALL
-  USING (tenant_id = aso.current_tenant_id());
+  USING (tenant_id = clavi.current_tenant_id());
 
 -- ========================================
 -- updated_atトリガー（既存関数を利用）
 -- ========================================
 
-DROP TRIGGER IF EXISTS trg_job_runs_set_updated_at ON aso.job_runs;
+DROP TRIGGER IF EXISTS trg_job_runs_set_updated_at ON clavi.job_runs;
 CREATE TRIGGER trg_job_runs_set_updated_at
-  BEFORE UPDATE ON aso.job_runs
+  BEFORE UPDATE ON clavi.job_runs
   FOR EACH ROW
-  EXECUTE FUNCTION aso.set_updated_at();
+  EXECUTE FUNCTION clavi.set_updated_at();
 
 -- ========================================
 -- ジョブ状態管理関数
 -- ========================================
 
 -- ジョブ開始
-CREATE OR REPLACE FUNCTION aso.start_job_run(
+CREATE OR REPLACE FUNCTION clavi.start_job_run(
   p_tenant_id uuid,
   p_analysis_id uuid,
   p_job_type text,
@@ -86,12 +86,12 @@ CREATE OR REPLACE FUNCTION aso.start_job_run(
 ) RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_job_run_id uuid;
 BEGIN
-  INSERT INTO aso.job_runs (
+  INSERT INTO clavi.job_runs (
     tenant_id,
     analysis_id,
     job_type,
@@ -112,10 +112,10 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.start_job_run IS 'ジョブ実行を開始し、job_run_idを返す';
+COMMENT ON FUNCTION clavi.start_job_run IS 'ジョブ実行を開始し、job_run_idを返す';
 
 -- ジョブ進捗更新
-CREATE OR REPLACE FUNCTION aso.update_job_progress(
+CREATE OR REPLACE FUNCTION clavi.update_job_progress(
   p_job_run_id uuid,
   p_step integer,
   p_total_steps integer,
@@ -123,10 +123,10 @@ CREATE OR REPLACE FUNCTION aso.update_job_progress(
 ) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  UPDATE aso.job_runs
+  UPDATE clavi.job_runs
   SET progress = jsonb_build_object(
     'step', p_step,
     'total_steps', p_total_steps,
@@ -136,17 +136,17 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.update_job_progress IS 'ジョブの進捗状況を更新';
+COMMENT ON FUNCTION clavi.update_job_progress IS 'ジョブの進捗状況を更新';
 
 -- エラーログ追加
-CREATE OR REPLACE FUNCTION aso.add_job_error(
+CREATE OR REPLACE FUNCTION clavi.add_job_error(
   p_job_run_id uuid,
   p_step_name text,
   p_error_message text
 ) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_error_entry jsonb;
@@ -157,7 +157,7 @@ BEGIN
     'timestamp', to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
   );
   
-  UPDATE aso.job_runs
+  UPDATE clavi.job_runs
   SET 
     error_log = COALESCE(error_log, '[]'::jsonb) || v_error_entry,
     last_error = p_error_message
@@ -165,19 +165,19 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.add_job_error IS 'ジョブのエラーログに新しいエラーを追加';
+COMMENT ON FUNCTION clavi.add_job_error IS 'ジョブのエラーログに新しいエラーを追加';
 
 -- ジョブ完了
-CREATE OR REPLACE FUNCTION aso.complete_job_run(
+CREATE OR REPLACE FUNCTION clavi.complete_job_run(
   p_job_run_id uuid,
   p_success boolean DEFAULT true
 ) RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  UPDATE aso.job_runs
+  UPDATE clavi.job_runs
   SET 
     status = CASE WHEN p_success THEN 'completed' ELSE 'failed' END,
     completed_at = now()
@@ -185,15 +185,15 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.complete_job_run IS 'ジョブ実行を完了（成功 or 失敗）';
+COMMENT ON FUNCTION clavi.complete_job_run IS 'ジョブ実行を完了（成功 or 失敗）';
 
 -- ジョブリトライ
-CREATE OR REPLACE FUNCTION aso.retry_job_run(
+CREATE OR REPLACE FUNCTION clavi.retry_job_run(
   p_job_run_id uuid
 ) RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_retry_count integer;
@@ -203,7 +203,7 @@ BEGIN
   -- 現在のリトライ回数と上限を取得
   SELECT retry_count, max_retries
   INTO v_retry_count, v_max_retries
-  FROM aso.job_runs
+  FROM clavi.job_runs
   WHERE id = p_job_run_id;
   
   -- リトライ可能かチェック
@@ -211,7 +211,7 @@ BEGIN
   
   IF v_can_retry THEN
     -- リトライカウントを増やし、ステータスを更新
-    UPDATE aso.job_runs
+    UPDATE clavi.job_runs
     SET 
       retry_count = retry_count + 1,
       status = 'retrying',
@@ -223,13 +223,13 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.retry_job_run IS 'ジョブをリトライ（上限チェック付き）';
+COMMENT ON FUNCTION clavi.retry_job_run IS 'ジョブをリトライ（上限チェック付き）';
 
 -- ========================================
 -- ビュー: 失敗ジョブ一覧（運営管理用）
 -- ========================================
 
-CREATE OR REPLACE VIEW aso.v_failed_jobs AS
+CREATE OR REPLACE VIEW clavi.v_failed_jobs AS
 SELECT 
   jr.id AS job_run_id,
   jr.tenant_id,
@@ -245,31 +245,31 @@ SELECT
   jr.started_at,
   jr.completed_at,
   jr.created_at
-FROM aso.job_runs jr
-JOIN aso.tenants t ON jr.tenant_id = t.id
-JOIN aso.client_analyses ca ON jr.analysis_id = ca.id
+FROM clavi.job_runs jr
+JOIN clavi.tenants t ON jr.tenant_id = t.id
+JOIN clavi.client_analyses ca ON jr.analysis_id = ca.id
 WHERE jr.status = 'failed'
 ORDER BY jr.created_at DESC;
 
-COMMENT ON VIEW aso.v_failed_jobs IS '失敗したジョブの一覧（運営管理用）';
+COMMENT ON VIEW clavi.v_failed_jobs IS '失敗したジョブの一覧（運営管理用）';
 
 -- ========================================
 -- クリーンアップ関数（古いジョブログ削除）
 -- ========================================
 
-CREATE OR REPLACE FUNCTION aso.cleanup_old_job_runs(
+CREATE OR REPLACE FUNCTION clavi.cleanup_old_job_runs(
   p_retention_days integer DEFAULT 90
 ) RETURNS integer
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_deleted_count integer;
 BEGIN
   -- 完了したジョブのうち、保持期間を超えたものを削除
   WITH deleted AS (
-    DELETE FROM aso.job_runs
+    DELETE FROM clavi.job_runs
     WHERE 
       status IN ('completed', 'failed')
       AND completed_at < now() - (p_retention_days || ' days')::interval
@@ -281,19 +281,19 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.cleanup_old_job_runs IS '古いジョブ実行ログを削除（デフォルト90日）';
+COMMENT ON FUNCTION clavi.cleanup_old_job_runs IS '古いジョブ実行ログを削除（デフォルト90日）';
 
 -- ========================================
 -- 統計関数（運営管理用）
 -- ========================================
 
-CREATE OR REPLACE FUNCTION aso.get_job_statistics(
+CREATE OR REPLACE FUNCTION clavi.get_job_statistics(
   p_tenant_id uuid DEFAULT NULL,
   p_days integer DEFAULT 7
 ) RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   v_stats jsonb;
@@ -313,7 +313,7 @@ BEGIN
     'total_retries', sum(retry_count)
   )
   INTO v_stats
-  FROM aso.job_runs
+  FROM clavi.job_runs
   WHERE 
     created_at >= now() - (p_days || ' days')::interval
     AND (p_tenant_id IS NULL OR tenant_id = p_tenant_id);
@@ -322,7 +322,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION aso.get_job_statistics IS 'ジョブ実行の統計情報を取得（過去N日間）';
+COMMENT ON FUNCTION clavi.get_job_statistics IS 'ジョブ実行の統計情報を取得（過去N日間）';
 
 -- ========================================
 -- サンプルデータ（開発用）
@@ -337,36 +337,36 @@ DECLARE
   v_job_run_id uuid;
 BEGIN
   -- テナント取得（最初のテナント）
-  SELECT id INTO v_tenant_id FROM aso.tenants LIMIT 1;
+  SELECT id INTO v_tenant_id FROM clavi.tenants LIMIT 1;
   
   -- 分析レコード作成（サンプル）
-  INSERT INTO aso.client_analyses (tenant_id, url, company_name)
+  INSERT INTO clavi.client_analyses (tenant_id, url, company_name)
   VALUES (v_tenant_id, 'https://example.com', 'Example Corp')
   RETURNING id INTO v_analysis_id;
   
   -- ジョブ実行レコード作成（成功例）
-  v_job_run_id := aso.start_job_run(
+  v_job_run_id := clavi.start_job_run(
     v_tenant_id,
     v_analysis_id,
     'url_analyzer',
     'exec-123456'
   );
   
-  PERFORM aso.update_job_progress(v_job_run_id, 3, 5, 'schema_generation');
-  PERFORM aso.complete_job_run(v_job_run_id, true);
+  PERFORM clavi.update_job_progress(v_job_run_id, 3, 5, 'schema_generation');
+  PERFORM clavi.complete_job_run(v_job_run_id, true);
   
   -- ジョブ実行レコード作成（失敗例）
-  v_job_run_id := aso.start_job_run(
+  v_job_run_id := clavi.start_job_run(
     v_tenant_id,
     v_analysis_id,
     'url_analyzer',
     'exec-789012'
   );
   
-  PERFORM aso.add_job_error(v_job_run_id, 'crawl', 'Connection timeout');
-  PERFORM aso.retry_job_run(v_job_run_id);
-  PERFORM aso.add_job_error(v_job_run_id, 'crawl', 'Connection timeout (retry 1)');
-  PERFORM aso.complete_job_run(v_job_run_id, false);
+  PERFORM clavi.add_job_error(v_job_run_id, 'crawl', 'Connection timeout');
+  PERFORM clavi.retry_job_run(v_job_run_id);
+  PERFORM clavi.add_job_error(v_job_run_id, 'crawl', 'Connection timeout (retry 1)');
+  PERFORM clavi.complete_job_run(v_job_run_id, false);
 END $$;
 */
 
@@ -377,7 +377,7 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE '✅ Migration 20250110000200_add_job_runs.sql completed successfully';
-  RAISE NOTICE '📊 Tables created: aso.job_runs';
+  RAISE NOTICE '📊 Tables created: clavi.job_runs';
   RAISE NOTICE '🔧 Functions created: start_job_run, update_job_progress, add_job_error, complete_job_run, retry_job_run, cleanup_old_job_runs, get_job_statistics';
   RAISE NOTICE '📈 Views created: v_failed_jobs';
 END $$;

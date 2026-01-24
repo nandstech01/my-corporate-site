@@ -4,15 +4,15 @@
 -- 作成日: 2026-01-20
 -- 目的: 招待トークンを生成し、招待レコードを作成する
 
--- 招待作成RPC（aso スキーマ）
-CREATE OR REPLACE FUNCTION aso.create_invitation(
+-- 招待作成RPC（clavi スキーマ）
+CREATE OR REPLACE FUNCTION clavi.create_invitation(
   p_target_email text,
   p_target_role text DEFAULT 'member'
 )
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
@@ -23,8 +23,8 @@ DECLARE
   _expires_at timestamptz;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
   _user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認
@@ -54,7 +54,7 @@ BEGIN
 
   -- Step 7: 既存の有効な招待を確認（同じメール+テナント+pending）
   IF EXISTS (
-    SELECT 1 FROM aso.invitations
+    SELECT 1 FROM clavi.invitations
     WHERE tenant_id = _tenant_id
       AND target_email = lower(trim(p_target_email))
       AND status = 'pending'
@@ -65,7 +65,7 @@ BEGIN
 
   -- Step 8: 既にメンバーか確認
   IF EXISTS (
-    SELECT 1 FROM aso.user_tenants ut
+    SELECT 1 FROM clavi.user_tenants ut
     JOIN auth.users u ON u.id = ut.user_id
     WHERE ut.tenant_id = _tenant_id
       AND lower(u.email) = lower(trim(p_target_email))
@@ -84,7 +84,7 @@ BEGIN
   _expires_at := now() + interval '7 days';
 
   -- Step 11: 招待レコード作成
-  INSERT INTO aso.invitations (
+  INSERT INTO clavi.invitations (
     tenant_id,
     token,
     target_email,
@@ -104,7 +104,7 @@ BEGIN
   RETURNING id INTO _invitation_id;
 
   -- Step 12: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _tenant_id,
     _user_id,
     'invitation_created',
@@ -135,11 +135,11 @@ END;
 $$;
 
 -- 権限設定
-REVOKE ALL ON FUNCTION aso.create_invitation(text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.create_invitation(text, text) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.create_invitation(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.create_invitation(text, text) TO authenticated;
 
 -- コメント
-COMMENT ON FUNCTION aso.create_invitation IS
+COMMENT ON FUNCTION clavi.create_invitation IS
 '招待トークンを生成し、招待レコードを作成（owner/admin専用、admin招待はowner限定）';
 
 -- publicスキーマラッパー
@@ -150,10 +150,10 @@ CREATE OR REPLACE FUNCTION public.create_invitation(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.create_invitation(p_target_email, p_target_role);
+  RETURN clavi.create_invitation(p_target_email, p_target_role);
 END;
 $$;
 
@@ -161,24 +161,24 @@ REVOKE ALL ON FUNCTION public.create_invitation(text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.create_invitation(text, text) TO authenticated;
 
 COMMENT ON FUNCTION public.create_invitation IS
-'aso.create_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.create_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- 招待取消RPC
-CREATE OR REPLACE FUNCTION aso.revoke_invitation(p_invitation_id uuid)
+CREATE OR REPLACE FUNCTION clavi.revoke_invitation(p_invitation_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   _tenant_id uuid;
   _tenant_role text;
   _user_id uuid;
-  _invitation aso.invitations%ROWTYPE;
+  _invitation clavi.invitations%ROWTYPE;
 BEGIN
   -- Step 1: JWT claimからtenant_id/roleを取得
-  _tenant_id := aso.current_tenant_id();
-  _tenant_role := aso.current_tenant_role();
+  _tenant_id := clavi.current_tenant_id();
+  _tenant_role := clavi.current_tenant_role();
   _user_id := auth.uid();
 
   -- Step 2: テナントコンテキスト確認
@@ -193,7 +193,7 @@ BEGIN
 
   -- Step 4: 招待取得
   SELECT * INTO _invitation
-  FROM aso.invitations
+  FROM clavi.invitations
   WHERE id = p_invitation_id AND tenant_id = _tenant_id;
 
   IF NOT FOUND THEN
@@ -206,12 +206,12 @@ BEGIN
   END IF;
 
   -- Step 6: ステータス更新
-  UPDATE aso.invitations
+  UPDATE clavi.invitations
   SET status = 'revoked', updated_at = now()
   WHERE id = p_invitation_id;
 
   -- Step 7: 監査ログ記録
-  PERFORM aso.log_audit(
+  PERFORM clavi.log_audit(
     _tenant_id,
     _user_id,
     'invitation_revoked',
@@ -235,10 +235,10 @@ EXCEPTION
 END;
 $$;
 
-REVOKE ALL ON FUNCTION aso.revoke_invitation(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION aso.revoke_invitation(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION clavi.revoke_invitation(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION clavi.revoke_invitation(uuid) TO authenticated;
 
-COMMENT ON FUNCTION aso.revoke_invitation IS
+COMMENT ON FUNCTION clavi.revoke_invitation IS
 '招待を取消（owner/admin専用）';
 
 -- publicスキーマラッパー
@@ -246,10 +246,10 @@ CREATE OR REPLACE FUNCTION public.revoke_invitation(p_invitation_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 BEGIN
-  RETURN aso.revoke_invitation(p_invitation_id);
+  RETURN clavi.revoke_invitation(p_invitation_id);
 END;
 $$;
 
@@ -257,7 +257,7 @@ REVOKE ALL ON FUNCTION public.revoke_invitation(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.revoke_invitation(uuid) TO authenticated;
 
 COMMENT ON FUNCTION public.revoke_invitation IS
-'aso.revoke_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
+'clavi.revoke_invitation のpublicスキーマラッパー（Supabase JSクライアント用）';
 
 -- 完了メッセージ
 DO $$ BEGIN

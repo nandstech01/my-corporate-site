@@ -19,12 +19,12 @@
  * 6. Rich Results Test用の検証
  */
 
-import { UrlCrawler } from '../lib/aso/crawler';
-import { ASOEntityExtractor } from '../lib/aso/entity-extractor';
-import { ASOSchemaGenerator } from '../lib/aso/schema-generator';
-import { ASOSchemaMerger } from '../lib/aso/schema-merger';
-import type { TenantSettings, SameAsSettings } from '../lib/aso/types/tenant-settings';
-import type { HeadingStructure, JsonLdInfo } from '../lib/aso/types/crawler';
+import { UrlCrawler } from '../lib/clavi/crawler';
+import { CLAVIEntityExtractor } from '../lib/clavi/entity-extractor';
+import { CLAVISchemaGenerator } from '../lib/clavi/schema-generator';
+import { CLAVISchemaMerger } from '../lib/clavi/schema-merger';
+import type { TenantSettings, SameAsSettings } from '../lib/clavi/types/tenant-settings';
+import type { HeadingStructure, JsonLdInfo } from '../lib/clavi/types/crawler';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -59,7 +59,7 @@ const PRESET_CONFIGS: Record<string, TenantSettings> = {
     author: {
       name: '原田賢治',
       jobTitle: '代表取締役 / AI検索最適化コンサルタント',
-      description: 'AI検索最適化（ASO）とレリバンスエンジニアリングの専門家。Google AIO、ChatGPT、Perplexity等のAI検索エンジン対策を手掛ける。',
+      description: 'AI検索最適化（CLAVI）とレリバンスエンジニアリングの専門家。Google AIO、ChatGPT、Perplexity等のAI検索エンジン対策を手掛ける。',
       expertise: [
         'AI検索最適化',
         'レリバンスエンジニアリング',
@@ -194,7 +194,7 @@ async function main() {
 
   section('Step 2: エンティティ抽出');
 
-  const extractor = new ASOEntityExtractor();
+  const extractor = new CLAVIEntityExtractor();
 
   log('info', 'エンティティ抽出開始...');
 
@@ -273,8 +273,8 @@ async function main() {
 
   section('Step 4: JSON-LD生成 & マージ');
 
-  const generator = new ASOSchemaGenerator();
-  const merger = new ASOSchemaMerger();
+  const generator = new CLAVISchemaGenerator();
+  const merger = new CLAVISchemaMerger();
 
   log('info', 'JSON-LD生成開始...');
 
@@ -421,6 +421,9 @@ main().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
+
+
+
 
 
 

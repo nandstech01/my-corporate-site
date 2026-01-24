@@ -19,7 +19,7 @@ async function testOIDC() {
     console.log('✅ GoogleAuthインスタンス作成成功\n');
 
     // Step 2: audienceを設定（将来の内部API URL）
-    const audience = 'https://nands.tech/api/aso/job-token';
+    const audience = 'https://nands.tech/api/clavi/job-token';
     console.log(`Step 2: audience設定: ${audience}\n`);
 
     // Step 3: IDトークンクライアント取得

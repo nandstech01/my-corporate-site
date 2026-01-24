@@ -127,30 +127,30 @@ else
   check_fail "user_tenants table does not exist"
 fi
 
-# Check aso.client_analyses table
+# Check clavi.client_analyses table
 CLIENT_ANALYSES_EXISTS=$(supabase db execute "
   SELECT COUNT(*) 
   FROM pg_tables 
-  WHERE schemaname = 'aso' AND tablename = 'client_analyses';
+  WHERE schemaname = 'clavi' AND tablename = 'client_analyses';
 " 2>/dev/null | tail -1 | tr -d ' ')
 
 if [ "$CLIENT_ANALYSES_EXISTS" = "1" ]; then
-  check_pass "aso.client_analyses table exists"
+  check_pass "clavi.client_analyses table exists"
 else
-  check_fail "aso.client_analyses table does not exist"
+  check_fail "clavi.client_analyses table does not exist"
 fi
 
-# Check aso.fragment_vectors table
+# Check clavi.fragment_vectors table
 FRAGMENT_VECTORS_EXISTS=$(supabase db execute "
   SELECT COUNT(*) 
   FROM pg_tables 
-  WHERE schemaname = 'aso' AND tablename = 'fragment_vectors';
+  WHERE schemaname = 'clavi' AND tablename = 'fragment_vectors';
 " 2>/dev/null | tail -1 | tr -d ' ')
 
 if [ "$FRAGMENT_VECTORS_EXISTS" = "1" ]; then
-  check_pass "aso.fragment_vectors table exists"
+  check_pass "clavi.fragment_vectors table exists"
 else
-  check_fail "aso.fragment_vectors table does not exist"
+  check_fail "clavi.fragment_vectors table does not exist"
 fi
 
 # Check pgvector extension

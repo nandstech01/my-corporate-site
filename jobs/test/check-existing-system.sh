@@ -6,12 +6,12 @@ echo "=== 既存システム影響確認 ==="
 echo ""
 
 echo "✅ 確認1: 既存API動作確認"
-echo "GET /api/aso/me"
-curl -s http://localhost:3000/api/aso/me | head -n 5
+echo "GET /api/clavi/me"
+curl -s http://localhost:3000/api/clavi/me | head -n 5
 echo ""
 
-echo "GET /api/aso/tenant"
-curl -s http://localhost:3000/api/aso/tenant | head -n 5
+echo "GET /api/clavi/tenant"
+curl -s http://localhost:3000/api/clavi/tenant | head -n 5
 echo ""
 
 echo "✅ 確認2: 既存ページ動作確認"
@@ -24,8 +24,8 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/blog
 echo ""
 
 echo "✅ 確認3: データベース確認"
-echo "aso.* テーブル一覧:"
-psql "$DATABASE_URL" -c "SELECT tablename FROM pg_tables WHERE schemaname='aso' ORDER BY tablename;" 2>/dev/null || echo "DBアクセスにはDATABASE_URL環境変数が必要です"
+echo "clavi.* テーブル一覧:"
+psql "$DATABASE_URL" -c "SELECT tablename FROM pg_tables WHERE schemaname='clavi' ORDER BY tablename;" 2>/dev/null || echo "DBアクセスにはDATABASE_URL環境変数が必要です"
 echo ""
 
 echo "✅ 確認4: 既存Docker確認"

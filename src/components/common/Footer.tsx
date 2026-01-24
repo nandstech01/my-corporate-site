@@ -24,8 +24,8 @@ const Footer: React.FC = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // 管理画面・ASOの場合はフッターを表示しない
-  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/partner-admin') || pathname.startsWith('/aso'))) {
+  // 管理画面・CLAVIの場合はフッターを表示しない
+  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/partner-admin') || pathname.startsWith('/clavi'))) {
     return null;
   }
 

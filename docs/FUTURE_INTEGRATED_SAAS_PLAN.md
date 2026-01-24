@@ -1,8 +1,8 @@
-# 将来構想：ASO + Triple RAG記事生成 + SNS自動投稿 統合SaaS
+# 将来構想：CLAVI + Triple RAG記事生成 + SNS自動投稿 統合SaaS
 
 **ステータス**: 📋 構想段階（実装予定なし）
 **作成日**: 2026-01-20
-**前提条件**: 現在のASO SaaSを完璧に仕上げてから着手
+**前提条件**: 現在のCLAVI SaaSを完璧に仕上げてから着手
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### 構想の概要
 
-現在のASO SaaS（構造化データ生成・AI検索最適化）に、以下を統合した完全自動コンテンツマーケティングプラットフォーム：
+現在のCLAVI SaaS（構造化データ生成・AI検索最適化）に、以下を統合した完全自動コンテンツマーケティングプラットフォーム：
 
 1. **Triple RAG記事生成** - 5層RAGによる高品質AI記事
 2. **SNS自動投稿** - X/LinkedIn/Instagram等への自動配信
@@ -29,7 +29,7 @@
 
 **作る価値: あり（強く推奨）**
 **技術的実現可能性: 4-6週間で実装可能**
-**着手時期: 現在のASO完成後**
+**着手時期: 現在のCLAVI完成後**
 
 ---
 
@@ -40,7 +40,7 @@
 │           統合コンテンツマーケティングSaaS                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ❶ 既存URL分析（ASO）[現在実装中]                               │
+│  ❶ 既存URL分析（CLAVI）[現在実装中]                               │
 │     └─ 構造化データ生成、Fragment ID、AI検索最適化              │
 │     └─ sameAs、Author Schema                                   │
 │     └─ 既存JSON-LDマージ機能                                   │
@@ -167,9 +167,9 @@ interface VectorLink {
 
 ```sql
 -- テナント別RAGデータ
-CREATE TABLE aso.company_vectors_aso (
+CREATE TABLE clavi.company_vectors_aso (
   id UUID PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES aso.tenants(id),
+  tenant_id UUID NOT NULL REFERENCES clavi.tenants(id),
   content_chunk TEXT,
   embedding vector(1536),
   metadata JSONB,
@@ -177,14 +177,14 @@ CREATE TABLE aso.company_vectors_aso (
 );
 
 -- RLSポリシー
-CREATE POLICY company_vectors_aso_tenant_isolation
-  ON aso.company_vectors_aso FOR ALL
-  USING (tenant_id = aso.current_tenant_id());
+CREATE POLICY company_vectors_clavi_tenant_isolation
+  ON clavi.company_vectors_aso FOR ALL
+  USING (tenant_id = clavi.current_tenant_id());
 
 -- SNS認証情報（暗号化）
-CREATE TABLE aso.sns_credentials (
+CREATE TABLE clavi.sns_credentials (
   id UUID PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES aso.tenants(id),
+  tenant_id UUID NOT NULL REFERENCES clavi.tenants(id),
   platform TEXT NOT NULL, -- 'x', 'linkedin', 'instagram'
   api_key BYTEA, -- pgcrypto暗号化
   api_secret BYTEA,
@@ -195,9 +195,9 @@ CREATE TABLE aso.sns_credentials (
 );
 
 -- SNS投稿履歴
-CREATE TABLE aso.sns_posts (
+CREATE TABLE clavi.sns_posts (
   id UUID PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES aso.tenants(id),
+  tenant_id UUID NOT NULL REFERENCES clavi.tenants(id),
   platform TEXT NOT NULL,
   content TEXT NOT NULL,
   status TEXT DEFAULT 'scheduled', -- 'scheduled', 'posted', 'failed'
@@ -209,9 +209,9 @@ CREATE TABLE aso.sns_posts (
 );
 
 -- API使用量トラッキング
-CREATE TABLE aso.api_usage_logs (
+CREATE TABLE clavi.api_usage_logs (
   id UUID PRIMARY KEY,
-  tenant_id UUID REFERENCES aso.tenants(id),
+  tenant_id UUID REFERENCES clavi.tenants(id),
   api_provider TEXT, -- 'openai', 'deepseek', 'google'
   operation TEXT,    -- 'embedding', 'generation', 'image'
   tokens INTEGER,
@@ -222,7 +222,7 @@ CREATE TABLE aso.api_usage_logs (
 
 ### Phase 2: 記事生成API統合（2週間）
 
-**新規エンドポイント**: `/app/api/aso/generate-article/route.ts`
+**新規エンドポイント**: `/app/api/clavi/generate-article/route.ts`
 
 ```typescript
 export async function POST(request: Request) {
@@ -236,10 +236,10 @@ export async function POST(request: Request) {
   const article = await generateHybridBlog({
     ...params,
     tenant_id,
-    use_aso_rag: true
+    use_clavi_rag: true
   });
 
-  // 3. 構造化データ自動生成（既存ASO機能）
+  // 3. 構造化データ自動生成（既存CLAVI機能）
   const structuredData = await generateStructuredData(article);
 
   // 4. Fragment ID自動生成
@@ -254,7 +254,7 @@ export async function POST(request: Request) {
 
 ### Phase 3: SNS投稿システム統合（2週間）
 
-**新規エンドポイント**: `/app/api/aso/sns/post/route.ts`
+**新規エンドポイント**: `/app/api/clavi/sns/post/route.ts`
 
 ```typescript
 export async function POST(request: Request) {
@@ -283,10 +283,10 @@ export async function POST(request: Request) {
 ### Phase 4: UI統合（1週間）
 
 **修正ファイル**:
-- `/app/aso/dashboard/page.tsx` - 記事生成セクション追加
-- `/app/aso/settings/page.tsx` - SNS連携設定追加
-- 新規: `/app/aso/articles/page.tsx` - 記事一覧
-- 新規: `/app/aso/sns/page.tsx` - SNS投稿管理
+- `/app/clavi/dashboard/page.tsx` - 記事生成セクション追加
+- `/app/clavi/settings/page.tsx` - SNS連携設定追加
+- 新規: `/app/clavi/articles/page.tsx` - 記事一覧
+- 新規: `/app/clavi/sns/page.tsx` - SNS投稿管理
 
 ---
 
@@ -315,17 +315,17 @@ export async function POST(request: Request) {
 
 **問題**: 現在の`company_vectors`等はテナント分離されていない
 
-**解決策**: ASO専用テーブル作成
-- `aso.company_vectors_aso` - テナント別company RAG
-- `aso.trend_vectors_aso` - テナント別trend RAG
-- `aso.youtube_vectors_aso` - テナント別youtube RAG
+**解決策**: CLAVI専用テーブル作成
+- `clavi.company_vectors_aso` - テナント別company RAG
+- `clavi.trend_vectors_aso` - テナント別trend RAG
+- `clavi.youtube_vectors_aso` - テナント別youtube RAG
 
 ### 課題3: X API認証のテナント別管理
 
 **問題**: 現在は環境変数でグローバル管理（1アカウントのみ）
 
 **解決策**:
-- `aso.sns_credentials`テーブルで暗号化保存
+- `clavi.sns_credentials`テーブルで暗号化保存
 - pgcryptoで暗号化/復号化
 - テナントごとにX API認証情報を登録
 
@@ -349,13 +349,13 @@ Week 1: データベース拡張
 └── マイグレーション作成
 
 Week 2-3: 記事生成API統合
-├── /api/aso/generate-article 実装
+├── /api/clavi/generate-article 実装
 ├── テナント別RAG検索ロジック
 ├── API使用量トラッキング
 └── 既存ハイブリッド生成の流用
 
 Week 4-5: SNS投稿システム統合
-├── /api/aso/sns/post 実装
+├── /api/clavi/sns/post 実装
 ├── 認証情報暗号化（pgcrypto）
 ├── 投稿履歴管理
 ├── 5パターン投稿生成
@@ -376,25 +376,25 @@ Week 6: UI統合 + テスト
 
 | ファイル | 目的 |
 |---------|------|
-| `/app/api/aso/generate-article/route.ts` | 記事生成API |
-| `/app/api/aso/sns/post/route.ts` | SNS投稿API |
-| `/app/api/aso/sns/credentials/route.ts` | SNS認証管理API |
-| `/lib/aso/tenant-rag-search.ts` | テナント別RAG検索 |
-| `/lib/aso/sns-client-factory.ts` | テナント別SNSクライアント |
-| `/app/aso/articles/page.tsx` | 記事一覧UI |
-| `/app/aso/sns/page.tsx` | SNS管理UI |
-| `/components/aso/ArticleGenerator.tsx` | 記事生成コンポーネント |
-| `/components/aso/SnsConnector.tsx` | SNS連携コンポーネント |
+| `/app/api/clavi/generate-article/route.ts` | 記事生成API |
+| `/app/api/clavi/sns/post/route.ts` | SNS投稿API |
+| `/app/api/clavi/sns/credentials/route.ts` | SNS認証管理API |
+| `/lib/clavi/tenant-rag-search.ts` | テナント別RAG検索 |
+| `/lib/clavi/sns-client-factory.ts` | テナント別SNSクライアント |
+| `/app/clavi/articles/page.tsx` | 記事一覧UI |
+| `/app/clavi/sns/page.tsx` | SNS管理UI |
+| `/components/clavi/ArticleGenerator.tsx` | 記事生成コンポーネント |
+| `/components/clavi/SnsConnector.tsx` | SNS連携コンポーネント |
 | `supabase/migrations/xxx_add_article_sns_tables.sql` | DBマイグレーション |
 
 ### 修正
 
 | ファイル | 変更内容 |
 |---------|---------|
-| `/app/aso/dashboard/page.tsx` | 記事生成セクション追加 |
-| `/app/aso/settings/page.tsx` | SNS連携設定追加 |
-| `/app/aso/pricing/page.tsx` | 価格改定 |
-| `/lib/aso/types/` | 新型定義追加 |
+| `/app/clavi/dashboard/page.tsx` | 記事生成セクション追加 |
+| `/app/clavi/settings/page.tsx` | SNS連携設定追加 |
+| `/app/clavi/pricing/page.tsx` | 価格改定 |
+| `/lib/clavi/types/` | 新型定義追加 |
 
 ---
 
@@ -431,8 +431,8 @@ Week 6: UI統合 + テスト
 この将来構想を実装する前に、以下を完了すること：
 
 ### 必須条件
-- [ ] 現在のASO SaaS Phase 8完了（sameAs + Author + マージ機能）
-- [ ] ASO SaaSの本番運用開始
+- [ ] 現在のCLAVI SaaS Phase 8完了（sameAs + Author + マージ機能）
+- [ ] CLAVI SaaSの本番運用開始
 - [ ] 初期顧客の獲得と動作検証
 - [ ] 価格戦略の確定（従量課金設計）
 
@@ -445,7 +445,7 @@ Week 6: UI統合 + テスト
 
 ## 11. 関連ドキュメント
 
-- `/docs/saas-product/TASKS.md` - ASO SaaSタスク管理
+- `/docs/saas-product/TASKS.md` - CLAVI SaaSタスク管理
 - `/docs/CORE_ARCHITECTURE.md` - 技術仕様（Relevance Engineering）
 - `/docs/backend-python/` - Django RAG API、Phase 3評価結果
 - `/docs/hybrid-article-generator/README.md` - ハイブリッド記事生成
@@ -454,4 +454,4 @@ Week 6: UI統合 + テスト
 ---
 
 **最終更新**: 2026-01-20
-**次回レビュー予定**: ASO SaaS本番運用開始後
+**次回レビュー予定**: CLAVI SaaS本番運用開始後

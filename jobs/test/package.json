@@ -1,5 +1,5 @@
 {
-  "name": "aso-oidc-test",
+  "name": "clavi-oidc-test",
   "version": "1.0.0",
   "description": "OIDC ID Token取得テスト",
   "main": "test-oidc.js",

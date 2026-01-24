@@ -34,16 +34,16 @@ node test-oidc.js
 # ビルド・プッシュ
 export PROJECT_ID="gen-lang-client-0387405309"
 export REGION="europe-west1"
-gcloud builds submit --tag gcr.io/${PROJECT_ID}/aso-oidc-test:latest .
+gcloud builds submit --tag gcr.io/${PROJECT_ID}/clavi-oidc-test:latest .
 
 # ジョブ更新
-gcloud run jobs update aso-test-job \
-  --image=gcr.io/${PROJECT_ID}/aso-oidc-test:latest \
-  --service-account=aso-job-runner@${PROJECT_ID}.iam.gserviceaccount.com \
+gcloud run jobs update clavi-test-job \
+  --image=gcr.io/${PROJECT_ID}/clavi-oidc-test:latest \
+  --service-account=clavi-job-runner@${PROJECT_ID}.iam.gserviceaccount.com \
   --region=${REGION}
 
 # 実行
-gcloud run jobs execute aso-test-job --region=${REGION}
+gcloud run jobs execute clavi-test-job --region=${REGION}
 ```
 
 ### 期待される結果
@@ -76,8 +76,8 @@ gcloud run jobs execute aso-test-job --region=${REGION}
 2. **環境変数が設定されていること** (`.env.local`)
    ```bash
    # OIDC検証用
-   OIDC_EXPECTED_AUDIENCE=https://nands.tech/api/aso/job-token
-   JOB_SERVICE_ACCOUNT_EMAIL=aso-job-runner@gen-lang-client-0387405309.iam.gserviceaccount.com
+   OIDC_EXPECTED_AUDIENCE=https://nands.tech/api/clavi/job-token
+   JOB_SERVICE_ACCOUNT_EMAIL=clavi-job-runner@gen-lang-client-0387405309.iam.gserviceaccount.com
 
    # Supabase JWT発行用
    SUPABASE_JWT_SECRET=<your-jwt-secret>
@@ -112,17 +112,17 @@ CMD ["node", "test-job-token.js"]
 # ビルド・プッシュ
 export PROJECT_ID="gen-lang-client-0387405309"
 export REGION="europe-west1"
-gcloud builds submit --tag gcr.io/${PROJECT_ID}/aso-job-token-test:latest .
+gcloud builds submit --tag gcr.io/${PROJECT_ID}/clavi-job-token-test:latest .
 
 # ジョブ作成（新規）または更新
-gcloud run jobs update aso-test-job \
-  --image=gcr.io/${PROJECT_ID}/aso-job-token-test:latest \
-  --service-account=aso-job-runner@${PROJECT_ID}.iam.gserviceaccount.com \
-  --set-env-vars="API_URL=https://nands.tech,TENANT_ID=test-tenant-uuid,OIDC_AUDIENCE=https://nands.tech/api/aso/job-token" \
+gcloud run jobs update clavi-test-job \
+  --image=gcr.io/${PROJECT_ID}/clavi-job-token-test:latest \
+  --service-account=clavi-job-runner@${PROJECT_ID}.iam.gserviceaccount.com \
+  --set-env-vars="API_URL=https://nands.tech,TENANT_ID=test-tenant-uuid,OIDC_AUDIENCE=https://nands.tech/api/clavi/job-token" \
   --region=${REGION}
 
 # 実行
-gcloud run jobs execute aso-test-job --region=${REGION}
+gcloud run jobs execute clavi-test-job --region=${REGION}
 ```
 
 ### 期待される結果
@@ -163,7 +163,7 @@ Step 3: レスポンス確認...
 
 **解決策**:
 1. `OIDC_EXPECTED_AUDIENCE`（API側）と`OIDC_AUDIENCE`（Job側）を確認
-2. 両方とも`https://nands.tech/api/aso/job-token`に統一
+2. 両方とも`https://nands.tech/api/clavi/job-token`に統一
 
 ### ❌ `Invalid service account`
 
@@ -191,8 +191,8 @@ cd /Users/nands/my-corporate-site/jobs/test
 ```
 
 **確認項目**:
-- ✅ `/api/aso/me` 正常応答
-- ✅ `/api/aso/tenant` 正常応答
+- ✅ `/api/clavi/me` 正常応答
+- ✅ `/api/clavi/tenant` 正常応答
 - ✅ `/` ページ正常表示
 - ✅ `/blog` ページ正常表示
 

@@ -21,7 +21,7 @@ export const supabase = (() => {
   return supabaseInstance;
 })();
 
-// App Router用のクライアント作成関数（ASO SaaS用）
+// App Router用のクライアント作成関数（CLAVI SaaS用）
 export function createClient() {
   return createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {

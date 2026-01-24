@@ -36,7 +36,7 @@ async function deleteAllAnalyses() {
   if (error) {
     console.error('❌ エラー:', error.message);
     console.log('\n手動で削除する場合は、Supabase SQL Editorで以下を実行してください:');
-    console.log('DELETE FROM aso.analyses;');
+    console.log('DELETE FROM clavi.analyses;');
     return;
   }
 

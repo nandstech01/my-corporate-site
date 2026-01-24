@@ -362,4 +362,4 @@ async function onArticleSave(article: Article) {
 ## 関連ドキュメント
 
 - [Backend Python Phase概要](./backend-python/PHASES_OVERVIEW.md) - Django RAG API
-- [SaaS Product](./saas-product/TASKS.md) - ASO SaaS実装
+- [SaaS Product](./saas-product/TASKS.md) - CLAVI SaaS実装

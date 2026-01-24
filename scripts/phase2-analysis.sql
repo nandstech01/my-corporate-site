@@ -25,7 +25,7 @@ SELECT
   COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
   ROUND(100.0 * COUNT(CASE WHEN status = 'completed' THEN 1 END) / COUNT(*), 2) as success_rate_percent,
   ROUND(100.0 * COUNT(CASE WHEN status = 'failed' THEN 1 END) / COUNT(*), 2) as failure_rate_percent
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid;
 
@@ -38,7 +38,7 @@ SELECT
   status,
   COUNT(*) as count,
   ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) as percentage
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
 GROUP BY status
@@ -53,7 +53,7 @@ WITH processing_times AS (
     analysis_id,
     url,
     (metadata->>'processing_time_ms')::int as processing_time_ms
-  FROM aso.client_analyses
+  FROM clavi.client_analyses
   WHERE created_at >= '2026-01-11'
     AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
     AND status = 'completed'
@@ -84,7 +84,7 @@ WITH url_counts AS (
   SELECT
     url,
     COUNT(*) as count
-  FROM aso.client_analyses
+  FROM clavi.client_analyses
   WHERE created_at >= '2026-01-11'
     AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
   GROUP BY url
@@ -107,7 +107,7 @@ SELECT
   COUNT(*) as duplicate_count,
   array_agg(analysis_id ORDER BY created_at) as analysis_ids,
   array_agg(status ORDER BY created_at) as statuses
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
 GROUP BY url
@@ -127,7 +127,7 @@ SELECT
   ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY ai_structure_score), 2) as median_score,
   COUNT(CASE WHEN ai_structure_score >= 70 THEN 1 END) as high_quality_count,
   ROUND(100.0 * COUNT(CASE WHEN ai_structure_score >= 70 THEN 1 END) / COUNT(*), 2) as high_quality_percent
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
   AND status = 'completed'
@@ -143,7 +143,7 @@ SELECT
   COUNT(*) as count,
   ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) as percentage,
   array_agg(url ORDER BY created_at LIMIT 3) as sample_urls
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
   AND status = 'failed'
@@ -163,7 +163,7 @@ SELECT
   ai_structure_score,
   created_at,
   EXTRACT(EPOCH FROM (created_at - LAG(created_at) OVER (ORDER BY created_at))) as seconds_since_previous
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
 ORDER BY created_at;
@@ -177,7 +177,7 @@ WITH kpi_metrics AS (
     -- KPI 1: 二重実行
     (SELECT COALESCE(SUM(count - 1), 0)
      FROM (SELECT COUNT(*) as count
-           FROM aso.client_analyses
+           FROM clavi.client_analyses
            WHERE created_at >= '2026-01-11'
              AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
            GROUP BY url
@@ -185,7 +185,7 @@ WITH kpi_metrics AS (
     
     -- KPI 2: p95処理時間
     (SELECT PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY (metadata->>'processing_time_ms')::int)
-     FROM aso.client_analyses
+     FROM clavi.client_analyses
      WHERE created_at >= '2026-01-11'
        AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
        AND status = 'completed'
@@ -193,13 +193,13 @@ WITH kpi_metrics AS (
     
     -- KPI 3: needs_review率（仮に status='failed' かつ error_type='needs_review' と定義）
     (SELECT ROUND(100.0 * COUNT(CASE WHEN status = 'failed' AND metadata->>'error_type' = 'needs_review' THEN 1 END) / COUNT(*), 2)
-     FROM aso.client_analyses
+     FROM clavi.client_analyses
      WHERE created_at >= '2026-01-11'
        AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid) as needs_review_rate_percent,
     
     -- KPI 4: 成功率
     (SELECT ROUND(100.0 * COUNT(CASE WHEN status = 'completed' THEN 1 END) / COUNT(*), 2)
-     FROM aso.client_analyses
+     FROM clavi.client_analyses
      WHERE created_at >= '2026-01-11'
        AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid) as success_rate_percent
 )
@@ -243,7 +243,7 @@ SELECT
   metadata->>'error_message' as error_message,
   created_at,
   updated_at
-FROM aso.client_analyses
+FROM clavi.client_analyses
 WHERE created_at >= '2026-01-11'
   AND tenant_id = '2dec3290-5427-4874-a525-6265da5aa8f3'::uuid
 ORDER BY created_at;

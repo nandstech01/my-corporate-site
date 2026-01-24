@@ -10,7 +10,7 @@ RETURNS jsonb
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = aso, public, pg_temp
+SET search_path = clavi, public, pg_temp
 AS $$
 DECLARE
   claims jsonb;
@@ -36,7 +36,7 @@ BEGIN
     BEGIN
       -- 指定されたテナントに本当に所属しているか検証
       SELECT tenant_id, role INTO user_tenant_id, user_tenant_role
-      FROM aso.user_tenants
+      FROM clavi.user_tenants
       WHERE user_id = (event->>'user_id')::uuid
         AND tenant_id = selected_tenant_id_text::uuid
       LIMIT 1;
@@ -58,7 +58,7 @@ BEGIN
   IF user_tenant_id IS NULL THEN
     BEGIN
       SELECT tenant_id, role INTO user_tenant_id, user_tenant_role
-      FROM aso.user_tenants
+      FROM clavi.user_tenants
       WHERE user_id = (event->>'user_id')::uuid
       ORDER BY 
         CASE 

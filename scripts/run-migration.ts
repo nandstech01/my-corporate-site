@@ -22,7 +22,7 @@ async function runMigration() {
   
   // Test by calling a simple query
   const { data: testData, error: testError } = await supabase
-    .from('aso.user_tenants')
+    .from('clavi.user_tenants')
     .select('count')
     .limit(1);
   

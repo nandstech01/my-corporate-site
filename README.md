@@ -10,7 +10,7 @@
 
 | プロジェクト | 状態 | 詳細 |
 |-------------|------|------|
-| **ASO SaaS** | Phase 5 実験待ち | [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) |
+| **CLAVI SaaS** | Phase 5 実験待ち | [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) |
 | **Carve-Out基盤** | Phase 0-6 完了 | [docs/carve-out/TASKS.md](./docs/carve-out/TASKS.md) |
 | **Django Backend** | Phase 1-4 完了 | [docs/backend-python/](./docs/backend-python/) |
 
@@ -75,19 +75,19 @@ Fragment IDベースのハイブリッド検索。
 my-corporate-site/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API Routes
-│   │   └── aso/          # ASO SaaS API
-│   ├── aso/              # ASO SaaS Frontend
+│   │   └── clavi/          # CLAVI SaaS API
+│   ├── clavi/              # CLAVI SaaS Frontend
 │   └── [pages]/          # Corporate Pages
 ├── backend/               # Django RAG API
 ├── components/            # React Components
-│   └── aso/              # ASO Components
+│   └── clavi/              # CLAVI Components
 ├── lib/                   # Shared Libraries ★コア機能
 │   ├── structured-data/  # レリバンスエンジニアリング
 │   ├── vector/           # ベクトル検索
-│   └── aso/              # ASO SaaS Logic
+│   └── clavi/              # CLAVI SaaS Logic
 ├── docs/                  # Documentation
 │   ├── CORE_ARCHITECTURE.md  # コアアーキテクチャ詳細
-│   ├── saas-product/     # ASO SaaS Docs
+│   ├── saas-product/     # CLAVI SaaS Docs
 │   ├── carve-out/        # Multi-tenant Docs
 │   └── backend-python/   # Django Docs
 └── supabase/             # DB Migrations
@@ -124,7 +124,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 # OpenAI
 OPENAI_API_KEY=
 
-# Stripe (ASO SaaS)
+# Stripe (CLAVI SaaS)
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
@@ -137,7 +137,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 | ドキュメント | 内容 |
 |-------------|------|
 | [docs/README.md](./docs/README.md) | ドキュメント一覧 |
-| [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) | ASO SaaS タスク |
+| [docs/saas-product/TASKS.md](./docs/saas-product/TASKS.md) | CLAVI SaaS タスク |
 | [docs/carve-out/TASKS.md](./docs/carve-out/TASKS.md) | Carve-Out タスク |
 | [docs/backend-python/](./docs/backend-python/) | Django Backend |
 
@@ -151,7 +151,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 - Schema.org 構造化データ
 - AI検索最適化 (GEO/AIO)
 
-### ASO SaaS (71ファイル)
+### CLAVI SaaS (71ファイル)
 - マルチテナント基盤 (RLS)
 - URL分析・ベクトルリンク化
 - Stripe課金統合
