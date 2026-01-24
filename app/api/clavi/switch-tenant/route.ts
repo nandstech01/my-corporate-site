@@ -1,21 +1,46 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+
+async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore setAll errors from Server Components
+          }
+        },
+      },
+    }
+  );
+}
 
 /**
  * POST /api/clavi/switch-tenant
  * テナント切替API
- * 
+ *
  * Body: { tenant_id: string }
- * 
+ *
  * 処理:
  * 1. 指定されたテナントに所属しているか検証
  * 2. user_metadataのselected_tenant_idを更新
  * 3. 再ログイン推奨のメッセージを返す
  */
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
-  
+  const supabase = await createSupabaseServerClient();
+
   // 認証確認
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
@@ -27,7 +52,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     tenant_id = body.tenant_id;
-    
+
     if (!tenant_id) {
       return NextResponse.json(
         { error: 'tenant_id is required' },
@@ -64,7 +89,7 @@ export async function POST(request: Request) {
   });
 
   if (updateError) {
-    console.error('❌ user_metadata更新エラー:', updateError);
+    console.error('user_metadata更新エラー:', updateError);
     return NextResponse.json(
       { error: 'Failed to update tenant selection', details: updateError.message },
       { status: 500 }
@@ -86,7 +111,7 @@ export async function POST(request: Request) {
     });
   } catch (logError) {
     // 監査ログ失敗は無視（主処理を妨げない）
-    console.warn('⚠️ 監査ログ記録失敗（無視）:', logError);
+    console.warn('監査ログ記録失敗（無視）:', logError);
   }
 
   // Step 4: レスポンス
@@ -98,4 +123,3 @@ export async function POST(request: Request) {
     note: 'Please sign out and sign in again to apply the change to JWT claims.'
   });
 }
-

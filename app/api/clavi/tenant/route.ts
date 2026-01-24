@@ -1,10 +1,35 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore setAll errors from Server Components
+          }
+        },
+      },
+    }
+  );
+}
+
 export async function GET() {
-  const supabase = createRouteHandlerClient({ cookies });
-  
+  const supabase = await createSupabaseServerClient();
+
   // 認証確認
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
@@ -49,7 +74,7 @@ export async function GET() {
  * Body: { name?: string, subscription_tier?: 'starter' | 'pro' | 'enterprise' }
  */
 export async function PATCH(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createSupabaseServerClient();
 
   // 認証確認
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -117,7 +142,7 @@ export async function PATCH(request: Request) {
  * 注意: CASCADE削除（user_tenants, invitations, audit_log等も削除）
  */
 export async function DELETE() {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createSupabaseServerClient();
 
   // 認証確認
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -163,4 +188,3 @@ export async function DELETE() {
     note: 'Please sign out immediately. Your tenant and all associated data have been deleted.',
   });
 }
-

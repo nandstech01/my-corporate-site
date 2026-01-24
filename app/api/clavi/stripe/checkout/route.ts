@@ -8,10 +8,35 @@
  * @created 2026-01-18
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+
+async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore setAll errors from Server Components
+          }
+        },
+      },
+    }
+  );
+}
 
 // ランタイムで初期化（ビルド時エラー回避）
 const getStripe = () => {
@@ -44,7 +69,7 @@ interface CheckoutRequest {
 export async function POST(request: Request) {
   try {
     // 1. 認証確認
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

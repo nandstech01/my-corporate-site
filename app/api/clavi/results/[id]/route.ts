@@ -1,17 +1,42 @@
 /**
  * CLAVI SaaS - 分析結果取得API
- * 
+ *
  * @description
  * 分析IDから結果を取得
  * RLS（Row Level Security）により、テナント分離が保証される
- * 
+ *
  * @author NANDS SaaS開発チーム
  * @created 2025-01-10
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+
+async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore setAll errors from Server Components
+          }
+        },
+      },
+    }
+  );
+}
 
 /**
  * 分析結果レスポンス型
@@ -31,9 +56,9 @@ interface AnalysisResultResponse {
 
 /**
  * GET /api/clavi/results/[id]
- * 
+ *
  * 分析結果を取得
- * 
+ *
  * @example
  * ```typescript
  * const response = await fetch('/api/clavi/results/123e4567-e89b-12d3-a456-426614174000');
@@ -57,37 +82,12 @@ export async function GET(
       );
     }
 
-    // 認証確認（Authorization ヘッダーまたはCookie）
-    const authHeader = request.headers.get('authorization');
-    let supabase;
-    
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          },
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
-    } else {
-      supabase = createRouteHandlerClient({ cookies });
-    }
-    
+    // 認証確認
+    const supabase = await createSupabaseServerClient();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('[CLAVI Results] Auth result:', { userId: user?.id, email: user?.email, error: authError?.message });
-    
+
     if (authError || !user) {
-      console.error('[CLAVI Results] Unauthorized:', authError?.message);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -100,23 +100,15 @@ export async function GET(
     const { data: context, error: contextError } = await supabase
       .rpc('get_current_tenant_context');
 
-    console.log('[CLAVI Results] RPC result:', { context, contextError: contextError?.message });
-
     if (!contextError && context?.tenant_id) {
       tenant_id = context.tenant_id;
-      console.log('[CLAVI Results] Using tenant from RPC:', tenant_id);
     } else {
       // Fallback: RPC関数を使用（/api/clavi/analyses と同じロジック）
-      console.log('[CLAVI Results] RPC failed, using fallback. User ID:', user.id);
-      
       const { data: membership, error: membershipError } = await supabase
         .rpc('get_user_tenant_by_id', { p_user_id: user.id })
         .single<{ tenant_id: string; role: string }>();
 
-      console.log('[CLAVI Results] Membership query result:', { membership, error: membershipError });
-
       if (membershipError || !membership) {
-        console.error('[CLAVI Results] No tenant context:', membershipError);
         return NextResponse.json(
           { error: 'No tenant context. Please select or join a tenant.' },
           { status: 403 }
@@ -124,18 +116,14 @@ export async function GET(
       }
 
       tenant_id = membership.tenant_id;
-      console.log('[CLAVI Results] Using tenant from fallback:', tenant_id, membership.role);
     }
 
     if (!tenant_id) {
-      console.error('[CLAVI Results] No tenant_id resolved');
       return NextResponse.json(
         { error: 'No tenant context' },
         { status: 403 }
       );
     }
-
-    console.log('[CLAVI Results] Fetching analysis:', { id, tenant_id });
 
     // 分析結果取得（RLSにより自動的にテナント分離）
     const { data: analysis, error: fetchError } = await supabase
@@ -145,18 +133,15 @@ export async function GET(
       .eq('tenant_id', tenant_id)
       .single();
 
-    console.log('[CLAVI Results] Fetch result:', { hasData: !!analysis, error: fetchError?.message, errorCode: fetchError?.code });
-
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
         // 見つからない、またはRLSにより拒否
-        console.error('[CLAVI Results] Analysis not found or access denied:', { id, tenant_id });
         return NextResponse.json(
           { error: 'Analysis not found or access denied' },
           { status: 404 }
         );
       }
-      
+
       console.error('[CLAVI Results] Fetch error:', fetchError);
       return NextResponse.json(
         { error: 'Failed to fetch analysis' },
@@ -164,7 +149,6 @@ export async function GET(
       );
     }
 
-    console.log('[CLAVI Results] Success:', { analysisId: analysis.id, url: analysis.url });
     return NextResponse.json<AnalysisResultResponse>(analysis, { status: 200 });
   } catch (error) {
     console.error('[CLAVI] Get result error:', error);
@@ -180,9 +164,9 @@ export async function GET(
 
 /**
  * DELETE /api/clavi/results/[id]
- * 
+ *
  * 分析結果を削除（owner/adminのみ）
- * 
+ *
  * @example
  * ```typescript
  * const response = await fetch('/api/clavi/results/123e4567-e89b-12d3-a456-426614174000', {
@@ -206,32 +190,9 @@ export async function DELETE(
       );
     }
 
-    // 認証確認（Authorization ヘッダーまたはCookie）
-    const authHeader = request.headers.get('authorization');
-    let supabase;
-    
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          },
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
-    } else {
-      supabase = createRouteHandlerClient({ cookies });
-    }
-    
+    // 認証確認
+    const supabase = await createSupabaseServerClient();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
@@ -313,4 +274,3 @@ export async function DELETE(
     );
   }
 }
-

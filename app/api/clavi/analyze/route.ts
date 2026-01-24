@@ -15,7 +15,7 @@
 // Extend timeout for URL crawling and analysis
 export const maxDuration = 60; // 60 seconds (Pro plan required for >10s)
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { crawlUrlServerless, isServerlessEnvironment } from '@/lib/clavi/crawler-serverless';
@@ -27,6 +27,31 @@ import { CLAVIEntityExtractor } from '@/lib/clavi/entity-extractor';
 import type { AnalysisData, HasPartSchema } from '@/lib/clavi/types/analysis';
 import type { TenantSettings } from '@/lib/clavi/types/tenant-settings';
 import * as crypto from 'crypto';
+
+async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore setAll errors from Server Components
+          }
+        },
+      },
+    }
+  );
+}
 
 /**
  * URL分析リクエスト型
@@ -49,9 +74,9 @@ interface AnalyzeResponse {
 
 /**
  * POST /api/clavi/analyze
- * 
+ *
  * URLを分析し、結果をデータベースに保存
- * 
+ *
  * @example
  * ```typescript
  * const response = await fetch('/api/clavi/analyze', {
@@ -90,51 +115,11 @@ export async function POST(request: Request) {
     }
 
     // 2. 認証確認（carve-out基盤）
-    // Authorization ヘッダーまたはCookieから認証
-    const authHeader = request.headers.get('authorization');
-    let supabase;
-    
-    if (authHeader?.startsWith('Bearer ')) {
-      // Authorization ヘッダーがある場合（テスト・外部API用）
-      // Bearer token（ユーザーJWT / ジョブJWT）で Supabase に認証し、RLS を強制する
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          },
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
-    } else {
-      // Cookieベース認証（通常のブラウザリクエスト）
-      // 🔍 デバッグ: Cookie確認（本番では出さない）
-      if (process.env.NODE_ENV !== 'production') {
-      const cookieStore = cookies();
-      const allCookies = cookieStore.getAll();
-      console.log('[CLAVI] 🍪 Cookies received:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
-      }
-      
-      supabase = createRouteHandlerClient({ cookies });
-    }
-    
+    const supabase = await createSupabaseServerClient();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('[CLAVI] Auth result:', { 
-      userId: user?.id, 
-      email: user?.email, 
-      error: authError?.message 
-    });
-    
+
     if (authError || !user) {
-      console.error('[CLAVI] ❌ Authentication failed');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -154,16 +139,11 @@ export async function POST(request: Request) {
       tenant_role = context.tenant_role;
     } else {
       // Fallback: RPC関数でuser_idを引数として渡す
-      console.log('[CLAVI] RPC failed, using fallback. User ID:', user.id);
-      
       const { data: membership, error: membershipError } = await supabase
         .rpc('get_user_tenant_by_id', { p_user_id: user.id })
         .single<{ tenant_id: string; role: string }>();
 
-      console.log('[CLAVI] Membership query result:', { membership, error: membershipError });
-
       if (membershipError || !membership) {
-        console.error('[CLAVI] No tenant context:', membershipError);
         return NextResponse.json(
           { error: 'No tenant context. Please select or join a tenant.' },
           { status: 403 }
@@ -172,7 +152,6 @@ export async function POST(request: Request) {
 
       tenant_id = membership.tenant_id;
       tenant_role = membership.role;
-      console.log('[CLAVI] Using tenant from fallback:', tenant_id, tenant_role);
     }
 
     if (!tenant_id) {
@@ -191,7 +170,6 @@ export async function POST(request: Request) {
       // 使用量チェック失敗は非ブロッキング（ログのみ）
     } else if (usageData && Array.isArray(usageData) && usageData.length > 0) {
       const usage = usageData[0];
-      console.log('[CLAVI] Usage check:', usage);
 
       if (!usage.is_allowed) {
         return NextResponse.json(
@@ -218,14 +196,6 @@ export async function POST(request: Request) {
     const normalized_url = normalizeUrl(url);
     const url_hash = generateUrlHash(normalized_url);
     const idempotency_key = `${tenant_id}_${url_hash}_${pipeline_version}`;
-    
-    console.log('[CLAVI] URL hash generated:', { 
-      original_url, 
-      normalized_url, 
-      url_hash, 
-      tenant_id, 
-      pipeline_version 
-    });
 
     // 5. 既存分析チェック（冪等性）
     const { data: existingData, error: checkError } = await supabase
@@ -234,9 +204,7 @@ export async function POST(request: Request) {
         p_url_hash: url_hash,
         p_pipeline_version: pipeline_version
       });
-    
-    console.log('[CLAVI] Existing check result:', { existingData, checkError, dataType: typeof existingData, isArray: Array.isArray(existingData) });
-    
+
     if (checkError) {
       console.error('既存分析チェックエラー:', checkError);
       return NextResponse.json(
@@ -246,11 +214,9 @@ export async function POST(request: Request) {
     }
 
     // RPC関数はTABLE形式で返すので、配列として扱う
-    const existingAnalysis = existingData && Array.isArray(existingData) && existingData.length > 0 
-      ? existingData[0] 
+    const existingAnalysis = existingData && Array.isArray(existingData) && existingData.length > 0
+      ? existingData[0]
       : null;
-    
-    console.log('[CLAVI] Existing analysis:', existingAnalysis);
 
     // 既存分析が存在する場合
     if (existingAnalysis) {
@@ -267,7 +233,6 @@ export async function POST(request: Request) {
     }
 
     // 6. URLクロール実行
-    console.log(`[CLAVI] Crawling URL: ${url} (serverless: ${isServerlessEnvironment()})`);
     const crawlResult = await crawlUrlServerless(url, {
       timeout: 15000, // 15秒（サーバーレス対応）
       maxRetries: 2,
@@ -323,8 +288,6 @@ export async function POST(request: Request) {
     };
 
     // 7.1. Fragment ID生成（Phase 4.1）
-    console.log(`[CLAVI] Generating Fragment IDs from ${crawlResult.headings.length} headings`);
-    
     // 見出しからFragment ID自動生成（日本語対応: eng-next実装）
     const fragmentIds = crawlResult.headings.map((heading, index) => {
       const text = heading.text.trim();
@@ -362,8 +325,6 @@ export async function POST(request: Request) {
     analysis_data.fragment_ids = fragmentSchemas.map((f: HasPartSchema) => f['@id']);
     analysis_data.fragment_schemas = fragmentSchemas;
 
-    console.log(`[CLAVI] Generated ${fragmentSchemas.length} Fragment IDs`);
-
     // 7.2. Phase 8: テナント設定取得 & Schema生成 & マージ
     let tenantSettings: TenantSettings = {};
     let structuredData: any = null;
@@ -376,7 +337,6 @@ export async function POST(request: Request) {
 
       if (!settingsError && settingsData) {
         tenantSettings = settingsData as TenantSettings;
-        console.log(`[CLAVI] Tenant settings loaded: sameAs=${!!tenantSettings.sameAs}, author=${!!tenantSettings.author}`);
       } else if (settingsError) {
         console.warn('[CLAVI] Failed to load tenant settings:', settingsError.message);
       }
@@ -428,8 +388,6 @@ export async function POST(request: Request) {
         additions: mergeResult.additions,
         warnings: mergeResult.warnings,
       };
-
-      console.log(`[CLAVI] Schema merge completed: ${mergeResult.additions.length} additions, ${mergeResult.warnings.length} warnings`);
     } catch (schemaError) {
       console.error('[CLAVI] Schema generation/merge error (non-blocking):', schemaError);
     }
@@ -473,8 +431,6 @@ export async function POST(request: Request) {
 
       if (incrementError) {
         console.error('[CLAVI] Usage increment error (non-blocking):', incrementError);
-      } else {
-        console.log('[CLAVI] Usage incremented for tenant:', tenant_id);
       }
     } catch (incrementErr) {
       console.error('[CLAVI] Usage increment exception (non-blocking):', incrementErr);
@@ -482,7 +438,6 @@ export async function POST(request: Request) {
 
     // 10. Phase 4.2: Fragment ベクトル化（eng-backend実装）
     try {
-      console.log(`[CLAVI] Starting Fragment vectorization for analysis ${newAnalysis.id}`);
       const vectorizer = new CLAVIFragmentVectorizer();
       const vectorResult = await vectorizer.vectorizeFragments({
         analysis_id: newAnalysis.id,
@@ -493,14 +448,12 @@ export async function POST(request: Request) {
           content: crawlResult.headings[index]?.text || '', // 50-150語パッセージ（見出しテキストを使用）
         })) || [],
       });
-      console.log(`[CLAVI] Vectorized ${vectorResult.successCount}/${vectorResult.totalCount} fragments`);
     } catch (vectorError) {
       // ベクトル化失敗でも分析結果は返す（ログのみ）
       console.error('[CLAVI] Fragment vectorization failed (non-blocking):', vectorError);
     }
 
     const processingTime = Date.now() - startTime;
-    console.log(`[CLAVI] Analysis completed: ${newAnalysis.id} (${processingTime}ms)`);
 
     return NextResponse.json<AnalyzeResponse>(
       {
@@ -526,12 +479,12 @@ export async function POST(request: Request) {
 
 /**
  * URLハッシュを生成
- * 
- * ⚠️ Phase 1締め: normalized_url を受け取る（既に正規化済み）
- * 
+ *
+ * Phase 1締め: normalized_url を受け取る（既に正規化済み）
+ *
  * Phase 1: MD5を維持（既存データとの互換性）
  * Phase 2: SHA-256へ移行予定（pipeline_version v2.0.0）
- * 
+ *
  * @param normalizedUrl - 正規化済みURL
  * @returns URLハッシュ（MD5）
  */
@@ -542,23 +495,23 @@ function generateUrlHash(normalizedUrl: string): string {
 
 /**
  * URLを正規化（冪等性キー生成専用）
- * 
- * ⚠️ 重要: この正規化は「冪等性キー（url_hash）生成専用」です
+ *
+ * 重要: この正規化は「冪等性キー（url_hash）生成専用」です
  * - 実際のクローリングは original_url を使用
  * - canonical_url は Phase 2+ で実装
- * 
+ *
  * 正規化ルール（Phase 1締め）:
- * 1. プロトコルを統一（http → https）※キー用のみ
+ * 1. プロトコルを統一（http → https）キー用のみ
  * 2. www を除去
  * 3. 末尾スラッシュを削除
  * 4. トラッキングパラメータを除去（UTM、fbclid、gclid等）
  * 5. クエリパラメータをソート
  * 6. フラグメント（#）を除去
  * 7. デフォルトポート（:80, :443）を除去
- * 
+ *
  * @param url - 元のURL
  * @returns 正規化されたURL（冪等性キー用）
- * 
+ *
  * @example
  * normalizeUrl('http://www.example.com/path/?utm_source=twitter&id=123#section')
  * // → 'https://example.com/path?id=123'
@@ -566,16 +519,16 @@ function generateUrlHash(normalizedUrl: string): string {
 function normalizeUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    
-    // 1. プロトコルを統一（http → https）※キー用のみ
+
+    // 1. プロトコルを統一（http → https）キー用のみ
     const protocol = 'https:';
-    
+
     // 2. www を除去
     let hostname = parsed.hostname.toLowerCase();
     if (hostname.startsWith('www.')) {
       hostname = hostname.substring(4);
     }
-    
+
     // 3. 末尾スラッシュ削除（ルートパス以外）
     let path = parsed.pathname;
     if (path !== '/' && path.endsWith('/')) {
@@ -584,7 +537,7 @@ function normalizeUrl(url: string): string {
     if (path === '/') {
       path = '';
     }
-    
+
     // 4. トラッキングパラメータを除去（Phase 1固定リスト）
     // Phase 2+: DB/設定でテナント別拡張可能に
     const TRACKING_PARAMS = new Set([
@@ -605,25 +558,23 @@ function normalizeUrl(url: string): string {
       // 汎用
       'source', 'campaign'
     ]);
-    
+
     const cleanParams = Array.from(parsed.searchParams.entries())
       .filter(([key]) => !TRACKING_PARAMS.has(key.toLowerCase()))
       .sort();
-    
+
     const sortedSearch = cleanParams.length > 0
       ? '?' + cleanParams.map(([k, v]) => `${k}=${v}`).join('&')
       : '';
-    
+
     // 5. デフォルトポート除去（:80, :443）
     const port = parsed.port;
     const portSuffix = (port && port !== '80' && port !== '443') ? `:${port}` : '';
-    
+
     // 6. フラグメント（#）は自動的に除外される（parsed.hash を使わない）
-    
+
     const normalized = `${protocol}//${hostname}${portSuffix}${path}${sortedSearch}`;
-    
-    console.log('[CLAVI] URL normalized:', { original: url, normalized });
-    
+
     return normalized;
   } catch (error) {
     console.error('[CLAVI] URL normalization error:', error);
@@ -633,7 +584,7 @@ function normalizeUrl(url: string): string {
 
 /**
  * 会社名を抽出
- * 
+ *
  * @param crawlResult - クロール結果
  * @returns 会社名（推定）
  */
@@ -642,29 +593,29 @@ function extractCompanyName(crawlResult: any): string | null {
   if (crawlResult.metadata.ogTitle) {
     return crawlResult.metadata.ogTitle.substring(0, 100);
   }
-  
+
   if (crawlResult.metadata.title) {
     return crawlResult.metadata.title.substring(0, 100);
   }
-  
+
   // エンティティから組織名を探す
   const orgEntity = crawlResult.entities.find((e: any) => e.type === 'Organization');
   if (orgEntity) {
     return orgEntity.text.substring(0, 100);
   }
-  
+
   return null;
 }
 
 /**
  * AI構造化スコアを計算
- * 
+ *
  * @param crawlResult - クロール結果
  * @returns スコア（0-100）
  */
 function calculateAiStructureScore(crawlResult: any): number {
   let score = 0;
-  
+
   // メタデータの充実度（最大30点）
   if (crawlResult.metadata.title) score += 5;
   if (crawlResult.metadata.description) score += 5;
@@ -672,14 +623,14 @@ function calculateAiStructureScore(crawlResult: any): number {
   if (crawlResult.metadata.ogTitle) score += 5;
   if (crawlResult.metadata.canonical) score += 5;
   if (crawlResult.jsonLd.length > 0) score += 5;
-  
+
   // 見出し構造（最大20点）
   const headingCount = crawlResult.headings.length;
   if (headingCount > 0) score += 5;
   if (headingCount >= 3) score += 5;
   if (headingCount >= 5) score += 5;
   if (headingCount >= 10) score += 5;
-  
+
   // コンテンツ品質（最大30点）
   const wordCount = crawlResult.stats.wordCount;
   if (wordCount >= 300) score += 5;
@@ -688,16 +639,15 @@ function calculateAiStructureScore(crawlResult: any): number {
   if (wordCount >= 2000) score += 5;
   if (crawlResult.images.length >= 3) score += 5;
   if (crawlResult.links.length >= 5) score += 5;
-  
+
   // 内部リンク（最大10点）
   const internalLinkCount = crawlResult.stats.internalLinkCount;
   if (internalLinkCount >= 3) score += 5;
   if (internalLinkCount >= 10) score += 5;
-  
+
   // エンティティ（最大10点）
   if (crawlResult.entities.length >= 5) score += 5;
   if (crawlResult.entities.length >= 10) score += 5;
-  
+
   return Math.min(score, 100);
 }
-
