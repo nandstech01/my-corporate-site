@@ -13,6 +13,7 @@ export function TypewriterHero({ className = '' }: TypewriterHeroProps) {
 
   const line1 = 'AIに見つかるための';
   const line2 = '鍵-Key';
+  const line3 = 'クラヴィ';
 
   // Main container - controls overall visibility
   const containerVariants: Variants = {
@@ -49,8 +50,25 @@ export function TypewriterHero({ className = '' }: TypewriterHeroProps) {
     },
   };
 
-  // Line 2 glow effect
-  const glowVariants: Variants = {
+  // Line 2 (鍵-Key) animation
+  const line2Variants: Variants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.95,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        delay: line1.length * 0.06 + 0.3,
+      },
+    },
+  };
+
+  // Line 3 (クラヴィ) animation
+  const line3Variants: Variants = {
     hidden: {
       opacity: 0,
       scale: 0.95,
@@ -61,7 +79,7 @@ export function TypewriterHero({ className = '' }: TypewriterHeroProps) {
       transition: {
         duration: 0.8,
         ease: 'easeOut',
-        delay: line1.length * 0.06 + 0.3,
+        delay: line1.length * 0.06 + 0.8,
       },
     },
   };
@@ -102,13 +120,22 @@ export function TypewriterHero({ className = '' }: TypewriterHeroProps) {
         </span>
         <br />
 
-        {/* Line 2 - Centered, larger with spacing */}
+        {/* Line 2 - 鍵-Key (smaller) */}
         <motion.span
-          variants={glowVariants}
-          className="relative block text-center text-5xl sm:text-6xl lg:text-7xl mt-4"
+          variants={line2Variants}
+          className="relative block text-center text-3xl sm:text-4xl lg:text-5xl mt-3"
           style={{ color: textColor }}
         >
           {line2}
+        </motion.span>
+
+        {/* Line 3 - クラヴィ (large, prominent) */}
+        <motion.span
+          variants={line3Variants}
+          className="relative block text-center text-5xl sm:text-6xl lg:text-7xl mt-2"
+          style={{ color: textColor }}
+        >
+          {line3}
         </motion.span>
       </h1>
     </motion.div>
