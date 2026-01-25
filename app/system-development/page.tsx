@@ -518,7 +518,7 @@ const SystemDevelopmentPage = async () => {
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto">
                   <h2 className="text-3xl font-bold text-center mb-12">よくある質問</h2>
-                  <div className="space-y-6" itemScope itemType="https://schema.org/FAQPage">
+                  <div className="space-y-6" itemScope itemType="https://schema.org/ItemList">
                     {[
                       {
                         question: "13法令準拠RAGシステムとは何ですか？",

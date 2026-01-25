@@ -646,48 +646,44 @@ export interface AdditionalTypeMapping {
 /**
  * 日本企業・AI業界特化additionalType定義
  */
+// Note: TechnologyCompany, JapaneseEnterprise等のカスタム型はschema.orgに存在しない
+// 有効な型のみを使用: Corporation, SoftwareCompany, LocalBusiness等
 export const ADDITIONAL_TYPE_MAPPINGS: Record<string, AdditionalTypeMapping> = {
   Organization: {
     baseType: 'Organization',
     additionalTypes: [
-      'https://schema.org/Corporation',
-      'https://schema.org/TechnologyCompany'
+      'https://schema.org/Corporation'
+      // TechnologyCompany削除 - schema.orgに存在しない無効な型
     ],
     japaneseContext: [
-      'https://schema.org/JapaneseEnterprise',
-      'https://schema.org/SmallBusiness'
+      // JapaneseEnterprise削除 - schema.orgに存在しない
+      'https://schema.org/LocalBusiness'
     ],
     industrySpecific: [
-      'https://schema.org/SoftwareCompany',
-      'https://schema.org/ConsultingCompany',
+      'https://schema.org/ProfessionalService',
+      // ConsultingCompany削除 - schema.orgに存在しない
       'https://schema.org/EducationalOrganization'
     ],
     aiOptimized: [
-      'https://schema.org/ArtificialIntelligenceProvider',
-      'https://schema.org/MachineLearningCompany',
-      'https://schema.org/DigitalTransformationProvider'
+      // これらはschema.orgに存在しないカスタム型のため削除
+      // ArtificialIntelligenceProvider, MachineLearningCompany等
     ]
   },
   
   Service: {
     baseType: 'Service',
     additionalTypes: [
-      'https://schema.org/ProfessionalService',
-      'https://schema.org/TechnologyService'
+      'https://schema.org/ProfessionalService'
+      // TechnologyService削除 - schema.orgに存在しない
     ],
     japaneseContext: [
-      'https://schema.org/JapaneseBusinessService',
-      'https://schema.org/GovernmentSubsidyEligibleService'
+      // JapaneseBusinessService, GovernmentSubsidyEligibleService削除 - schema.orgに存在しない
     ],
     industrySpecific: [
-      'https://schema.org/SoftwareDevelopmentService',
-      'https://schema.org/ConsultingService',
-      'https://schema.org/TrainingService'
+      // SoftwareDevelopmentService, ConsultingService, TrainingService削除 - schema.orgに存在しない
     ],
     aiOptimized: [
-      'https://schema.org/ArtificialIntelligenceService',
-      'https://schema.org/MachineLearningService',
-      'https://schema.org/AutomationService'
+      // ArtificialIntelligenceService, MachineLearningService, AutomationService削除 - schema.orgに存在しない
     ]
   },
   
@@ -697,37 +693,30 @@ export const ADDITIONAL_TYPE_MAPPINGS: Record<string, AdditionalTypeMapping> = {
       'https://schema.org/EducationalOccupationalProgram'
     ],
     japaneseContext: [
-      'https://schema.org/JapaneseVocationalTraining',
-      'https://schema.org/SubsidyEligibleTraining'
+      // JapaneseVocationalTraining, SubsidyEligibleTraining削除 - schema.orgに存在しない
     ],
     industrySpecific: [
-      'https://schema.org/TechnologyTraining',
-      'https://schema.org/ProfessionalDevelopmentCourse'
+      // TechnologyTraining, ProfessionalDevelopmentCourse削除 - schema.orgに存在しない
     ],
     aiOptimized: [
-      'https://schema.org/ArtificialIntelligenceTraining',
-      'https://schema.org/PromptEngineeringCourse',
-      'https://schema.org/ReskilleCourse'
+      // カスタム型を削除 - schema.orgに存在しない
+      // ReskilleCourse (タイポ) 等
     ]
   },
   
   Person: {
     baseType: 'Person',
     additionalTypes: [
-      'https://schema.org/TechnicalExpert'
+      // TechnicalExpert削除 - schema.orgに存在しない
     ],
     japaneseContext: [
-      'https://schema.org/JapaneseBusinessProfessional'
+      // JapaneseBusinessProfessional削除 - schema.orgに存在しない
     ],
     industrySpecific: [
-      'https://schema.org/SoftwareEngineer',
-      'https://schema.org/ITConsultant',
-      'https://schema.org/TechnologyEducator'
+      // SoftwareEngineer, ITConsultant, TechnologyEducator削除 - schema.orgに存在しない
     ],
     aiOptimized: [
-      'https://schema.org/ArtificialIntelligenceSpecialist',
-      'https://schema.org/MachineLearningEngineer',
-      'https://schema.org/PromptEngineer'
+      // カスタム型を削除 - schema.orgに存在しない
     ]
   }
 };
@@ -748,6 +737,8 @@ export interface EnhancedSameAsMapping {
 /**
  * 強化sameAs参照システム
  */
+// Note: 仮想URL・存在しないURLはGoogleガイドライン違反のため削除
+// sameAsには実際に存在し、検証可能なURLのみを使用すること
 export const ENHANCED_SAME_AS_MAPPINGS: Record<string, EnhancedSameAsMapping> = {
   'https://nands.tech/#organization': {
     entityId: 'https://nands.tech/#organization',
@@ -757,27 +748,19 @@ export const ENHANCED_SAME_AS_MAPPINGS: Record<string, EnhancedSameAsMapping> = 
       'https://nands.tech/about'
     ],
     industryReferences: [
-      'https://schema.org/TechnologyCompany/nands-tech',
-      'https://schema.org/SoftwareCompany/nands-tech',
-      'https://wikidata.org/entity/Q-nands-tech' // 仮想Wikidata参照
+      // 仮想URL削除 - 実際に存在するURLのみ使用可能
     ],
     japaneseReferences: [
-      'https://j-net21.smrj.go.jp/company/nands-tech', // 仮想J-Net21参照
-      'https://www.houjin-bangou.nta.go.jp/', // 法人番号公表サイト（実際の番号が必要）
-      'https://shiga-keiei.jp/company/nands-tech' // 仮想滋賀県経営参照
+      // 仮想URL削除 - 法人番号公表サイト等は実際の番号がある場合のみ
     ],
     aiOptimizedReferences: [
-      'https://openai.com/partners/nands-tech', // AI関連パートナーシップ（仮想）
-      'https://anthropic.com/partners/nands-tech', // Claude関連（仮想）
-      'https://ai-research.jp/companies/nands-tech' // AI研究関連（仮想）
+      // 仮想パートナーシップURL削除 - 実際のパートナーシップがある場合のみ
     ],
     knowledgeGraphConnections: [
-      'https://schema.org/knowsAbout/RelevanceEngineering',
-      'https://schema.org/knowsAbout/MikeKingTheory',
-      'https://schema.org/expertiseIn/AIOptimization'
+      // カスタムschema.org URL削除 - 存在しないURL形式
     ]
   },
-  
+
   'https://nands.tech/ai-agents#service': {
     entityId: 'https://nands.tech/ai-agents#service',
     primaryReferences: [
@@ -785,22 +768,16 @@ export const ENHANCED_SAME_AS_MAPPINGS: Record<string, EnhancedSameAsMapping> = 
       'https://nands.tech/mcp-servers'
     ],
     industryReferences: [
-      'https://schema.org/ArtificialIntelligenceService/ai-agents',
-      'https://mastra.ai/partners/nands-tech' // Mastraフレームワーク関連
+      // 仮想URL削除
     ],
     japaneseReferences: [
-      'https://ipa.go.jp/ai-services/ai-agents-nands', // IPA AI関連（仮想）
-      'https://digital.go.jp/ai-solutions/nands-tech' // デジタル庁関連（仮想）
+      // 仮想URL削除 - IPA, デジタル庁等の仮想URL
     ],
     aiOptimizedReferences: [
-      'https://openai.com/use-cases/ai-agents',
-      'https://anthropic.com/claude/enterprise-solutions',
-      'https://github.com/nands-tech/ai-agents' // 実際のリポジトリがあれば
+      // 仮想URL削除 - 実際のリポジトリがある場合のみ追加
     ],
     knowledgeGraphConnections: [
-      'https://schema.org/relatedTo/ModelContextProtocol',
-      'https://schema.org/relatedTo/MastraFramework',
-      'https://schema.org/implementationOf/AIAgentArchitecture'
+      // カスタムURL削除
     ]
   }
 };

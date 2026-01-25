@@ -1,5 +1,11 @@
 // Mike King理論準拠: HowTo/FAQ Schema統合システム
 // Phase 2: LLMO完全対応 - AI検索最適化
+//
+// ⚠️ DEPRECATION NOTICE (2025):
+// - HowTo: Googleがリッチリザルト機能を廃止（2024-2025）
+// - FAQPage: 政府・医療機関のみに制限（2025）
+// このライブラリは後方互換性のため維持されていますが、新規利用は非推奨です。
+// 代わりにItemList + Question/Answer形式を使用してください。
 
 export interface HowToStep {
   "@type": "HowToStep";
@@ -42,10 +48,17 @@ export interface FAQItem {
   };
 }
 
+// @deprecated FAQPageは2025年よりGoogle検索で政府・医療機関のみに制限
+// 代わりにItemListSchemaを使用してください
 export interface FAQSchema {
   "@context": "https://schema.org";
-  "@type": "FAQPage";
-  mainEntity: FAQItem[];
+  "@type": "FAQPage" | "ItemList"; // ItemList推奨
+  mainEntity?: FAQItem[];
+  itemListElement?: Array<{
+    "@type": "ListItem";
+    position: number;
+    item: FAQItem;
+  }>;
 }
 
 export interface ProcessContent {
@@ -147,12 +160,13 @@ export class HowToFAQSchemaSystem {
 
   /**
    * Q&AペアからFAQスキーマを生成
+   * @deprecated FAQPageは2025年より政府・医療機関のみ。ItemList形式を使用
    */
   generateFAQSchema(qaPairs: QuestionAnswerPair[]): FAQSchema {
     // 優先度でソート
     const sortedPairs = qaPairs.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-    const mainEntity: FAQItem[] = sortedPairs.map(pair => ({
+    const faqItems: FAQItem[] = sortedPairs.map(pair => ({
       "@type": "Question",
       name: this.optimizeQuestionForAI(pair.question),
       acceptedAnswer: {
@@ -161,10 +175,15 @@ export class HowToFAQSchemaSystem {
       }
     }));
 
+    // 2025 Google準拠: ItemList形式を使用
     return {
       "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity
+      "@type": "ItemList",
+      itemListElement: faqItems.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item
+      }))
     };
   }
 

@@ -941,28 +941,9 @@ export default async function PostPage({ params }: PageProps) {
     }
   }
 
-  // HOW TO構造化データ（別スキーマ）
-  const howToSchema = howToData.steps.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    "@id": `https://nands.tech/posts/${params.slug}#howto`,
-    "name": `${post.title} - 実装ガイド`,
-    "description": `${post.title}の具体的な実装手順をステップバイステップで解説`,
-    "image": post.thumbnail_url || post.featured_image || "https://nands.tech/images/default-post.jpg",
-    "totalTime": `PT${howToData.steps.length * 5}M`,
-    "estimatedCost": {
-      "@type": "MonetaryAmount",
-      "currency": "JPY", 
-      "value": "0"
-    },
-    "step": howToData.steps.map((step: any, index: number) => ({
-      "@type": "HowToStep",
-      "position": index + 1,
-      "name": step.title,
-      "text": step.description,
-      "url": `https://nands.tech/posts/${params.slug}#step-${index + 1}`
-    }))
-  } : null
+  // HowTo構造化データ - 削除済み
+  // Note: Google 2024-2025でHowToリッチリザルトを廃止。一般サイトでの使用は推奨されない
+  const howToSchema = null
 
   // 関連情報を抽出する関数
   interface RelatedInfoLink {

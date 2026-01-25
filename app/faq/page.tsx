@@ -313,14 +313,29 @@ function generateBasicFAQStructuredData() {
     }))
   );
 
+  // Note: FAQPageは2025年よりGoogle検索で政府・医療機関のみに制限
+  // WebPage + ItemList + Question/Answer形式に変更
   return JSON.stringify({
     "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@type": "WebPage",
     "@id": "https://nands.tech/faq#main-content",
     "name": "よくある質問 - 株式会社エヌアンドエス",
     "description": "AI・テクノロジー、料金・契約、サポート・導入、人材・研修、マーケティング・AIO、AIサイト・ブランディングに関するよくある質問",
     "url": "https://nands.tech/faq",
-    "mainEntity": questions,
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": questions.map((q, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Question",
+          "@id": q["@id"],
+          "name": q.name,
+          "text": q.text,
+          "acceptedAnswer": q.acceptedAnswer
+        }
+      }))
+    },
     "hasPart": questions.map(q => ({
       "@type": "WebPageElement",
       "@id": q["@id"],

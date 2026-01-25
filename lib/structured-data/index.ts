@@ -282,14 +282,19 @@ export class UnifiedStructuredDataSystem {
       
       baseSchema.hasPart = [...existingHasParts, ...faqWebElements];
       
-      // 正しいFAQPage構造（単一のFAQPageとして設計）
+      // Note: FAQPageは2025年よりGoogle検索で政府・医療機関のみに制限
+      // ItemList + Question形式に変更
       baseSchema.mainEntity = {
-        "@type": "FAQPage",
+        "@type": "ItemList",
         "@id": `${pageUrl}#faq-collection`,
         "name": "AIサイト よくある質問集",
         "description": "AIサイト、レリバンスエンジニアリング、AI引用最適化に関するよくある質問",
         "url": `${pageUrl}#faq-title`,
-        "mainEntity": faqQuestions
+        "itemListElement": faqQuestions.map((q: any, index: number) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": q
+        }))
       };
 
       // レリバンスエンジニアリング専門家・原田賢治の権威性構造化データ
@@ -464,14 +469,19 @@ export class UnifiedStructuredDataSystem {
       const existingHasParts = baseSchema.hasPart || [];
       baseSchema.hasPart = [...existingHasParts, ...faqWebElements];
       
-      // FAQPage構造（メインエンティティとして設定）
+      // Note: FAQPageは2025年よりGoogle検索で政府・医療機関のみに制限
+      // ItemList + Question形式に変更
       baseSchema.mainEntity = {
-        "@type": "FAQPage",
+        "@type": "ItemList",
         "@id": `${pageUrl}#faq-collection`,
         "name": `${pageData.title} - よくある質問`,
         "description": `${pageData.title}に関するよくある質問と回答`,
         "url": `${pageUrl}#faq-section`,
-        "mainEntity": faqQuestions
+        "itemListElement": faqQuestions.map((q: any, index: number) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": q
+        }))
       };
     }
 
