@@ -510,7 +510,7 @@ export default async function Home() {
     "@graph": [
       // 【1】LocalBusiness + Organization統合スキーマ（AI Overviews最適化）
       {
-        "@type": ["LocalBusiness", "Organization", "TechnologyCompany"],
+        "@type": ["LocalBusiness", "Organization"],
         "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス",
         "legalName": "株式会社エヌアンドエス", 
@@ -736,12 +736,6 @@ export default async function Home() {
           "closes": "18:00"
         },
         
-        // 【受賞・認定】権威性強化
-        "award": [
-          "滋賀県DX推進企業認定（想定）",
-          "関西地方AI導入支援優良企業（想定）"
-        ],
-        
         // 【企業の特徴】AI Overviews引用最適化
         "slogan": "全ての働く人の「次のステージ」をAIと共に",
         "mission": "生成AI技術と人材支援の融合により、個人と企業の持続可能な成長を実現する",
@@ -866,126 +860,9 @@ export default async function Home() {
         ]
       },
       
-      // 【4】FAQPage（AI Overviews最適化）
-      {
-        "@type": "FAQPage",
-        "@id": "https://nands.tech/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "生成AI研修ではどのようなツールを学べますか？",
-            "answerCount": 1,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "ChatGPT、Claude、Google Gemini、Microsoft Copilotなどの主要な生成AIツールの実践的な活用方法を学べます。プロンプトエンジニアリング、業務自動化、文書作成効率化などの実用的なスキルを習得できます。",
-              "author": {
-                "@type": "Person",
-                "name": "原田賢治",
-                "@id": "https://nands.tech/#founder"
-              }
-            }
-          },
-          {
-            "@type": "Question", 
-            "name": "滋賀県・関西地方での企業研修は対応可能ですか？",
-            "answerCount": 1,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "はい、滋賀県大津市に本社を構える地域密着企業として、滋賀県内はもちろん関西地方（大阪府・京都府・兵庫県・奈良県・和歌山県）での企業研修に対応しています。現地訪問またはオンラインでの研修提供が可能です。",
-              "author": {
-                "@type": "Person",
-                "name": "原田賢治", 
-                "@id": "https://nands.tech/#founder"
-              }
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "退職代行サービスの実績はありますか？",
-            "answerCount": 1,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "15年以上の退職代行サービス実績があります。確実な退職手続き、円満な職場からの離脱をサポートし、次のキャリアステップへの橋渡しを行います。生成AI技術も活用した効率的な手続き支援を提供しています。",
-              "author": {
-                "@type": "Person",
-                "name": "原田賢治",
-                "@id": "https://nands.tech/#founder"
-              }
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "AI Agent開発ではどのような自動化が可能ですか？",
-            "answerCount": 1,
-            "acceptedAnswer": {
-              "@type": "Answer", 
-              "text": "顧客対応チャットボット、文書作成自動化、データ分析自動化、レポート生成、メール対応自動化など、幅広い業務自動化AI Agentの開発が可能です。Vector RAG技術を活用した企業独自データベース連携も対応しています。",
-              "author": {
-                "@type": "Person",
-                "name": "原田賢治",
-                "@id": "https://nands.tech/#founder"
-              }
-            }
-          }
-        ]
-      },
-      
-      // 【5】HowTo（LLMO最適化）
-      {
-        "@type": "HowTo",
-        "@id": "https://nands.tech/#howto",
-        "name": "生成AI導入で業務効率化を実現する方法",
-        "description": "企業が生成AIを導入して業務効率化を実現するための具体的なステップ",
-        "totalTime": "PT2M",
-        "estimatedCost": {
-          "@type": "MonetaryAmount",
-          "currency": "JPY",
-          "value": "0"
-        },
-        "supply": [
-          {
-            "@type": "HowToSupply",
-            "name": "生成AIツール（ChatGPT、Claude、Gemini等）"
-          },
-          {
-            "@type": "HowToSupply", 
-            "name": "業務プロセスの現状把握"
-          }
-        ],
-        "step": [
-          {
-            "@type": "HowToStep",
-            "position": 1,
-            "name": "現状業務の分析・課題特定",
-            "text": "まず現在の業務プロセスを詳細に分析し、生成AIで自動化・効率化できる箇所を特定します。文書作成、顧客対応、データ分析などの反復作業を洗い出します。"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 2,
-            "name": "適切な生成AIツールの選択",
-            "text": "業務内容に応じて最適な生成AIツールを選択します。文書作成にはChatGPT、コード生成にはClaude、多言語対応にはGeminiなど、用途別に使い分けます。"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 3,
-            "name": "プロンプトエンジニアリングの習得",
-            "text": "効果的なプロンプト（指示文）の作成方法を習得します。具体的で明確な指示、例文の提示、段階的な処理指示などのテクニックを学びます。"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 4,
-            "name": "段階的導入・効果測定",
-            "text": "小規模な業務から段階的に生成AIを導入し、効果を測定します。作業時間の短縮、品質向上、コスト削減などの指標で評価し、継続的に改善していきます。"
-          }
-        ],
-        "author": {
-          "@type": "Person",
-          "name": "原田賢治",
-          "@id": "https://nands.tech/#founder"
-        }
-      },
-      
-      // 【6】BlogPosting Collection（自社RAG活用）
+      // 【4】BlogPosting Collection（自社RAG活用）
+      // Note: FAQPage removed - Google now restricts to government/health authoritative sites only (2025)
+      // Note: HowTo removed - Completely deprecated by Google (2024-2025)
       {
         "@type": "CollectionPage",
         "@id": "https://nands.tech/#blog-collection",
@@ -1023,7 +900,7 @@ export default async function Home() {
         ]
       },
       
-      // 【7】VideoObject Collection（YouTubeショート動画・動画スニペット対応）
+      // 【5】VideoObject Collection（YouTubeショート動画・動画スニペット対応）
       ...(youtubeShorts.length > 0 ? [{
         "@type": "ItemList",
         "@id": "https://nands.tech/#video-collection",
