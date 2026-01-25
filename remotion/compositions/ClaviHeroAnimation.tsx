@@ -1,3 +1,4 @@
+import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { ClaviHeroProps, SCENE_COLORS } from '../types/constants';
 import { GradientBg } from './components/GradientBg';

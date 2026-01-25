@@ -2,21 +2,21 @@ import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { COLORS } from '../../types/constants';
 
-interface GradientBgProps {
+interface FeaturesHeroBgProps {
   isDark: boolean;
 }
 
-export const GradientBg: React.FC<GradientBgProps> = ({ isDark }) => {
+export const FeaturesHeroBg: React.FC<FeaturesHeroBgProps> = ({ isDark }) => {
   const frame = useCurrentFrame();
 
-  // Subtle background animation - rotating gradient
+  // Subtle background animation - rotating gradient (same as main hero)
   const rotation = interpolate(frame, [0, 180], [0, 360], {
     extrapolateRight: 'extend',
   });
 
   const bgColor = isDark ? COLORS.dark.bg : COLORS.light.bg;
-  const gradientColor1 = isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.1)';
-  const gradientColor2 = isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(6, 182, 212, 0.1)';
+  const gradientColor1 = isDark ? 'rgba(37, 99, 235, 0.12)' : 'rgba(37, 99, 235, 0.08)';
+  const gradientColor2 = isDark ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.06)';
 
   return (
     <AbsoluteFill
@@ -25,7 +25,7 @@ export const GradientBg: React.FC<GradientBgProps> = ({ isDark }) => {
         overflow: 'hidden',
       }}
     >
-      {/* Rotating gradient orbs */}
+      {/* Rotating gradient orbs - simple and elegant */}
       <div
         style={{
           position: 'absolute',
@@ -40,25 +40,25 @@ export const GradientBg: React.FC<GradientBgProps> = ({ isDark }) => {
         <div
           style={{
             position: 'absolute',
-            top: '10%',
-            right: '10%',
-            width: 300,
-            height: 300,
+            top: '5%',
+            right: '15%',
+            width: 400,
+            height: 400,
             borderRadius: '50%',
             background: gradientColor1,
-            filter: 'blur(80px)',
+            filter: 'blur(100px)',
           }}
         />
         <div
           style={{
             position: 'absolute',
             bottom: '10%',
-            left: '10%',
-            width: 250,
-            height: 250,
+            left: '20%',
+            width: 350,
+            height: 350,
             borderRadius: '50%',
             background: gradientColor2,
-            filter: 'blur(80px)',
+            filter: 'blur(100px)',
           }}
         />
       </div>

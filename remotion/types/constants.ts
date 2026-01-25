@@ -12,6 +12,28 @@ export const HERO_BG_CONFIG = {
   DURATION: 90, // 3 seconds at 30fps (structured data only, then fades)
 } as const;
 
+export const BEFORE_AFTER_CONFIG = {
+  WIDTH: 400,
+  HEIGHT: 200,
+  FPS: 30,
+  DURATION: 180, // 6 seconds at 30fps, loops
+} as const;
+
+export interface BeforeAfterProps {
+  isDark: boolean;
+}
+
+export const FEATURES_HERO_CONFIG = {
+  WIDTH: 1200,
+  HEIGHT: 600,
+  FPS: 30,
+  DURATION: 180, // 6 seconds at 30fps, loops
+} as const;
+
+export interface FeaturesHeroProps {
+  isDark: boolean;
+}
+
 export const COLORS = {
   primary: '#2563EB',
   secondary: '#06B6D4',

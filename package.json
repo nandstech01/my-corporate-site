@@ -17,7 +17,8 @@
     "vectorize-catalyst": "npx ts-node scripts/vectorize-catalyst.ts",
     "clavi:batch-analyze": "npx tsx scripts/clavi-batch-analyze.ts",
     "clavi:batch-analyze-small": "npx tsx scripts/clavi-batch-analyze.ts --input tests/phase2/urls-small.txt --output tests/phase2/results-small.json",
-    "clavi:batch-analyze-full": "npx tsx scripts/clavi-batch-analyze.ts --input tests/phase2/urls.txt --output tests/phase2/results.json"
+    "clavi:batch-analyze-full": "npx tsx scripts/clavi-batch-analyze.ts --input tests/phase2/urls.txt --output tests/phase2/results.json",
+    "remotion": "remotion studio"
   },
   "engines": {
     "node": "22.x"
@@ -41,6 +42,9 @@
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.14",
     "@react-three/postprocessing": "^2.19.1",
+    "@remotion/cli": "^4.0.409",
+    "@remotion/google-fonts": "^4.0.409",
+    "@remotion/player": "^4.0.409",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.5.2",
@@ -96,6 +100,7 @@
     "remark-parse": "^10.0.2",
     "remark-slug": "^7.0.1",
     "remark-toc": "^8.0.1",
+    "remotion": "^4.0.409",
     "resend": "^4.7.0",
     "scheduler": "^0.25.0",
     "shiki": "^3.11.0",

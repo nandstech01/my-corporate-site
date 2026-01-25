@@ -1,3 +1,4 @@
+import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { ClaviHeroProps, COLORS } from '../types/constants';
 import { JsonCodeBlock } from './components/JsonCodeBlock';

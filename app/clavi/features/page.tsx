@@ -6,6 +6,7 @@ import { BarChart3, Sparkles, Network, ArrowRight, Link as LinkIcon } from 'luci
 import Link from 'next/link';
 import ClaviPublicHeader from '@/components/clavi/ClaviPublicHeader';
 import ClaviFooter from '@/components/clavi/ClaviFooter';
+import { FeaturesHeroPlayer } from '@/components/clavi/FeaturesHeroPlayer';
 import { useClaviTheme } from '@/app/clavi/context';
 
 type TabKey = 'analyze' | 'generate' | 'expand';
@@ -88,46 +89,19 @@ export default function FeaturesPage() {
     <div className="min-h-screen" style={{ background: isDark ? '#0F172A' : '#F8FAFC' }}>
       <ClaviPublicHeader />
 
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-20 overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute -top-[30%] -right-[10%] w-[800px] h-[800px] rounded-full blur-3xl pointer-events-none"
-          style={{ background: isDark ? 'rgba(6,182,212,0.05)' : 'rgba(6,182,212,0.1)' }}
-        />
-        <div className="absolute top-[20%] -left-[10%] w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none"
-          style={{ background: isDark ? 'rgba(37,99,235,0.05)' : 'rgba(37,99,235,0.1)' }}
-        />
+      {/* Hero Section with Remotion Animation */}
+      <section className="relative pt-16 pb-12 overflow-hidden">
+        {/* Remotion Animation Background + Text */}
+        <div className="relative w-full" style={{ aspectRatio: '1200/600', maxHeight: '500px' }}>
+          <FeaturesHeroPlayer />
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-6 border"
-            style={{
-              background: isDark ? 'rgba(37,99,235,0.15)' : '#EFF6FF',
-              color: '#2563EB',
-              borderColor: isDark ? 'rgba(37,99,235,0.3)' : '#BFDBFE',
-            }}
-          >
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-            AI Content Platform
-          </div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl sm:text-5xl lg:text-7xl font-black leading-tight mb-6"
-            style={{ color: isDark ? '#FFFFFF' : '#1E293B', fontFamily: '"Noto Sans JP", sans-serif' }}
-          >
-            すべての機能は、<br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
-              ひとつのURL
-            </span>
-            から始まる。
-          </motion.h1>
-
+        {/* Content below animation */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center -mt-8">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.5 }}
             className="max-w-2xl mx-auto text-lg sm:text-xl leading-relaxed mb-10"
             style={{ color: isDark ? '#E2E8F0' : '#374151' }}
           >
@@ -139,7 +113,7 @@ export default function FeaturesPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.6 }}
             className="max-w-2xl mx-auto relative"
           >
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-20" />

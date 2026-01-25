@@ -1,3 +1,4 @@
+import React from 'react';
 import { interpolate, useCurrentFrame } from 'remotion';
 import { COLORS } from '../../types/constants';
 

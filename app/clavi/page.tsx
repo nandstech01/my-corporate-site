@@ -22,6 +22,8 @@ import ClaviFooter from '@/components/clavi/ClaviFooter';
 import { ClaviHeroPlayer } from '@/components/clavi/ClaviHeroPlayer';
 import { HeroBackgroundPlayer } from '@/components/clavi/HeroBackgroundPlayer';
 import { TypewriterHero } from '@/components/clavi/TypewriterHero';
+import { BeforeCodePlayer } from '@/components/clavi/BeforeCodePlayer';
+import { AfterCodePlayer } from '@/components/clavi/AfterCodePlayer';
 import { useClaviTheme } from './context';
 
 export default function AsoLandingPage() {
@@ -244,16 +246,13 @@ export default function AsoLandingPage() {
                 <X className="w-5 h-5 text-gray-400" />
                 非構造化データ
               </h3>
-              <div className="font-mono text-sm p-4 rounded-lg border border-dashed"
+              <div className="rounded-lg overflow-hidden"
                 style={{
                   background: isDark ? '#0F172A' : '#FFFFFF',
-                  borderColor: isDark ? '#334155' : '#E2E8F0',
-                  color: isDark ? '#E2E8F0' : '#374151',
+                  border: `1px dashed ${isDark ? '#334155' : '#E2E8F0'}`,
                 }}
               >
-                <p>&lt;div class=&quot;content&quot;&gt;</p>
-                <p className="pl-4">AIが関連性を解析しにくい、巨大なテキストブロック...</p>
-                <p>&lt;/div&gt;</p>
+                <BeforeCodePlayer />
               </div>
               <div className="mt-6 flex items-center gap-2 text-red-500 font-bold text-sm">
                 <X className="w-4 h-4" />
@@ -277,16 +276,13 @@ export default function AsoLandingPage() {
                 <Check className="w-5 h-5 text-green-500" />
                 構造化ナレッジグラフ
               </h3>
-              <div className="font-mono text-sm p-4 rounded-lg"
+              <div className="rounded-lg overflow-hidden"
                 style={{
                   background: isDark ? '#0F172A' : '#FFFFFF',
                   border: '1px solid rgba(37,99,235,0.3)',
                 }}
               >
-                <p className="text-purple-600">&quot;type&quot;: &quot;Article&quot;,</p>
-                <p className="text-blue-600">&quot;hasPart&quot;: [</p>
-                <p className="pl-4 text-green-600">{`{"@type": "KeyInsight", "value": "..."}`}</p>
-                <p className="text-blue-600">]</p>
+                <AfterCodePlayer />
               </div>
               <div className="mt-6 flex items-center gap-2 text-green-600 font-bold text-sm">
                 <Zap className="w-4 h-4" />
