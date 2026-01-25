@@ -19,6 +19,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ClaviPublicHeader from '@/components/clavi/ClaviPublicHeader';
 import ClaviFooter from '@/components/clavi/ClaviFooter';
+import { ClaviHeroPlayer } from '@/components/clavi/ClaviHeroPlayer';
+import { HeroBackgroundPlayer } from '@/components/clavi/HeroBackgroundPlayer';
+import { TypewriterHero } from '@/components/clavi/TypewriterHero';
 import { useClaviTheme } from './context';
 
 export default function AsoLandingPage() {
@@ -27,6 +30,7 @@ export default function AsoLandingPage() {
   const { theme } = useClaviTheme();
   const isDark = theme === 'dark';
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showHeroContent, setShowHeroContent] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,6 +44,16 @@ export default function AsoLandingPage() {
     };
     checkAuth();
   }, [router]);
+
+  // Wait for background animation to finish (3 seconds) before showing hero content
+  useEffect(() => {
+    if (!isLoading) {
+      const timer = setTimeout(() => {
+        setShowHeroContent(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -76,78 +90,85 @@ export default function AsoLandingPage() {
 
       {/* Hero Section */}
       <section className="relative pt-20 pb-32 overflow-hidden">
+        {/* Background Animation Layer (left half only) - plays once then fades */}
+        <div
+          className="absolute left-0 top-0 w-1/2 h-full opacity-90 pointer-events-none hidden lg:block overflow-hidden"
+          style={{
+            maskImage: 'linear-gradient(to right, black 0%, black 60%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, black 0%, black 60%, transparent 100%)',
+          }}
+        >
+          <HeroBackgroundPlayer />
+        </div>
+
         {/* Background decorations */}
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-            {/* Left: Text */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-6 text-center lg:text-left mb-12 lg:mb-0"
-            >
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-6 border"
-                style={{
-                  background: isDark ? 'rgba(37,99,235,0.15)' : '#EFF6FF',
-                  color: '#2563EB',
-                  borderColor: isDark ? 'rgba(37,99,235,0.3)' : '#BFDBFE',
-                }}
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
-                </span>
-                New: Schema.org 16.0 対応
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6"
-                style={{ color: isDark ? '#FFFFFF' : '#1E3A8A' }}
-              >
-                AIに見つかるための、<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
-                  鍵 (Key)。
-                </span>
-              </h1>
-
-              <p className="text-lg mb-8 leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
-                従来のSEOとは異なり、CLAVIはChatGPT、Gemini、PerplexityなどのAIクローラー向けにコンテンツ構造を最適化します。新しい検索時代への扉を開きましょう。
-              </p>
-
-              {/* URL Input + CTA */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
-                <div className="relative w-full sm:w-80">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="WebサイトのURLを入力"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none shadow-sm"
-                    style={{
-                      background: isDark ? '#1E293B' : '#FFFFFF',
-                      border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
-                      color: isDark ? '#E2E8F0' : '#1E293B',
-                    }}
-                  />
-                </div>
-                <Link
-                  href="/clavi/signup"
-                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white text-sm shadow-lg transition-all flex items-center justify-center gap-2"
-                  style={{ background: '#1E3A8A' }}
+            {/* Left: Text - appears after background animation (3 seconds) */}
+            <div className="lg:col-span-6 text-center lg:text-left mb-12 lg:mb-0">
+              {showHeroContent && (
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
                 >
-                  今すぐ分析
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+                  {/* Badge */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-6 border"
+                    style={{
+                      background: isDark ? 'rgba(37,99,235,0.15)' : '#EFF6FF',
+                      color: '#2563EB',
+                      borderColor: isDark ? 'rgba(37,99,235,0.3)' : '#BFDBFE',
+                    }}
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
+                    </span>
+                    New: Schema.org 16.0 対応
+                  </div>
 
-              <p className="mt-4 text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
-                クレジットカード不要。14日間無料トライアル。
-              </p>
-            </motion.div>
+                  <TypewriterHero />
 
-            {/* Right: Visual */}
+                  <p className="text-lg mb-8 leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                    従来のSEOとは異なり、CLAVIはChatGPT、Gemini、PerplexityなどのAIクローラー向けにコンテンツ構造を最適化します。新しい検索時代への扉を開きましょう。
+                  </p>
+
+                  {/* URL Input + CTA */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
+                    <div className="relative w-full sm:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="WebサイトのURLを入力"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none shadow-sm"
+                        style={{
+                          background: isDark ? '#1E293B' : '#FFFFFF',
+                          border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
+                          color: isDark ? '#E2E8F0' : '#1E293B',
+                        }}
+                      />
+                    </div>
+                    <Link
+                      href="/clavi/signup"
+                      className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                      style={{ background: '#1E3A8A' }}
+                    >
+                      今すぐ分析
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                  <p className="mt-4 text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
+                    クレジットカード不要。14日間無料トライアル。
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Right: Visual - Remotion Animation */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -155,77 +176,12 @@ export default function AsoLandingPage() {
               className="lg:col-span-6 relative"
             >
               <div
-                className="relative rounded-2xl shadow-2xl p-8 transform rotate-1 hover:rotate-0 transition-transform duration-500"
+                className="relative rounded-2xl shadow-2xl overflow-hidden"
                 style={{
-                  background: isDark
-                    ? 'linear-gradient(135deg, #1E293B, #0F172A)'
-                    : 'linear-gradient(135deg, #FFFFFF, #EFF6FF)',
                   border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
                 }}
               >
-                <div className="flex flex-col items-center gap-6">
-                  {/* Browser bar */}
-                  <div className="w-full rounded-lg p-3 flex items-center gap-2"
-                    style={{ background: isDark ? '#334155' : '#F1F5F9' }}
-                  >
-                    <div className="h-3 w-3 rounded-full bg-red-400" />
-                    <div className="h-3 w-3 rounded-full bg-yellow-400" />
-                    <div className="h-3 w-3 rounded-full bg-green-400" />
-                    <div className="h-4 w-2/3 rounded ml-2" style={{ background: isDark ? '#475569' : '#E2E8F0' }} />
-                  </div>
-
-                  {/* Arrow */}
-                  <div className="h-12 w-1 bg-gradient-to-b from-gray-300 to-blue-500/50" />
-
-                  {/* 3 Cards */}
-                  <div className="grid grid-cols-3 gap-4 w-full">
-                    <div className="p-4 rounded-xl shadow-md flex flex-col items-center text-center"
-                      style={{
-                        background: isDark ? '#1E293B' : '#FFFFFF',
-                        border: `1px solid ${isDark ? '#334155' : '#DBEAFE'}`,
-                      }}
-                    >
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center mb-2"
-                        style={{ background: isDark ? 'rgba(37,99,235,0.2)' : '#DBEAFE' }}
-                      >
-                        <Code2 className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <span className="text-xs font-bold" style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>構造化</span>
-                    </div>
-                    <div className="p-4 rounded-xl shadow-md flex flex-col items-center text-center transform -translate-y-4"
-                      style={{
-                        background: isDark ? '#1E293B' : '#FFFFFF',
-                        border: `1px solid ${isDark ? '#334155' : '#CFFAFE'}`,
-                      }}
-                    >
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center mb-2"
-                        style={{ background: isDark ? 'rgba(6,182,212,0.2)' : '#CFFAFE' }}
-                      >
-                        <Share2 className="w-5 h-5 text-cyan-600" />
-                      </div>
-                      <span className="text-xs font-bold" style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>伝播</span>
-                    </div>
-                    <div className="p-4 rounded-xl shadow-md flex flex-col items-center text-center"
-                      style={{
-                        background: isDark ? '#1E293B' : '#FFFFFF',
-                        border: `1px solid ${isDark ? '#334155' : '#E0E7FF'}`,
-                      }}
-                    >
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center mb-2"
-                        style={{ background: isDark ? 'rgba(79,70,229,0.2)' : '#E0E7FF' }}
-                      >
-                        <Link2 className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <span className="text-xs font-bold" style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>接続</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Optimized badge */}
-                <div className="absolute -right-3 -bottom-3 bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-lg rotate-3 flex items-center gap-1">
-                  <Zap className="w-4 h-4" />
-                  AI最適化済
-                </div>
+                <ClaviHeroPlayer />
               </div>
             </motion.div>
           </div>
