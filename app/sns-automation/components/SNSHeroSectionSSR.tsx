@@ -52,13 +52,7 @@ const snsAutomationSchema = {
     "スケジューリング機能",
     "自動リサーチ"
   ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "bestRating": "5",
-    "worstRating": "1",
-    "ratingCount": 17
-  },
+  // AggregateRating削除: 実際のレビューデータがないためGoogleガイドライン違反
   "potentialAction": {
     "@type": "ContactAction",
     "target": {

@@ -50,10 +50,13 @@ const VECTOR_RAG_STATISTICS = [
 
 export default async function VectorRagHeroSectionSSR() {
   const reviewStats = await getReviewStats('vector-rag');
-  
-  // フォールバック値
+
+  // UI表示用フォールバック値（構造化データには使用しない）
   const displayRating = reviewStats?.averageRating || 4.8;
   const displayCount = reviewStats?.totalReviews || 14;
+
+  // 構造化データ用: 実際のレビューがある場合のみ
+  const hasRealReviews = reviewStats && reviewStats.totalReviews > 0;
 
   // Vector RAG構造化データ（Mike King理論準拠）
   const vectorRagSchema = {
@@ -86,13 +89,16 @@ export default async function VectorRagHeroSectionSSR() {
       "セキュリティ強化",
       "コスト最適化"
     ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": displayRating.toString(),
-      "bestRating": "5",
-      "worstRating": "1",
-      "ratingCount": displayCount
-    },
+    // AggregateRating: 実際のレビューがある場合のみ（Googleガイドライン準拠）
+    ...(hasRealReviews ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": reviewStats!.averageRating.toString(),
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": reviewStats!.totalReviews
+      }
+    } : {}),
     "potentialAction": {
       "@type": "ContactAction",
       "target": {

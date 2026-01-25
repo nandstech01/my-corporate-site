@@ -9,10 +9,13 @@ import { getReviewStats } from '@/lib/supabase/client';
 
 export default async function ChatbotHeroSectionSSR() {
   const reviewStats = await getReviewStats('chatbot-development');
-  
-  // フォールバック値
+
+  // UI表示用フォールバック値（構造化データには使用しない）
   const displayRating = reviewStats?.averageRating || 4.7;
   const displayCount = reviewStats?.totalReviews || 13;
+
+  // 構造化データ用: 実際のレビューがある場合のみ使用
+  const hasRealReviews = reviewStats && reviewStats.totalReviews > 0;
 
   return (
     <section 
@@ -205,14 +208,13 @@ export default async function ChatbotHeroSectionSSR() {
         </div>
       </div>
 
-      {/* 構造化データ: レビュー */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "AggregateRating",
-            "itemReviewed": {
+      {/* 構造化データ: レビュー（実際のレビューがある場合のみ出力） */}
+      {hasRealReviews && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "チャットボット開発サービス",
               "description": "GPT-4・Claude統合による高性能チャットボット開発サービス。24時間365日自動応答、多言語対応、ベクトルRAG活用でカスタマーサポート業務を完全自動化。業界特化型カスタマイズ対応。",
@@ -239,20 +241,15 @@ export default async function ChatbotHeroSectionSSR() {
               },
               "aggregateRating": {
                 "@type": "AggregateRating",
-                "ratingValue": displayRating,
+                "ratingValue": reviewStats!.averageRating,
                 "bestRating": 5,
                 "worstRating": 1,
-                "ratingCount": displayCount
+                "ratingCount": reviewStats!.totalReviews
               }
-            },
-            "ratingValue": displayRating,
-            "bestRating": 5,
-            "worstRating": 1,
-            "ratingCount": displayCount,
-            "reviewCount": displayCount
-          }, null, 2)
-        }}
-      />
+            }, null, 2)
+          }}
+        />
+      )}
     </section>
   );
 } 

@@ -98,7 +98,13 @@ export class HowToFAQSchemaSystem {
     imageUrls?: string[];
     estimatedCost?: { value: string; currency: string };
     totalTime?: string;
-  } = {}): HowToSchema {
+  } = {}): HowToSchema | null {
+    // @deprecated HowToはGoogle 2024-2025でリッチリザルト機能廃止
+    // この関数は後方互換性のため維持されていますが、nullを返します
+    console.warn('[DEPRECATED] generateHowToSchema: HowTo schema deprecated by Google 2024-2025');
+    return null as any;
+
+    /* 以下は参考用に残しています（実行されません）
     const steps: HowToStep[] = content.steps.map((step, index) => ({
       "@type": "HowToStep",
       name: step.title,
@@ -119,6 +125,7 @@ export class HowToFAQSchemaSystem {
       description: this.enhanceDescription(content.description),
       step: steps
     };
+    */
 
     // オプション項目の追加
     if (options.imageUrls && options.imageUrls.length > 0) {

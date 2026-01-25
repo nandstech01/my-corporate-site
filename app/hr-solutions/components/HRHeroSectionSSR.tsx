@@ -50,13 +50,8 @@ const hrSolutionsSchema = {
     "24/7自動化サポート",
     "人材データ分析"
   ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "bestRating": "5",
-    "worstRating": "1",
-    "ratingCount": 19
-  },
+  // AggregateRating削除: 実際のレビューデータがないためGoogleガイドライン違反
+  // 実際のレビューを収集した場合にのみ追加すること
   "potentialAction": {
     "@type": "ContactAction",
     "target": {

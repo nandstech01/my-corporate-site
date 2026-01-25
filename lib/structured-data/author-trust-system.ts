@@ -272,12 +272,9 @@ export class AuthorTrustSystem {
         },
         dateCreated: cred.year.toString()
       })),
-      award: this.authorProfile.achievements.map(achievement => ({
-        '@type': 'Award',
-        name: achievement.title,
-        description: achievement.description,
-        dateReceived: achievement.year.toString()
-      })),
+      // Note: achievementsは外部受賞ではなく自社実績のためAwardスキーマ不使用
+      // Google guidelines: Award should only be used for externally recognized achievements
+      // 代わりにknowsAboutで技術領域として表現
       sameAs: [
         // 実際の個人プロフィール（存在する場合のみ）
         ...(this.authorProfile.personalSocialMedia?.map(social => social.url) || []),
@@ -309,12 +306,9 @@ export class AuthorTrustSystem {
         name: 'AIシステム開発サービス',
         numberOfItems: this.trustSignals.organizationTrust.projectsCompleted
       },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: this.trustSignals.businessCredibility.satisfactionScore?.split('/')[0] || '4.8',
-        bestRating: '5',
-        ratingCount: this.trustSignals.organizationTrust.clientCount
-      }
+      // Note: AggregateRating削除 - 実際のレビューデータがないため
+      // Google guidelines: AggregateRating requires actual review data
+      // satisfactionScore '高評価' は定量データではないため使用不可
     };
   }
 

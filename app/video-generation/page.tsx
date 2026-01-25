@@ -80,12 +80,7 @@ const generateVideoGenerationStructuredData = () => {
         "priceCurrency": "JPY"
       }
     ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.7",
-      "reviewCount": "16",
-      "bestRating": "5"
-    },
+    // AggregateRating削除: 実際のレビューデータがないためGoogleガイドライン違反
     "featureList": [
       "自動動画生成",
       "AIクリエイティブ制作",

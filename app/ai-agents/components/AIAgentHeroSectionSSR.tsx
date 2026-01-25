@@ -58,19 +58,16 @@ async function getAiAgentsSchema() {
       "24時間365日稼働",
       "高精度自動化"
     ],
-    "aggregateRating": reviewStats ? {
-      "@type": "AggregateRating",
-      "ratingValue": reviewStats.averageRating.toString(),
-      "bestRating": "5",
-      "worstRating": "1",
-      "ratingCount": reviewStats.totalReviews
-    } : {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "bestRating": "5",
-      "worstRating": "1",
-      "ratingCount": 15
-    },
+    // AggregateRating: 実際のレビューがある場合のみ出力（Googleガイドライン準拠）
+    ...(reviewStats && reviewStats.totalReviews > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": reviewStats.averageRating.toString(),
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": reviewStats.totalReviews
+      }
+    } : {}),
     "potentialAction": {
       "@type": "ContactAction",
       "target": {

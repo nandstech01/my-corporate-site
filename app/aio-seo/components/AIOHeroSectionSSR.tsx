@@ -52,13 +52,8 @@ const aioSeoSchema = {
     "Fragment ID最適化",
     "セマンティック構造化データ"
   ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.7",
-    "bestRating": "5",
-    "worstRating": "1",
-    "ratingCount": 12
-  },
+  // AggregateRating削除: 実際のレビューデータがないためGoogleガイドライン違反
+  // 実際のレビューを収集した場合にのみ追加すること
   "potentialAction": {
     "@type": "ContactAction",
     "target": {

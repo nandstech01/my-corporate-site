@@ -9,10 +9,13 @@ import { getReviewStats } from '@/lib/supabase/client';
 
 export default async function MCPHeroSectionSSR() {
   const reviewStats = await getReviewStats('mcp-servers');
-  
-  // フォールバック値
+
+  // UI表示用フォールバック値（構造化データには使用しない）
   const displayRating = reviewStats?.averageRating || 4.8;
   const displayCount = reviewStats?.totalReviews || 11;
+
+  // 構造化データ用: 実際のレビューがある場合のみ使用
+  const hasRealReviews = reviewStats && reviewStats.totalReviews > 0;
 
   return (
     <section 
@@ -205,14 +208,13 @@ export default async function MCPHeroSectionSSR() {
         </div>
       </div>
 
-      {/* 構造化データ: レビュー */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "AggregateRating",
-            "itemReviewed": {
+      {/* 構造化データ: レビュー（実際のレビューがある場合のみ出力） */}
+      {hasRealReviews && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "MCPサーバー開発サービス",
               "description": "Model Context Protocol最新技術を活用したカスタムサーバー開発サービス。Claude Desktop・Cursor IDE統合、AIワークフロー最適化により開発効率を劇的に向上。カスタムツール拡張開発対応。",
@@ -239,20 +241,15 @@ export default async function MCPHeroSectionSSR() {
               },
               "aggregateRating": {
                 "@type": "AggregateRating",
-                "ratingValue": displayRating,
+                "ratingValue": reviewStats!.averageRating,
                 "bestRating": 5,
                 "worstRating": 1,
-                "ratingCount": displayCount
+                "ratingCount": reviewStats!.totalReviews
               }
-            },
-            "ratingValue": displayRating,
-            "bestRating": 5,
-            "worstRating": 1,
-            "ratingCount": displayCount,
-            "reviewCount": displayCount
-          }, null, 2)
-        }}
-      />
+            }, null, 2)
+          }}
+        />
+      )}
     </section>
   );
 } 

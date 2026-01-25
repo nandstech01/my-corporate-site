@@ -97,25 +97,26 @@ export async function POST(request: NextRequest) {
             url: `https://nands.tech/posts/${post.slug}#${item.anchor || item.id}`,
             description: `${post.title}の第${index + 1}セクション: ${item.title}`
           })) : [],
+          // Note: FAQPage/HowToはGoogle 2025ガイドラインで非推奨
+          // ItemList + Question形式に変更
           faq_schema: faqData.length > 0 ? {
             "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqData.map(faq => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer
+            "@type": "ItemList",
+            itemListElement: faqData.map((faq, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              item: {
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer
+                }
               }
             }))
           } : null,
-          howto_schema: howToData.steps.length > 0 ? {
-            "@context": "https://schema.org",
-            "@type": "HowTo",
-            name: post.title,
-            description: post.meta_description || `${post.title}の実装ガイド`,
-            step: howToData.steps
-          } : null,
+          // HowTo廃止 - Google 2024-2025でリッチリザルト機能廃止
+          howto_schema: null,
           haspart_schema: hasFragmentIds ? tocData.toc.map((item: any, index: number) => ({
             "@type": "WebPageElement",
             "@id": `https://nands.tech/posts/${post.slug}#${item.anchor || item.id}`,
