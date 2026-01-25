@@ -5,7 +5,7 @@ import { FeaturedSection } from '@/components/home/FeaturedSection'
 import { createClient } from '@/utils/supabase/server'
 import PostsGridSSR from '@/components/common/PostsGridSSR'
 import PostsGridAnimations from '@/components/common/PostsGridAnimations'
-import Script from 'next/script'
+// Script importを削除 - JSON-LDはSSRのため通常の<script>タグを使用
 import { getStructuredData } from './structured-data'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -1079,7 +1079,7 @@ export default async function Home() {
   return (
     <main>
       {/* Fragment ID最適化構造化データ */}
-      <Script
+      <script
         id="fragment-id-optimization-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -1088,7 +1088,7 @@ export default async function Home() {
       />
 
       {/* 【最強LLMO構造化データ】Google Gemini LLM + AI Overviews完全対応 */}
-      <Script
+      <script
         id="llmo-structured-data"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(llmoOptimizedData) }}
@@ -1097,7 +1097,7 @@ export default async function Home() {
       {/* 🚀 条件付きScript読み込み（開発環境では軽量化） */}
       {process.env.NODE_ENV === 'production' && (
         <>
-          <Script
+          <script
             id="schema-org-16-organization"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1105,7 +1105,7 @@ export default async function Home() {
             }}
           />
 
-          <Script
+          <script
             id="author-profile-schema"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1113,7 +1113,7 @@ export default async function Home() {
             }}
           />
 
-          <Script
+          <script
             id="organization-trust-schema"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1121,7 +1121,7 @@ export default async function Home() {
             }}
           />
 
-          <Script
+          <script
             id="ai-transparency-schema"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1145,7 +1145,7 @@ export default async function Home() {
             }}
           />
 
-          <Script
+          <script
             id="ai-search-optimization-schema"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1153,7 +1153,7 @@ export default async function Home() {
             }}
           />
 
-          <Script
+          <script
             id="ai-search-metadata"
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -1180,7 +1180,7 @@ export default async function Home() {
 
       {/* 🚀 開発環境用軽量構造化データ */}
       {process.env.NODE_ENV === 'development' && (
-        <Script
+        <script
           id="dev-minimal-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
