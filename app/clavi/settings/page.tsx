@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Settings as SettingsIcon, User, Building2, Key, Check, Copy, CreditCard, BarChart3, ExternalLink, Share2, UserCircle, Save, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/browser';
 import { useClaviTheme } from '@/app/clavi/context';
 import SameAsInputForm from '@/components/clavi/SameAsInputForm';
 import AuthorInputForm from '@/components/clavi/AuthorInputForm';
@@ -98,49 +97,28 @@ export default function SettingsPage() {
     try {
       setIsLoading(true);
 
-      // Supabaseクライアントからユーザー情報を直接取得
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!user) {
-        console.error('User not authenticated');
+      // サーバーサイドAPI経由でユーザー・テナント情報を取得
+      const meResponse = await fetch('/api/clavi/me', { credentials: 'include' });
+      if (!meResponse.ok) {
         return;
       }
+      const meData = await meResponse.json();
 
       setProfile({
-        email: user.email || '',
-        id: user.id,
+        email: meData.email || '',
+        id: meData.user_id,
       });
 
-      const headers: HeadersInit = {};
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
-      // テナント情報を取得（RPC経由）
-      const { data: tenantContext } = await supabase.rpc('get_current_tenant_context') as { data: { tenant_id: string; tenant_role: string } | null };
-
-      // user_tenantsからテナント一覧を取得
-      const { data: userTenants } = await supabase
-        .from('user_tenants')
-        .select('tenant_id, role')
-        .eq('user_id', user.id) as { data: Array<{ tenant_id: string; role: string }> | null };
-
-      const currentTenantId = tenantContext?.tenant_id || (userTenants && userTenants[0]?.tenant_id);
-      const currentRole = tenantContext?.tenant_role || (userTenants && userTenants[0]?.role);
+      // テナント情報を設定
+      const firstTenant = meData.tenants?.[0];
+      const currentTenantId = meData.tenant_id || firstTenant?.tenant_id;
+      const currentRole = meData.tenant_role || firstTenant?.role;
+      const tenantName = firstTenant?.tenants?.name || 'Unknown';
 
       if (currentTenantId) {
-        // テナント名を取得
-        const { data: tenantInfo } = await supabase
-          .from('tenants')
-          .select('name')
-          .eq('id', currentTenantId)
-          .single();
-
         setTenant({
           tenant_id: currentTenantId,
-          tenant_name: (tenantInfo as { name: string } | null)?.name || 'Unknown',
+          tenant_name: tenantName,
           role: currentRole || 'member',
         });
 
@@ -148,7 +126,6 @@ export default function SettingsPage() {
         try {
           const subResponse = await fetch('/api/clavi/stripe/subscription', {
             credentials: 'include',
-            headers,
           });
           if (subResponse.ok) {
             const subData = await subResponse.json();
@@ -160,22 +137,21 @@ export default function SettingsPage() {
             });
             setUsage(subData.usage);
           }
-        } catch (subError) {
-          console.error('Error fetching subscription:', subError);
+        } catch {
+          // subscription fetch failed silently
         }
 
-        // Phase 8: テナント設定取得
+        // テナント設定取得
         try {
           const settingsResponse = await fetch('/api/clavi/settings', {
             credentials: 'include',
-            headers,
           });
           if (settingsResponse.ok) {
             const settingsData = await settingsResponse.json();
             setTenantSettings(settingsData.settings || {});
           }
-        } catch (settingsError) {
-          console.error('Error fetching tenant settings:', settingsError);
+        } catch {
+          // settings fetch failed silently
         }
       }
     } catch (error) {
@@ -191,21 +167,10 @@ export default function SettingsPage() {
       setIsSaving(true);
       setSaveMessage(null);
 
-      // Supabaseセッションからトークンを取得してBearer認証
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
       const response = await fetch('/api/clavi/settings', {
         method: 'PATCH',
         credentials: 'include',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sameAs: tenantSettings.sameAs,
           author: tenantSettings.author,

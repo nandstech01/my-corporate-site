@@ -169,10 +169,13 @@ DROP POLICY IF EXISTS user_tenants_select ON clavi.user_tenants;
 CREATE POLICY user_tenants_select
 ON clavi.user_tenants FOR SELECT TO authenticated
 USING (
-  tenant_id = clavi.current_tenant_id()
-  AND EXISTS (
-    SELECT 1 FROM clavi.user_tenants me
-    WHERE me.tenant_id = clavi.current_tenant_id() AND me.user_id = auth.uid()
+  user_id = auth.uid()
+  OR (
+    tenant_id = clavi.current_tenant_id()
+    AND EXISTS (
+      SELECT 1 FROM clavi.user_tenants me
+      WHERE me.tenant_id = clavi.current_tenant_id() AND me.user_id = auth.uid()
+    )
   )
 );
 

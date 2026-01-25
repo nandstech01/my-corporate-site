@@ -39,36 +39,51 @@ export async function GET() {
   const { data: context } = await supabase
     .rpc('get_current_tenant_context');
 
-  const tenant_id = context?.tenant_id || null;
-  const tenant_role = context?.tenant_role || null;
+  const jwt_tenant_id = context?.tenant_id || null;
+  const jwt_tenant_role = context?.tenant_role || null;
 
-  // 所属テナント一覧を取得（複数テナント対応）
-  const { data: tenants } = await supabase
+  // 所属テナント一覧を取得（JOINはviewでは使えないため分割クエリ）
+  const { data: userTenants } = await supabase
     .from('user_tenants')
-    .select(`
-      tenant_id,
-      role,
-      created_at,
-      tenants:tenant_id (
-        id,
-        name,
-        subscription_tier,
-        subscription_status,
-        created_at
-      )
-    `)
+    .select('tenant_id, role, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: true });
 
+  // テナント詳細を取得
+  const tenantIds = (userTenants || []).map(ut => ut.tenant_id);
+  let tenantsDetails: any[] = [];
+  if (tenantIds.length > 0) {
+    const { data: details } = await supabase
+      .from('tenants')
+      .select('id, name, subscription_tier, subscription_status, created_at')
+      .in('id', tenantIds);
+    tenantsDetails = details || [];
+  }
+
+  // マージ: user_tenants + tenants詳細
+  const tenants = (userTenants || []).map(ut => {
+    const detail = tenantsDetails.find(t => t.id === ut.tenant_id);
+    return {
+      tenant_id: ut.tenant_id,
+      role: ut.role,
+      created_at: ut.created_at,
+      tenants: detail || null,
+    };
+  });
+
+  // 有効なテナントIDとロールを決定（JWT claim優先、なければDB fallback）
+  const firstTenant = tenants[0];
+  const tenant_id = jwt_tenant_id || firstTenant?.tenant_id || null;
+  const tenant_role = jwt_tenant_role || firstTenant?.role || null;
   const selected_tenant_id = user.user_metadata?.selected_tenant_id || null;
 
   return NextResponse.json({
     user_id: user.id,
     email: user.email,
-    tenant_id: tenant_id,
-    tenant_role: tenant_role,
-    selected_tenant_id: selected_tenant_id,
-    is_member: (tenants && tenants.length > 0),
-    tenants: tenants || [],
+    tenant_id,
+    tenant_role,
+    selected_tenant_id,
+    is_member: tenants.length > 0,
+    tenants,
   });
 }
