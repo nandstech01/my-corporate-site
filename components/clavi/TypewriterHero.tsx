@@ -132,7 +132,7 @@ export function TypewriterHero({ className = '' }: TypewriterHeroProps) {
         {/* Line 3 - クラヴィ (large, prominent) */}
         <motion.span
           variants={line3Variants}
-          className="relative block text-center text-5xl sm:text-6xl lg:text-7xl mt-2"
+          className="relative block text-center text-5xl sm:text-6xl lg:text-7xl mt-6 mb-4"
           style={{ color: textColor }}
         >
           {line3}
