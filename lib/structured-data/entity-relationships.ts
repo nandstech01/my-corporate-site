@@ -1348,7 +1348,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
   },
   {
     '@id': 'https://nands.tech/reviews#company',
-    '@type': 'ReviewPage',
+    '@type': 'WebPage', // ReviewPageはschema.orgに存在しない → WebPage使用
     name: 'お客様の声・評価・実績',
     pageType: 'CustomerReviews',
     provider: { '@id': 'https://nands.tech/#organization' },
@@ -1394,7 +1394,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
   },
   {
     '@id': 'https://nands.tech/faq#company',
-    '@type': 'FAQPage',
+    '@type': 'WebPage', // FAQPageは2025年より政府・医療機関のみ → WebPage使用
     name: 'よくある質問・FAQ',
     pageType: 'FrequentlyAskedQuestions',
     provider: { '@id': 'https://nands.tech/#organization' },
