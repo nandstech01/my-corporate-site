@@ -21,7 +21,7 @@ export default function GenerateFeaturePage() {
               <Code2 className="w-6 h-6 text-blue-600" />
             </div>
             <h1 className="text-3xl font-bold mb-4" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>生成機能</h1>
-            <p className="text-lg mb-8" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+            <p className="text-lg mb-8" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
               Schema.org準拠のJSON-LDを自動生成。コピー&ペーストで即実装。
             </p>
 

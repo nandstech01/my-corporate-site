@@ -115,7 +115,7 @@ export default function CLAVILoginPage() {
               className="p-2 rounded-lg transition-colors"
               style={{
                 background: isDark ? '#1E293B' : '#F1F5F9',
-                color: isDark ? '#94A3B8' : '#64748B'
+                color: isDark ? '#E2E8F0' : '#374151'
               }}
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -137,7 +137,7 @@ export default function CLAVILoginPage() {
               >
                 ログイン
               </h1>
-              <p style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+              <p style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                 CLAVEにログイン
               </p>
             </div>
@@ -223,7 +223,7 @@ export default function CLAVILoginPage() {
               </button>
             </form>
 
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
               <Shield className="w-3.5 h-3.5" />
               <span>256-bit SSL暗号化で保護</span>
             </div>
@@ -232,7 +232,7 @@ export default function CLAVILoginPage() {
               className="mt-6 pt-6 border-t text-center text-sm"
               style={{ borderColor: isDark ? '#1E293B' : '#E2E8F0' }}
             >
-              <p style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+              <p style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                 アカウントをお持ちでないですか？{' '}
                 <Link href="/clavi/signup" className="font-medium text-blue-600 hover:text-blue-700">
                   新規登録
@@ -244,7 +244,7 @@ export default function CLAVILoginPage() {
               <Link
                 href="/clavi"
                 className="inline-flex items-center gap-1.5 text-sm transition-colors"
-                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                style={{ color: isDark ? '#E2E8F0' : '#374151' }}
               >
                 <ArrowRight className="w-3.5 h-3.5 rotate-180" />
                 トップに戻る

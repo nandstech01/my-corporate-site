@@ -132,7 +132,7 @@ export default function AsoLandingPage() {
 
                   <TypewriterHero />
 
-                  <p className="text-lg mb-8 leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                  <p className="text-lg mb-8 leading-relaxed" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                     従来のSEOとは異なり、CLAVIはChatGPT、Gemini、PerplexityなどのAIクローラー向けにコンテンツ構造を最適化します。新しい検索時代への扉を開きましょう。
                   </p>
 
@@ -161,7 +161,7 @@ export default function AsoLandingPage() {
                     </Link>
                   </div>
 
-                  <p className="mt-4 text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
+                  <p className="mt-4 text-xs" style={{ color: isDark ? '#CBD5E1' : '#475569' }}>
                     クレジットカード不要。14日間無料トライアル。
                   </p>
                 </motion.div>
@@ -195,14 +195,14 @@ export default function AsoLandingPage() {
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm font-semibold uppercase tracking-wider mb-6"
-            style={{ color: isDark ? '#64748B' : '#94A3B8' }}
+            style={{ color: isDark ? '#CBD5E1' : '#475569' }}
           >
             最新テクノロジー & AIクローラーに対応
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70">
             {['Schema.org 16.0+', 'Google AI Overview', 'GPT-4 Omni', 'Perplexity'].map((name) => (
               <div key={name} className="flex items-center gap-2 font-bold text-lg"
-                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                style={{ color: isDark ? '#E2E8F0' : '#374151' }}
               >
                 <Search className="w-4 h-4" />
                 {name}
@@ -224,7 +224,7 @@ export default function AsoLandingPage() {
             <h2 className="text-3xl md:text-4xl font-black mb-4" style={{ color: isDark ? '#FFFFFF' : '#1E3A8A' }}>
               あなたのコンテンツ、AIに見えていますか？
             </h2>
-            <p style={{ color: isDark ? '#94A3B8' : '#64748B' }} className="max-w-2xl mx-auto">
+            <p style={{ color: isDark ? '#E2E8F0' : '#374151' }} className="max-w-2xl mx-auto">
               従来のSEO構造だけでは不十分です。LLMはデータを異なる方法で読み取ります。CLAVIが生み出す違いをご覧ください。
             </p>
           </motion.div>
@@ -248,7 +248,7 @@ export default function AsoLandingPage() {
                 style={{
                   background: isDark ? '#0F172A' : '#FFFFFF',
                   borderColor: isDark ? '#334155' : '#E2E8F0',
-                  color: isDark ? '#94A3B8' : '#64748B',
+                  color: isDark ? '#E2E8F0' : '#374151',
                 }}
               >
                 <p>&lt;div class=&quot;content&quot;&gt;</p>
@@ -328,7 +328,7 @@ export default function AsoLandingPage() {
                 <h3 className="text-xl font-bold mb-3" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
                   {item.title}
                 </h3>
-                <p className="leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                <p className="leading-relaxed" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                   {item.desc}
                 </p>
               </motion.div>
@@ -342,7 +342,7 @@ export default function AsoLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black" style={{ color: isDark ? '#FFFFFF' : '#1E3A8A' }}>ワークフロー</h2>
-            <p className="mt-2" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>URLからAI最適化まで、わずか数秒で完了。</p>
+            <p className="mt-2" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>URLからAI最適化まで、わずか数秒で完了。</p>
           </div>
           <div className="relative">
             {/* Connecting line */}
@@ -375,7 +375,7 @@ export default function AsoLandingPage() {
                     {step.num}
                   </div>
                   <h4 className="text-lg font-bold mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>{step.title}</h4>
-                  <p className="text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{step.desc}</p>
+                  <p className="text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{step.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -395,8 +395,8 @@ export default function AsoLandingPage() {
             <table className="min-w-full divide-y" style={{ borderColor: isDark ? '#334155' : '#E2E8F0' }}>
               <thead style={{ background: isDark ? '#0F172A' : '#F8FAFC' }}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>機能</th>
-                  <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>従来のSEO</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>機能</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>従来のSEO</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-blue-600 uppercase tracking-wider"
                     style={{ background: isDark ? 'rgba(37,99,235,0.1)' : '#EFF6FF' }}
                   >CLAVI</th>
@@ -411,7 +411,7 @@ export default function AsoLandingPage() {
                 ].map((row) => (
                   <tr key={row.feature}>
                     <td className="px-6 py-4 text-sm font-medium" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>{row.feature}</td>
-                    <td className="px-6 py-4 text-sm text-center" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{row.trad}</td>
+                    <td className="px-6 py-4 text-sm text-center" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{row.trad}</td>
                     <td className="px-6 py-4 text-sm font-bold text-blue-600 text-center"
                       style={{ background: isDark ? 'rgba(37,99,235,0.05)' : 'rgba(239,246,255,0.5)' }}
                     >{row.clavi}</td>
@@ -444,11 +444,11 @@ export default function AsoLandingPage() {
                 >
                   <span>{faq.q}</span>
                   <ChevronDown className={`w-5 h-5 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
-                    style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                    style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-6 text-sm leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                  <div className="px-6 pb-6 text-sm leading-relaxed" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                     {faq.a}
                   </div>
                 )}

@@ -46,7 +46,7 @@ export default function CaseStudiesPage() {
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-14">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>導入事例</h1>
-            <p className="text-lg" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>CLAVI導入で成果を出した企業の事例</p>
+            <p className="text-lg" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>CLAVI導入で成果を出した企業の事例</p>
           </motion.div>
 
           <div className="space-y-6">
@@ -73,7 +73,7 @@ export default function CaseStudiesPage() {
                           </span>
                         </div>
                         <h3 className="text-lg font-semibold mb-1" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>{cs.title}</h3>
-                        <p className="text-sm mb-2" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{cs.description}</p>
+                        <p className="text-sm mb-2" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{cs.description}</p>
                         <div className="flex items-center gap-1.5 text-emerald-500 font-semibold text-sm">
                           <TrendingUp className="w-4 h-4" />
                           {cs.result}
@@ -81,12 +81,12 @@ export default function CaseStudiesPage() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-center">
-                          <div className="text-xs mb-0.5" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>Before</div>
-                          <div className="text-xl font-bold" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{cs.metrics.before}</div>
+                          <div className="text-xs mb-0.5" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>Before</div>
+                          <div className="text-xl font-bold" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{cs.metrics.before}</div>
                         </div>
-                        <ArrowRight className="w-4 h-4" style={{ color: isDark ? '#64748B' : '#94A3B8' }} />
+                        <ArrowRight className="w-4 h-4" style={{ color: isDark ? '#94A3B8' : '#64748B' }} />
                         <div className="text-center">
-                          <div className="text-xs mb-0.5" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>After</div>
+                          <div className="text-xs mb-0.5" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>After</div>
                           <div className="text-xl font-bold text-blue-600">{cs.metrics.after}</div>
                         </div>
                       </div>

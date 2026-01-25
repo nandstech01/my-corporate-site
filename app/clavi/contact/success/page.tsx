@@ -30,7 +30,7 @@ export default function ContactSuccessPage() {
           <h1 className="text-2xl font-bold mb-3" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
             送信完了
           </h1>
-          <p className="text-base mb-8" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+          <p className="text-base mb-8" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
             お問い合わせありがとうございます。
             担当者より2営業日以内にご連絡いたします。
           </p>

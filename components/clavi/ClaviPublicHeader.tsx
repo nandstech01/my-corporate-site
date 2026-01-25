@@ -71,7 +71,7 @@ export default function ClaviPublicHeader() {
               onClick={toggleTheme}
               className="p-2 rounded-full transition-colors"
               style={{
-                color: isDark ? '#94A3B8' : '#64748B',
+                color: isDark ? '#E2E8F0' : '#374151',
               }}
               aria-label="Toggle theme"
             >
@@ -93,7 +93,7 @@ export default function ClaviPublicHeader() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg transition-colors"
               style={{
-                color: isDark ? '#94A3B8' : '#64748B',
+                color: isDark ? '#E2E8F0' : '#374151',
               }}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

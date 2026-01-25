@@ -15,6 +15,11 @@
   --deep-ocean: #050505;
   --deep-ocean-light: #0a0a0f;
   --deep-ocean-dark: #000000;
+
+  /* Dark Mode Text Colors - より明るく読みやすく */
+  --dark-text-primary: #ffffff;
+  --dark-text-secondary: #e5e7eb;
+  --dark-text-tertiary: #d1d5db;
   
   /* Accent Colors - Neon Purple (Brand) */
   --neon-purple: #9333ea;
@@ -57,10 +62,10 @@
   --light-bg-secondary: #f8f9fa;
   --light-bg-tertiary: #f1f3f5;
   
-  /* テキスト色 */
-  --light-text-primary: #1a1a1a;
-  --light-text-secondary: #4a5568;
-  --light-text-tertiary: #718096;
+  /* テキスト色 - より濃く読みやすく */
+  --light-text-primary: #111111;
+  --light-text-secondary: #333333;
+  --light-text-tertiary: #555555;
   
   /* アクセントカラー */
   --light-accent-blue: #0066cc;
@@ -357,6 +362,21 @@
 .section-fade-in.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ============================================
+   Dark Mode Text Utilities - 全ページ共通
+   ============================================ */
+.dark-text-primary {
+  color: var(--dark-text-primary);
+}
+
+.dark-text-secondary {
+  color: var(--dark-text-secondary);
+}
+
+.dark-text-tertiary {
+  color: var(--dark-text-tertiary);
 }
 
 /* ============================================

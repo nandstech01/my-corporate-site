@@ -156,7 +156,7 @@ export default function PricingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="mt-4 max-w-2xl mx-auto text-xl"
-            style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+            style={{ color: isDark ? '#E2E8F0' : '#374151' }}
           >
             ビジネスの成長に合わせて選べる柔軟なプランをご用意しました。<br />
             14日間の無料トライアルで、すべての機能をお試しいただけます。
@@ -219,7 +219,7 @@ export default function PricingPage() {
                 <h3 className="text-xl font-bold" style={{ color: isDark ? '#F8FAFC' : '#1E293B' }}>
                   {plan.name}
                 </h3>
-                <p className="mt-2 text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                <p className="mt-2 text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                   {plan.description}
                 </p>
 
@@ -230,7 +230,7 @@ export default function PricingPage() {
                     {plan.priceDisplay}
                   </span>
                   {plan.priceSuffix && (
-                    <span className="ml-1 text-xl font-medium" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                    <span className="ml-1 text-xl font-medium" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                       {plan.priceSuffix}
                     </span>
                   )}
@@ -284,8 +284,8 @@ export default function PricingPage() {
                   ))}
                   {plan.disabledFeatures.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 opacity-50">
-                      <X className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: isDark ? '#64748B' : '#94A3B8' }} />
-                      <span className="text-sm" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
+                      <X className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: isDark ? '#94A3B8' : '#64748B' }} />
+                      <span className="text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
                         {feature}
                       </span>
                     </li>
@@ -309,7 +309,7 @@ export default function PricingPage() {
             <table className="w-full min-w-[700px] text-left border-collapse">
               <thead>
                 <tr style={{ background: isDark ? '#0F172A' : '#F8FAFC' }}>
-                  <th className="p-4 w-1/4 text-sm font-semibold" style={{ color: isDark ? '#94A3B8' : '#64748B', borderBottom: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
+                  <th className="p-4 w-1/4 text-sm font-semibold" style={{ color: isDark ? '#E2E8F0' : '#374151', borderBottom: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
                     機能
                   </th>
                   <th className="p-4 text-center w-1/4 text-sm font-semibold" style={{ color: isDark ? '#F8FAFC' : '#1E293B', borderBottom: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
@@ -334,7 +334,7 @@ export default function PricingPage() {
                     {(['starter', 'pro', 'enterprise'] as const).map((tier) => {
                       const val = row[tier];
                       return (
-                        <td key={tier} className="p-4 text-center text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                        <td key={tier} className="p-4 text-center text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                           {typeof val === 'boolean' ? (
                             val ? (
                               <Check className="w-5 h-5 text-green-500 mx-auto" />
@@ -384,7 +384,7 @@ export default function PricingPage() {
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-6 leading-relaxed" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                  <div className="px-6 pb-6 leading-relaxed" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                     {faq.a}
                   </div>
                 )}

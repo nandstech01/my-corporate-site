@@ -57,7 +57,7 @@ export default function ClaviFooter() {
             </div>
             <p
               className="text-sm leading-relaxed"
-              style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+              style={{ color: isDark ? '#E2E8F0' : '#374151' }}
             >
               AIに見つかるための構造化データ最適化。
               ChatGPT・Gemini・Perplexityでの引用率を向上。
@@ -78,7 +78,7 @@ export default function ClaviFooter() {
                   <Link
                     href={link.href}
                     className="text-sm transition-colors hover:underline"
-                    style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                    style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                   >
                     {link.label}
                   </Link>
@@ -101,7 +101,7 @@ export default function ClaviFooter() {
                   <Link
                     href={link.href}
                     className="text-sm transition-colors hover:underline"
-                    style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                    style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                   >
                     {link.label}
                   </Link>
@@ -124,7 +124,7 @@ export default function ClaviFooter() {
                   <Link
                     href={link.href}
                     className="text-sm transition-colors hover:underline"
-                    style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                    style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                   >
                     {link.label}
                   </Link>
@@ -141,7 +141,7 @@ export default function ClaviFooter() {
         >
           <p
             className="text-xs"
-            style={{ color: isDark ? '#64748B' : '#94A3B8' }}
+            style={{ color: isDark ? '#94A3B8' : '#64748B' }}
           >
             &copy; 2026 CLAVI - AI検索最適化プラットフォーム
           </p>

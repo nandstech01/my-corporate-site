@@ -61,7 +61,7 @@ export default function ContactPage() {
               </h1>
               <p
                 className="text-base sm:text-lg leading-relaxed max-w-[540px] mx-auto"
-                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                style={{ color: isDark ? '#E2E8F0' : '#374151' }}
               >
                 CLAVIに関するご質問や導入のご相談など、お気軽にお問い合わせください。
               </p>
@@ -81,7 +81,7 @@ export default function ContactPage() {
                     }}
                   >
                     <div className="w-full h-full rounded-full flex items-center justify-center text-sm font-bold"
-                      style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                      style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                     >
                       {['S', 'T', 'M'][i]}
                     </div>
@@ -90,7 +90,7 @@ export default function ContactPage() {
               </div>
               <span
                 className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                style={{ color: isDark ? '#E2E8F0' : '#374151' }}
               >
                 Support Team
               </span>
@@ -210,7 +210,7 @@ export default function ContactPage() {
                     </select>
                     <ChevronDown
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                      style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+                      style={{ color: isDark ? '#E2E8F0' : '#374151' }}
                     />
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function ContactPage() {
                       </svg>
                     )}
                   </div>
-                  <span className="text-sm leading-snug" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                  <span className="text-sm leading-snug" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                     <span className="font-medium" style={{ color: '#2563EB' }}>プライバシーポリシー</span> に同意する
                   </span>
                 </label>
@@ -283,7 +283,7 @@ export default function ContactPage() {
                 </button>
                 <p
                   className="mt-4 text-center text-xs"
-                  style={{ color: isDark ? '#64748B' : '#94A3B8' }}
+                  style={{ color: isDark ? '#94A3B8' : '#64748B' }}
                 >
                   通常、2営業日以内に担当者よりご連絡いたします。
                 </p>

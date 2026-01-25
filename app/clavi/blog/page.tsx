@@ -29,10 +29,10 @@ export default function BlogPage() {
           <h1 className="text-2xl font-bold mb-3" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
             ブログ
           </h1>
-          <p className="text-base mb-2" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+          <p className="text-base mb-2" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
             Coming Soon
           </p>
-          <p className="text-sm" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
+          <p className="text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
             AI検索最適化に関する最新情報やTipsを掲載予定です。
           </p>
         </motion.div>

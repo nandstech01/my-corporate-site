@@ -129,7 +129,7 @@ export default function FeaturesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="max-w-2xl mx-auto text-lg sm:text-xl leading-relaxed mb-10"
-            style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+            style={{ color: isDark ? '#E2E8F0' : '#374151' }}
           >
             URLを入力するだけで、AIがコンテンツを解析、生成、そして拡張します。<br />
             SEOに最適化されたワークフローを体験してください。
@@ -191,7 +191,7 @@ export default function FeaturesPage() {
                       background: isActive
                         ? (isDark ? `${tab.color}20` : `${tab.color}15`)
                         : (isDark ? '#1E293B' : '#F1F5F9'),
-                      color: isActive ? tab.color : (isDark ? '#94A3B8' : '#64748B'),
+                      color: isActive ? tab.color : (isDark ? '#E2E8F0' : '#374151'),
                     }}
                   >
                     <tab.icon className="w-6 h-6" />
@@ -222,7 +222,7 @@ export default function FeaturesPage() {
                     {col.title}
                   </h2>
                 </div>
-                <p className="text-sm mb-4" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                <p className="text-sm mb-4" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                   {col.description}
                 </p>
 
@@ -352,7 +352,7 @@ export default function FeaturesPage() {
                     <h3 className="text-lg font-bold mb-2" style={{ color: isDark ? '#F8FAFC' : '#1E293B' }}>
                       {card.title}
                     </h3>
-                    <p className="text-sm mb-4 flex-grow" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+                    <p className="text-sm mb-4 flex-grow" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
                       {card.desc}
                     </p>
                     <Link
@@ -379,7 +379,7 @@ export default function FeaturesPage() {
           <h2 className="text-3xl font-bold mb-6" style={{ color: isDark ? '#F8FAFC' : '#1E293B' }}>
             コンテンツ戦略を最適化する準備はできましたか？
           </h2>
-          <p className="text-lg mb-8" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+          <p className="text-lg mb-8" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
             数千のウェブサイトがCLAVIを使ってオーガニックトラフィックを伸ばしています。
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">

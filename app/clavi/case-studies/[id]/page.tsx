@@ -50,7 +50,7 @@ export default function CaseStudyDetailPage() {
       <div className="min-h-screen" style={{ background: isDark ? '#0F172A' : '#F8FAFC' }}>
         <ClaviPublicHeader />
         <div className="py-20 text-center">
-          <p style={{ color: isDark ? '#94A3B8' : '#64748B' }}>事例が見つかりません</p>
+          <p style={{ color: isDark ? '#E2E8F0' : '#374151' }}>事例が見つかりません</p>
           <Link href="/clavi/case-studies" className="text-blue-600 mt-2 inline-block">一覧に戻る</Link>
         </div>
         <ClaviFooter />
@@ -80,14 +80,14 @@ export default function CaseStudyDetailPage() {
             {/* Metrics */}
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="p-5 rounded-xl text-center" style={{ background: isDark ? '#1E293B' : '#FFFFFF', border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
-                <div className="text-xs mb-1" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>Before</div>
-                <div className="text-3xl font-bold" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{cs.metrics.before}</div>
-                <div className="text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>AI Structure Score</div>
+                <div className="text-xs mb-1" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>Before</div>
+                <div className="text-3xl font-bold" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{cs.metrics.before}</div>
+                <div className="text-xs" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>AI Structure Score</div>
               </div>
               <div className="p-5 rounded-xl text-center" style={{ background: isDark ? '#1E293B' : '#FFFFFF', border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
-                <div className="text-xs mb-1" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>After</div>
+                <div className="text-xs mb-1" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>After</div>
                 <div className="text-3xl font-bold text-blue-600">{cs.metrics.after}</div>
-                <div className="text-xs" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>AI Structure Score</div>
+                <div className="text-xs" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>AI Structure Score</div>
               </div>
             </div>
 
@@ -95,12 +95,12 @@ export default function CaseStudyDetailPage() {
             <div className="space-y-6">
               <div className="p-5 rounded-xl" style={{ background: isDark ? '#1E293B' : '#FFFFFF', border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
                 <h2 className="text-sm font-semibold mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>課題</h2>
-                <p className="text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{cs.challenge}</p>
+                <p className="text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{cs.challenge}</p>
               </div>
 
               <div className="p-5 rounded-xl" style={{ background: isDark ? '#1E293B' : '#FFFFFF', border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
                 <h2 className="text-sm font-semibold mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>ソリューション</h2>
-                <p className="text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>{cs.solution}</p>
+                <p className="text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>{cs.solution}</p>
               </div>
 
               <div className="p-5 rounded-xl" style={{ background: isDark ? '#1E293B' : '#FFFFFF', border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>

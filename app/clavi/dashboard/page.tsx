@@ -86,7 +86,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[#A5F3FC] border-t-[#06B6D4]" />
-          <p className="mt-3 text-sm" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+          <p className="mt-3 text-sm" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
             Loading...
           </p>
         </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 rounded transition-colors" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+            <button className="p-2 rounded transition-colors" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
               <Maximize2 className="w-4 h-4" />
             </button>
           </div>
@@ -403,7 +403,7 @@ export default function DashboardPage() {
                       borderColor: isDark ? '#475569' : '#CBD5E1',
                     }}
                   >
-                    <Plus className="w-3.5 h-3.5" style={{ color: isDark ? '#64748B' : '#94A3B8' }} />
+                    <Plus className="w-3.5 h-3.5" style={{ color: isDark ? '#94A3B8' : '#64748B' }} />
                   </div>
                 </div>
               ))}
@@ -444,7 +444,7 @@ export default function DashboardPage() {
               borderColor: isDark ? 'rgba(100,116,139,0.5)' : '#E2E8F0',
             }}
           >
-            <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>分析件数</div>
+            <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>分析件数</div>
             <div className="text-lg font-bold" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{stats?.total_analyses || 0}</div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export default function AnalyzeFeaturePage() {
               <Search className="w-6 h-6 text-blue-600" />
             </div>
             <h1 className="text-3xl font-bold mb-4" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>分析機能</h1>
-            <p className="text-lg mb-8" style={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+            <p className="text-lg mb-8" style={{ color: isDark ? '#E2E8F0' : '#374151' }}>
               URLを入力するだけで、ページの構造化データ対応状況を瞬時に分析します。
             </p>
 
