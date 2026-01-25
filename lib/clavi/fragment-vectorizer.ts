@@ -128,31 +128,46 @@ export class CLAVIFragmentVectorizer {
     };
   }): Promise<void> {
     const { tenant_id, analysis_id, fragment } = params;
-    
+
     // 1. ベクトル化（OpenAI Embeddings 1536次元）
     console.log(`[CLAVIFragmentVectorizer] ベクトル化中: ${fragment.fragment_id}`);
     const embedding = await this.embeddings.embedSingle(fragment.content);
-    
+
     if (!embedding || embedding.length !== 1536) {
       throw new Error(`Invalid embedding dimensions: ${embedding?.length || 0}`);
     }
-    
+
     // 2. pgvector形式に変換
     const embeddingString = `[${embedding.join(',')}]`;
-    
-    // 3. clavi.fragment_vectors に保存（公開ビュー経由）
+
+    // 3. complete_uri と page_path を抽出
+    // fragment_id は "https://nands.tech/#h3-24時間365日-5" のような形式
+    const completeUri = fragment.fragment_id;
+    let pagePath = '/';
+
+    try {
+      const url = new URL(completeUri);
+      pagePath = url.pathname || '/';
+    } catch {
+      // URLパース失敗時はデフォルト値を使用
+      console.warn(`[CLAVIFragmentVectorizer] URL parse warning: ${completeUri}`);
+    }
+
+    // 4. clavi.fragment_vectors に保存（公開ビュー経由）
     const { error } = await this.supabase
       .from('clavi_fragment_vectors') // 公開ビュー
       .insert({
         tenant_id,
         analysis_id,
         fragment_id: fragment.fragment_id,
+        complete_uri: completeUri,
+        page_path: pagePath,
         content_title: fragment.title,
         content: fragment.content,
         embedding: embeddingString,
         created_at: new Date().toISOString()
       });
-    
+
     if (error) {
       throw new Error(`Supabase insert error: ${error.message}`);
     }
