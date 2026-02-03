@@ -37,7 +37,7 @@ const services = [
     duration: '最短2週間',
     features: ['AIチャットボット', 'CMS搭載', 'レスポンシブ対応', 'AI自動応答'],
     highlightFeature: 'AIチャットボット',
-    demoUrl: '#',
+    demoUrl: 'https://careerbridge-jp.vercel.app/monitor-program',
     featured: false,
     gradient: 'from-purple-500 to-blue-500',
     iconBg: 'from-purple-600 to-blue-500',
@@ -68,7 +68,7 @@ const services = [
     price: '150万円〜',
     duration: '約3ヶ月',
     features: ['サブスク管理', 'AI分析', '課金システム', 'マルチテナント'],
-    demoUrl: 'https://careerbridge-jp.vercel.app/monitor-program',
+    demoUrl: 'https://nands.tech/clavi',
     featured: false,
     gradient: 'from-blue-500 to-purple-500',
     iconBg: 'from-blue-600 to-purple-600',
@@ -305,7 +305,7 @@ export default function SDLPCoverage() {
                     href={service.demoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-sdlp-text-secondary transition-all hover:text-sdlp-primary hover:border-sdlp-primary/30 hover:bg-sdlp-primary/5"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-sdlp-primary/20 bg-sdlp-primary/5 px-5 py-3 text-sm font-bold text-sdlp-primary shadow-sm transition-all hover:border-sdlp-primary/40 hover:bg-sdlp-primary/10 hover:shadow-md hover:shadow-blue-500/10"
                   >
                     デモサイトを見る
                     <ExternalLink className="h-3.5 w-3.5" />
