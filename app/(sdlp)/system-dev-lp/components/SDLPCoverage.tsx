@@ -191,7 +191,7 @@ export default function SDLPCoverage() {
 
               {/* Image area */}
               {'image' in service && service.image ? (
-                <div className={`relative aspect-[2/1] overflow-hidden ${'imageContain' in service && service.imageContain ? 'bg-white' : 'bg-slate-100'}`}>
+                <div className={`relative overflow-hidden ${'imageContain' in service && service.imageContain ? 'aspect-[5/3] bg-white' : 'aspect-[2/1] bg-slate-100'}`}>
                   <Image
                     src={service.image}
                     alt={service.title}
