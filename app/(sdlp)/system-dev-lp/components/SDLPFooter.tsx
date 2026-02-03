@@ -20,7 +20,6 @@ const footerLinks = [
   {
     title: 'お問い合わせ',
     links: [
-      { label: 'TEL: 0120-407-638', href: 'tel:0120-407-638' },
       { label: 'メール: contact@nands.tech', href: 'mailto:contact@nands.tech' },
     ],
   },
@@ -29,14 +28,16 @@ const footerLinks = [
 export default function SDLPFooter() {
   return (
     <footer data-sdlp className="bg-sdlp-footer-bg text-white">
+      {/* Brand accent bar */}
+      <div className="h-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
             <div className="text-xl font-bold mb-3">
-              <span className="text-sdlp-accent">N&S</span>{' '}
+              <span className="text-sdlp-accent">NANDS</span>{' '}
               <span className="text-white/80 text-sm font-normal">
-                システム開発
+                AI×システム開発
               </span>
             </div>
             <p className="text-sm text-white/60 leading-relaxed">

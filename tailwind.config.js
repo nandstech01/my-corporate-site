@@ -24,7 +24,7 @@ module.exports = {
         foreground: "hsl(var(--foreground))",
         // CLAVI Design System
         'sdlp': {
-          primary: '#4389F9',
+          primary: '#2563EB',
           'primary-hover': '#1D4ED8',
           accent: '#06B6D4',
           'accent-hover': '#0891B2',
@@ -33,7 +33,10 @@ module.exports = {
           text: '#0F172A',
           'text-secondary': '#475569',
           border: '#E2E8F0',
-          'footer-bg': '#0F172A',
+          'footer-bg': '#0A1628',
+          'hero-bg': '#0A1628',
+          'hero-mid': '#0F172A',
+          'purple': '#a855f7',
         },
         'clavi': {
           primary: '#2563EB',

@@ -19,7 +19,7 @@ export default function QuestionnairePage() {
               LPに戻る
             </Link>
             <div className="text-sm font-semibold text-sdlp-text">
-              <span className="text-sdlp-primary">N&S</span> 無料シミュレーション
+              <span className="text-sdlp-primary">NANDS</span> 無料シミュレーション
             </div>
             <div className="w-20" />
           </div>

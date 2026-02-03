@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, SkipForward, Mail } from 'lucide-react'
+import { ArrowLeft, ArrowRight, SkipForward, Mail, Mic, MicOff } from 'lucide-react'
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import StepProgressBar from './StepProgressBar'
 import QuestionCard from './QuestionCard'
 import ButtonGrid from './ButtonGrid'
@@ -37,6 +38,20 @@ export default function QuestionnaireWizard() {
   const [submitted, setSubmitted] = useState(false)
 
   const step = questionnaireSteps[currentStep - 1]
+
+  const handleVoiceResult = useCallback(
+    (text: string) => {
+      if (!step) return
+      setAnswers((prev) => {
+        const current = (prev[step.field] as string) || ''
+        return { ...prev, [step.field]: current + text }
+      })
+    },
+    [step],
+  )
+
+  const { isListening, isSupported, transcript, startListening, stopListening } =
+    useSpeechRecognition(handleVoiceResult)
 
   const getFieldValue = useCallback(
     (field: keyof QuestionnaireAnswers): string | string[] => {
@@ -240,14 +255,8 @@ export default function QuestionnaireWizard() {
           {/* CTA */}
           <div className="space-y-3">
             <a
-              href="tel:0120-407-638"
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-sdlp-primary px-6 py-3.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors"
-            >
-              電話で詳しく相談する
-            </a>
-            <a
               href="mailto:contact@nands.tech"
-              className="flex items-center justify-center gap-2 w-full rounded-xl border-2 border-sdlp-border px-6 py-3.5 text-sm font-bold text-sdlp-text hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center gap-2 w-full rounded-xl bg-sdlp-primary px-6 py-3.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors"
             >
               メールで問い合わせる
             </a>
@@ -279,14 +288,59 @@ export default function QuestionnaireWizard() {
         >
           {/* Textarea type */}
           {step.type === 'textarea' && (
-            <textarea
-              value={getFieldValue(step.field) as string}
-              onChange={(e) => updateField(step.field, e.target.value)}
-              placeholder={step.placeholder}
-              maxLength={step.maxLength}
-              rows={4}
-              className="w-full rounded-xl border-2 border-sdlp-border px-4 py-3 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary resize-none"
-            />
+            <div className="space-y-3">
+              <div className="relative">
+                <textarea
+                  value={getFieldValue(step.field) as string}
+                  onChange={(e) => updateField(step.field, e.target.value)}
+                  placeholder={step.placeholder}
+                  maxLength={step.maxLength}
+                  rows={4}
+                  className={`w-full rounded-xl border-2 px-4 py-3 pr-12 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary resize-none transition-colors ${
+                    isListening
+                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                      : 'border-sdlp-border'
+                  }`}
+                />
+                {/* Mic button inside textarea */}
+                {isSupported && (
+                  <button
+                    type="button"
+                    onClick={isListening ? stopListening : startListening}
+                    className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full transition-all ${
+                      isListening
+                        ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30'
+                        : 'bg-sdlp-primary/10 text-sdlp-primary hover:bg-sdlp-primary/20'
+                    }`}
+                    aria-label={isListening ? '音声入力を停止' : '音声で入力'}
+                  >
+                    {isListening ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Interim transcript display */}
+              {isListening && transcript && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+                  <span className="opacity-70">認識中: </span>{transcript}
+                </div>
+              )}
+
+              {/* Voice input hint */}
+              {isSupported && !isListening && !(getFieldValue(step.field) as string) && (
+                <div className="flex items-center gap-2 text-xs text-sdlp-text-secondary">
+                  <Mic className="h-3.5 w-3.5" />
+                  <span>マイクボタンで音声入力もできます</span>
+                  <span className="rounded-full bg-sdlp-primary/10 px-2 py-0.5 text-[10px] font-semibold text-sdlp-primary">
+                    おすすめ
+                  </span>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Button grid type */}

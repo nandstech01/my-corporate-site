@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Phone } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface SDLPCtaProps {
   variant?: 'default' | 'gradient'
@@ -13,14 +13,21 @@ export default function SDLPCta({ variant = 'default' }: SDLPCtaProps) {
 
   return (
     <section
-      className={`py-16 ${
+      className={`py-16 relative overflow-hidden ${
         isGradient
-          ? 'bg-gradient-to-r from-sdlp-primary to-sdlp-accent'
+          ? 'bg-gradient-to-br from-[#0A1628] to-[#0F172A]'
           : 'bg-sdlp-bg-card'
       }`}
       id="contact"
     >
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      {/* Cyan glow decoration for gradient variant */}
+      {isGradient && (
+        <>
+          <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 rounded-full bg-cyan-500/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-48 h-48 rounded-full bg-blue-500/5 blur-3xl" />
+        </>
+      )}
+      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -33,14 +40,14 @@ export default function SDLPCta({ variant = 'default' }: SDLPCtaProps) {
               isGradient ? 'text-white' : 'text-sdlp-text'
             }`}
           >
-            まずは無料シミュレーションから
+            AI搭載システムの無料シミュレーション
           </h2>
           <p
             className={`mb-8 max-w-xl mx-auto ${
               isGradient ? 'text-white/85' : 'text-sdlp-text-secondary'
             }`}
           >
-            5つの質問に答えるだけで、概算費用と開発期間の目安がわかります。
+            5つの質問に答えるだけで、AI機能込みの概算費用と開発期間がわかります。
             もちろん無料で、営業電話は一切いたしません。
           </p>
 
@@ -56,26 +63,7 @@ export default function SDLPCta({ variant = 'default' }: SDLPCtaProps) {
               無料シミュレーション
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <a
-              href="tel:0120-407-638"
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border-2 px-8 py-4 text-base font-bold transition-colors ${
-                isGradient
-                  ? 'border-white/40 text-white hover:bg-white/10'
-                  : 'border-sdlp-border text-sdlp-text hover:bg-gray-50'
-              }`}
-            >
-              <Phone className="h-5 w-5" />
-              電話で相談する
-            </a>
           </div>
-
-          <p
-            className={`mt-4 text-sm ${
-              isGradient ? 'text-white/60' : 'text-sdlp-text-secondary'
-            }`}
-          >
-            受付時間: 平日 9:00〜18:00 / 土日祝休み
-          </p>
         </motion.div>
       </div>
     </section>

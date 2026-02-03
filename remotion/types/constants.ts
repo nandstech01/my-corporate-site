@@ -34,6 +34,94 @@ export interface FeaturesHeroProps {
   isDark: boolean;
 }
 
+export const SDLP_HERO_CONFIG = {
+  WIDTH: 800,
+  HEIGHT: 600,
+  FPS: 30,
+  DURATION: 360, // 12 seconds at 30fps (Architecture + Pipeline)
+} as const;
+
+export interface SdlpHeroProps {
+  isDark: boolean;
+}
+
+export const SDLP_VALUEPROP_CONFIG = {
+  WIDTH: 800,
+  HEIGHT: 450,
+  FPS: 30,
+  DURATION: 210, // 7 seconds at 30fps (3 scenes loop)
+} as const;
+
+export interface SdlpValuePropProps {
+  isDark: boolean;
+}
+
+export const SDLP_VP_COLORS = {
+  chat: {
+    userBubble: '#2563EB',
+    aiBubble: '#1E293B',
+    aiAvatar: '#06B6D4',
+    userAvatar: '#8B5CF6',
+    header: '#0F172A',
+  },
+  code: {
+    nextjs: '#2563EB',
+    typescript: '#3178C6',
+    supabase: '#3ECF8E',
+    ai: '#F59E0B',
+    keyword: '#C084FC',
+    string: '#34D399',
+  },
+  metrics: {
+    speed: '#2563EB',
+    cost: '#06B6D4',
+    uptime: '#10B981',
+  },
+  bg: {
+    dark: '#0A1628',
+    card: '#1E293B',
+    light: '#F8FAFC',
+    cardLight: '#FFFFFF',
+  },
+  text: {
+    primary: '#E2E8F0',
+    secondary: '#94A3B8',
+    dark: '#1E293B',
+    darkSecondary: '#64748B',
+  },
+} as const;
+
+export const SDLP_SCENE_COLORS = {
+  architecture: {
+    frontend: '#2563EB',
+    api: '#06B6D4',
+    database: '#a855f7',
+    auth: '#10B981',
+  },
+  pipeline: {
+    requirements: '#2563EB',
+    design: '#06B6D4',
+    development: '#a855f7',
+    testing: '#10B981',
+    deploy: '#F59E0B',
+  },
+  bg: {
+    dark: '#0A1628',
+    mid: '#0F172A',
+    card: '#1E293B',
+  },
+  text: {
+    primary: '#E2E8F0',
+    secondary: '#94A3B8',
+    muted: '#64748B',
+  },
+  glow: {
+    cyan: '#06B6D4',
+    blue: '#2563EB',
+    purple: '#a855f7',
+  },
+} as const;
+
 export const COLORS = {
   primary: '#2563EB',
   secondary: '#06B6D4',

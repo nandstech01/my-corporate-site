@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Award, Clock, Shield, ArrowRight } from 'lucide-react'
+import { SdlpValuePropPlayer } from '@/components/sdlp/SdlpValuePropPlayer'
 
 const badges = [
   { icon: Award, label: '開発実績500件以上', color: 'text-sdlp-primary' },
-  { icon: Clock, label: '最短1ヶ月納品', color: 'text-sdlp-accent' },
-  { icon: Shield, label: '品質保証付き', color: 'text-green-500' },
+  { icon: Clock, label: 'AI活用で最短1ヶ月納品', color: 'text-sdlp-accent' },
+  { icon: Shield, label: 'AI品質保証付き', color: 'text-green-500' },
 ]
 
 const fadeInUp = {
@@ -52,10 +53,10 @@ export default function SDLPValueProp() {
             variants={fadeInUp}
           >
             <h2 className="text-2xl font-bold text-sdlp-text mb-2">
-              今すぐ概算見積もり
+              AI搭載システムの概算見積もり
             </h2>
             <p className="text-sdlp-text-secondary mb-6">
-              5つの質問に答えるだけで概算費用をお出しします
+              5つの質問に答えるだけでAI込みの概算費用をお出しします
             </p>
             <div className="space-y-4 mb-6">
               {[
@@ -90,38 +91,24 @@ export default function SDLPValueProp() {
             viewport={{ once: true, margin: '-50px' }}
             variants={fadeInUp}
           >
-            <div className="aspect-video rounded-xl bg-gradient-to-br from-sdlp-primary/10 to-sdlp-accent/10 flex items-center justify-center border border-sdlp-border">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sdlp-primary/10">
-                  <svg
-                    className="h-8 w-8 text-sdlp-primary"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-                <p className="text-sdlp-text font-semibold">サービス紹介動画</p>
-                <p className="text-sm text-sdlp-text-secondary mt-1">
-                  3分でわかるN&Sのシステム開発
-                </p>
-              </div>
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <SdlpValuePropPlayer />
             </div>
             <div className="mt-6 grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-sdlp-primary">30%</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">30%</div>
                 <div className="text-xs text-sdlp-text-secondary">
-                  コスト削減
+                  AI活用でコスト削減
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-sdlp-accent">2週間</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">2週間</div>
                 <div className="text-xs text-sdlp-text-secondary">
                   最短見積り
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-500">98%</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">98%</div>
                 <div className="text-xs text-sdlp-text-secondary">
                   継続率
                 </div>

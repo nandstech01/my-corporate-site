@@ -5,7 +5,9 @@ import { HeroBackgroundAnimation } from './compositions/HeroBackgroundAnimation'
 import { BeforeCodeAnimation } from './compositions/BeforeCodeAnimation';
 import { AfterCodeAnimation } from './compositions/AfterCodeAnimation';
 import { FeaturesHeroAnimation } from './compositions/FeaturesHeroAnimation';
-import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG } from './types/constants';
+import { SdlpHeroAnimation } from './compositions/SdlpHeroAnimation';
+import { SdlpValuePropAnimation } from './compositions/SdlpValuePropAnimation';
+import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG, SDLP_HERO_CONFIG, SDLP_VALUEPROP_CONFIG } from './types/constants';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -123,6 +125,53 @@ export const RemotionRoot: React.FC = () => {
         fps={FEATURES_HERO_CONFIG.FPS}
         width={FEATURES_HERO_CONFIG.WIDTH}
         height={FEATURES_HERO_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: true,
+        }}
+      />
+      {/* SDLP Hero Animation */}
+      <Composition
+        id="SdlpHero"
+        component={SdlpHeroAnimation}
+        durationInFrames={SDLP_HERO_CONFIG.DURATION}
+        fps={SDLP_HERO_CONFIG.FPS}
+        width={SDLP_HERO_CONFIG.WIDTH}
+        height={SDLP_HERO_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: false,
+        }}
+      />
+      <Composition
+        id="SdlpHeroDark"
+        component={SdlpHeroAnimation}
+        durationInFrames={SDLP_HERO_CONFIG.DURATION}
+        fps={SDLP_HERO_CONFIG.FPS}
+        width={SDLP_HERO_CONFIG.WIDTH}
+        height={SDLP_HERO_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: true,
+        }}
+      />
+
+      {/* SDLP ValueProp Animation (Prompt to Production) */}
+      <Composition
+        id="SdlpValueProp"
+        component={SdlpValuePropAnimation}
+        durationInFrames={SDLP_VALUEPROP_CONFIG.DURATION}
+        fps={SDLP_VALUEPROP_CONFIG.FPS}
+        width={SDLP_VALUEPROP_CONFIG.WIDTH}
+        height={SDLP_VALUEPROP_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: false,
+        }}
+      />
+      <Composition
+        id="SdlpValuePropDark"
+        component={SdlpValuePropAnimation}
+        durationInFrames={SDLP_VALUEPROP_CONFIG.DURATION}
+        fps={SDLP_VALUEPROP_CONFIG.FPS}
+        width={SDLP_VALUEPROP_CONFIG.WIDTH}
+        height={SDLP_VALUEPROP_CONFIG.HEIGHT}
         defaultProps={{
           isDark: true,
         }}

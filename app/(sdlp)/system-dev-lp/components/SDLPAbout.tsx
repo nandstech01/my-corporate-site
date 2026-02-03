@@ -1,22 +1,38 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Zap, Code2, HeartHandshake } from 'lucide-react'
+import { Zap, Code2, HeartHandshake, Brain } from 'lucide-react'
 
 const comparisons = [
+  {
+    icon: Brain,
+    title: 'AI活用力',
+    traditional: {
+      label: '従来の開発会社',
+      items: ['AI非対応、または別途高額オプション', 'AI人材不足で外注依存', '最新モデルへの追従が遅い'],
+    },
+    nands: {
+      label: 'NANDSの場合',
+      items: [
+        'ChatGPT・Claude等のAI実装が標準',
+        'AI専門エンジニアが社内に在籍',
+        '最新AIモデルを即座に検証・導入',
+      ],
+    },
+  },
   {
     icon: Zap,
     title: 'コスト構造',
     traditional: {
       label: '従来の開発会社',
-      items: ['大規模オフィスの維持費', '多層の管理体制', '営業コストを価格に転嫁'],
+      items: ['大規模オフィスの維持費', '多層の管理体制', '手作業中心で工数が膨大'],
     },
     nands: {
-      label: 'N&Sの場合',
+      label: 'NANDSの場合',
       items: [
-        'リモートワーク主体で固定費最小',
+        'AI活用で開発工数を40%削減',
         'フラットな開発チーム',
-        '口コミ・実績ベースの集客',
+        'AIコードレビューで品質担保',
       ],
     },
   },
@@ -28,9 +44,9 @@ const comparisons = [
       items: ['ウォーターフォール型で変更困難', '完成まで実物が見えない', '追加費用が頻発'],
     },
     nands: {
-      label: 'N&Sの場合',
+      label: 'NANDSの場合',
       items: [
-        'アジャイル開発で柔軟対応',
+        'AI支援アジャイルで高速開発',
         '2週間ごとに成果物を確認',
         '明確な見積もりで追加費用抑制',
       ],
@@ -44,11 +60,11 @@ const comparisons = [
       items: ['担当者が頻繁に変わる', '納品後は別契約', '問い合わせ対応が遅い'],
     },
     nands: {
-      label: 'N&Sの場合',
+      label: 'NANDSの場合',
       items: [
         '専任チームが最後まで担当',
         '納品後3ヶ月の無料サポート',
-        '即日レスポンス',
+        'AI監視で障害を未然に検知',
       ],
     },
   },
@@ -71,10 +87,10 @@ export default function SDLPAbout() {
           variants={fadeInUp}
         >
           <h2 className="text-3xl font-bold text-sdlp-text mb-4">
-            なぜN&Sは安くて高品質なのか
+            なぜNANDSは安くて高品質なのか
           </h2>
           <p className="text-sdlp-text-secondary max-w-2xl mx-auto">
-            従来の開発会社との違いを、3つの視点で比較します。
+            AI活用と効率的な体制で、従来の開発会社との違いを生み出しています。
           </p>
         </motion.div>
 
@@ -129,7 +145,7 @@ export default function SDLPAbout() {
                   </ul>
                 </div>
 
-                {/* N&S */}
+                {/* NANDS */}
                 <div className="rounded-xl bg-sdlp-primary/5 p-5 border border-sdlp-primary/20">
                   <div className="text-sm font-semibold text-sdlp-primary mb-3">
                     {comp.nands.label}
