@@ -73,6 +73,8 @@ const services = [
     gradient: 'from-blue-500 to-purple-500',
     iconBg: 'from-blue-600 to-purple-600',
     stripGradient: 'from-blue-500 via-purple-500 to-blue-500',
+    image: '/images/sdlp-saas-preview.png',
+    imageContain: true,
   },
 ]
 
