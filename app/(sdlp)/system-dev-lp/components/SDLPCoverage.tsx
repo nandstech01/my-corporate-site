@@ -42,6 +42,7 @@ const services = [
     gradient: 'from-purple-500 to-blue-500',
     iconBg: 'from-purple-600 to-blue-500',
     stripGradient: 'from-purple-500 via-blue-500 to-purple-500',
+    image: '/images/sdlp-ai-homepage-preview.png',
   },
   {
     icon: Briefcase,
