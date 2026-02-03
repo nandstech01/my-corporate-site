@@ -8,7 +8,8 @@ import { FeaturesHeroAnimation } from './compositions/FeaturesHeroAnimation';
 import { SdlpHeroAnimation } from './compositions/SdlpHeroAnimation';
 import { SdlpValuePropAnimation } from './compositions/SdlpValuePropAnimation';
 import { SdlpAboutAnimation } from './compositions/SdlpAboutAnimation';
-import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG, SDLP_HERO_CONFIG, SDLP_VALUEPROP_CONFIG, SDLP_ABOUT_CONFIG } from './types/constants';
+import { SdlpComparisonAnimation } from './compositions/SdlpComparisonAnimation';
+import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG, SDLP_HERO_CONFIG, SDLP_VALUEPROP_CONFIG, SDLP_ABOUT_CONFIG, SDLP_COMPARISON_CONFIG } from './types/constants';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -196,6 +197,29 @@ export const RemotionRoot: React.FC = () => {
         fps={SDLP_ABOUT_CONFIG.FPS}
         width={SDLP_ABOUT_CONFIG.WIDTH}
         height={SDLP_ABOUT_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: true,
+        }}
+      />
+      {/* SDLP Comparison Animation (4 comparison card scenes) */}
+      <Composition
+        id="SdlpComparison"
+        component={SdlpComparisonAnimation}
+        durationInFrames={SDLP_COMPARISON_CONFIG.DURATION}
+        fps={SDLP_COMPARISON_CONFIG.FPS}
+        width={SDLP_COMPARISON_CONFIG.WIDTH}
+        height={SDLP_COMPARISON_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: false,
+        }}
+      />
+      <Composition
+        id="SdlpComparisonDark"
+        component={SdlpComparisonAnimation}
+        durationInFrames={SDLP_COMPARISON_CONFIG.DURATION}
+        fps={SDLP_COMPARISON_CONFIG.FPS}
+        width={SDLP_COMPARISON_CONFIG.WIDTH}
+        height={SDLP_COMPARISON_CONFIG.HEIGHT}
         defaultProps={{
           isDark: true,
         }}

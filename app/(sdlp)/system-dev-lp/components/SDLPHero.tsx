@@ -83,21 +83,30 @@ export default function SDLPHero() {
             >
               {businessType === 'corporate' ? (
                 <>
+                  費用
                   <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-                    AI実装
+                    70%OFF
                   </span>
-                  の業務システムを
+                  、納期
+                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
+                    3倍速
+                  </span>
+                  。
                   <br />
-                  圧倒的コスパで実現
+                  AI開発の新常識。
                 </>
               ) : (
                 <>
                   <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
                     AI搭載
                   </span>
-                  のプロダクトで
+                  アプリを
+                  <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
+                    70%OFF
+                  </span>
+                  で。
                   <br />
-                  アイデアをカタチに
+                  あなたのアイデアを最速で市場へ。
                 </>
               )}
             </motion.h1>
@@ -120,8 +129,8 @@ export default function SDLPHero() {
               variants={fadeInUp}
             >
               {businessType === 'corporate'
-                ? 'AI活用の設計から開発・納品まで一貫対応。ChatGPT連携、データ分析の自動化、AIチャットボットなど、御社の業務をインテリジェントに変革します。'
-                : 'AI機能を組み込んだWebサービス・アプリを手軽に。初めてのAI導入でも安心の伴走型サポートで、競合に差をつけるプロダクトを実現します。'}
+                ? 'AI×少数精鋭で中間マージンを完全排除。ChatGPT連携・業務自動化・AIチャットボットを標準搭載。設計から納品まで一気通貫。'
+                : 'ChatGPT・Claude連携のWebサービスを驚きの価格で。企画からリリースまで伴走型で支援。あなたのプロダクトで、市場を獲りにいきましょう。'}
             </motion.p>
 
             {/* Badges */}
@@ -132,7 +141,7 @@ export default function SDLPHero() {
               custom={3}
               variants={fadeInUp}
             >
-              {['AI導入相談無料', '見積もり無料', '最短即日対応'].map((badge) => (
+              {['AI実装が標準搭載', '追加費用なし', '見積もり即日無料'].map((badge) => (
                 <span
                   key={badge}
                   className="rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-white/90 border border-white/10"

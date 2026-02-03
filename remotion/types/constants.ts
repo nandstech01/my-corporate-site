@@ -179,6 +179,41 @@ export const SDLP_ABOUT_COLORS = {
   },
 } as const;
 
+export const SDLP_COMPARISON_CONFIG = {
+  WIDTH: 800,
+  HEIGHT: 500,
+  FPS: 30,
+  DURATION: 360, // 12 seconds at 30fps (4 comparison scenes loop)
+} as const;
+
+export interface SdlpComparisonProps {
+  isDark: boolean;
+}
+
+export const SDLP_COMP_COLORS = {
+  bg: { dark: '#0A1628', mid: '#0F172A', card: '#1E293B' },
+  text: { primary: '#E2E8F0', secondary: '#94A3B8', muted: '#64748B' },
+  traditional: {
+    bg: 'rgba(239,68,68,0.08)',
+    border: 'rgba(239,68,68,0.2)',
+    label: '#EF4444',
+    icon: '#EF4444',
+    dot: '#94A3B8',
+  },
+  nands: {
+    bgFrom: 'rgba(37,99,235,0.08)',
+    bgTo: 'rgba(6,182,212,0.08)',
+    border: 'rgba(6,182,212,0.3)',
+    glow: 'rgba(6,182,212,0.1)',
+    label: '#06B6D4',
+    check: '#10B981',
+    checkBg: 'rgba(16,185,129,0.15)',
+    dot: '#10B981',
+  },
+  accent: { blue: '#2563EB', cyan: '#06B6D4', purple: '#8B5CF6' },
+  progress: { active: '#06B6D4', inactive: '#334155' },
+} as const;
+
 export const COLORS = {
   primary: '#2563EB',
   secondary: '#06B6D4',
