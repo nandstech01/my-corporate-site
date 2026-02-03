@@ -27,6 +27,8 @@ const services = [
     gradient: 'from-blue-500 to-cyan-400',
     iconBg: 'from-blue-600 to-cyan-500',
     stripGradient: 'from-blue-500 via-cyan-400 to-blue-500',
+    image: '/images/sdlp-homepage-preview.png',
+    imageContain: true,
   },
   {
     icon: Bot,
