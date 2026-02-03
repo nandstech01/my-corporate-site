@@ -7,7 +7,8 @@ import { AfterCodeAnimation } from './compositions/AfterCodeAnimation';
 import { FeaturesHeroAnimation } from './compositions/FeaturesHeroAnimation';
 import { SdlpHeroAnimation } from './compositions/SdlpHeroAnimation';
 import { SdlpValuePropAnimation } from './compositions/SdlpValuePropAnimation';
-import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG, SDLP_HERO_CONFIG, SDLP_VALUEPROP_CONFIG } from './types/constants';
+import { SdlpAboutAnimation } from './compositions/SdlpAboutAnimation';
+import { VIDEO_CONFIG, HERO_BG_CONFIG, BEFORE_AFTER_CONFIG, FEATURES_HERO_CONFIG, SDLP_HERO_CONFIG, SDLP_VALUEPROP_CONFIG, SDLP_ABOUT_CONFIG } from './types/constants';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -172,6 +173,29 @@ export const RemotionRoot: React.FC = () => {
         fps={SDLP_VALUEPROP_CONFIG.FPS}
         width={SDLP_VALUEPROP_CONFIG.WIDTH}
         height={SDLP_VALUEPROP_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: true,
+        }}
+      />
+      {/* SDLP About Animation (4 scenes: AI Network, Cost, Agile, Support) */}
+      <Composition
+        id="SdlpAbout"
+        component={SdlpAboutAnimation}
+        durationInFrames={SDLP_ABOUT_CONFIG.DURATION}
+        fps={SDLP_ABOUT_CONFIG.FPS}
+        width={SDLP_ABOUT_CONFIG.WIDTH}
+        height={SDLP_ABOUT_CONFIG.HEIGHT}
+        defaultProps={{
+          isDark: false,
+        }}
+      />
+      <Composition
+        id="SdlpAboutDark"
+        component={SdlpAboutAnimation}
+        durationInFrames={SDLP_ABOUT_CONFIG.DURATION}
+        fps={SDLP_ABOUT_CONFIG.FPS}
+        width={SDLP_ABOUT_CONFIG.WIDTH}
+        height={SDLP_ABOUT_CONFIG.HEIGHT}
         defaultProps={{
           isDark: true,
         }}

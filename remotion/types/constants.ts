@@ -122,6 +122,63 @@ export const SDLP_SCENE_COLORS = {
   },
 } as const;
 
+export const SDLP_ABOUT_CONFIG = {
+  WIDTH: 800,
+  HEIGHT: 500,
+  FPS: 30,
+  DURATION: 300, // 10 seconds at 30fps (4 scenes loop)
+} as const;
+
+export interface SdlpAboutProps {
+  isDark: boolean;
+}
+
+export const SDLP_ABOUT_COLORS = {
+  bg: {
+    dark: '#0A1628',
+    mid: '#0F172A',
+    card: '#1E293B',
+  },
+  text: {
+    primary: '#E2E8F0',
+    secondary: '#94A3B8',
+    muted: '#64748B',
+  },
+  scene1: {
+    hub: '#2563EB',
+    gpt: '#10A37F',
+    claude: '#D97706',
+    rag: '#8B5CF6',
+    vision: '#EC4899',
+    code: '#06B6D4',
+    connection: 'rgba(37, 99, 235, 0.4)',
+  },
+  scene2: {
+    traditional: '#EF4444',
+    nands: '#2563EB',
+    aiBadge: '#10B981',
+    counter: '#06B6D4',
+  },
+  scene3: {
+    todo: '#64748B',
+    progress: '#F59E0B',
+    done: '#10B981',
+    aiCursor: '#8B5CF6',
+    sprint: '#2563EB',
+  },
+  scene4: {
+    shield: '#2563EB',
+    heartbeat: '#10B981',
+    badge: '#06B6D4',
+    uptime: '#10B981',
+  },
+  glow: {
+    blue: '#2563EB',
+    cyan: '#06B6D4',
+    purple: '#8B5CF6',
+  },
+} as const;
+
 export const COLORS = {
   primary: '#2563EB',
   secondary: '#06B6D4',

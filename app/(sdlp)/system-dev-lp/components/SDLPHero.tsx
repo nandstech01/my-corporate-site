@@ -102,6 +102,16 @@ export default function SDLPHero() {
               )}
             </motion.h1>
 
+            {/* Mobile-only: Remotion Player below heading */}
+            <motion.div
+              className="lg:hidden mb-8 rounded-2xl overflow-hidden border border-white/10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <SdlpHeroPlayer />
+            </motion.div>
+
             <motion.p
               className="text-lg text-white/70 mb-8 max-w-lg"
               initial="hidden"

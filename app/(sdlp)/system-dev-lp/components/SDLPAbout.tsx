@@ -1,7 +1,18 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { Zap, Code2, HeartHandshake, Brain } from 'lucide-react'
+
+const SdlpAboutPlayer = dynamic(
+  () => import('@/components/sdlp/SdlpAboutPlayer').then((m) => m.SdlpAboutPlayer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full aspect-[8/5] rounded-2xl bg-[#0A1628]/50 animate-pulse" />
+    ),
+  },
+)
 
 const comparisons = [
   {
@@ -92,6 +103,18 @@ export default function SDLPAbout() {
           <p className="text-sdlp-text-secondary max-w-2xl mx-auto">
             AI活用と効率的な体制で、従来の開発会社との違いを生み出しています。
           </p>
+        </motion.div>
+
+        <motion.div
+          className="max-w-3xl mx-auto mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="rounded-2xl overflow-hidden border border-slate-700/50">
+            <SdlpAboutPlayer />
+          </div>
         </motion.div>
 
         <div className="space-y-8">
