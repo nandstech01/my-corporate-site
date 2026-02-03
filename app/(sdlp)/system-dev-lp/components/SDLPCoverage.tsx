@@ -1,6 +1,7 @@
 'use client'
 
 import { useId } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -55,6 +56,7 @@ const services = [
     gradient: 'from-cyan-500 to-green-400',
     iconBg: 'from-cyan-500 to-emerald-500',
     stripGradient: 'from-cyan-500 via-emerald-400 to-cyan-500',
+    image: '/images/sdlp-careerbridge-preview.png',
   },
   {
     icon: Cloud,
@@ -185,26 +187,33 @@ export default function SDLPCoverage() {
                 </div>
               )}
 
-              {/* Image area with aurora effect */}
-              <div
-                className={`relative aspect-[2/1] bg-gradient-to-br ${service.gradient} flex items-center justify-center overflow-hidden`}
-              >
-                {/* Aurora blur circles */}
-                <div className="absolute top-1/4 left-1/4 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
-                <div className="absolute bottom-1/4 right-1/3 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
-                <div className="absolute top-1/2 right-1/4 h-20 w-20 rounded-full bg-white/10 blur-xl" />
-
-                {/* Dot grid overlay */}
-                <DotPattern patternId={`${id}-dots-${i}`} />
-
-                {/* Frost glass icon container */}
-                <div className="relative">
-                  <div className="absolute inset-0 scale-150 rounded-full bg-white/10 blur-xl" />
-                  <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/30 bg-white/20 backdrop-blur-sm">
-                    <service.icon className="h-10 w-10 text-white" aria-hidden="true" />
+              {/* Image area */}
+              {'image' in service && service.image ? (
+                <div className="relative aspect-[2/1] overflow-hidden bg-slate-100">
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    className="object-cover object-top"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`relative aspect-[2/1] bg-gradient-to-br ${service.gradient} flex items-center justify-center overflow-hidden`}
+                >
+                  <div className="absolute top-1/4 left-1/4 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+                  <div className="absolute bottom-1/4 right-1/3 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
+                  <div className="absolute top-1/2 right-1/4 h-20 w-20 rounded-full bg-white/10 blur-xl" />
+                  <DotPattern patternId={`${id}-dots-${i}`} />
+                  <div className="relative">
+                    <div className="absolute inset-0 scale-150 rounded-full bg-white/10 blur-xl" />
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/30 bg-white/20 backdrop-blur-sm">
+                      <service.icon className="h-10 w-10 text-white" aria-hidden="true" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="p-8">
                 {/* Title row with gradient icon badge */}
