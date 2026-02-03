@@ -59,6 +59,7 @@ const services = [
     iconBg: 'from-cyan-500 to-emerald-500',
     stripGradient: 'from-cyan-500 via-emerald-400 to-cyan-500',
     image: '/images/sdlp-careerbridge-preview.png',
+    imagePosition: 'object-right-bottom',
   },
   {
     icon: Cloud,
@@ -198,7 +199,7 @@ export default function SDLPCoverage() {
                     src={service.image}
                     alt={service.title}
                     fill
-                    className={'imageContain' in service && service.imageContain ? 'object-contain' : 'object-cover object-top'}
+                    className={`${'imageContain' in service && service.imageContain ? 'object-contain' : `object-cover ${'imagePosition' in service && service.imagePosition ? service.imagePosition : 'object-top'}`}`}
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
