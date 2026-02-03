@@ -43,6 +43,7 @@ const services = [
     iconBg: 'from-purple-600 to-blue-500',
     stripGradient: 'from-purple-500 via-blue-500 to-purple-500',
     image: '/images/sdlp-ai-homepage-preview.png',
+    imageContain: true,
   },
   {
     icon: Briefcase,
@@ -190,12 +191,12 @@ export default function SDLPCoverage() {
 
               {/* Image area */}
               {'image' in service && service.image ? (
-                <div className="relative aspect-[2/1] overflow-hidden bg-slate-100">
+                <div className={`relative aspect-[2/1] overflow-hidden ${'imageContain' in service && service.imageContain ? 'bg-white' : 'bg-slate-100'}`}>
                   <Image
                     src={service.image}
                     alt={service.title}
                     fill
-                    className="object-cover object-top"
+                    className={'imageContain' in service && service.imageContain ? 'object-contain' : 'object-cover object-top'}
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
