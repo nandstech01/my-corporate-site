@@ -59,7 +59,7 @@ const services = [
     iconBg: 'from-cyan-500 to-emerald-500',
     stripGradient: 'from-cyan-500 via-emerald-400 to-cyan-500',
     image: '/images/sdlp-careerbridge-preview.png',
-    imagePosition: 'object-[65%_60%]',
+    imagePosition: 'object-[80%_75%]',
   },
   {
     icon: Cloud,
