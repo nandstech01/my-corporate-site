@@ -23,6 +23,18 @@ module.exports = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         // CLAVI Design System
+        'sdlp': {
+          primary: '#4389F9',
+          'primary-hover': '#1D4ED8',
+          accent: '#06B6D4',
+          'accent-hover': '#0891B2',
+          bg: '#FFFFFF',
+          'bg-card': '#F8FAFC',
+          text: '#0F172A',
+          'text-secondary': '#475569',
+          border: '#E2E8F0',
+          'footer-bg': '#0F172A',
+        },
         'clavi': {
           primary: '#2563EB',
           'primary-hover': '#1D4ED8',
