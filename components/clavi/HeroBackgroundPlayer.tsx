@@ -24,6 +24,7 @@ export function HeroBackgroundPlayer() {
       }}
       autoPlay
       loop={false}
+      acknowledgeRemotionLicense
     />
   );
 }

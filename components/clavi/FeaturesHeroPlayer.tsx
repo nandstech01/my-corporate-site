@@ -24,6 +24,7 @@ export function FeaturesHeroPlayer() {
       }}
       autoPlay
       loop
+      acknowledgeRemotionLicense
     />
   );
 }

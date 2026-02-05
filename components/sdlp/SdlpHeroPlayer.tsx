@@ -20,6 +20,7 @@ export function SdlpHeroPlayer() {
       }}
       autoPlay
       loop
+      acknowledgeRemotionLicense
     />
   );
 }

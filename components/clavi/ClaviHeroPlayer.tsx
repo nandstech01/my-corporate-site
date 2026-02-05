@@ -25,6 +25,7 @@ export function ClaviHeroPlayer() {
       }}
       autoPlay
       loop
+      acknowledgeRemotionLicense
     />
   );
 }

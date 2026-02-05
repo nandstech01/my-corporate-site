@@ -20,6 +20,7 @@ export function SdlpComparisonPlayerInner() {
       }}
       autoPlay
       loop
+      acknowledgeRemotionLicense
     />
   );
 }

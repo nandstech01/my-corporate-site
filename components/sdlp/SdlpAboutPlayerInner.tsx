@@ -20,6 +20,7 @@ export function SdlpAboutPlayerInner() {
       }}
       autoPlay
       loop
+      acknowledgeRemotionLicense
     />
   );
 }
