@@ -125,7 +125,6 @@ export class HowToFAQSchemaSystem {
       description: this.enhanceDescription(content.description),
       step: steps
     };
-    */
 
     // オプション項目の追加
     if (options.imageUrls && options.imageUrls.length > 0) {
@@ -163,6 +162,7 @@ export class HowToFAQSchemaSystem {
     }
 
     return schema;
+    */
   }
 
   /**
