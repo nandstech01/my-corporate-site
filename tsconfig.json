@@ -38,6 +38,11 @@
   "exclude": [
     "node_modules",
     "docs/**/*",
-    "remotion/**/*"
+    "remotion/**/*",
+    "**/__tests__/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }
