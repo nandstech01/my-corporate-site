@@ -6,30 +6,11 @@ import remarkGfm from 'remark-gfm'
 import { MessageCircle, ExternalLink } from 'lucide-react'
 import type { ProposalResult } from '../lib/ai/types'
 import { formatPrice } from '../lib/estimateCalculator'
+import { fadeInUp, staggerContainer, DURATION, EASE } from '@/lib/motion'
 
 interface ProposalFullProps {
   proposal: ProposalResult
   onStartChat: () => void
-}
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.4,
-      staggerChildren: 0.12,
-    },
-  },
-}
-
-const childVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
-  },
 }
 
 export default function ProposalFull({
@@ -38,7 +19,7 @@ export default function ProposalFull({
 }: ProposalFullProps) {
   return (
     <motion.div
-      variants={containerVariants}
+      variants={staggerContainer}
       initial="hidden"
       animate="visible"
       className="max-w-2xl mx-auto"
@@ -46,13 +27,13 @@ export default function ProposalFull({
       <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden">
         {/* Header */}
         <motion.div
-          variants={childVariants}
+          variants={fadeInUp}
           className="bg-gradient-to-r from-sdlp-primary to-sdlp-accent p-6 text-white text-center"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+            transition={{ delay: 0.2, duration: DURATION.normal, ease: EASE }}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 mb-3"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -64,9 +45,9 @@ export default function ProposalFull({
           </div>
           <h2 className="text-xl font-bold mb-2">あなた専用の開発提案書</h2>
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: DURATION.normal, ease: EASE }}
             className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm"
           >
             <span>複雑度:</span>
@@ -81,28 +62,25 @@ export default function ProposalFull({
         </motion.div>
 
         {/* Full Proposal Content */}
-        <motion.div variants={childVariants} className="p-6 sm:p-8">
-          <div className="prose prose-sm max-w-none text-sdlp-text prose-headings:text-sdlp-text prose-h1:text-xl prose-h1:font-bold prose-h2:text-lg prose-h2:font-bold prose-h2:border-b prose-h2:border-sdlp-border prose-h2:pb-2 prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-table:text-sm prose-th:bg-gray-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-gray-100 prose-ul:space-y-1 prose-li:text-sdlp-text-secondary">
+        <motion.div variants={fadeInUp} className="p-6 sm:p-8">
+          <div className="prose prose-sm max-w-none text-sdlp-text prose-headings:text-sdlp-text prose-h1:text-xl prose-h1:font-bold prose-h2:text-lg prose-h2:font-bold prose-h2:border-b prose-h2:border-sdlp-border prose-h2:pb-2 prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-table:text-sm prose-th:bg-sdlp-bg-card prose-th:px-3 prose-th:py-2 prose-th:text-left prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-sdlp-border/50 prose-ul:space-y-1 prose-li:text-sdlp-text-secondary">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {proposal.fullMarkdown}
             </ReactMarkdown>
           </div>
         </motion.div>
 
+        {/* Divider */}
+        <div className="mx-6 border-t border-sdlp-border/50" />
+
         {/* Chat CTA */}
         <motion.div
-          variants={childVariants}
-          className="border-t border-sdlp-border p-6 text-center bg-gradient-to-b from-gray-50 to-white"
+          variants={fadeInUp}
+          className="p-6 text-center bg-gradient-to-b from-sdlp-bg-card to-white"
         >
-          <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.6, type: 'spring' }}
-          >
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sdlp-primary/10 mb-3">
-              <MessageCircle className="h-5 w-5 text-sdlp-primary" />
-            </div>
-          </motion.div>
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sdlp-primary/10 mb-3">
+            <MessageCircle className="h-5 w-5 text-sdlp-primary" />
+          </div>
           <p className="text-sm font-medium text-sdlp-text mb-1">
             提案内容について質問がありますか？
           </p>
@@ -121,10 +99,13 @@ export default function ProposalFull({
           </motion.button>
         </motion.div>
 
+        {/* Divider */}
+        <div className="mx-6 border-t border-sdlp-border/50" />
+
         {/* Contact CTA */}
         <motion.div
-          variants={childVariants}
-          className="border-t border-sdlp-border p-6 text-center"
+          variants={fadeInUp}
+          className="p-6 text-center"
         >
           <p className="text-xs text-sdlp-text-secondary mb-3">
             具体的なご相談はこちらから

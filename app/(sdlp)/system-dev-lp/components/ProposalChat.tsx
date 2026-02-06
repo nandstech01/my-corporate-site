@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, ArrowLeft, MessageCircle, Bot } from 'lucide-react'
+import { Send, ArrowLeft, Bot } from 'lucide-react'
 import type { ChatMessage } from '../lib/ai/types'
 import { SUGGESTED_QUESTIONS } from '../lib/ai/chat-prompts'
+import { fadeInUp, DURATION, EASE, STAGGER } from '@/lib/motion'
 
 interface ProposalChatProps {
   chatContext: string
@@ -19,7 +20,7 @@ const messageVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.25, ease: 'easeOut' },
+    transition: { duration: DURATION.fast, ease: EASE },
   },
 }
 
@@ -28,7 +29,7 @@ const suggestionVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.25 },
+    transition: { delay: i * STAGGER, duration: DURATION.fast, ease: EASE },
   }),
 }
 
@@ -140,12 +141,15 @@ export default function ProposalChat({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: DURATION.normal, ease: EASE }}
       className="max-w-2xl mx-auto"
     >
-      <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden flex flex-col h-[600px]">
+      <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden flex flex-col h-[calc(100vh-200px)] max-h-[700px] min-h-[400px]">
+        {/* Brand accent bar */}
+        <div className="h-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
+
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-sdlp-border p-4 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex items-center gap-3 border-b border-sdlp-border p-4 bg-gradient-to-r from-sdlp-bg-card to-white">
           <motion.button
             type="button"
             onClick={onBack}
@@ -181,14 +185,10 @@ export default function ProposalChat({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: DURATION.normal, ease: EASE }}
                 className="text-center py-8"
               >
-                <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <Bot className="h-12 w-12 text-sdlp-primary/20 mx-auto mb-3" />
-                </motion.div>
+                <Bot className="h-12 w-12 text-sdlp-primary/20 mx-auto mb-3" />
                 <p className="text-sm font-medium text-sdlp-text mb-1">
                   AIコンサルタントに相談
                 </p>
@@ -217,7 +217,7 @@ export default function ProposalChat({
                   className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-sdlp-primary text-white rounded-br-md'
-                      : 'bg-gray-100 text-sdlp-text rounded-bl-md'
+                      : 'bg-sdlp-bg-card text-sdlp-text rounded-bl-md'
                   }`}
                 >
                   {msg.content || (
@@ -305,7 +305,7 @@ export default function ProposalChat({
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="質問を入力..."
                 disabled={isStreaming}
-                className="flex-1 rounded-xl border-2 border-sdlp-border px-4 py-2.5 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary disabled:opacity-50 transition-colors"
+                className="flex-1 rounded-xl border-2 border-sdlp-border px-4 py-2.5 text-sm text-sdlp-text placeholder:text-sdlp-text-secondary/50 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary disabled:opacity-50 transition-colors"
               />
               <motion.button
                 type="submit"

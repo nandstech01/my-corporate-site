@@ -1,5 +1,8 @@
 'use client'
 
+import { motion } from 'framer-motion'
+import { DURATION, EASE } from '@/lib/motion'
+
 interface ButtonGridProps {
   options: string[]
   selected: string
@@ -8,8 +11,8 @@ interface ButtonGridProps {
 
 export default function ButtonGrid({
   options,
-  selected,
   onSelect,
+  selected,
 }: ButtonGridProps) {
   const cols =
     options.length <= 3
@@ -23,18 +26,22 @@ export default function ButtonGrid({
       {options.map((option) => {
         const isSelected = selected === option
         return (
-          <button
+          <motion.button
             key={option}
             type="button"
             onClick={() => onSelect(option)}
-            className={`rounded-xl px-4 py-3 text-sm font-medium border-2 transition-all ${
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            animate={isSelected ? { scale: [0.97, 1] } : {}}
+            transition={{ duration: DURATION.fast, ease: EASE }}
+            className={`rounded-xl px-4 py-3 text-sm font-medium border-2 transition-all duration-200 ${
               isSelected
-                ? 'border-sdlp-primary bg-sdlp-primary/5 text-sdlp-primary shadow-sm'
+                ? 'border-sdlp-primary bg-sdlp-primary/5 text-sdlp-primary shadow-sm shadow-sdlp-primary/10'
                 : 'border-sdlp-border bg-white text-sdlp-text hover:border-sdlp-primary/40 hover:bg-sdlp-primary/5'
             }`}
           >
             {option}
-          </button>
+          </motion.button>
         )
       })}
     </div>
