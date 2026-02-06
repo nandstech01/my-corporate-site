@@ -155,6 +155,7 @@ export async function GET(request: NextRequest) {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayRecords = historyData.filter(record => {
+        if (!record.measured_at) return false;
         const recordDate = new Date(record.measured_at).toISOString().split('T')[0];
         return recordDate === dateStr;
       });

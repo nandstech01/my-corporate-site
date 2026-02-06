@@ -116,7 +116,8 @@ export async function GET(request: NextRequest) {
 
     // 4. タイプ別引用数
     const quotationsByType = quotationData.reduce((acc, item) => {
-      acc[item.quotation_type] = (acc[item.quotation_type] || 0) + 1;
+      const type = item.quotation_type || 'unknown';
+      acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as { [type: string]: number });
 
@@ -194,7 +195,7 @@ export async function GET(request: NextRequest) {
 
     // 8. 最新の引用（上位10件）
     const recentQuotations = quotationData
-      .sort((a, b) => new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime())
+      .sort((a, b) => new Date(b.detected_at || 0).getTime() - new Date(a.detected_at || 0).getTime())
       .slice(0, 10)
       .map(item => ({
         fragment_id: item.fragment_id,
@@ -202,8 +203,8 @@ export async function GET(request: NextRequest) {
         ai_engine: item.ai_engine,
         quotation_context: item.quotation_context || '',
         quality_score: item.quotation_quality_score || 0,
-        quotation_type: item.quotation_type,
-        detected_at: item.detected_at
+        quotation_type: item.quotation_type || 'unknown',
+        detected_at: item.detected_at || new Date().toISOString()
       }));
 
     // 9. コンテキスト分析（簡易版）
@@ -211,7 +212,8 @@ export async function GET(request: NextRequest) {
       .filter(item => item.quotation_context)
       .flatMap(item => {
         // 簡易キーワード抽出（実際の実装ではより高度な自然言語処理を使用）
-        const keywords = item.quotation_context
+        const context = item.quotation_context || '';
+        const keywords = context
           .toLowerCase()
           .split(/[、。\s,\.]+/)
           .filter((word: string) => word.length > 2)

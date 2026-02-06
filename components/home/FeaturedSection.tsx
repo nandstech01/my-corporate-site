@@ -7,10 +7,10 @@ import { getUnifiedSupabaseClient } from '@/lib/supabase/unified-client'
 import PostImage from '@/components/common/PostImage'
 
 type Post = {
-  id: string
+  id: number
   title: string
   slug: string
-  excerpt: string
+  excerpt: string | null
   thumbnail_url: string | null
   featured_image: string | null
 }

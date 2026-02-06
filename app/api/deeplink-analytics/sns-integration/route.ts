@@ -193,9 +193,9 @@ export async function GET(request: NextRequest) {
         item.fragment_id.includes('instagram') || 
         item.complete_uri.includes('sns-automation')
       ).length,
-      line: analyticsData.filter(item => 
-        item.fragment_id.includes('line') || 
-        item.line_shares > 0
+      line: analyticsData.filter(item =>
+        item.fragment_id.includes('line') ||
+        (item.line_shares || 0) > 0
       ).length,
       x: analyticsData.filter(item => 
         item.fragment_id.includes('x-') || 
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
         deeplink_url: item.complete_uri,
         click_count: item.click_count || 0,
         conversion_count: item.conversion_count || 0,
-        created_at: item.created_at
+        created_at: item.created_at || new Date().toISOString()
       };
     });
 

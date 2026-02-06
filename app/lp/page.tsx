@@ -103,13 +103,13 @@ type Post = {
   title: string;
   slug: string;
   excerpt: string;
-  meta_description?: string;
+  meta_description?: string | null;
   thumbnail_url: string | null;
   featured_image?: string | null;
-  created_at: string;
-  category?: { name: string; slug: string };
+  created_at: string | null;
+  category?: { name: string; slug: string } | null;
   table_type: 'posts' | 'chatgpt_posts';
-  is_chatgpt_special?: boolean;
+  is_chatgpt_special?: boolean | null;
 };
 
 async function getLatestPosts(): Promise<Post[]> {
@@ -159,13 +159,13 @@ async function getLatestPosts(): Promise<Post[]> {
         thumbnail_url: final,
         featured_image: p.featured_image,
         created_at: p.created_at,
-        category: p.categories?.[0],
+        category: p.categories as { name: string; slug: string } | null,
         table_type: 'chatgpt_posts',
         is_chatgpt_special: p.is_chatgpt_special
       };
     });
 
-    const all = [...formattedNew, ...formattedOld].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const all = [...formattedNew, ...formattedOld].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     return all.slice(0, 6);
   } catch (e) {
     console.error('getLatestPosts error (lp):', e);
@@ -368,7 +368,7 @@ export default async function LPPage() {
             AI活用事例、企業研修の実績、最新技術情報など、法人のAI導入に役立つ情報をお届けします。
             業界別の活用事例や導入効果についても詳しく解説しています。
           </p>
-          <PostsGridSSR initialPosts={posts} />
+          <PostsGridSSR initialPosts={posts as any} />
           <Suspense fallback={null}>
             <PostsGridAnimations />
           </Suspense>

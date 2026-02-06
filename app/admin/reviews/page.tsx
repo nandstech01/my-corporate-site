@@ -11,12 +11,12 @@ interface Review {
   review_body: string;
   author_name: string;
   author_email: string;
-  author_company?: string;
-  author_position?: string;
-  is_public: boolean;
-  is_approved: boolean;
-  created_at: string;
-  updated_at: string;
+  author_company: string | null;
+  author_position: string | null;
+  is_public: boolean | null;
+  is_approved: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 const SERVICE_NAMES: Record<string, string> = {
@@ -187,7 +187,7 @@ export default function ReviewsAdminPage() {
                       {renderStars(review.rating)}
                       <span className="ml-1">{review.rating}/5</span>
                     </div>
-                    <span>{new Date(review.created_at).toLocaleDateString('ja-JP')}</span>
+                    <span>{review.created_at ? new Date(review.created_at).toLocaleDateString('ja-JP') : '-'}</span>
                   </div>
 
                   <p className="text-gray-300 mb-4">{review.review_body}</p>

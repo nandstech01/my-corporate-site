@@ -105,7 +105,7 @@ export default async function ReviewsPage() {
                   },
                   "jobTitle": review.author_position || "非公開"
                 },
-                "datePublished": new Date(review.created_at).toISOString().split('T')[0],
+                "datePublished": review.created_at ? new Date(review.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                 "itemReviewed": {
                   "@type": "SoftwareApplication",
                   "name": serviceNames[review.service_id] || review.service_id,
@@ -224,7 +224,7 @@ export default async function ReviewsPage() {
                         </p>
                       </div>
                       <span className="text-gray-500 text-sm">
-                        {new Date(review.created_at).toLocaleDateString('ja-JP')}
+                        {review.created_at ? new Date(review.created_at).toLocaleDateString('ja-JP') : '-'}
                       </span>
                     </div>
                     <h4 className="font-semibold text-lg text-gray-900 mb-2">{review.title}</h4>

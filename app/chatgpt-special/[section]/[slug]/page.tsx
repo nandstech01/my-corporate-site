@@ -5,6 +5,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Database } from '@/lib/supabase/database.types'
 
+// 型エイリアス
+type ChatGPTSection = Database['public']['Tables']['chatgpt_sections']['Row']
+type ChatGPTPost = Database['public']['Tables']['chatgpt_posts']['Row']
+
 type Props = {
   params: {
     section: string
@@ -28,17 +32,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   console.log('Params received:', params)
   const decodedSlug = decodeURIComponent(params.slug)
   console.log('Decoded slug:', decodedSlug)
-  
+
   // まずセクションを取得
-  const { data: section, error: sectionError } = await supabase
+  const { data: sectionData, error: sectionError } = await supabase
     .from('chatgpt_sections')
     .select('*')
     .eq('slug', params.section)
     .single()
+  const section = sectionData as ChatGPTSection | null
 
-  console.log('Section query:', { 
-    section, 
-    error: sectionError, 
+  console.log('Section query:', {
+    section,
+    error: sectionError,
     slug: params.section,
     query: `SELECT * FROM chatgpt_sections WHERE slug = '${params.section}'`
   })
@@ -52,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   // 記事を取得
-  const { data: post, error: postError } = await supabase
+  const { data: postData, error: postError } = await supabase
     .from('chatgpt_posts')
     .select('*')
     .eq('slug', decodedSlug)
@@ -60,10 +65,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('status', 'published')
     .eq('is_chatgpt_special', true)
     .single()
+  const post = postData as ChatGPTPost | null
 
-  console.log('Post query:', { 
-    post, 
-    error: postError, 
+  console.log('Post query:', {
+    post,
+    error: postError,
     slug: decodedSlug,
     sectionId: section.id,
     query: `SELECT * FROM chatgpt_posts WHERE slug = '${decodedSlug}' AND chatgpt_section_id = ${section.id} AND status = 'published' AND is_chatgpt_special = true`
@@ -99,17 +105,18 @@ export default async function ChatGPTArticlePage({ params }: Props) {
   console.log('Page params received:', params)
   const decodedSlug = decodeURIComponent(params.slug)
   console.log('Page decoded slug:', decodedSlug)
-  
+
   // まずセクションを取得
-  const { data: section, error: sectionError } = await supabase
+  const { data: sectionData2, error: sectionError } = await supabase
     .from('chatgpt_sections')
     .select('*')
     .eq('slug', params.section)
     .single()
+  const section = sectionData2 as ChatGPTSection | null
 
-  console.log('Page section query:', { 
-    section, 
-    error: sectionError, 
+  console.log('Page section query:', {
+    section,
+    error: sectionError,
     slug: params.section,
     query: `SELECT * FROM chatgpt_sections WHERE slug = '${params.section}'`
   })
@@ -120,7 +127,7 @@ export default async function ChatGPTArticlePage({ params }: Props) {
   }
 
   // 記事を取得
-  const { data: post, error: postError } = await supabase
+  const { data: postData2, error: postError } = await supabase
     .from('chatgpt_posts')
     .select('*')
     .eq('slug', decodedSlug)
@@ -128,10 +135,11 @@ export default async function ChatGPTArticlePage({ params }: Props) {
     .eq('status', 'published')
     .eq('is_chatgpt_special', true)
     .single()
+  const post = postData2 as ChatGPTPost | null
 
-  console.log('Page post query:', { 
-    post, 
-    error: postError, 
+  console.log('Page post query:', {
+    post,
+    error: postError,
     slug: decodedSlug,
     sectionId: section.id,
     query: `SELECT * FROM chatgpt_posts WHERE slug = '${decodedSlug}' AND chatgpt_section_id = ${section.id} AND status = 'published' AND is_chatgpt_special = true`

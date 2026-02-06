@@ -228,7 +228,7 @@ URL: ${newsItem.url}
                 content_id: newsItem.id,
                 content_type: 'news',
                 content: contentForVectorization,
-                embedding: embedding,
+                embedding: JSON.stringify(embedding),
                 trend_topic: newsItem.title,
                 source: newsItem.source,
                 source_url: newsItem.url,

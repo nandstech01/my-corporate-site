@@ -51,7 +51,7 @@ URL: ${newsItem.url}
           content_type: 'news',
           trend_topic: newsItem.title,
           content: contentForVectorization,
-          embedding: embedding,
+          embedding: JSON.stringify(embedding),
           source: newsItem.source,
           source_url: newsItem.url,
           relevance_score: newsItem.relevance || 0,

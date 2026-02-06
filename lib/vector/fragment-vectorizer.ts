@@ -6,7 +6,7 @@ export interface FragmentInfo {
   fragment_id: string;
   content_title: string;
   content: string;
-  content_type: 'faq' | 'service' | 'section' | 'heading' | 'author' | 'case-study';
+  content_type: 'faq' | 'service' | 'section' | 'heading' | 'author' | 'case-study' | 'problem' | 'philosophy' | 'solution' | 'pricing' | 'cta' | 'contact';
   category?: string;
   semantic_weight?: number;
   target_queries?: string[];

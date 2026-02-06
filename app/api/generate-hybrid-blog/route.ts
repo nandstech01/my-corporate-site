@@ -592,8 +592,8 @@ ${formatResearchResults(researchResults2)}
               };
 
           completion = await Promise.race([
-            currentClient.chat.completions.create(apiParams),
-            new Promise((_, reject) =>
+            currentClient.chat.completions.create(apiParams as any),
+            new Promise<never>((_, reject) =>
               setTimeout(() => reject(new Error(`${modelLabel} API timeout after ${timeoutMs / 1000} seconds`)), timeoutMs)
             )
           ]);

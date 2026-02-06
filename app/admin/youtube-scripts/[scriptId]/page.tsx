@@ -99,7 +99,7 @@ export default function YouTubeScriptDetailPage() {
       const { data: scriptData, error: scriptError } = await supabaseClient
         .from('company_youtube_shorts')
         .select('*')
-        .eq('id', scriptId)
+        .eq('id', parseInt(scriptId, 10))
         .single();
 
       if (scriptError) throw scriptError;
@@ -276,7 +276,7 @@ export default function YouTubeScriptDetailPage() {
       const { error: deleteError } = await supabaseClient
         .from('company_youtube_shorts')
         .delete()
-        .eq('id', scriptId);
+        .eq('id', parseInt(scriptId, 10));
 
       if (deleteError) throw deleteError;
       console.log(`✅ company_youtube_shorts削除完了`);

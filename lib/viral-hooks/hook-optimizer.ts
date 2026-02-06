@@ -10,7 +10,7 @@
 
 import OpenAI from 'openai';
 import { VIRAL_HOOK_PATTERNS, type HookPattern } from './hook-templates';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/supabase';
 
 export interface HookGenerationInput {
   blogTitle: string;
@@ -326,7 +326,6 @@ export async function generateMultipleHooks(
  * フックパターンをRAGテーブルに保存
  */
 export async function saveHookPatternsToRAG(): Promise<void> {
-  const supabase = createClient();
 
   console.log('💾 フックパターンをRAGに保存中...');
 

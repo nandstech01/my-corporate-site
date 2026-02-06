@@ -211,8 +211,12 @@ interface GeneratedContent {
   title: string;
   content: string;
   metadata: any;
-  created_at: string;
-  updated_at: string;
+  query: string | null;
+  rag_sources: string[] | null;
+  status: string | null;
+  word_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface RAGSearchResult {
@@ -646,12 +650,20 @@ export default function ContentGenerationPage() {
   // コンテンツを記事に変換
   const convertToArticle = async (content: GeneratedContent) => {
     try {
+      // スラッグを生成（タイトルから）
+      const slug = content.title
+        .toLowerCase()
+        .replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .slice(0, 50) + '-' + Date.now();
+
       const { data, error } = await supabase
         .from('chatgpt_posts')
         .insert([
           {
             title: content.title,
             content: content.content,
+            slug: slug,
             status: 'draft',
             chatgpt_section_id: 1, // デフォルトセクション
             created_at: new Date().toISOString()
@@ -2073,7 +2085,7 @@ export default function ContentGenerationPage() {
                           {getTypeLabel(content.type)}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {new Date(content.created_at).toLocaleString('ja-JP')}
+                          {content.created_at ? new Date(content.created_at).toLocaleString('ja-JP') : '-'}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-white mb-2">

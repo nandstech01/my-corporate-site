@@ -293,24 +293,28 @@ async function RelatedArticlesSection({
 }) {
   try {
     // MCP・プロトコル・AI連携関連記事を取得
-    const { data: posts } = await supabase
+    const { data: postsData } = await supabase
       .from('posts')
       .select(`
         id,
         title,
-        excerpt,
+        meta_description,
         slug,
         published_at,
-        seo_keywords,
-        categories (
-          name,
-          slug
-        )
+        meta_keywords
       `)
-      .or('seo_keywords.cs.{MCP},seo_keywords.cs.{プロトコル},seo_keywords.cs.{AI連携},seo_keywords.cs.{システム統合}')
-      .eq('published', true)
+      .or('meta_keywords.cs.{MCP},meta_keywords.cs.{プロトコル},meta_keywords.cs.{AI連携},meta_keywords.cs.{システム統合}')
+      .eq('status', 'published')
       .order('published_at', { ascending: false })
       .limit(6)
+
+    // 型変換（コード互換性のため）
+    const posts = (postsData || []).map(p => ({
+      ...p,
+      excerpt: p.meta_description,
+      seo_keywords: p.meta_keywords,
+      categories: null as any
+    }))
 
     if (!posts || posts.length === 0) {
       return null
@@ -338,7 +342,7 @@ async function RelatedArticlesSection({
                       </span>
                     )}
                     <time className="text-xs text-gray-500">
-                      {new Date(post.published_at).toLocaleDateString('ja-JP')}
+                      {post.published_at ? new Date(post.published_at).toLocaleDateString('ja-JP') : '-'}
                     </time>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
