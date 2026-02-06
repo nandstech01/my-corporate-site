@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Send, ArrowLeft, MessageCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Send, ArrowLeft, MessageCircle, Bot } from 'lucide-react'
 import type { ChatMessage } from '../lib/ai/types'
 import { SUGGESTED_QUESTIONS } from '../lib/ai/chat-prompts'
 
@@ -12,6 +12,25 @@ interface ProposalChatProps {
 }
 
 const MAX_MESSAGES = 20
+
+const messageVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+}
+
+const suggestionVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.25 },
+  }),
+}
 
 export default function ProposalChat({
   chatContext,
@@ -121,22 +140,31 @@ export default function ProposalChat({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
       className="max-w-2xl mx-auto"
     >
       <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden flex flex-col h-[600px]">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-sdlp-border p-4">
-          <button
+        <div className="flex items-center gap-3 border-b border-sdlp-border p-4 bg-gradient-to-r from-gray-50 to-white">
+          <motion.button
             type="button"
             onClick={onBack}
+            whileHover={{ x: -2 }}
             className="flex items-center gap-1 text-sm text-sdlp-text-secondary hover:text-sdlp-text transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             提案書に戻る
-          </button>
+          </motion.button>
           <div className="flex-1 text-center">
             <div className="flex items-center justify-center gap-2">
-              <MessageCircle className="h-4 w-4 text-sdlp-primary" />
+              <div className="relative">
+                <Bot className="h-4 w-4 text-sdlp-primary" />
+                <motion.div
+                  className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-green-400"
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </div>
               <span className="text-sm font-semibold text-sdlp-text">
                 AIコンサルタント
               </span>
@@ -147,71 +175,127 @@ export default function ProposalChat({
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center py-8">
-              <MessageCircle className="h-10 w-10 text-sdlp-primary/30 mx-auto mb-3" />
-              <p className="text-sm text-sdlp-text-secondary mb-4">
-                提案書の内容について何でもご質問ください
-              </p>
-            </div>
-          )}
-
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
-                  msg.role === 'user'
-                    ? 'bg-sdlp-primary text-white'
-                    : 'bg-gray-100 text-sdlp-text'
-                }`}
+          <AnimatePresence>
+            {messages.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-8"
               >
-                {msg.content || (
-                  <span className="inline-flex gap-1">
-                    <span className="animate-pulse">●</span>
-                    <span className="animate-pulse" style={{ animationDelay: '0.2s' }}>●</span>
-                    <span className="animate-pulse" style={{ animationDelay: '0.4s' }}>●</span>
-                  </span>
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Bot className="h-12 w-12 text-sdlp-primary/20 mx-auto mb-3" />
+                </motion.div>
+                <p className="text-sm font-medium text-sdlp-text mb-1">
+                  AIコンサルタントに相談
+                </p>
+                <p className="text-xs text-sdlp-text-secondary">
+                  提案書の内容について何でもご質問ください
+                </p>
+              </motion.div>
+            )}
+
+            {messages.map((msg, i) => (
+              <motion.div
+                key={i}
+                variants={messageVariants}
+                initial="hidden"
+                animate="visible"
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {msg.role === 'assistant' && (
+                  <div className="flex-shrink-0 mr-2 mt-1">
+                    <div className="h-6 w-6 rounded-full bg-sdlp-primary/10 flex items-center justify-center">
+                      <Bot className="h-3.5 w-3.5 text-sdlp-primary" />
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          ))}
+                <div
+                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-sdlp-primary text-white rounded-br-md'
+                      : 'bg-gray-100 text-sdlp-text rounded-bl-md'
+                  }`}
+                >
+                  {msg.content || (
+                    <span className="inline-flex gap-1.5 py-1">
+                      <motion.span
+                        className="h-1.5 w-1.5 rounded-full bg-sdlp-primary/40"
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                      />
+                      <motion.span
+                        className="h-1.5 w-1.5 rounded-full bg-sdlp-primary/40"
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                      />
+                      <motion.span
+                        className="h-1.5 w-1.5 rounded-full bg-sdlp-primary/40"
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                      />
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           <div ref={messagesEndRef} />
         </div>
 
         {/* Suggestions */}
-        {suggestions.length > 0 && !isStreaming && (
-          <div className="px-4 pb-2 flex flex-wrap gap-2">
-            {suggestions.map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => sendMessage(q)}
-                className="text-xs rounded-full border border-sdlp-border px-3 py-1.5 text-sdlp-text-secondary hover:border-sdlp-primary hover:text-sdlp-primary transition-colors"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {suggestions.length > 0 && !isStreaming && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-4 pb-2 flex flex-wrap gap-2"
+            >
+              {suggestions.map((q, i) => (
+                <motion.button
+                  key={q}
+                  custom={i}
+                  variants={suggestionVariants}
+                  initial="hidden"
+                  animate="visible"
+                  type="button"
+                  onClick={() => sendMessage(q)}
+                  whileHover={{ scale: 1.03, borderColor: 'var(--sdlp-primary)' }}
+                  whileTap={{ scale: 0.97 }}
+                  className="text-xs rounded-full border border-sdlp-border px-3 py-1.5 text-sdlp-text-secondary hover:border-sdlp-primary hover:text-sdlp-primary transition-colors"
+                >
+                  {q}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Input */}
-        <div className="border-t border-sdlp-border p-4">
+        <div className="border-t border-sdlp-border p-4 bg-white">
           {atLimit ? (
-            <div className="text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center"
+            >
               <p className="text-sm text-sdlp-text-secondary mb-2">
                 チャットの上限に達しました
               </p>
-              <a
+              <motion.a
                 href="mailto:contact@nands.tech"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-2 rounded-xl bg-sdlp-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors"
               >
                 NANDSに直接問い合わせる
-              </a>
-            </div>
+              </motion.a>
+            </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="flex gap-2">
               <input
@@ -221,15 +305,17 @@ export default function ProposalChat({
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="質問を入力..."
                 disabled={isStreaming}
-                className="flex-1 rounded-xl border-2 border-sdlp-border px-4 py-2.5 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary disabled:opacity-50"
+                className="flex-1 rounded-xl border-2 border-sdlp-border px-4 py-2.5 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary disabled:opacity-50 transition-colors"
               />
-              <button
+              <motion.button
                 type="submit"
                 disabled={!input.trim() || isStreaming}
+                whileHover={input.trim() && !isStreaming ? { scale: 1.05 } : {}}
+                whileTap={input.trim() && !isStreaming ? { scale: 0.95 } : {}}
                 className="rounded-xl bg-sdlp-primary px-4 py-2.5 text-white hover:bg-sdlp-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4" />
-              </button>
+              </motion.button>
             </form>
           )}
         </div>
