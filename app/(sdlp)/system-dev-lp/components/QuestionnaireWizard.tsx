@@ -8,10 +8,15 @@ import StepProgressBar from './StepProgressBar'
 import QuestionCard from './QuestionCard'
 import ButtonGrid from './ButtonGrid'
 import CheckboxGroup from './CheckboxGroup'
-import EstimateLoading from './EstimateLoading'
+import ProposalLoading from './ProposalLoading'
+import ProposalTeaser from './ProposalTeaser'
+import EmailGate from './EmailGate'
+import ProposalFull from './ProposalFull'
+import ProposalChat from './ProposalChat'
 import { questionnaireSteps, TOTAL_STEPS } from '../lib/questionnaireConfig'
 import { calculateEstimate, formatPrice } from '../lib/estimateCalculator'
 import type { QuestionnaireAnswers, EstimateResult } from '../lib/types'
+import type { ProposalResult } from '../lib/ai/types'
 
 const initialAnswers: QuestionnaireAnswers = {
   systemOverview: '',
@@ -27,13 +32,22 @@ const initialAnswers: QuestionnaireAnswers = {
   email: '',
 }
 
-type WizardPhase = 'questions' | 'loading' | 'email' | 'result'
+type WizardPhase =
+  | 'questions'
+  | 'loading'
+  | 'teaser'
+  | 'email'
+  | 'proposal'
+  | 'chat'
+  | 'fallback-email'
+  | 'fallback-result'
 
 export default function QuestionnaireWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<QuestionnaireAnswers>(initialAnswers)
   const [phase, setPhase] = useState<WizardPhase>('questions')
   const [estimate, setEstimate] = useState<EstimateResult | null>(null)
+  const [proposal, setProposal] = useState<ProposalResult | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -88,19 +102,44 @@ export default function QuestionnaireWizard() {
     return typeof val === 'string' && val.trim().length > 0
   }, [step, getFieldValue])
 
+  const startProposalGeneration = useCallback(
+    async (finalAnswers: QuestionnaireAnswers) => {
+      setPhase('loading')
+      const formulaEstimate = calculateEstimate(finalAnswers)
+      setEstimate(formulaEstimate)
+
+      try {
+        const response = await fetch('/api/system-dev-proposal/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            answers: finalAnswers,
+            formulaEstimate,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.success && data.proposal) {
+          setProposal(data.proposal)
+          setPhase('teaser')
+        } else {
+          setPhase('fallback-email')
+        }
+      } catch {
+        setPhase('fallback-email')
+      }
+    },
+    [],
+  )
+
   const handleNext = useCallback(() => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1)
     } else {
-      // All steps done — show loading then email
-      setPhase('loading')
-      const result = calculateEstimate(answers)
-      setEstimate(result)
-      setTimeout(() => {
-        setPhase('email')
-      }, 2000)
+      startProposalGeneration(answers)
     }
-  }, [currentStep, answers])
+  }, [currentStep, answers, startProposalGeneration])
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
@@ -114,7 +153,49 @@ export default function QuestionnaireWizard() {
     }
   }, [step, handleNext])
 
-  const handleSubmitEmail = useCallback(async () => {
+  const handleEmailSubmit = useCallback(
+    async (email: string) => {
+      const updatedAnswers = { ...answers, email }
+      setAnswers(updatedAnswers)
+      setSubmitting(true)
+      try {
+        await fetch('/api/system-dev-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...updatedAnswers,
+            estimatedPrice: estimate?.maxPrice,
+            estimatedDuration: estimate?.estimatedDuration,
+          }),
+        })
+      } catch {
+        // Silently handle - still show result
+      }
+      setSubmitting(false)
+      setSubmitted(true)
+      setPhase('proposal')
+    },
+    [answers, estimate],
+  )
+
+  const handleEmailSkip = useCallback(() => {
+    setPhase('proposal')
+  }, [])
+
+  const handleUnlockTeaser = useCallback(() => {
+    setPhase('email')
+  }, [])
+
+  const handleStartChat = useCallback(() => {
+    setPhase('chat')
+  }, [])
+
+  const handleBackToProposal = useCallback(() => {
+    setPhase('proposal')
+  }, [])
+
+  // Fallback email submit (old flow)
+  const handleFallbackEmailSubmit = useCallback(async () => {
     if (!answers.email || !estimate) return
     setSubmitting(true)
     try {
@@ -132,20 +213,57 @@ export default function QuestionnaireWizard() {
     }
     setSubmitting(false)
     setSubmitted(true)
-    setPhase('result')
+    setPhase('fallback-result')
   }, [answers, estimate])
 
-  const handleSkipEmail = useCallback(() => {
-    setPhase('result')
+  const handleFallbackSkipEmail = useCallback(() => {
+    setPhase('fallback-result')
   }, [])
 
-  // Loading phase
+  // === Phase Rendering ===
+
   if (phase === 'loading') {
-    return <EstimateLoading />
+    return <ProposalLoading />
   }
 
-  // Email input phase
-  if (phase === 'email' && estimate) {
+  if (phase === 'teaser' && proposal) {
+    return (
+      <ProposalTeaser
+        proposal={proposal}
+        onUnlock={handleUnlockTeaser}
+      />
+    )
+  }
+
+  if (phase === 'email') {
+    return (
+      <EmailGate
+        onSubmit={handleEmailSubmit}
+        onSkip={handleEmailSkip}
+      />
+    )
+  }
+
+  if (phase === 'proposal' && proposal) {
+    return (
+      <ProposalFull
+        proposal={proposal}
+        onStartChat={handleStartChat}
+      />
+    )
+  }
+
+  if (phase === 'chat' && proposal) {
+    return (
+      <ProposalChat
+        chatContext={proposal.chatContext}
+        onBack={handleBackToProposal}
+      />
+    )
+  }
+
+  // Fallback: old email phase (when AI fails)
+  if (phase === 'fallback-email' && estimate) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -171,7 +289,7 @@ export default function QuestionnaireWizard() {
           />
           <button
             type="button"
-            onClick={handleSubmitEmail}
+            onClick={handleFallbackEmailSubmit}
             disabled={!answers.email || submitting}
             className="w-full rounded-xl bg-sdlp-primary px-6 py-3.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -179,7 +297,7 @@ export default function QuestionnaireWizard() {
           </button>
           <button
             type="button"
-            onClick={handleSkipEmail}
+            onClick={handleFallbackSkipEmail}
             className="mt-3 text-sm text-sdlp-text-secondary hover:text-sdlp-text transition-colors"
           >
             メールアドレスなしで結果を見る
@@ -189,8 +307,8 @@ export default function QuestionnaireWizard() {
     )
   }
 
-  // Result phase
-  if (phase === 'result' && estimate) {
+  // Fallback: old result phase
+  if (phase === 'fallback-result' && estimate) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -222,7 +340,6 @@ export default function QuestionnaireWizard() {
             </p>
           </div>
 
-          {/* Price */}
           <div className="rounded-xl bg-gradient-to-r from-sdlp-primary to-sdlp-accent p-6 text-center text-white mb-6">
             <div className="text-sm font-medium text-white/80 mb-1">
               概算費用
@@ -236,7 +353,6 @@ export default function QuestionnaireWizard() {
             </div>
           </div>
 
-          {/* Breakdown */}
           <div className="space-y-3 mb-6">
             <h3 className="text-sm font-semibold text-sdlp-text">費用内訳</h3>
             {estimate.breakdown.map((item) => (
@@ -252,7 +368,6 @@ export default function QuestionnaireWizard() {
             ))}
           </div>
 
-          {/* CTA */}
           <div className="space-y-3">
             <a
               href="mailto:contact@nands.tech"
@@ -302,7 +417,6 @@ export default function QuestionnaireWizard() {
                       : 'border-sdlp-border'
                   }`}
                 />
-                {/* Mic button inside textarea */}
                 {isSupported && (
                   <button
                     type="button"
@@ -323,14 +437,12 @@ export default function QuestionnaireWizard() {
                 )}
               </div>
 
-              {/* Interim transcript display */}
               {isListening && transcript && (
                 <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
                   <span className="opacity-70">認識中: </span>{transcript}
                 </div>
               )}
 
-              {/* Voice input hint */}
               {isSupported && !isListening && !(getFieldValue(step.field) as string) && (
                 <div className="flex items-center gap-2 text-xs text-sdlp-text-secondary">
                   <Mic className="h-3.5 w-3.5" />
@@ -350,18 +462,12 @@ export default function QuestionnaireWizard() {
               selected={getFieldValue(step.field) as string}
               onSelect={(val) => {
                 updateField(step.field, val)
-                // Auto-advance on single select
                 setTimeout(() => {
                   if (currentStep < TOTAL_STEPS) {
                     setCurrentStep((prev) => prev + 1)
                   } else {
-                    setPhase('loading')
-                    const result = calculateEstimate({
-                      ...answers,
-                      [step.field]: val,
-                    })
-                    setEstimate(result)
-                    setTimeout(() => setPhase('email'), 2000)
+                    const finalAnswers = { ...answers, [step.field]: val }
+                    startProposalGeneration(finalAnswers)
                   }
                 }, 300)
               }}
@@ -414,7 +520,6 @@ export default function QuestionnaireWizard() {
             </button>
           )}
 
-          {/* Show next button for non-button-grid types */}
           {step?.type !== 'button-grid' && (
             <button
               type="button"
