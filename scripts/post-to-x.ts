@@ -99,16 +99,16 @@ async function fetchArticle(slug: string): Promise<Article> {
     console.error('postsテーブル検索エラー:', newError);
   }
 
-  // chatgpt_postsテーブルにフォールバック
+  // chatgpt_postsテーブルにフォールバック（category_tagsカラムなし）
   const { data: oldPost, error: oldError } = await supabase
     .from('chatgpt_posts')
-    .select('title, slug, content, meta_description, category_tags')
+    .select('title, slug, content, meta_description')
     .eq('status', 'published')
     .eq('slug', slug)
     .single();
 
   if (oldPost) {
-    return oldPost as Article;
+    return { ...oldPost, category_tags: null } as Article;
   }
 
   if (oldError && oldError.code !== 'PGRST116') {
