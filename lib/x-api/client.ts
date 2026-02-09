@@ -47,10 +47,18 @@ export interface PostTweetResult {
 }
 
 /**
- * Xに投稿する
- * @param text 投稿テキスト（最大280文字）
+ * 投稿オプション
  */
-export async function postTweet(text: string): Promise<PostTweetResult> {
+export interface PostTweetOptions {
+  longForm?: boolean; // Premium長文投稿（280文字制限スキップ）
+}
+
+/**
+ * Xに投稿する
+ * @param text 投稿テキスト
+ * @param options 投稿オプション（省略時は280文字制限）
+ */
+export async function postTweet(text: string, options?: PostTweetOptions): Promise<PostTweetResult> {
   // テキストの検証
   if (!text || text.trim().length === 0) {
     return {
@@ -59,11 +67,14 @@ export async function postTweet(text: string): Promise<PostTweetResult> {
     };
   }
 
-  // 280文字制限チェック
-  if (text.length > 280) {
+  // 文字数制限チェック（Premium長文: 25,000文字、通常: 280文字）
+  const TWEET_MAX_LENGTH = 280;
+  const LONG_FORM_MAX_LENGTH = 25000;
+  const maxLength = options?.longForm ? LONG_FORM_MAX_LENGTH : TWEET_MAX_LENGTH;
+  if (text.length > maxLength) {
     return {
       success: false,
-      error: `投稿テキストが280文字を超えています（現在: ${text.length}文字）`,
+      error: `投稿テキストが${maxLength}文字を超えています（現在: ${text.length}文字）`,
     };
   }
 

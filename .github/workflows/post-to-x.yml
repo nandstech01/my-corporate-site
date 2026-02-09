@@ -1,0 +1,67 @@
+name: Post to X
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'article（ブログ記事要約）or research（最新ツール調査）'
+        required: true
+        type: choice
+        options:
+          - article
+          - research
+      slug:
+        description: 'ブログ記事slug（articleモード用）'
+        required: false
+        type: string
+      topic:
+        description: '調査トピック（researchモード用）'
+        required: false
+        type: string
+      url:
+        description: '参照URL（researchモード用、任意）'
+        required: false
+        type: string
+      dry_run:
+        description: '生成のみ（投稿しない）'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    name: 🐦 Generate & Post
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🚀 Generate & Post to X
+        run: npx tsx scripts/post-to-x.ts
+        env:
+          MODE: ${{ inputs.mode }}
+          SLUG: ${{ inputs.slug }}
+          TOPIC: ${{ inputs.topic }}
+          URL: ${{ inputs.url }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
