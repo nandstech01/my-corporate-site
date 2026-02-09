@@ -4,11 +4,14 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, ArrowLeft, Bot } from 'lucide-react'
 import type { ChatMessage } from '../lib/ai/types'
-import { SUGGESTED_QUESTIONS } from '../lib/ai/chat-prompts'
+import { getSuggestedQuestions, SUGGESTED_QUESTIONS } from '../lib/ai/chat-prompts'
+import { isValidServiceType } from '@/lib/services/config'
+import type { ServiceType } from '@/lib/services/types'
 import { fadeInUp, DURATION, EASE, STAGGER } from '@/lib/motion'
 
 interface ProposalChatProps {
   chatContext: string
+  serviceType?: ServiceType
   onBack: () => void
 }
 
@@ -35,14 +38,17 @@ const suggestionVariants = {
 
 export default function ProposalChat({
   chatContext,
+  serviceType = 'custom-dev',
   onBack,
 }: ProposalChatProps) {
+  const initialSuggestions = isValidServiceType(serviceType)
+    ? getSuggestedQuestions(serviceType).slice(0, 3)
+    : SUGGESTED_QUESTIONS.slice(0, 3)
+
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
-  const [suggestions, setSuggestions] = useState<string[]>(
-    SUGGESTED_QUESTIONS.slice(0, 3),
-  )
+  const [suggestions, setSuggestions] = useState<string[]>(initialSuggestions)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -73,6 +79,7 @@ export default function ProposalChat({
           body: JSON.stringify({
             message: text.trim(),
             chatContext,
+            serviceType,
             history: messages,
           }),
         })
@@ -100,16 +107,20 @@ export default function ProposalChat({
           const lines = chunk.split('\n').filter((l) => l.startsWith('data: '))
 
           for (const line of lines) {
-            const json = JSON.parse(line.slice(6))
-            if (json.content) {
-              assistantContent += json.content
-              setMessages([
-                ...currentMessages,
-                { role: 'assistant', content: assistantContent },
-              ])
-            }
-            if (json.done && json.suggestedQuestions) {
-              setSuggestions(json.suggestedQuestions)
+            try {
+              const json = JSON.parse(line.slice(6))
+              if (json.content) {
+                assistantContent += json.content
+                setMessages([
+                  ...currentMessages,
+                  { role: 'assistant', content: assistantContent },
+                ])
+              }
+              if (json.done && json.suggestedQuestions) {
+                setSuggestions(json.suggestedQuestions)
+              }
+            } catch {
+              // Ignore malformed SSE chunks (can happen at chunk boundaries)
             }
           }
         }
@@ -127,7 +138,7 @@ export default function ProposalChat({
         inputRef.current?.focus()
       }
     },
-    [messages, isStreaming, chatContext],
+    [messages, isStreaming, chatContext, serviceType],
   )
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,7 +155,7 @@ export default function ProposalChat({
       transition={{ duration: DURATION.normal, ease: EASE }}
       className="max-w-2xl mx-auto"
     >
-      <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden flex flex-col h-[calc(100vh-200px)] max-h-[700px] min-h-[400px]">
+      <div className="rounded-2xl bg-white shadow-lg border border-sdlp-border overflow-hidden flex flex-col h-[calc(100vh-160px)] max-h-[600px] min-h-[400px]">
         {/* Brand accent bar */}
         <div className="h-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
 

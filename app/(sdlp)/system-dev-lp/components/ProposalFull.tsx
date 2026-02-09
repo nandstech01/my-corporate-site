@@ -3,19 +3,24 @@
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { MessageCircle, ExternalLink } from 'lucide-react'
 import type { ProposalResult } from '../lib/ai/types'
+import type { ServiceType } from '@/lib/services/types'
 import { formatPrice } from '../lib/estimateCalculator'
+import ConversionCTAs from './ConversionCTAs'
 import { fadeInUp, staggerContainer, DURATION, EASE } from '@/lib/motion'
 
 interface ProposalFullProps {
   proposal: ProposalResult
+  serviceType?: ServiceType
   onStartChat: () => void
+  email?: string
 }
 
 export default function ProposalFull({
   proposal,
+  serviceType,
   onStartChat,
+  email,
 }: ProposalFullProps) {
   return (
     <motion.div
@@ -73,52 +78,17 @@ export default function ProposalFull({
         {/* Divider */}
         <div className="mx-6 border-t border-sdlp-border/50" />
 
-        {/* Chat CTA */}
+        {/* Conversion CTAs */}
         <motion.div
           variants={fadeInUp}
-          className="p-6 text-center bg-gradient-to-b from-sdlp-bg-card to-white"
+          className="p-6 bg-gradient-to-b from-sdlp-bg-card to-white"
         >
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-sdlp-primary/10 mb-3">
-            <MessageCircle className="h-5 w-5 text-sdlp-primary" />
-          </div>
-          <p className="text-sm font-medium text-sdlp-text mb-1">
-            提案内容について質問がありますか？
-          </p>
-          <p className="text-xs text-sdlp-text-secondary mb-4">
-            AIコンサルタントがリアルタイムでお答えします
-          </p>
-          <motion.button
-            type="button"
-            onClick={onStartChat}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center gap-2 rounded-xl bg-sdlp-primary px-6 py-3 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors shadow-md shadow-sdlp-primary/20"
-          >
-            <MessageCircle className="h-4 w-4" />
-            AIコンサルタントに相談する
-          </motion.button>
-        </motion.div>
-
-        {/* Divider */}
-        <div className="mx-6 border-t border-sdlp-border/50" />
-
-        {/* Contact CTA */}
-        <motion.div
-          variants={fadeInUp}
-          className="p-6 text-center"
-        >
-          <p className="text-xs text-sdlp-text-secondary mb-3">
-            具体的なご相談はこちらから
-          </p>
-          <motion.a
-            href="mailto:contact@nands.tech"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sdlp-primary to-sdlp-accent px-8 py-3.5 text-sm font-bold text-white hover:opacity-90 transition-opacity shadow-lg shadow-sdlp-primary/25"
-          >
-            NANDSに問い合わせる
-            <ExternalLink className="h-3.5 w-3.5" />
-          </motion.a>
+          <ConversionCTAs
+            leadScoring={proposal.leadScoring}
+            followUpStrategy={proposal.followUpStrategy}
+            onStartChat={onStartChat}
+            email={email}
+          />
         </motion.div>
       </div>
     </motion.div>

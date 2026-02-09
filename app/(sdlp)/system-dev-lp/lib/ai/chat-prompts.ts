@@ -1,3 +1,16 @@
+import { getServiceConfig } from '@/lib/services/config'
+import type { ServiceType } from '@/lib/services/types'
+
+export function getChatSystemPrompt(serviceType: ServiceType): string {
+  const config = getServiceConfig(serviceType)
+  return config.prompts.chatSystem
+}
+
+export function getSuggestedQuestions(serviceType: ServiceType): string[] {
+  const config = getServiceConfig(serviceType)
+  return config.suggestedQuestions
+}
+
 export const CHAT_SYSTEM_PROMPT = `あなたはNANDSのシステム開発AIコンサルタントです。
 ユーザーの開発プロジェクトについて、提案書の内容をベースに相談に乗ってください。
 

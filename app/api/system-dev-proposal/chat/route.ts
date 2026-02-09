@@ -1,11 +1,15 @@
 import { NextRequest } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { z } from 'zod'
 import {
+  getChatSystemPrompt,
+  getSuggestedQuestions,
   CHAT_SYSTEM_PROMPT,
   SUGGESTED_QUESTIONS,
   buildChatUserContext,
 } from '@/app/(sdlp)/system-dev-lp/lib/ai/chat-prompts'
+import { isValidServiceType } from '@/lib/services/config'
 import { checkRateLimit } from '../rate-limit'
 
 const MAX_MESSAGES = 20
@@ -13,7 +17,8 @@ const MAX_TOTAL_CHARS = 15000
 
 const chatSchema = z.object({
   message: z.string().min(1).max(500),
-  chatContext: z.string().max(3000),
+  chatContext: z.string().max(5000),
+  serviceType: z.string().default('custom-dev'),
   history: z
     .array(
       z.object({
@@ -23,6 +28,64 @@ const chatSchema = z.object({
     )
     .max(MAX_MESSAGES),
 })
+
+function useAnthropic(): boolean {
+  return !!process.env.ANTHROPIC_API_KEY
+}
+
+function createAnthropicStream(
+  systemPrompt: string,
+  chatContext: string,
+  history: { role: 'user' | 'assistant'; content: string }[],
+  message: string,
+) {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+  const messages: Anthropic.MessageParam[] = [
+    ...history.map((msg) => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    })),
+    { role: 'user' as const, content: message },
+  ]
+
+  return anthropic.messages.stream({
+    model: 'claude-haiku-4-5-20251001',
+    system: `${systemPrompt}\n\n${buildChatUserContext(chatContext)}`,
+    messages,
+    max_tokens: 300,
+    temperature: 0.7,
+  })
+}
+
+async function createOpenAIStream(
+  systemPrompt: string,
+  chatContext: string,
+  history: { role: 'user' | 'assistant'; content: string }[],
+  message: string,
+) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `${systemPrompt}\n\n${buildChatUserContext(chatContext)}`,
+    },
+    ...history.map((msg) => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    })),
+    { role: 'user', content: message },
+  ]
+
+  return openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages,
+    max_tokens: 300,
+    temperature: 0.7,
+    stream: true,
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +110,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { message, chatContext, history } = parsed.data
+    const { message, chatContext, serviceType, history } = parsed.data
 
     const totalChars =
       message.length +
@@ -60,7 +123,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 503, headers: { 'Content-Type': 'application/json' } },
@@ -76,29 +139,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const systemPrompt = isValidServiceType(serviceType)
+      ? getChatSystemPrompt(serviceType)
+      : CHAT_SYSTEM_PROMPT
 
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content: `${CHAT_SYSTEM_PROMPT}\n\n${buildChatUserContext(chatContext)}`,
-      },
-      ...history.map((msg) => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-      })),
-      { role: 'user', content: message },
-    ]
-
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages,
-      max_tokens: 300,
-      temperature: 0.7,
-      stream: true,
-    })
+    const suggestedQs = isValidServiceType(serviceType)
+      ? getSuggestedQuestions(serviceType)
+      : SUGGESTED_QUESTIONS
 
     const encoder = new TextEncoder()
+
+    if (useAnthropic()) {
+      const stream = createAnthropicStream(systemPrompt, chatContext, history, message)
+
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const event of stream) {
+              if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+                const content = event.delta.text
+                if (content) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content })}\n\n`),
+                  )
+                }
+              }
+            }
+
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ done: true, suggestedQuestions: suggestedQs.slice(0, 3) })}\n\n`,
+              ),
+            )
+            controller.close()
+          } catch {
+            controller.close()
+          }
+        },
+        cancel() {},
+      })
+
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      })
+    }
+
+    // Fallback: OpenAI
+    const stream = await createOpenAIStream(systemPrompt, chatContext, history, message)
+
     const readable = new ReadableStream({
       async start(controller) {
         try {
@@ -113,7 +205,7 @@ export async function POST(request: NextRequest) {
 
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ done: true, suggestedQuestions: SUGGESTED_QUESTIONS.slice(0, 3) })}\n\n`,
+              `data: ${JSON.stringify({ done: true, suggestedQuestions: suggestedQs.slice(0, 3) })}\n\n`,
             ),
           )
           controller.close()
@@ -121,9 +213,7 @@ export async function POST(request: NextRequest) {
           controller.close()
         }
       },
-      cancel() {
-        // Client disconnected - stream cleanup handled by GC
-      },
+      cancel() {},
     })
 
     return new Response(readable, {

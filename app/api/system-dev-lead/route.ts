@@ -3,6 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 
 const leadSchema = z.object({
+  answers: z.record(z.unknown()).optional(),
+  serviceType: z.enum(['homepage', 'efficiency', 'custom-dev', 'ai-integration']).default('custom-dev'),
+  email: z.string().email('有効なメールアドレスを入力してください'),
+  estimatedPrice: z.number().optional(),
+  estimatedDuration: z.string().optional(),
+  leadScore: z.number().optional(),
+  leadTier: z.string().optional(),
+  // Legacy fields for backward compatibility
   systemOverview: z.string().max(500).default(''),
   industry: z.string().default(''),
   employeeCount: z.string().default(''),
@@ -13,9 +21,6 @@ const leadSchema = z.object({
   timeline: z.string().default(''),
   devices: z.array(z.string()).default([]),
   budget: z.string().default(''),
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  estimatedPrice: z.number().optional(),
-  estimatedDuration: z.string().optional(),
 })
 
 function createSupabaseAdmin() {
@@ -48,19 +53,20 @@ export async function POST(request: Request) {
     const { error: dbError } = await supabase
       .from('system_dev_leads')
       .insert({
-        system_overview: data.systemOverview,
-        industry: data.industry,
-        employee_count: data.employeeCount,
+        system_overview: data.systemOverview || (data.answers as Record<string, string>)?.projectOverview || '',
+        industry: data.industry || (data.answers as Record<string, string>)?.industry || '',
+        employee_count: data.employeeCount || (data.answers as Record<string, string>)?.employeeCount || '',
         system_destination: data.systemDestination,
-        system_type: data.systemType,
-        features: data.features,
+        system_type: data.systemType || (data.answers as Record<string, string>)?.systemType || '',
+        features: data.features.length > 0 ? data.features : ((data.answers as Record<string, string[]>)?.features ?? []),
         special_requirements: data.specialRequirements,
-        timeline: data.timeline,
+        timeline: data.timeline || (data.answers as Record<string, string>)?.timeline || '',
         devices: data.devices,
-        budget: data.budget,
+        budget: data.budget || (data.answers as Record<string, string>)?.budget || '',
         email: data.email,
         estimated_price: data.estimatedPrice ?? null,
         estimated_duration: data.estimatedDuration ?? null,
+        service_type: data.serviceType,
       })
 
     if (dbError) {

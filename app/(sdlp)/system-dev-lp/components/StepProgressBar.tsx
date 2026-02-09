@@ -2,20 +2,20 @@
 
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import { TOTAL_STEPS } from '../lib/questionnaireConfig'
 
 interface StepProgressBarProps {
   currentStep: number
+  totalSteps: number
 }
 
-export default function StepProgressBar({ currentStep }: StepProgressBarProps) {
-  const progress = (currentStep / TOTAL_STEPS) * 100
+export default function StepProgressBar({ currentStep, totalSteps }: StepProgressBarProps) {
+  const progress = (currentStep / totalSteps) * 100
 
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-medium text-sdlp-text-secondary">
-          質問 {currentStep} / {TOTAL_STEPS}
+          質問 {currentStep} / {totalSteps}
         </span>
         <span className="text-sm font-medium text-sdlp-primary">
           {Math.round(progress)}%
@@ -31,7 +31,7 @@ export default function StepProgressBar({ currentStep }: StepProgressBarProps) {
 
       {/* Step dots */}
       <div className="flex items-center justify-between mt-3 px-1">
-        {Array.from({ length: TOTAL_STEPS }, (_, i) => {
+        {Array.from({ length: totalSteps }, (_, i) => {
           const step = i + 1
           const isCompleted = step < currentStep
           const isActive = step === currentStep

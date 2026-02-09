@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, SkipForward, Mail, Mic, MicOff } from 'lucide-react'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
@@ -13,23 +13,14 @@ import ProposalTeaser from './ProposalTeaser'
 import EmailGate from './EmailGate'
 import ProposalFull from './ProposalFull'
 import ProposalChat from './ProposalChat'
-import { questionnaireSteps, TOTAL_STEPS } from '../lib/questionnaireConfig'
+import { SERVICE_CONFIGS } from '@/lib/services/config'
 import { calculateEstimate, formatPrice } from '../lib/estimateCalculator'
-import type { QuestionnaireAnswers, EstimateResult } from '../lib/types'
+import type { ServiceType } from '@/lib/services/types'
+import type { EstimateResult } from '../lib/types'
 import type { ProposalResult } from '../lib/ai/types'
 
-const initialAnswers: QuestionnaireAnswers = {
-  systemOverview: '',
-  industry: '',
-  employeeCount: '',
-  systemDestination: '',
-  systemType: '',
-  features: [],
-  specialRequirements: '',
-  timeline: '',
-  devices: [],
-  budget: '',
-  email: '',
+interface QuestionnaireWizardProps {
+  serviceType?: ServiceType
 }
 
 type WizardPhase =
@@ -42,16 +33,32 @@ type WizardPhase =
   | 'fallback-email'
   | 'fallback-result'
 
-export default function QuestionnaireWizard() {
+export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: QuestionnaireWizardProps) {
+  const config = SERVICE_CONFIGS[serviceType]
+  const questions = config.questions
+  const totalSteps = questions.length
+
+  const initialAnswers = useMemo(() => {
+    const base: Record<string, unknown> = { email: '' }
+    for (const q of questions) {
+      if (q.type === 'checkbox') {
+        base[q.field] = []
+      } else {
+        base[q.field] = ''
+      }
+    }
+    return base
+  }, [questions])
+
   const [currentStep, setCurrentStep] = useState(1)
-  const [answers, setAnswers] = useState<QuestionnaireAnswers>(initialAnswers)
+  const [answers, setAnswers] = useState<Record<string, unknown>>(initialAnswers)
   const [phase, setPhase] = useState<WizardPhase>('questions')
   const [estimate, setEstimate] = useState<EstimateResult | null>(null)
   const [proposal, setProposal] = useState<ProposalResult | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const step = questionnaireSteps[currentStep - 1]
+  const step = questions[currentStep - 1]
 
   const handleVoiceResult = useCallback(
     (text: string) => {
@@ -68,23 +75,23 @@ export default function QuestionnaireWizard() {
     useSpeechRecognition(handleVoiceResult)
 
   const getFieldValue = useCallback(
-    (field: keyof QuestionnaireAnswers): string | string[] => {
-      return answers[field] as string | string[]
+    (field: string): unknown => {
+      return answers[field]
     },
     [answers],
   )
 
   const updateField = useCallback(
-    (field: keyof QuestionnaireAnswers, value: string | string[]) => {
+    (field: string, value: unknown) => {
       setAnswers((prev) => ({ ...prev, [field]: value }))
     },
     [],
   )
 
   const toggleArrayField = useCallback(
-    (field: keyof QuestionnaireAnswers, value: string) => {
+    (field: string, value: string) => {
       setAnswers((prev) => {
-        const current = prev[field] as string[]
+        const current = (prev[field] as string[]) ?? []
         const next = current.includes(value)
           ? current.filter((v) => v !== value)
           : [...current, value]
@@ -103,9 +110,21 @@ export default function QuestionnaireWizard() {
   }, [step, getFieldValue])
 
   const startProposalGeneration = useCallback(
-    async (finalAnswers: QuestionnaireAnswers) => {
+    async (finalAnswers: Record<string, unknown>) => {
       setPhase('loading')
-      const formulaEstimate = calculateEstimate(finalAnswers)
+      const formulaEstimate = calculateEstimate({
+        systemOverview: String(finalAnswers.projectOverview ?? finalAnswers.systemOverview ?? ''),
+        industry: String(finalAnswers.industry ?? '') as never,
+        employeeCount: String(finalAnswers.employeeCount ?? '') as never,
+        systemDestination: '' as never,
+        systemType: String(finalAnswers.systemType ?? '未定') as never,
+        features: (finalAnswers.features as string[]) ?? [],
+        specialRequirements: String(finalAnswers.specialRequirements ?? ''),
+        timeline: String(finalAnswers.timeline ?? '') as never,
+        devices: ((finalAnswers.devices as string[]) ?? []) as never,
+        budget: String(finalAnswers.budget ?? '') as never,
+        email: '',
+      })
       setEstimate(formulaEstimate)
 
       try {
@@ -114,6 +133,7 @@ export default function QuestionnaireWizard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             answers: finalAnswers,
+            serviceType,
             formulaEstimate,
           }),
         })
@@ -130,16 +150,16 @@ export default function QuestionnaireWizard() {
         setPhase('fallback-email')
       }
     },
-    [],
+    [serviceType],
   )
 
   const handleNext = useCallback(() => {
-    if (currentStep < TOTAL_STEPS) {
+    if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1)
     } else {
       startProposalGeneration(answers)
     }
-  }, [currentStep, answers, startProposalGeneration])
+  }, [currentStep, totalSteps, answers, startProposalGeneration])
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
@@ -163,9 +183,13 @@ export default function QuestionnaireWizard() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...updatedAnswers,
+            answers: updatedAnswers,
+            serviceType,
+            email,
             estimatedPrice: estimate?.maxPrice,
             estimatedDuration: estimate?.estimatedDuration,
+            leadScore: proposal?.leadScoring?.score,
+            leadTier: proposal?.leadScoring?.tier,
           }),
         })
       } catch {
@@ -175,7 +199,7 @@ export default function QuestionnaireWizard() {
       setSubmitted(true)
       setPhase('proposal')
     },
-    [answers, estimate],
+    [answers, estimate, proposal, serviceType],
   )
 
   const handleEmailSkip = useCallback(() => {
@@ -196,14 +220,17 @@ export default function QuestionnaireWizard() {
 
   // Fallback email submit (old flow)
   const handleFallbackEmailSubmit = useCallback(async () => {
-    if (!answers.email || !estimate) return
+    const email = answers.email as string
+    if (!email || !estimate) return
     setSubmitting(true)
     try {
       await fetch('/api/system-dev-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...answers,
+          answers,
+          serviceType,
+          email,
           estimatedPrice: estimate.maxPrice,
           estimatedDuration: estimate.estimatedDuration,
         }),
@@ -214,7 +241,7 @@ export default function QuestionnaireWizard() {
     setSubmitting(false)
     setSubmitted(true)
     setPhase('fallback-result')
-  }, [answers, estimate])
+  }, [answers, estimate, serviceType])
 
   const handleFallbackSkipEmail = useCallback(() => {
     setPhase('fallback-result')
@@ -248,7 +275,9 @@ export default function QuestionnaireWizard() {
     return (
       <ProposalFull
         proposal={proposal}
+        serviceType={serviceType}
         onStartChat={handleStartChat}
+        email={answers.email as string}
       />
     )
   }
@@ -257,6 +286,7 @@ export default function QuestionnaireWizard() {
     return (
       <ProposalChat
         chatContext={proposal.chatContext}
+        serviceType={serviceType}
         onBack={handleBackToProposal}
       />
     )
@@ -282,7 +312,7 @@ export default function QuestionnaireWizard() {
           </p>
           <input
             type="email"
-            value={answers.email}
+            value={(answers.email as string) ?? ''}
             onChange={(e) => updateField('email', e.target.value)}
             placeholder="example@company.co.jp"
             className="w-full rounded-xl border-2 border-sdlp-border px-4 py-3 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary mb-4"
@@ -290,7 +320,7 @@ export default function QuestionnaireWizard() {
           <button
             type="button"
             onClick={handleFallbackEmailSubmit}
-            disabled={!answers.email || submitting}
+            disabled={!(answers.email as string) || submitting}
             className="w-full rounded-xl bg-sdlp-primary px-6 py-3.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? '送信中...' : '見積もり結果を見る'}
@@ -389,11 +419,11 @@ export default function QuestionnaireWizard() {
 
   // Questions phase
   const options =
-    step?.dynamicOptions?.(answers) ?? step?.options ?? []
+    step?.dynamicOptions?.(answers as Record<string, unknown>) ?? step?.options ?? []
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <StepProgressBar currentStep={currentStep} />
+      <StepProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
       <div className="mt-8">
         <QuestionCard
@@ -406,7 +436,7 @@ export default function QuestionnaireWizard() {
             <div className="space-y-3">
               <div className="relative">
                 <textarea
-                  value={getFieldValue(step.field) as string}
+                  value={(getFieldValue(step.field) as string) ?? ''}
                   onChange={(e) => updateField(step.field, e.target.value)}
                   placeholder={step.placeholder}
                   maxLength={step.maxLength}
@@ -459,11 +489,11 @@ export default function QuestionnaireWizard() {
           {step.type === 'button-grid' && (
             <ButtonGrid
               options={options}
-              selected={getFieldValue(step.field) as string}
+              selected={(getFieldValue(step.field) as string) ?? ''}
               onSelect={(val) => {
                 updateField(step.field, val)
                 setTimeout(() => {
-                  if (currentStep < TOTAL_STEPS) {
+                  if (currentStep < totalSteps) {
                     setCurrentStep((prev) => prev + 1)
                   } else {
                     const finalAnswers = { ...answers, [step.field]: val }
@@ -478,7 +508,7 @@ export default function QuestionnaireWizard() {
           {step.type === 'checkbox' && (
             <CheckboxGroup
               options={options}
-              selected={getFieldValue(step.field) as string[]}
+              selected={(getFieldValue(step.field) as string[]) ?? []}
               onToggle={(val) => toggleArrayField(step.field, val)}
             />
           )}
@@ -487,7 +517,7 @@ export default function QuestionnaireWizard() {
           {step.type === 'text' && (
             <input
               type="text"
-              value={getFieldValue(step.field) as string}
+              value={(getFieldValue(step.field) as string) ?? ''}
               onChange={(e) => updateField(step.field, e.target.value)}
               placeholder={step.placeholder}
               className="w-full rounded-xl border-2 border-sdlp-border px-4 py-3 text-sm text-sdlp-text placeholder:text-gray-400 focus:border-sdlp-primary focus:outline-none focus:ring-1 focus:ring-sdlp-primary"
@@ -527,7 +557,7 @@ export default function QuestionnaireWizard() {
               disabled={!canProceed() && step?.required !== false}
               className="flex items-center gap-1 rounded-xl bg-sdlp-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-sdlp-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {currentStep === TOTAL_STEPS ? '結果を見る' : '次へ'}
+              {currentStep === totalSteps ? '結果を見る' : '次へ'}
               <ArrowRight className="h-4 w-4" />
             </button>
           )}

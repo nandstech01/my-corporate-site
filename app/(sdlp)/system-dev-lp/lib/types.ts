@@ -1,3 +1,5 @@
+export type { ServiceType, LeadTier } from '@/lib/services/types'
+
 export type BusinessType = 'corporate' | 'individual'
 
 export type Industry =

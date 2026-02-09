@@ -5,20 +5,11 @@ import { generateProposalFromAnswers } from '@/app/(sdlp)/system-dev-lp/lib/ai/p
 import type { GenerateProposalResponse } from '@/app/(sdlp)/system-dev-lp/lib/ai/types'
 import { checkRateLimit } from '../rate-limit'
 
+const serviceTypeEnum = z.enum(['homepage', 'efficiency', 'custom-dev', 'ai-integration'])
+
 const requestSchema = z.object({
-  answers: z.object({
-    systemOverview: z.string().max(500),
-    industry: z.string().max(50),
-    employeeCount: z.string().max(20),
-    systemDestination: z.string().max(50),
-    systemType: z.string().max(50),
-    features: z.array(z.string().max(50)).max(20),
-    specialRequirements: z.string().max(500),
-    timeline: z.string().max(50),
-    devices: z.array(z.string().max(50)).max(10),
-    budget: z.string().max(50),
-    email: z.string().max(254).default(''),
-  }),
+  answers: z.record(z.unknown()),
+  serviceType: serviceTypeEnum.default('custom-dev'),
   formulaEstimate: z.object({
     minPrice: z.number(),
     maxPrice: z.number(),
@@ -69,9 +60,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const { answers, formulaEstimate } = parsed.data
+    const { answers, serviceType, formulaEstimate } = parsed.data
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
       return NextResponse.json(
         {
           success: false,
@@ -82,7 +73,8 @@ export async function POST(request: Request) {
     }
 
     const proposal = await generateProposalFromAnswers({
-      answers: answers as Parameters<typeof generateProposalFromAnswers>[0]['answers'],
+      answers,
+      serviceType,
       formulaEstimate,
     })
 
@@ -100,6 +92,11 @@ export async function POST(request: Request) {
         prompt_tokens: proposal.promptTokens,
         completion_tokens: proposal.completionTokens,
         generation_time_ms: generationTimeMs,
+        service_type: serviceType,
+        lead_score: proposal.leadScoring?.score ?? null,
+        lead_tier: proposal.leadScoring?.tier ?? null,
+        urgency_flag: proposal.leadScoring?.tier === 'hot',
+        follow_up_strategy: proposal.followUpStrategy ?? {},
       })
     }
 
