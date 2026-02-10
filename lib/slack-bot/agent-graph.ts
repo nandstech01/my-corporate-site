@@ -95,12 +95,15 @@ async function loadMemory(
     const history = await getConversationHistory({
       slackChannelId: state.slackChannelId,
       slackThreadTs: state.slackThreadTs,
-      limit: 10,
+      limit: 30,
     })
 
     const historyMessages: BaseMessage[] = history.map((msg) => {
       if (msg.role === 'user') {
         return new HumanMessage(msg.content)
+      }
+      if (msg.role === 'tool') {
+        return new HumanMessage(`[Previous tool result]: ${msg.content}`)
       }
       return new AIMessage(msg.content)
     })
@@ -261,6 +264,34 @@ export async function runAgent(params: {
     slackThreadTs: params.slackThreadTs,
   })
 
+  // Save tool calls and results to conversation history
+  const toolSummaries: string[] = []
+  for (const msg of result.messages) {
+    if (
+      'tool_calls' in msg &&
+      Array.isArray((msg as AIMessage).tool_calls) &&
+      ((msg as AIMessage).tool_calls?.length ?? 0) > 0
+    ) {
+      const toolCalls = (msg as AIMessage).tool_calls ?? []
+      for (const tc of toolCalls) {
+        toolSummaries.push(`Called: ${tc.name}`)
+      }
+    }
+    if (msg instanceof ToolMessage) {
+      const content =
+        typeof msg.content === 'string'
+          ? msg.content.slice(0, 500)
+          : JSON.stringify(msg.content).slice(0, 500)
+      await saveConversationMessage({
+        slackChannelId: params.slackChannelId,
+        slackUserId: params.slackUserId,
+        slackThreadTs: params.slackThreadTs,
+        role: 'tool',
+        content,
+      })
+    }
+  }
+
   // Extract final assistant message
   const lastMessage = result.messages[result.messages.length - 1]
   const responseText =
@@ -268,13 +299,16 @@ export async function runAgent(params: {
       ? lastMessage.content
       : JSON.stringify(lastMessage.content)
 
-  // Save assistant message
+  // Save assistant message with tool call summary
   await saveConversationMessage({
     slackChannelId: params.slackChannelId,
     slackUserId: params.slackUserId,
     slackThreadTs: params.slackThreadTs,
     role: 'assistant',
     content: responseText,
+    toolCalls: toolSummaries.length > 0
+      ? toolSummaries.map((s) => ({ summary: s }))
+      : undefined,
   })
 
   return responseText
