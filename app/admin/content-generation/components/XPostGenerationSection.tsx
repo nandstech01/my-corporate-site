@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  SparklesIcon, 
-  DocumentDuplicateIcon, 
+import {
+  SparklesIcon,
+  DocumentDuplicateIcon,
   EyeIcon,
   XMarkIcon,
   ChartBarIcon,
@@ -12,7 +12,10 @@ import {
   LinkIcon,
   BuildingOfficeIcon,
   CogIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  DocumentTextIcon,
+  MagnifyingGlassIcon,
+  Squares2X2Icon
 } from '@heroicons/react/24/outline';
 import { patternTemplates } from '@/lib/x-post-generation/pattern-templates';
 
@@ -23,6 +26,7 @@ interface GeneratedXPost {
     id: string;
     name: string;
     description: string;
+    category?: string;
   };
   generatedPost: string;
   tags: string[];
@@ -54,6 +58,12 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
   const [activeTab, setActiveTab] = useState('ai_trends');
   const [customMode, setCustomMode] = useState(false);
   const [customQuery, setCustomQuery] = useState('');
+
+  // モード切り替え（pattern/article/research）
+  const [generationMode, setGenerationMode] = useState<'pattern' | 'article' | 'research'>('pattern');
+  const [articleSlug, setArticleSlug] = useState('');
+  const [researchTopic, setResearchTopic] = useState('');
+  const [researchUrl, setResearchUrl] = useState('');
 
   // X投稿機能用State（既存機能に影響なし）
   const [xApiConfigured, setXApiConfigured] = useState<boolean | null>(null);
@@ -289,6 +299,86 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
     }
   };
 
+  // 記事モード生成
+  const handleArticleGenerate = async () => {
+    if (!articleSlug.trim()) {
+      setError('記事slugを入力してください');
+      return;
+    }
+    setLoading('article');
+    setError(null);
+
+    try {
+      const response = await fetch('/api/generate-x-post-pattern', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'article', slug: articleSlug.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const newPost: GeneratedXPost = {
+          success: true,
+          pattern: data.pattern,
+          generatedPost: data.generatedPost,
+          tags: data.tags,
+          metadata: data.metadata,
+        };
+        setGeneratedPosts(prev => [newPost, ...prev]);
+      } else {
+        setError(data.error || '記事モード生成に失敗しました');
+      }
+    } catch (err) {
+      setError('API呼び出しエラーが発生しました');
+      console.error('Error:', err);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // 調査モード生成
+  const handleResearchGenerate = async () => {
+    if (!researchTopic.trim() && !researchUrl.trim()) {
+      setError('トピックまたはURLを入力してください');
+      return;
+    }
+    setLoading('research');
+    setError(null);
+
+    try {
+      const response = await fetch('/api/generate-x-post-pattern', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'research',
+          topic: researchTopic.trim(),
+          url: researchUrl.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const newPost: GeneratedXPost = {
+          success: true,
+          pattern: data.pattern,
+          generatedPost: data.generatedPost,
+          tags: data.tags,
+          metadata: data.metadata,
+        };
+        setGeneratedPosts(prev => [newPost, ...prev]);
+      } else {
+        setError(data.error || '調査モード生成に失敗しました');
+      }
+    } catch (err) {
+      setError('API呼び出しエラーが発生しました');
+      console.error('Error:', err);
+    } finally {
+      setLoading(null);
+    }
+  };
+
   /**
    * クリップボードにコピー
    */
@@ -316,9 +406,10 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
   const postToX = async (post: GeneratedXPost, index: number) => {
     if (postingToX !== null) return;
 
-    // 280文字を超える場合は切り詰め
+    const isLongForm = post.pattern.category === 'article';
     let text = post.generatedPost;
-    if (text.length > 280) {
+    // 長文モード以外で280文字を超える場合は切り詰め
+    if (!isLongForm && text.length > 280) {
       text = text.substring(0, 277) + '...';
     }
 
@@ -333,6 +424,7 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
         },
         body: JSON.stringify({
           text: text,
+          ...(isLongForm ? { longForm: true } : {}),
         }),
       });
 
@@ -399,74 +491,213 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
           </div>
         </div>
         
-        {/* カテゴリ選択 */}
+        {/* モード切り替えタブ */}
         <div className="mb-6">
-          <div className="flex space-x-2 mb-4">
-            {Object.entries(tabCategories).map(([key, category]) => {
-              const IconComponent = category.icon;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setActiveCategory(key)}
-                  className={`flex items-center space-x-2 px-4 py-2 transition-all duration-300 transform hover:scale-105 border ${
-                    activeCategory === key
-                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg border-white/30`
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-gray-600/50'
-                  }`}
-                >
-                  <IconComponent className="w-4 h-4" />
-                  <span className="text-sm font-medium">{category.name}</span>
-                </button>
-              );
-            })}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setGenerationMode('pattern')}
+              className={`flex items-center space-x-2 px-5 py-3 transition-all duration-300 border-2 ${
+                generationMode === 'pattern'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg border-white/30'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-gray-600/50'
+              }`}
+            >
+              <Squares2X2Icon className="w-5 h-5" />
+              <div className="text-left">
+                <div className="text-sm font-semibold">パターン</div>
+                <div className="text-xs opacity-75">既存モード</div>
+              </div>
+            </button>
+            <button
+              onClick={() => setGenerationMode('article')}
+              className={`flex items-center space-x-2 px-5 py-3 transition-all duration-300 border-2 ${
+                generationMode === 'article'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg border-white/30'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-gray-600/50'
+              }`}
+            >
+              <DocumentTextIcon className="w-5 h-5" />
+              <div className="text-left">
+                <div className="text-sm font-semibold">記事要約</div>
+                <div className="text-xs opacity-75">ブログ→長文</div>
+              </div>
+            </button>
+            <button
+              onClick={() => setGenerationMode('research')}
+              className={`flex items-center space-x-2 px-5 py-3 transition-all duration-300 border-2 ${
+                generationMode === 'research'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg border-white/30'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-gray-600/50'
+              }`}
+            >
+              <MagnifyingGlassIcon className="w-5 h-5" />
+              <div className="text-left">
+                <div className="text-sm font-semibold">調査投稿</div>
+                <div className="text-xs opacity-75">最新情報→280字</div>
+              </div>
+            </button>
           </div>
         </div>
 
-        {/* クエリ選択タブ */}
-        {customMode ? (
-          <div className="mb-4">
-            <input
-              type="text"
-              value={customQuery}
-              onChange={(e) => setCustomQuery(e.target.value)}
-              placeholder="カスタムクエリを入力..."
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
-            />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {getCurrentTabs().map((tab) => (
+        {/* パターンモード: カテゴリ選択 */}
+        {generationMode === 'pattern' && (
+          <>
+            <div className="mb-6">
+              <div className="flex space-x-2 mb-4">
+                {Object.entries(tabCategories).map(([key, category]) => {
+                  const IconComponent = category.icon;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setActiveCategory(key)}
+                      className={`flex items-center space-x-2 px-4 py-2 transition-all duration-300 transform hover:scale-105 border ${
+                        activeCategory === key
+                          ? `bg-gradient-to-r ${category.color} text-white shadow-lg border-white/30`
+                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border-gray-600/50'
+                      }`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      <span className="text-sm font-medium">{category.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* クエリ選択タブ */}
+            {customMode ? (
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={customQuery}
+                  onChange={(e) => setCustomQuery(e.target.value)}
+                  placeholder="カスタムクエリを入力..."
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {getCurrentTabs().map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`group p-4 border-2 transition-all duration-300 transform hover:scale-105 relative overflow-hidden ${
+                      activeTab === tab.id
+                        ? `bg-gradient-to-r ${tab.color} border-white/30 text-white shadow-xl`
+                        : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:border-gray-500/50 hover:bg-gray-700/50 backdrop-blur-sm'
+                    }`}
+                  >
+                    <div className="text-center relative z-10">
+                      <div className="text-lg mb-1">{tab.name}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                    {activeTab === tab.id && (
+                      <div className="absolute inset-0 border-2 border-white/20 animate-pulse"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 選択中のクエリ表示 */}
+            <div className="mt-4 p-3 bg-gray-800/50 border border-gray-600/50 backdrop-blur-sm">
+              <div className="text-xs text-gray-400 mb-1">選択中のクエリ:</div>
+              <div className="text-sm text-gray-200 font-mono">{getCurrentQuery()}</div>
+            </div>
+          </>
+        )}
+
+        {/* 記事モード入力 */}
+        {generationMode === 'article' && (
+          <div className="p-4 bg-gray-800/30 border border-green-500/30">
+            <h3 className="text-sm font-semibold text-green-300 mb-3 flex items-center">
+              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              記事要約モード
+            </h3>
+            <p className="text-xs text-gray-400 mb-3">
+              Supabaseから記事を取得し、LangGraphパイプラインでPremium長文投稿（1000-2000文字）を生成します。
+            </p>
+            <div className="flex space-x-3">
+              <input
+                type="text"
+                value={articleSlug}
+                onChange={(e) => setArticleSlug(e.target.value)}
+                placeholder="記事slug（例: domoai-953306）"
+                className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+              />
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`group p-4 border-2 transition-all duration-300 transform hover:scale-105 relative overflow-hidden ${
-                  activeTab === tab.id
-                    ? `bg-gradient-to-r ${tab.color} border-white/30 text-white shadow-xl`
-                    : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:border-gray-500/50 hover:bg-gray-700/50 backdrop-blur-sm'
+                onClick={handleArticleGenerate}
+                disabled={loading === 'article'}
+                className={`px-6 py-3 font-semibold transition-all duration-300 ${
+                  loading === 'article'
+                    ? 'bg-gray-600 cursor-not-allowed text-gray-400'
+                    : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105'
                 }`}
               >
-                <div className="text-center relative z-10">
-                  <div className="text-lg mb-1">{tab.name}</div>
-                  <div className="text-xs opacity-75">{tab.description}</div>
-                </div>
-                {activeTab === tab.id && (
-                  <div className="absolute inset-0 border-2 border-white/20 animate-pulse"></div>
+                {loading === 'article' ? (
+                  <span className="flex items-center space-x-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full"></span>
+                    <span>生成中...</span>
+                  </span>
+                ) : (
+                  '生成'
                 )}
               </button>
-            ))}
+            </div>
           </div>
         )}
 
-        {/* 選択中のクエリ表示 */}
-        <div className="mt-4 p-3 bg-gray-800/50 border border-gray-600/50 backdrop-blur-sm">
-          <div className="text-xs text-gray-400 mb-1">選択中のクエリ:</div>
-          <div className="text-sm text-gray-200 font-mono">{getCurrentQuery()}</div>
-        </div>
+        {/* 調査モード入力 */}
+        {generationMode === 'research' && (
+          <div className="p-4 bg-gray-800/30 border border-orange-500/30">
+            <h3 className="text-sm font-semibold text-orange-300 mb-3 flex items-center">
+              <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
+              調査投稿モード
+            </h3>
+            <p className="text-xs text-gray-400 mb-3">
+              Brave Searchで最新情報を収集し、LangGraphパイプラインで280文字投稿を生成します。
+            </p>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={researchTopic}
+                onChange={(e) => setResearchTopic(e.target.value)}
+                placeholder="トピック（例: Claude Code 最新機能）"
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-transparent"
+              />
+              <input
+                type="text"
+                value={researchUrl}
+                onChange={(e) => setResearchUrl(e.target.value)}
+                placeholder="URL（任意）"
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-transparent"
+              />
+              <button
+                onClick={handleResearchGenerate}
+                disabled={loading === 'research'}
+                className={`w-full px-6 py-3 font-semibold transition-all duration-300 ${
+                  loading === 'research'
+                    ? 'bg-gray-600 cursor-not-allowed text-gray-400'
+                    : 'bg-gradient-to-r from-orange-500 to-red-600 text-white hover:from-orange-600 hover:to-red-700 transform hover:scale-105'
+                }`}
+              >
+                {loading === 'research' ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full"></span>
+                    <span>調査・生成中...</span>
+                  </span>
+                ) : (
+                  '調査して生成'
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* パターン生成セクション */}
+      {/* パターン生成セクション（パターンモード時のみ） */}
       <div className="p-6">
-        <div className="mb-6">
+        {generationMode === 'pattern' && <div className="mb-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <SparklesIcon className="w-5 h-5 mr-2 text-blue-400" />
             投稿パターン生成
@@ -541,7 +772,7 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
               );
             })}
           </div>
-        </div>
+        </div>}
 
         {/* エラー表示 */}
         {error && (
@@ -635,9 +866,13 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
                   </div>
 
                   {/* 文字数表示 */}
-                  <div className={`mt-1 text-xs ${post.generatedPost.length > 280 ? 'text-yellow-400' : 'text-gray-500'}`}>
-                    {post.generatedPost.length}/280文字
-                    {post.generatedPost.length > 280 && ' (投稿時に自動切り詰め)'}
+                  <div className={`mt-1 text-xs ${
+                    post.pattern.category === 'article'
+                      ? post.generatedPost.length > 25000 ? 'text-red-400' : 'text-green-400'
+                      : post.generatedPost.length > 280 ? 'text-yellow-400' : 'text-gray-500'
+                  }`}>
+                    {post.generatedPost.length}{post.pattern.category === 'article' ? '/25000文字（長文）' : '/280文字'}
+                    {post.pattern.category !== 'article' && post.generatedPost.length > 280 && ' (投稿時に自動切り詰め)'}
                   </div>
                   
                   {post.tags && post.tags.length > 0 && (

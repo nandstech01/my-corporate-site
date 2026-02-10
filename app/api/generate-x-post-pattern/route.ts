@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PatternTemplate, patternTemplates } from '@/lib/x-post-generation/pattern-templates';
 import { TagGenerator } from '@/lib/x-post-generation/tag-generator';
 import { DiagramGenerator } from '@/lib/x-post-generation/diagram-generator';
+import { generateXPost } from '@/lib/x-post-generation/post-graph';
+import { fetchArticle, researchTopic } from '@/lib/x-post-generation/data-fetchers';
 
 // OpenAI APIの設定は環境変数から取得
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -11,10 +13,14 @@ export const maxDuration = 60; // 60秒でタイムアウト
 export const dynamic = 'force-dynamic';
 
 export interface XPostGenerationRequest {
-  patternId: string;
+  patternId?: string;
   query?: string;
   generateDiagram?: boolean;
   includeThread?: boolean;
+  mode?: 'pattern' | 'article' | 'research';
+  slug?: string;
+  topic?: string;
+  url?: string;
 }
 
 /**
@@ -41,6 +47,101 @@ export interface XPostResponse {
 export async function POST(request: NextRequest) {
   try {
     const body: XPostGenerationRequest = await request.json();
+    const mode = body.mode || 'pattern';
+
+    // === 記事モード ===
+    if (mode === 'article') {
+      const { slug } = body;
+      if (!slug) {
+        return NextResponse.json(
+          { success: false, error: 'slug is required for article mode' },
+          { status: 400 }
+        );
+      }
+
+      const article = await fetchArticle(slug);
+      const result = await generateXPost({
+        mode: 'article',
+        content: article.content,
+        title: article.title,
+        slug: article.slug,
+        tags: article.category_tags ?? undefined,
+      });
+
+      const response: XPostResponse = {
+        success: true,
+        pattern: {
+          id: result.patternUsed,
+          name: `LangGraph: ${result.patternUsed}`,
+          description: '記事モード（LangGraphパイプライン）',
+          template: '',
+          category: 'article',
+          dataSources: [],
+          features: ['LangGraph', '多段評価'],
+          generateDiagram: false,
+        },
+        generatedPost: result.finalPost,
+        tags: result.tags,
+        metadata: {
+          ragSources: [],
+          dataUsed: 0,
+          generatedAt: new Date().toISOString(),
+          url: `https://nands.tech/posts/${slug}`,
+        },
+      };
+
+      return NextResponse.json(response);
+    }
+
+    // === 調査モード ===
+    if (mode === 'research') {
+      const { topic, url } = body;
+      if (!topic && !url) {
+        return NextResponse.json(
+          { success: false, error: 'topic or url is required for research mode' },
+          { status: 400 }
+        );
+      }
+
+      const data = await researchTopic(topic || '', url || undefined);
+      const contentParts = [
+        ...data.searchResults.map(
+          (r, i) => `[${i + 1}] ${r.title}\n${r.description}\n${r.url}`
+        ),
+        ...(data.urlContent ? [`[URL内容]\n${data.urlContent}`] : []),
+      ];
+
+      const result = await generateXPost({
+        mode: 'research',
+        content: contentParts.join('\n\n'),
+        topic: data.topic,
+      });
+
+      const response: XPostResponse = {
+        success: true,
+        pattern: {
+          id: result.patternUsed,
+          name: `LangGraph: ${result.patternUsed}`,
+          description: '調査モード（LangGraphパイプライン）',
+          template: '',
+          category: 'research',
+          dataSources: [],
+          features: ['LangGraph', 'Brave Search', '多段評価'],
+          generateDiagram: false,
+        },
+        generatedPost: result.finalPost,
+        tags: result.tags,
+        metadata: {
+          ragSources: data.searchResults.map(r => r.url),
+          dataUsed: data.searchResults.length,
+          generatedAt: new Date().toISOString(),
+        },
+      };
+
+      return NextResponse.json(response);
+    }
+
+    // === パターンモード（既存ロジック完全維持） ===
     const { patternId, query, generateDiagram = false, includeThread = false } = body;
 
     // パターンの検索
@@ -57,7 +158,7 @@ export async function POST(request: NextRequest) {
     
     // 最新ニュースパターンの場合はX投稿も取得
     let xPosts: any[] = [];
-    const isNewsPattern = ['google_news', 'openai_news', 'anthropic_news', 'genspark_news'].includes(patternId);
+    const isNewsPattern = ['google_news', 'openai_news', 'anthropic_news', 'genspark_news'].includes(patternId || '');
     
     if (isNewsPattern) {
       const companyMap = {
@@ -89,7 +190,7 @@ export async function POST(request: NextRequest) {
     // タグの生成
     const tagGenerator = new TagGenerator();
     const tags = tagGenerator.generateTags({
-      patternId,
+      patternId: patternId || '',
       content: generatedPost,
       ragSources: pattern.dataSources,
       maxTags: 3

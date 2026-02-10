@@ -1,0 +1,276 @@
+/**
+ * Slack Interactions API ルート
+ *
+ * 承認/拒否ボタンの処理 (Human-in-the-Loop)
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import * as crypto from 'crypto'
+import { postTweet } from '@/lib/x-api/client'
+import {
+  resolvePendingAction,
+  getPendingAction,
+  savePostAnalytics,
+} from '@/lib/slack-bot/memory'
+import { sendMessage, updateMessage } from '@/lib/slack-bot/slack-client'
+import type { SlackInteractionPayload } from '@/lib/slack-bot/types'
+
+export const maxDuration = 60
+export const dynamic = 'force-dynamic'
+
+// ============================================================
+// 署名検証
+// ============================================================
+
+function verifySlackSignature(
+  signingSecret: string,
+  timestamp: string,
+  body: string,
+  signature: string,
+): boolean {
+  const fiveMinutesAgo = Math.floor(Date.now() / 1000) - 60 * 5
+  if (parseInt(timestamp, 10) < fiveMinutesAgo) {
+    return false
+  }
+
+  const sigBasestring = `v0:${timestamp}:${body}`
+  const hmac = crypto.createHmac('sha256', signingSecret)
+  hmac.update(sigBasestring)
+  const mySignature = `v0=${hmac.digest('hex')}`
+
+  return crypto.timingSafeEqual(
+    Buffer.from(mySignature),
+    Buffer.from(signature),
+  )
+}
+
+// ============================================================
+// アクション処理
+// ============================================================
+
+async function handleApprovePost(
+  actionId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') {
+    await sendMessage({
+      channel,
+      text: ':warning: This action has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved')
+  const payload = resolved.payload as { text: string; longForm?: boolean }
+
+  const result = await postTweet(payload.text, {
+    longForm: payload.longForm,
+  })
+
+  if (result.success) {
+    // Save analytics
+    await savePostAnalytics({
+      tweetId: result.tweetId!,
+      tweetUrl: result.tweetUrl,
+      postText: payload.text,
+      postMode: resolved.action_type === 'post_x_long' ? 'article' : 'research',
+    })
+
+    await sendMessage({
+      channel,
+      text: `:white_check_mark: Posted to X!\n${result.tweetUrl}`,
+      threadTs,
+    })
+  } else {
+    await sendMessage({
+      channel,
+      text: `:x: Failed to post: ${result.error}`,
+      threadTs,
+    })
+  }
+}
+
+async function handleRejectPost(
+  actionId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') {
+    await sendMessage({
+      channel,
+      text: ':warning: This action has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  await resolvePendingAction(actionId, 'rejected')
+
+  await sendMessage({
+    channel,
+    text: ':no_entry_sign: Post cancelled.',
+    threadTs,
+  })
+}
+
+async function handleApproveBlog(
+  actionId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') {
+    await sendMessage({
+      channel,
+      text: ':warning: This action has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  await resolvePendingAction(actionId, 'approved')
+
+  const payload = action.payload as { title: string; outline: string }
+
+  // Trigger GitHub Actions workflow
+  const githubToken = process.env.GITHUB_TOKEN
+  if (githubToken) {
+    try {
+      const response = await fetch(
+        `https://api.github.com/repos/${process.env.GITHUB_REPO ?? 'nands/my-corporate-site'}/actions/workflows/generate-blog.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ref: 'main',
+            inputs: {
+              title: payload.title,
+              outline: payload.outline,
+            },
+          }),
+        },
+      )
+
+      if (response.ok) {
+        await sendMessage({
+          channel,
+          text: `:white_check_mark: Blog generation triggered!\nTitle: ${payload.title}`,
+          threadTs,
+        })
+      } else {
+        await sendMessage({
+          channel,
+          text: `:warning: GitHub Actions trigger failed (${response.status})`,
+          threadTs,
+        })
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown error'
+      await sendMessage({
+        channel,
+        text: `:x: Failed to trigger blog generation: ${message}`,
+        threadTs,
+      })
+    }
+  } else {
+    await sendMessage({
+      channel,
+      text: ':white_check_mark: Blog approved (GitHub Actions not configured)',
+      threadTs,
+    })
+  }
+}
+
+// ============================================================
+// Route Handler
+// ============================================================
+
+export async function POST(request: NextRequest) {
+  const rawBody = await request.text()
+
+  // Slack sends interactions as application/x-www-form-urlencoded
+  const params = new URLSearchParams(rawBody)
+  const payloadStr = params.get('payload')
+
+  if (!payloadStr) {
+    return NextResponse.json({ error: 'Missing payload' }, { status: 400 })
+  }
+
+  // 署名検証
+  const signingSecret = process.env.SLACK_SIGNING_SECRET
+  if (!signingSecret) {
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 },
+    )
+  }
+
+  const timestamp = request.headers.get('x-slack-request-timestamp') ?? ''
+  const signature = request.headers.get('x-slack-signature') ?? ''
+
+  if (!verifySlackSignature(signingSecret, timestamp, rawBody, signature)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
+
+  let payload: SlackInteractionPayload
+
+  try {
+    payload = JSON.parse(payloadStr) as SlackInteractionPayload
+  } catch {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  }
+
+  if (payload.type !== 'block_actions' || !payload.actions?.length) {
+    return new Response('OK', { status: 200 })
+  }
+
+  const action = payload.actions[0]
+  const channel = payload.channel.id
+  const threadTs = payload.message?.thread_ts ?? payload.message?.ts
+
+  // Process action
+  try {
+    switch (action.action_id) {
+      case 'approve_post':
+        await handleApprovePost(action.value, channel, threadTs)
+        break
+      case 'reject_post':
+        await handleRejectPost(action.value, channel, threadTs)
+        break
+      case 'approve_blog':
+        await handleApproveBlog(action.value, channel, threadTs)
+        break
+      case 'reject_blog':
+        await handleRejectPost(action.value, channel, threadTs)
+        break
+      case 'edit_action':
+        await sendMessage({
+          channel,
+          text: ':pencil: Please send your edit instructions in this thread.',
+          threadTs,
+        })
+        break
+      default:
+        break
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown error'
+    await sendMessage({
+      channel,
+      text: `:warning: Error processing action: ${message}`,
+      threadTs,
+    })
+  }
+
+  return new Response('OK', { status: 200 })
+}

@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     // リクエストボディを解析
     const body = await request.json();
     const { text } = body;
+    const longForm = body.longForm === true;
 
     // テキストの検証
     if (!text || typeof text !== 'string') {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Xに投稿
-    const result = await postTweet(text);
+    const result = await postTweet(text, longForm ? { longForm: true } : undefined);
 
     if (result.success) {
       return NextResponse.json({
