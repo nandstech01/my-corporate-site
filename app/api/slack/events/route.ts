@@ -105,14 +105,12 @@ export async function POST(request: NextRequest) {
 
   // 2. リトライ防止 (Slack は3秒超でリトライする)
   if (request.headers.get('x-slack-retry-num')) {
-    console.log('[slack-bot] Retry detected, skipping')
     return new Response('OK', { status: 200 })
   }
 
   // 3. HMAC SHA256 署名検証
   const signingSecret = process.env.SLACK_SIGNING_SECRET
   if (!signingSecret) {
-    console.error('[slack-bot] SLACK_SIGNING_SECRET is not set')
     return NextResponse.json(
       { error: 'Server configuration error' },
       { status: 500 },
@@ -123,47 +121,30 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('x-slack-signature') ?? ''
 
   if (!verifySlackSignature(signingSecret, timestamp, rawBody, signature)) {
-    console.error('[slack-bot] Invalid signature')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
-  console.log('[slack-bot] Signature verified, event type:', body.type)
-
   // 4. イベントタイプチェック
   if (body.type !== 'event_callback' || !body.event) {
-    console.log('[slack-bot] Not event_callback, ignoring')
     return new Response('OK', { status: 200 })
   }
 
   const event = body.event
-  console.log('[slack-bot] Event:', JSON.stringify({
-    type: event.type,
-    user: event.user,
-    channel: event.channel,
-    bot_id: event.bot_id,
-    subtype: (event as Record<string, unknown>).subtype,
-    text: event.text?.slice(0, 50),
-  }))
 
   // Bot メッセージは無視 (ループ防止)
   if (event.bot_id || event.type !== 'message') {
-    console.log('[slack-bot] Ignored: bot_id or not message type')
     return new Response('OK', { status: 200 })
   }
 
   // サブタイプ付きメッセージは無視 (edited, deleted 等)
   if ((event as Record<string, unknown>).subtype) {
-    console.log('[slack-bot] Ignored: has subtype')
     return new Response('OK', { status: 200 })
   }
 
   // 5. ユーザー許可リスト検証
   if (!isAllowedUser(event.user)) {
-    console.log('[slack-bot] User not allowed:', event.user)
     return new Response('OK', { status: 200 })
   }
-
-  console.log('[slack-bot] Processing message from:', event.user)
 
   // 6. 即座に ack → バックグラウンドでエージェント実行
   // waitUntil はVercel環境でのみ利用可能。ローカルでは直接実行。
@@ -172,13 +153,8 @@ export async function POST(request: NextRequest) {
     .catch(() => null)
 
   if (waitUntilFn) {
-    console.log('[slack-bot] Using waitUntil for background processing')
     waitUntilFn(processSlackMessage(event))
   } else {
-    console.log('[slack-bot] No waitUntil, running directly')
-    processSlackMessage(event).catch((err) =>
-      console.error('[slack-bot] processSlackMessage error:', err),
-    )
-  }
+    processSlackMessage(event).catch(() => {})
   return new Response('OK', { status: 200 })
 }
