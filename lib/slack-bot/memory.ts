@@ -2,9 +2,11 @@
  * Slack Bot メモリ層
  *
  * 会話履歴 + 学習メモリ + 分析データの CRUD
+ * + 会話コンパクション (Phase 2)
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { ChatOpenAI } from '@langchain/openai'
 import type {
   SlackConversation,
   SlackBotMemory,
@@ -243,6 +245,130 @@ export async function recallMemories(params: {
   }
 
   return (data ?? []) as readonly SlackBotMemory[]
+}
+
+// ============================================================
+// 会話コンパクション (Phase 2)
+// ============================================================
+
+const COMPACTION_THRESHOLD = 20
+const RECENT_KEEP_COUNT = 5
+
+/**
+ * 会話履歴が閾値を超えたら古いメッセージをLLMでサマリー化。
+ * OpenClaw の Pre-Compaction Memory Flush パターン。
+ */
+export async function compactConversationIfNeeded(params: {
+  readonly slackChannelId: string
+  readonly slackUserId: string
+  readonly slackThreadTs: string | null
+}): Promise<void> {
+  const history = await getConversationHistory({
+    slackChannelId: params.slackChannelId,
+    slackThreadTs: params.slackThreadTs,
+    limit: 100,
+  })
+
+  if (history.length < COMPACTION_THRESHOLD) return
+
+  const oldMessages = history.slice(0, -RECENT_KEEP_COUNT)
+  const oldText = oldMessages
+    .map((m) => `[${m.role}]: ${m.content.slice(0, 300)}`)
+    .join('\n')
+
+  // LLM でサマリー生成
+  const model = new ChatOpenAI({
+    modelName: 'gpt-4o-mini',
+    temperature: 0,
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+
+  const summaryResponse = await model.invoke([
+    {
+      role: 'system',
+      content:
+        '以下の会話履歴を日本語で3-5行に要約して。重要な決定事項、ツール実行結果、ユーザーの要望を優先的に含めて。',
+    },
+    { role: 'user', content: oldText },
+  ])
+
+  const summary =
+    typeof summaryResponse.content === 'string'
+      ? summaryResponse.content
+      : JSON.stringify(summaryResponse.content)
+
+  // Pre-Compaction Memory Flush: 重要情報をメモリに保存
+  await preCompactionMemoryFlush(params.slackUserId, oldMessages)
+
+  // 古いメッセージを削除してサマリーに置換
+  const supabase = getSupabase()
+  const oldIds = oldMessages.map((m) => m.id)
+
+  await supabase.from('slack_conversations').delete().in('id', oldIds)
+
+  await saveConversationMessage({
+    slackChannelId: params.slackChannelId,
+    slackUserId: params.slackUserId,
+    slackThreadTs: params.slackThreadTs,
+    role: 'system',
+    content: `[Conversation Summary]: ${summary}`,
+    metadata: {
+      compacted: true,
+      originalCount: oldMessages.length,
+      compactedAt: new Date().toISOString(),
+    },
+  })
+}
+
+/**
+ * コンパクション前に重要な情報をメモリとして永続化。
+ * ツール結果やユーザーの決定事項を失わないようにする。
+ */
+async function preCompactionMemoryFlush(
+  slackUserId: string,
+  messages: readonly SlackConversation[],
+): Promise<void> {
+  // ツール結果を含むメッセージから重要情報を抽出
+  const toolResults = messages
+    .filter((m) => m.role === 'tool')
+    .map((m) => m.content.slice(0, 200))
+
+  if (toolResults.length === 0) return
+
+  const model = new ChatOpenAI({
+    modelName: 'gpt-4o-mini',
+    temperature: 0,
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+
+  const extractResponse = await model.invoke([
+    {
+      role: 'system',
+      content:
+        '以下のツール実行結果から、今後も役立つ事実や学びを1-3個抽出して。各項目は1行で、JSONの配列で返して。例: ["AIニュース: GPT-5が2026年に発表された", "ユーザーは短い投稿を好む"]',
+    },
+    { role: 'user', content: toolResults.join('\n---\n') },
+  ])
+
+  const extractText =
+    typeof extractResponse.content === 'string'
+      ? extractResponse.content
+      : JSON.stringify(extractResponse.content)
+
+  try {
+    const facts: string[] = JSON.parse(extractText)
+    for (const fact of facts.slice(0, 3)) {
+      await saveMemory({
+        slackUserId,
+        memoryType: 'fact',
+        content: fact,
+        importance: 0.6,
+        context: { source: 'pre_compaction_flush' },
+      })
+    }
+  } catch {
+    // JSON パース失敗時はスキップ（best-effort）
+  }
 }
 
 // ============================================================

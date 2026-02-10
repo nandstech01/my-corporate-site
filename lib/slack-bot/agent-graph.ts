@@ -4,6 +4,11 @@
  * Slack Bot のコアエンジン。メッセージを受け取り、
  * ツールを自律的に選択して実行する。
  *
+ * Phase 1 改善:
+ * - ツール実行トラッカーで重複呼び出し防止
+ * - ReAct ループ制限 (最大5回)
+ * - コンテキストウィンドウ管理 (古いツール結果トリミング + 会話サマリー)
+ *
  * Flow:
  *   START → loadMemory → agent → [shouldContinue] → tools → agent → ... → END
  */
@@ -30,8 +35,27 @@ import {
   recallMemories,
   getConversationHistory,
   saveConversationMessage,
+  compactConversationIfNeeded,
 } from './memory'
 import type { AgentContext } from './types'
+import {
+  createToolTracker,
+  isDuplicate,
+  getCachedResult,
+  recordExecution,
+  buildExecutionSummary,
+  type ToolTracker,
+} from './tool-tracker'
+
+// ============================================================
+// 定数
+// ============================================================
+
+const MAX_ITERATIONS = 5
+const RECENT_MESSAGES_FULL = 5
+const MAX_TOOL_RESULT_LENGTH = 1000
+const TOOL_RESULT_HEAD = 400
+const TOOL_RESULT_TAIL = 400
 
 // ============================================================
 // State 定義
@@ -52,6 +76,14 @@ const AgentState = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => '',
   }),
+  iterationCount: Annotation<number>({
+    reducer: (_prev, next) => next,
+    default: () => 0,
+  }),
+  toolTracker: Annotation<ToolTracker>({
+    reducer: (_prev, next) => next,
+    default: () => createToolTracker(),
+  }),
 })
 
 type AgentStateType = typeof AgentState.State
@@ -66,6 +98,65 @@ function createModel() {
     temperature: 0.7,
     apiKey: process.env.OPENAI_API_KEY,
   })
+}
+
+// ============================================================
+// ユーティリティ: コンテキスト管理
+// ============================================================
+
+/**
+ * 長いツール結果を head/tail でトリミング (OpenClaw の Session Pruning パターン)
+ */
+function trimToolResult(content: string): string {
+  if (content.length <= MAX_TOOL_RESULT_LENGTH) return content
+  return `${content.slice(0, TOOL_RESULT_HEAD)}\n...[trimmed]...\n${content.slice(-TOOL_RESULT_TAIL)}`
+}
+
+/**
+ * 会話履歴を圧縮: 直近 N 件は全文保持、それ以前はサマリー化
+ */
+function compactHistory(
+  messages: readonly BaseMessage[],
+): readonly BaseMessage[] {
+  if (messages.length <= RECENT_MESSAGES_FULL) {
+    return messages
+  }
+
+  const oldMessages = messages.slice(0, -RECENT_MESSAGES_FULL)
+  const recentMessages = messages.slice(-RECENT_MESSAGES_FULL)
+
+  // 古いメッセージをサマリーに圧縮
+  const summaryParts: string[] = []
+  for (const msg of oldMessages) {
+    const role =
+      msg instanceof HumanMessage
+        ? 'User'
+        : msg instanceof AIMessage
+          ? 'Assistant'
+          : msg instanceof ToolMessage
+            ? 'Tool'
+            : 'System'
+
+    const content =
+      typeof msg.content === 'string'
+        ? msg.content
+        : JSON.stringify(msg.content)
+
+    // ツール結果は短縮
+    if (msg instanceof ToolMessage) {
+      summaryParts.push(`[${role}]: ${trimToolResult(content)}`)
+    } else {
+      const truncated =
+        content.length > 200 ? `${content.slice(0, 200)}...` : content
+      summaryParts.push(`[${role}]: ${truncated}`)
+    }
+  }
+
+  const summaryMessage = new HumanMessage(
+    `[Previous conversation summary]:\n${summaryParts.join('\n')}`,
+  )
+
+  return [summaryMessage, ...recentMessages]
 }
 
 // ============================================================
@@ -103,18 +194,26 @@ async function loadMemory(
         return new HumanMessage(msg.content)
       }
       if (msg.role === 'tool') {
-        return new HumanMessage(`[Previous tool result]: ${msg.content}`)
+        // ツール結果をトリミングして復元
+        return new HumanMessage(
+          `[Previous tool result]: ${trimToolResult(msg.content)}`,
+        )
       }
       return new AIMessage(msg.content)
     })
 
+    // 会話履歴を圧縮
+    const compacted = compactHistory(historyMessages)
+
     // Prepend history before current messages (current user message is last)
     const currentMessages = state.messages
-    const allMessages = [...historyMessages, ...currentMessages]
+    const allMessages = [...compacted, ...currentMessages]
 
     return {
       memoryContext,
       messages: allMessages,
+      iterationCount: 0,
+      toolTracker: createToolTracker(),
     }
   } catch {
     return { memoryContext: '' }
@@ -134,8 +233,9 @@ async function agent(
   const tools = createTools(ctx)
   const modelWithTools = model.bindTools(tools)
 
+  const trackerSummary = buildExecutionSummary(state.toolTracker)
   const systemMessage = new SystemMessage(
-    buildSystemPrompt(state.memoryContext),
+    buildSystemPrompt(state.memoryContext, trackerSummary),
   )
 
   const response = await modelWithTools.invoke([
@@ -143,7 +243,10 @@ async function agent(
     ...state.messages,
   ])
 
-  return { messages: [response] }
+  return {
+    messages: [response],
+    iterationCount: state.iterationCount + 1,
+  }
 }
 
 // ============================================================
@@ -151,6 +254,11 @@ async function agent(
 // ============================================================
 
 function shouldContinue(state: AgentStateType): 'tools' | typeof END {
+  // ループ制限: MAX_ITERATIONS 到達で強制終了
+  if (state.iterationCount >= MAX_ITERATIONS) {
+    return END
+  }
+
   const lastMessage = state.messages[state.messages.length - 1]
 
   if (
@@ -166,7 +274,7 @@ function shouldContinue(state: AgentStateType): 'tools' | typeof END {
 }
 
 // ============================================================
-// Graph Builder
+// Tool Execution (with tracker integration)
 // ============================================================
 
 async function executeTools(
@@ -177,9 +285,25 @@ async function executeTools(
   const toolCalls = lastMessage.tool_calls ?? []
 
   const toolMap = new Map(tools.map((t) => [t.name, t]))
+  let tracker = state.toolTracker
 
   const toolMessages: ToolMessage[] = await Promise.all(
     toolCalls.map(async (tc) => {
+      const args = (tc.args ?? {}) as Record<string, unknown>
+
+      // 重複チェック: 同一ツール + 同一引数なら前回結果を返す
+      if (isDuplicate(tracker, tc.name, args)) {
+        const cached = getCachedResult(tracker, tc.name, args)
+        return new ToolMessage({
+          tool_call_id: tc.id ?? '',
+          content: cached
+            ? `[CACHED - already executed] ${cached}`
+            : JSON.stringify({
+                error: `Tool ${tc.name} was already called with the same arguments. Use the previous result.`,
+              }),
+        })
+      }
+
       const selectedTool = toolMap.get(tc.name)
       if (!selectedTool) {
         return new ToolMessage({
@@ -187,11 +311,18 @@ async function executeTools(
           content: JSON.stringify({ error: `Tool ${tc.name} not found` }),
         })
       }
+
       try {
         const result = await selectedTool.invoke(tc.args)
+        const resultStr =
+          typeof result === 'string' ? result : JSON.stringify(result)
+
+        // トラッカーに記録
+        tracker = recordExecution(tracker, tc.name, args, resultStr)
+
         return new ToolMessage({
           tool_call_id: tc.id ?? '',
-          content: typeof result === 'string' ? result : JSON.stringify(result),
+          content: resultStr,
         })
       } catch (error) {
         const message =
@@ -204,8 +335,15 @@ async function executeTools(
     }),
   )
 
-  return { messages: toolMessages }
+  return {
+    messages: toolMessages,
+    toolTracker: tracker,
+  }
 }
+
+// ============================================================
+// Graph Builder
+// ============================================================
 
 function buildAgentGraph() {
   return (ctx: AgentContext) => {
@@ -306,9 +444,19 @@ export async function runAgent(params: {
     slackThreadTs: params.slackThreadTs,
     role: 'assistant',
     content: responseText,
-    toolCalls: toolSummaries.length > 0
-      ? toolSummaries.map((s) => ({ summary: s }))
-      : undefined,
+    toolCalls:
+      toolSummaries.length > 0
+        ? toolSummaries.map((s) => ({ summary: s }))
+        : undefined,
+  })
+
+  // 会話コンパクション: 履歴が閾値を超えたらサマリー化 (best-effort)
+  compactConversationIfNeeded({
+    slackChannelId: params.slackChannelId,
+    slackUserId: params.slackUserId,
+    slackThreadTs: params.slackThreadTs,
+  }).catch(() => {
+    // コンパクション失敗は無視（レスポンスに影響させない）
   })
 
   return responseText

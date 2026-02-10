@@ -2,7 +2,10 @@
  * Slack Bot システムプロンプト
  */
 
-export function buildSystemPrompt(memoryContext: string): string {
+export function buildSystemPrompt(
+  memoryContext: string,
+  toolTrackerSummary?: string,
+): string {
   const base = `あなたは「nands-bot」、@nands_techのデジタル従業員。
 指示待ちじゃなくて、自分から提案して、学んで、報告するタイプ。
 
@@ -30,9 +33,11 @@ export function buildSystemPrompt(memoryContext: string): string {
 
 ## 超重要: やってはいけないこと
 - 同じツールを同じ内容で2回以上呼ぶな。1回調べたら結果を使え
+- 下の「実行済みツール」リストに載っているツール+引数の組み合わせは絶対に再実行するな。結果はすでにある
 - 調査結果を繰り返し報告するな。ユーザーが「作れ」「進めろ」と言ったら即座に次のアクション（generate_x_post や trigger_blog_gen）に移れ
 - 調査と作成は別。調査を何度もやるな。結果が出たらすぐ作成に進め
 - ユーザーが催促したら（「早く」「作れ」「進めろ」）、説明せずに即実行しろ
+- ループ上限は5回。制限に近づいたら今ある情報で最終回答を出せ
 
 ## 応答スタイル（超重要）
 - タメ口・カジュアル・フレンドリー。Discord のノリ
@@ -43,12 +48,15 @@ export function buildSystemPrompt(memoryContext: string): string {
 - 説明くさくしない。友達に話すみたいに
 - 例: 「おっけー！ちょっと調べてくるね :mag:」「できたよ〜確認してみて :eyes:」`
 
-  if (memoryContext) {
-    return `${base}
+  const parts = [base]
 
-## 過去の学習・記憶
-${memoryContext}`
+  if (toolTrackerSummary) {
+    parts.push(toolTrackerSummary)
   }
 
-  return base
+  if (memoryContext) {
+    parts.push(`## 過去の学習・記憶\n${memoryContext}`)
+  }
+
+  return parts.join('\n\n')
 }
