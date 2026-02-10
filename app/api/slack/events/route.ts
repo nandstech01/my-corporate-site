@@ -6,8 +6,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import * as crypto from 'crypto'
+import { ChatOpenAI } from '@langchain/openai'
 import { runAgent } from '@/lib/slack-bot/agent-graph'
-import { sendMessage } from '@/lib/slack-bot/slack-client'
+import { sendMessage, buildApprovalBlocks } from '@/lib/slack-bot/slack-client'
+import {
+  getPendingEditForThread,
+  resolvePendingAction,
+  createPendingAction,
+} from '@/lib/slack-bot/memory'
 import type { SlackEventPayload } from '@/lib/slack-bot/types'
 
 export const maxDuration = 60
@@ -50,15 +56,112 @@ function isAllowedUser(userId: string): boolean {
 }
 
 // ============================================================
+// Edit フロー処理
+// ============================================================
+
+async function processEditInstruction(
+  event: NonNullable<SlackEventPayload['event']>,
+  pendingAction: {
+    readonly id: string
+    readonly slack_channel_id: string
+    readonly slack_user_id: string
+    readonly slack_thread_ts: string | null
+    readonly payload: Record<string, unknown>
+    readonly action_type: string
+  },
+): Promise<void> {
+  const { text, channel, ts, thread_ts } = event
+  const originalText = (pendingAction.payload.text as string) ?? ''
+  const editInstruction = text
+
+  // LLMで編集
+  const model = new ChatOpenAI({
+    modelName: 'gpt-4o',
+    temperature: 0.7,
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+
+  const response = await model.invoke([
+    {
+      role: 'system',
+      content: `あなたはX (Twitter) 投稿の編集者。ユーザーの編集指示に従って投稿文を修正して。
+修正後の投稿文のみ出力して。説明は不要。280文字以内。`,
+    },
+    {
+      role: 'user',
+      content: `【元の投稿文】
+${originalText}
+
+【編集指示】
+${editInstruction}
+
+修正後の投稿文:`,
+    },
+  ])
+
+  const editedText =
+    typeof response.content === 'string'
+      ? response.content
+      : JSON.stringify(response.content)
+
+  // 元のアクションを rejected にする
+  await resolvePendingAction(pendingAction.id, 'rejected')
+
+  // 新しい pending action を作成
+  const isLong = pendingAction.action_type === 'post_x_long'
+  const newAction = await createPendingAction({
+    slackChannelId: channel,
+    slackUserId: pendingAction.slack_user_id,
+    slackThreadTs: thread_ts ?? ts,
+    actionType: isLong ? 'post_x_long' : 'post_x',
+    payload: { text: editedText, longForm: isLong },
+    previewText: editedText,
+  })
+
+  // 新しい承認ボタンを表示
+  const blocks = buildApprovalBlocks({
+    title: ':pencil: *Edited X Post Preview*',
+    previewText:
+      editedText.length > 500
+        ? `${editedText.slice(0, 500)}...`
+        : editedText,
+    actionId: newAction.id,
+    actionType: 'post',
+  })
+
+  await sendMessage({
+    channel,
+    text: `Edited post: ${editedText.slice(0, 100)}...`,
+    threadTs: thread_ts ?? ts,
+    blocks,
+  })
+}
+
+// ============================================================
 // バックグラウンド処理
 // ============================================================
 
-async function processSlackMessage(event: SlackEventPayload['event']) {
-  if (!event) return
-
+async function processSlackMessage(
+  event: NonNullable<SlackEventPayload['event']>,
+) {
   const { user, text, channel, ts, thread_ts } = event
 
   try {
+    // Edit フロー: このスレッドに編集待ちの pending action があるか確認
+    const threadTs = thread_ts ?? ts
+    if (threadTs) {
+      const pendingEdit = await getPendingEditForThread({
+        slackChannelId: channel,
+        slackThreadTs: threadTs,
+      })
+
+      if (pendingEdit) {
+        await processEditInstruction(event, pendingEdit)
+        return
+      }
+    }
+
+    // 通常フロー: エージェント実行
     const response = await runAgent({
       message: text,
       slackChannelId: channel,
@@ -147,7 +250,6 @@ export async function POST(request: NextRequest) {
   }
 
   // 6. 即座に ack → バックグラウンドでエージェント実行
-  // waitUntil はVercel環境でのみ利用可能。ローカルでは直接実行。
   const waitUntilFn = await import('@vercel/functions')
     .then((m) => m.waitUntil)
     .catch(() => null)
@@ -156,5 +258,7 @@ export async function POST(request: NextRequest) {
     waitUntilFn(processSlackMessage(event))
   } else {
     processSlackMessage(event).catch(() => {})
+  }
+
   return new Response('OK', { status: 200 })
 }

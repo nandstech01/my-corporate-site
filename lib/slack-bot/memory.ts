@@ -248,6 +248,73 @@ export async function recallMemories(params: {
 }
 
 // ============================================================
+// Edit フロー (pending action の編集リクエスト管理)
+// ============================================================
+
+/**
+ * pending action に editRequested フラグを立てる
+ */
+export async function markPendingActionForEdit(
+  actionId: string,
+): Promise<SlackPendingAction | null> {
+  const supabase = getSupabase()
+
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') return null
+
+  const updatedPayload = {
+    ...action.payload,
+    editRequested: true,
+  }
+
+  const { data, error } = await supabase
+    .from('slack_pending_actions')
+    .update({ payload: updatedPayload })
+    .eq('id', actionId)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to mark action for edit: ${error.message}`)
+  }
+
+  return data as SlackPendingAction
+}
+
+/**
+ * スレッドに紐づく編集待ちの pending action を取得
+ */
+export async function getPendingEditForThread(params: {
+  readonly slackChannelId: string
+  readonly slackThreadTs: string
+}): Promise<SlackPendingAction | null> {
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase
+    .from('slack_pending_actions')
+    .select('*')
+    .eq('slack_channel_id', params.slackChannelId)
+    .eq('slack_thread_ts', params.slackThreadTs)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  if (error) {
+    throw new Error(`Failed to get pending edit: ${error.message}`)
+  }
+
+  // editRequested フラグが立っているものを探す
+  const editAction = (data ?? []).find(
+    (a) =>
+      a.payload &&
+      typeof a.payload === 'object' &&
+      (a.payload as Record<string, unknown>).editRequested === true,
+  )
+
+  return (editAction as SlackPendingAction) ?? null
+}
+
+// ============================================================
 // 会話コンパクション (Phase 2)
 // ============================================================
 

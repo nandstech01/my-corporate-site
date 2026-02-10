@@ -267,7 +267,9 @@ async function generateCandidates(
 - ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
     : `- ${X_TWITTER_RULES}
 - ハッシュタグ2-3個含む
-- 280文字以内厳守`
+- 280文字以内厳守
+- URLを含める場合は、コンテンツ内のSource URLsに記載された実際のURLのみ使用すること
+- [URL]や{url}などのプレースホルダーは絶対に使うな。実際のURLがなければURLは省略しろ`
 
   const response = await model.invoke([
     {

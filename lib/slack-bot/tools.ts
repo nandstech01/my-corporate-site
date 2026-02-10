@@ -56,12 +56,20 @@ export function createTools(ctx: AgentContext) {
 
         if (input.topic) {
           const research = await researchTopicFn(input.topic)
+          // 検索結果のURLも含めて渡す（[URL]プレースホルダー防止）
+          const sourceUrls = research.searchResults
+            .filter((r) => r.url)
+            .map((r) => r.url)
           const content = [
             `Topic: ${input.topic}`,
             ...research.searchResults.map(
-              (r) => `- ${r.title}: ${r.description}`,
+              (r) =>
+                `- ${r.title}: ${r.description}${r.url ? ` (${r.url})` : ''}`,
             ),
             research.urlContent ? `URL Content: ${research.urlContent}` : '',
+            sourceUrls.length > 0
+              ? `\nSource URLs (投稿に含める場合はこれを使え。[URL]プレースホルダーは絶対に使うな): ${sourceUrls[0]}`
+              : '\n※参照URLなし。投稿にURLは含めるな。[URL]プレースホルダーも使うな。',
           ].join('\n')
 
           const result = await generateXPost({

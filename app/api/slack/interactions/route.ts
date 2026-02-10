@@ -11,6 +11,7 @@ import {
   resolvePendingAction,
   getPendingAction,
   savePostAnalytics,
+  markPendingActionForEdit,
 } from '@/lib/slack-bot/memory'
 import { sendMessage, updateMessage } from '@/lib/slack-bot/slack-client'
 import type { SlackInteractionPayload } from '@/lib/slack-bot/types'
@@ -252,13 +253,23 @@ export async function POST(request: NextRequest) {
       case 'reject_blog':
         await handleRejectPost(action.value, channel, threadTs)
         break
-      case 'edit_action':
-        await sendMessage({
-          channel,
-          text: ':pencil: Please send your edit instructions in this thread.',
-          threadTs,
-        })
+      case 'edit_action': {
+        const editResult = await markPendingActionForEdit(action.value)
+        if (editResult) {
+          await sendMessage({
+            channel,
+            text: ':pencil: 編集指示をこのスレッドに送ってね！例:「URLを削除して」「もっと短くして」',
+            threadTs,
+          })
+        } else {
+          await sendMessage({
+            channel,
+            text: ':warning: このアクションはもう処理済みだよ',
+            threadTs,
+          })
+        }
         break
+      }
       default:
         break
     }
