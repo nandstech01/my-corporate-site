@@ -51,6 +51,7 @@ export interface PostTweetResult {
  */
 export interface PostTweetOptions {
   longForm?: boolean; // Premium長文投稿（280文字制限スキップ）
+  mediaIds?: string[]; // メディアID (画像/動画)
 }
 
 /**
@@ -80,7 +81,11 @@ export async function postTweet(text: string, options?: PostTweetOptions): Promi
 
   try {
     const client = getTwitterClient();
-    const result = await client.v2.tweet(text);
+    const tweetParams: Record<string, unknown> = { text };
+    if (options?.mediaIds?.length) {
+      tweetParams.media = { media_ids: options.mediaIds };
+    }
+    const result = await client.v2.tweet(tweetParams);
 
     return {
       success: true,

@@ -65,10 +65,15 @@ async function handleApprovePost(
   }
 
   const resolved = await resolvePendingAction(actionId, 'approved')
-  const payload = resolved.payload as { text: string; longForm?: boolean }
+  const payload = resolved.payload as {
+    text: string
+    longForm?: boolean
+    mediaIds?: string[]
+  }
 
   const result = await postTweet(payload.text, {
     longForm: payload.longForm,
+    mediaIds: payload.mediaIds,
   })
 
   if (result.success) {

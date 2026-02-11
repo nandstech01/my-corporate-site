@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { tool } from '@langchain/core/tools'
 import { generateXPost } from '@/lib/x-post-generation/post-graph'
 import { postTweet } from '@/lib/x-api/client'
+import { fetchMediaForPost } from '@/lib/x-api/media'
 import {
   fetchArticle,
   researchTopic as researchTopicFn,
@@ -21,7 +22,7 @@ import {
   getPostAnalytics,
   savePostAnalytics,
 } from './memory'
-import { sendMessage, buildApprovalBlocks } from './slack-client'
+import { sendMessage, buildApprovalBlocks, uploadFile } from './slack-client'
 import type { AgentContext } from './types'
 
 // ============================================================
@@ -124,13 +125,51 @@ export function createTools(ctx: AgentContext) {
   const postToXTool = tool(
     async (input) => {
       try {
+        // メディア取得 (sourceUrl or topic があれば)
+        let mediaIds: string[] | undefined
+        let mediaInfo = ''
+        if (input.sourceUrl || input.topic) {
+          const media = await fetchMediaForPost({
+            sourceUrl: input.sourceUrl ?? '',
+            topic: input.topic,
+          })
+          if (media) {
+            // Slackにメディアファイルを送信 (ダウンロード用)
+            const ext = media.type === 'video' ? 'mp4' : media.mimeType.split('/')[1] ?? 'png'
+            try {
+              await uploadFile({
+                channelId: ctx.slackChannelId,
+                buffer: media.buffer,
+                filename: `x-post-media.${ext}`,
+                title: `X投稿用${media.type === 'video' ? '動画' : '画像'} (${media.source})`,
+                threadTs: ctx.slackThreadTs ?? undefined,
+                initialComment: `:frame_with_picture: X投稿用の${media.type === 'video' ? '動画' : '画像'}だよ！ダウンロードして手動で添付できるよ`,
+              })
+              mediaInfo = ` [${media.type === 'video' ? '動画' : '画像'}をSlackに送信済み]`
+            } catch (err) {
+              console.error('[post_to_x] Slack file upload failed:', err)
+            }
+
+            // X API への自動アップロードも試みる (成功すれば自動添付)
+            if (media.mediaId) {
+              mediaIds = [media.mediaId]
+              mediaInfo = ` [${media.type === 'video' ? '動画' : '画像'}自動添付予定]`
+              console.log(`[post_to_x] Media auto-attach: ${media.type} (${media.mediaId})`)
+            }
+          }
+        }
+
         const actionType = input.longForm ? 'post_x_long' : 'post_x'
         const action = await createPendingAction({
           slackChannelId: ctx.slackChannelId,
           slackUserId: ctx.slackUserId,
           slackThreadTs: ctx.slackThreadTs,
           actionType: actionType as 'post_x' | 'post_x_long',
-          payload: { text: input.text, longForm: input.longForm ?? false },
+          payload: {
+            text: input.text,
+            longForm: input.longForm ?? false,
+            ...(mediaIds && { mediaIds }),
+          },
           previewText: input.text,
         })
 
@@ -152,7 +191,7 @@ export function createTools(ctx: AgentContext) {
 
         return JSON.stringify({
           success: true,
-          message: 'Approval request sent. Waiting for user confirmation.',
+          message: `Approval request sent.${mediaInfo} Waiting for user confirmation.`,
           actionId: action.id,
         })
       } catch (error) {
@@ -172,6 +211,14 @@ export function createTools(ctx: AgentContext) {
           .optional()
           .default(false)
           .describe('長文投稿モード（280文字以上）'),
+        sourceUrl: z
+          .string()
+          .optional()
+          .describe('メディア取得元の記事URL。画像/動画が自動添付される'),
+        topic: z
+          .string()
+          .optional()
+          .describe('動画検索用のトピック。Brave Video Searchで関連動画を探す'),
       }),
     },
   )

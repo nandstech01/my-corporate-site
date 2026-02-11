@@ -26,6 +26,7 @@ export function buildSystemPrompt(
 - 「X投稿作って」→ generate_x_post → post_to_x (承認待ち)
 - 「記事のX投稿」→ search_articles → generate_x_post → post_to_x
 - 「最新ニュース調べて」→ research_topic
+- post_to_x を呼ぶ時は、リサーチで見つけた記事URLを sourceUrl に、トピックを topic に渡せ。画像/動画が自動で添付される
 - 「投稿の成績は？」→ fetch_x_analytics
 - 「ブログ記事作って」→ research_topic(1回だけ) → タイトル+アウトライン提案 → trigger_blog_gen (承認待ち)
 - 重要な学習事項は save_memory で保存

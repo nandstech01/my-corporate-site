@@ -195,6 +195,77 @@ export async function fetchUrlContent(url: string): Promise<string> {
   return text.slice(0, 3000)
 }
 
+// ============================================================
+// Brave Search: 動画検索
+// ============================================================
+
+export interface BraveVideoResult {
+  title: string
+  url: string
+  thumbnailUrl: string
+  videoUrl: string
+}
+
+export async function searchBraveVideos(
+  query: string,
+): Promise<BraveVideoResult[]> {
+  const apiKey = process.env.BRAVE_API_KEY
+  if (!apiKey) {
+    throw new Error('BRAVE_API_KEY is required for video search')
+  }
+
+  const params = new URLSearchParams({
+    q: query,
+    count: '5',
+    result_filter: 'videos',
+  })
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+
+  let response: Response
+  try {
+    response = await fetch(
+      `https://api.search.brave.com/res/v1/web/search?${params}`,
+      {
+        headers: {
+          Accept: 'application/json',
+          'X-Subscription-Token': apiKey,
+        },
+        signal: controller.signal,
+      },
+    )
+  } finally {
+    clearTimeout(timeout)
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Brave Video Search API error: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  const data = await response.json()
+
+  interface BraveVideoRaw {
+    title?: string
+    url?: string
+    thumbnail?: { src?: string }
+    video?: { url?: string }
+  }
+
+  const videos: BraveVideoResult[] = (data.videos?.results ?? [])
+    .slice(0, 5)
+    .map((r: BraveVideoRaw) => ({
+      title: r.title ?? '',
+      url: r.url ?? '',
+      thumbnailUrl: r.thumbnail?.src ?? '',
+      videoUrl: r.video?.url ?? '',
+    }))
+
+  return videos
+}
+
 export async function researchTopic(
   topic: string,
   url?: string,

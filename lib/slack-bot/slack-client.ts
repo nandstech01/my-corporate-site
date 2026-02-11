@@ -64,6 +64,32 @@ export async function updateMessage(params: {
 }
 
 // ============================================================
+// ファイルアップロード
+// ============================================================
+
+export async function uploadFile(params: {
+  readonly channelId: string
+  readonly buffer: Buffer
+  readonly filename: string
+  readonly title?: string
+  readonly threadTs?: string
+  readonly initialComment?: string
+}): Promise<string | undefined> {
+  const client = getSlackClient()
+
+  const result = await client.filesUploadV2({
+    channel_id: params.channelId,
+    file: params.buffer,
+    filename: params.filename,
+    title: params.title,
+    thread_ts: params.threadTs,
+    initial_comment: params.initialComment,
+  })
+
+  return result.file?.id
+}
+
+// ============================================================
 // Block Kit ビルダー
 // ============================================================
 
