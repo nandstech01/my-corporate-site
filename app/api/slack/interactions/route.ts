@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import * as crypto from 'crypto'
-import { postTweet } from '@/lib/x-api/client'
+import { postTweet, replyToTweet } from '@/lib/x-api/client'
 import {
   resolvePendingAction,
   getPendingAction,
@@ -69,6 +69,7 @@ async function handleApprovePost(
     text: string
     longForm?: boolean
     mediaIds?: string[]
+    sourceUrl?: string
   }
 
   const result = await postTweet(payload.text, {
@@ -85,9 +86,25 @@ async function handleApprovePost(
       postMode: resolved.action_type === 'post_x_long' ? 'article' : 'research',
     })
 
+    // ソースURLがあればリプライで自動投稿
+    let replyInfo = ''
+    if (payload.sourceUrl && result.tweetId) {
+      try {
+        const replyResult = await replyToTweet(payload.sourceUrl, result.tweetId)
+        if (replyResult.success) {
+          replyInfo = `\n:link: Source URL reply: ${replyResult.tweetUrl}`
+        } else {
+          replyInfo = `\n:warning: Source URL reply failed: ${replyResult.error}`
+        }
+      } catch (replyError) {
+        const replyMessage = replyError instanceof Error ? replyError.message : 'Unknown error'
+        replyInfo = `\n:warning: Source URL reply failed: ${replyMessage}`
+      }
+    }
+
     await sendMessage({
       channel,
-      text: `:white_check_mark: Posted to X!\n${result.tweetUrl}`,
+      text: `:white_check_mark: Posted to X!\n${result.tweetUrl}${replyInfo}`,
       threadTs,
     })
   } else {
