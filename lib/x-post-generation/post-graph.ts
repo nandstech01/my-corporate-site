@@ -14,8 +14,6 @@ import { ChatOpenAI } from '@langchain/openai'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import {
   patternTemplates,
-  TONE_GUIDELINES,
-  type PatternTemplate,
 } from './pattern-templates'
 import { TagGenerator } from './tag-generator'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
@@ -140,15 +138,6 @@ function createModel(temperature = 0.3) {
   })
 }
 
-function formatToneGuidelines(): string {
-  return [
-    '【口調ガイドライン】',
-    `推奨表現: ${TONE_GUIDELINES.good_expressions.join('、')}`,
-    `避ける表現: ${TONE_GUIDELINES.avoid_expressions.join('、')}`,
-    `基本方針: ${TONE_GUIDELINES.principles.join('、')}`,
-  ].join('\n')
-}
-
 // ============================================================
 // ノード1: analyzeContent
 // ============================================================
@@ -246,10 +235,6 @@ async function generateCandidates(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
   const model = createModel(0.8)
-  const toneText = formatToneGuidelines()
-  const pattern = patternTemplates.find(
-    (p) => p.id === state.selectedPatternId,
-  ) as PatternTemplate
 
   const isArticle = state.mode === 'article'
 
@@ -263,37 +248,20 @@ async function generateCandidates(
 - 構成: 自分の経験から入る → 記事のポイントを実務家視点で解説 → 問いかけで締める
 - ハッシュタグ0-1個
 - ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
-    : `- ${X_TWITTER_RULES}
-- ハッシュタグ0-1個（入れなくてよい）
-- 280文字以内厳守
-- URLは絶対に本文に含めるな（リプライで自動投稿される）
-- [URL]や{url}などのプレースホルダーは絶対に使うな
-- 「〜を発表」「詳細は👉」で始めるな。実務家の独自視点で語れ
-- 超重要: 下記コンテンツに書かれている実際のニュース・事実を必ず踏まえて書け
-- 架空の体験談や存在しないエピソードを捏造するな
-- コンテンツに含まれる具体的な技術名・企業名・数字を使え
-- 「このニュースを見て思ったこと」「実務で使う立場から見ると」のように、実際のニュースに対する実務家のリアクションとして書け`
+    : `- 280文字以内厳守
+- URLは入れるな
+- [URL]や{url}プレースホルダー禁止`
 
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech本人として投稿を書く。AI実装者・RAG設計者・経営者。
-以下のパターンに従い、${charConstraint}を3候補作成してください。
+      content: `あなたは@nands_tech。以下のルールに従い、${charConstraint}を3候補作成。
 
-超重要ルール:
-- 与えられたコンテンツ（ニュース・調査結果）の内容を必ず反映させること
-- 架空の個人体験を捏造するな。「うちの環境では〜」のような嘘は禁止
-- 実際のニュース内容に対して、実務家としてどう思うか・どう影響するかを語れ
-- コンテンツに含まれる具体的な事実（技術名、企業名、数字）を必ず1つ以上含めろ
+${X_TWITTER_RULES}
 
-パターン: ${pattern.name} - ${pattern.description}
-
-要件:
 ${modeInstructions}
 
-${toneText}
-
-3候補を「---」で区切って出力してください。候補のみ出力し、説明は不要です。`,
+3候補を「---」で区切って出力。候補のみ、説明不要。`,
     },
     {
       role: 'user' as const,

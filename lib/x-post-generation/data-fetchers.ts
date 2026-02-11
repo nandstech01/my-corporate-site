@@ -127,7 +127,7 @@ export async function searchBrave(query: string): Promise<SearchResult[]> {
 
   const data = await response.json()
   const results: SearchResult[] = (data.web?.results || [])
-    .slice(0, 5)
+    .slice(0, 10)
     .map((r: { title: string; description: string; url: string }) => ({
       title: r.title,
       description: r.description,
@@ -266,12 +266,68 @@ export async function searchBraveVideos(
   return videos
 }
 
+// ============================================================
+// 公式ソース優先 + 重複除去
+// ============================================================
+
+const PRIORITY_DOMAINS = [
+  'openai.com',
+  'anthropic.com',
+  'blog.google',
+  'x.com',
+  'github.com',
+  'huggingface.co',
+]
+
+function deduplicateAndPrioritize(
+  results: SearchResult[],
+): SearchResult[] {
+  // 重複URL除去
+  const seen = new Set<string>()
+  const unique = results.filter((r) => {
+    if (seen.has(r.url)) return false
+    seen.add(r.url)
+    return true
+  })
+
+  // 公式ソースを上位にソート（安定ソート）
+  const prioritized = [...unique].sort((a, b) => {
+    const aIsPriority = PRIORITY_DOMAINS.some((d) => a.url.includes(d))
+    const bIsPriority = PRIORITY_DOMAINS.some((d) => b.url.includes(d))
+    if (aIsPriority && !bIsPriority) return -1
+    if (!aIsPriority && bIsPriority) return 1
+    return 0
+  })
+
+  return prioritized.slice(0, 10)
+}
+
+// ============================================================
+// リサーチ（複数クエリ並列実行）
+// ============================================================
+
 export async function researchTopic(
   topic: string,
   url?: string,
 ): Promise<ResearchData> {
-  const searchResults = topic ? await searchBrave(topic) : []
-  const urlContent = url ? await fetchUrlContent(url) : null
+  if (!topic) {
+    const urlContent = url ? await fetchUrlContent(url) : null
+    return { topic: url || '', searchResults: [], urlContent }
+  }
 
-  return { topic: topic || url || '', searchResults, urlContent }
+  // 3つのクエリを並列実行
+  const queries = [
+    topic,
+    `${topic} site:openai.com OR site:anthropic.com OR site:blog.google OR site:x.com`,
+    `${topic} AI latest news`,
+  ]
+
+  const allResults = await Promise.all(
+    queries.map((q) => searchBrave(q).catch(() => [])),
+  )
+
+  const merged = deduplicateAndPrioritize(allResults.flat())
+
+  const urlContent = url ? await fetchUrlContent(url) : null
+  return { topic, searchResults: merged, urlContent }
 }

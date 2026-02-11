@@ -104,11 +104,12 @@ export const patternTemplates: PatternTemplate[] = [
 export const TONE_GUIDELINES = {
   // 推奨表現
   good_expressions: [
-    '実際に試してみたら',
-    'うちの環境では',
+    '結構使いやすい',
+    '面白い事例',
+    'これは便利そう',
+    '応用できそう',
     '設計判断として',
     '皆さんのチームでは？',
-    '運用してみて分かったけど',
     '同じ経験した人いる？',
     'ここが意外だった',
     'トレードオフとして'
