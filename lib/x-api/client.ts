@@ -59,6 +59,62 @@ export interface PostTweetOptions {
  * @param text 投稿テキスト
  * @param options 投稿オプション（省略時は280文字制限）
  */
+/**
+ * ツイートにリプライする
+ * @param text リプライテキスト
+ * @param inReplyToTweetId リプライ先のツイートID
+ */
+export async function replyToTweet(
+  text: string,
+  inReplyToTweetId: string,
+): Promise<PostTweetResult> {
+  if (!text || text.trim().length === 0) {
+    return {
+      success: false,
+      error: 'リプライテキストが空です',
+    };
+  }
+
+  try {
+    const client = getTwitterClient();
+    const result = await client.v2.reply(text, inReplyToTweetId);
+
+    return {
+      success: true,
+      tweetId: result.data.id,
+      tweetUrl: `https://twitter.com/i/web/status/${result.data.id}`,
+    };
+  } catch (error) {
+    console.error('Twitter API Reply Error:', error);
+
+    let errorMessage = 'リプライの投稿に失敗しました';
+
+    if (error instanceof Error) {
+      if (error.message.includes('duplicate')) {
+        errorMessage = '同一内容のリプライが既に存在します';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage = 'レート制限に達しました。しばらく待ってから再試行してください';
+      } else if (error.message.includes('401') || error.message.includes('authentication')) {
+        errorMessage = '認証エラー: API認証情報を確認してください';
+      } else if (error.message.includes('403')) {
+        errorMessage = 'アクセス権限エラー: アプリの権限設定を確認してください';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Xに投稿する
+ * @param text 投稿テキスト
+ * @param options 投稿オプション（省略時は280文字制限）
+ */
 export async function postTweet(text: string, options?: PostTweetOptions): Promise<PostTweetResult> {
   // テキストの検証
   if (!text || text.trim().length === 0) {

@@ -169,6 +169,7 @@ export function createTools(ctx: AgentContext) {
             text: input.text,
             longForm: input.longForm ?? false,
             ...(mediaIds && { mediaIds }),
+            ...(input.sourceUrl && { sourceUrl: input.sourceUrl }),
           },
           previewText: input.text,
         })

@@ -33,9 +33,9 @@ export interface ContentAnalysis {
 
 export interface CandidateScore {
   index: number
-  engagement: number
+  practitionerVoice: number
   accuracy: number
-  toneConsistency: number
+  discussionPotential: number
   lengthFit: number
   originality: number
   total: number
@@ -165,7 +165,7 @@ async function analyzeContent(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはSNSマーケティングの専門家です。
+      content: `あなたは@nands_techのAI実装者の視点を持つ投稿設計者です。
 与えられたコンテンツを分析し、以下のJSON形式で結果を返してください。
 
 利用可能なパターンID:
@@ -174,7 +174,7 @@ ${patternList}
 JSONのみ出力してください:
 {
   "keywords": ["キーワード1", "キーワード2", ...],
-  "tone": "推奨トーン（専門的/カジュアル/速報的/分析的）",
+  "tone": "推奨トーン（実装者目線/設計者目線/経営者目線/探究者目線）",
   "recommendedPatternId": "最適なパターンID",
   "summary": "コンテンツの30文字要約"
 }`,
@@ -197,8 +197,8 @@ JSONのみ出力してください:
 
   const ContentAnalysisSchema = z.object({
     keywords: z.array(z.string()).default([]),
-    tone: z.string().default('専門的'),
-    recommendedPatternId: z.string().default('breaking_insight'),
+    tone: z.string().default('実装者目線'),
+    recommendedPatternId: z.string().default('practitioner_take'),
     summary: z.string().default(''),
   })
 
@@ -219,17 +219,17 @@ JSONのみ出力してください:
 // ============================================================
 
 function selectPattern(state: GraphStateType): Partial<GraphStateType> {
-  const recommendedId = state.analysis?.recommendedPatternId ?? 'breaking_insight'
+  const recommendedId = state.analysis?.recommendedPatternId ?? 'practitioner_take'
   const matched = patternTemplates.find((p) => p.id === recommendedId)
-  const selectedId = matched ? recommendedId : 'breaking_insight'
+  const selectedId = matched ? recommendedId : 'practitioner_take'
 
-  // TagGeneratorでハッシュタグ生成
+  // TagGeneratorでハッシュタグ生成（0-1個）
   const tagGenerator = new TagGenerator()
   const tagResult = tagGenerator.generateTags({
     patternId: selectedId,
     content: state.content.slice(0, 1000),
     ragSources: [],
-    maxTags: 3,
+    maxTags: 1,
   })
 
   return {
@@ -252,29 +252,28 @@ async function generateCandidates(
   ) as PatternTemplate
 
   const isArticle = state.mode === 'article'
-  const articleUrl = state.slug
-    ? `https://nands.tech/posts/${state.slug}`
-    : ''
 
   const charConstraint = isArticle
     ? '1000-2000文字の長文投稿'
     : '280文字以内の投稿'
 
   const modeInstructions = isArticle
-    ? `- 記事URL: ${articleUrl} を必ず含めること
-- 構成: 衝撃的な導入 → 3-5つの重要ポイント → 実務への示唆 → 記事リンク
-- ハッシュタグ2-3個
+    ? `- 記事の内容を実務家視点で語る長文投稿を作成
+- URLは本文に含めないこと（リプライで自動投稿される）
+- 構成: 自分の経験から入る → 記事のポイントを実務家視点で解説 → 問いかけで締める
+- ハッシュタグ0-1個
 - ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
     : `- ${X_TWITTER_RULES}
-- ハッシュタグ2-3個含む
+- ハッシュタグ0-1個（入れなくてよい）
 - 280文字以内厳守
-- URLを含める場合は、コンテンツ内のSource URLsに記載された実際のURLのみ使用すること
-- [URL]や{url}などのプレースホルダーは絶対に使うな。実際のURLがなければURLは省略しろ`
+- URLは絶対に本文に含めるな（リプライで自動投稿される）
+- [URL]や{url}などのプレースホルダーは絶対に使うな
+- 「〜を発表」「詳細は👉」で始めるな。実務家の独自視点で語れ`
 
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはAI技術に精通した@nands_techのテックライターです。
+      content: `あなたは@nands_tech本人として投稿を書く。AI実装者・RAG設計者・経営者。
 以下のパターンに従い、${charConstraint}を3候補作成してください。
 
 パターン: ${pattern.name} - ${pattern.description}
@@ -334,19 +333,19 @@ async function scoreCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはSNS投稿の品質評価の専門家です。
+      content: `あなたはX投稿の品質評価者です。@nands_tech（AI実務家）の投稿として適切か評価してください。
 以下の候補を5基準で評価してください。各0-10点。
 
 基準:
-1. engagement: エンゲージメント獲得力
+1. practitionerVoice: 実務家の声として自然か（URLが本文内にある → -5点、ニュース口調「〜を発表」→ 0点）
 2. accuracy: 情報の正確性
-3. toneConsistency: 口調の統一感（落ち着いた専門家風）
+3. discussionPotential: 議論を生む力（問いかけなし → 低スコア）
 4. lengthFit: 文字数適合度（目標: ${targetLength}）
-5. originality: 独自の視点・切り口
+5. originality: 独自の視点・切り口（ハッシュタグ2個以上 → -3点、煽り表現「ヤバい」「致命的」「🚨🔥」→ -5点）
 
 JSON配列のみ出力:
 [
-  {"index":0,"engagement":8,"accuracy":9,"toneConsistency":7,"lengthFit":9,"originality":8,"total":41},
+  {"index":0,"practitionerVoice":8,"accuracy":9,"discussionPotential":7,"lengthFit":9,"originality":8,"total":41},
   ...
 ]`,
     },
@@ -366,9 +365,9 @@ JSON配列のみ出力:
     // フォールバック: 最初の候補を選定
     const fallbackScores: CandidateScore[] = state.candidates.map((_, i) => ({
       index: i,
-      engagement: 5,
+      practitionerVoice: 5,
       accuracy: 5,
-      toneConsistency: 5,
+      discussionPotential: 5,
       lengthFit: 5,
       originality: 5,
       total: 25,
@@ -383,9 +382,9 @@ JSON配列のみ出力:
   const CandidateScoreSchema = z.array(
     z.object({
       index: z.number(),
-      engagement: z.number().default(5),
+      practitionerVoice: z.number().default(5),
       accuracy: z.number().default(5),
-      toneConsistency: z.number().default(5),
+      discussionPotential: z.number().default(5),
       lengthFit: z.number().default(5),
       originality: z.number().default(5),
       total: z.number().default(25),
@@ -421,24 +420,24 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
   const bestCandidate =
     state.candidates[bestIndex] ?? state.candidates[0]
 
-  // タグ付与
-  const tagsText = state.generatedTags.join(' ')
-  const hasTagsInCandidate = state.generatedTags.some((tag) =>
-    bestCandidate.includes(tag),
-  )
+  // タグ付与（0-1個のみ）
+  const tag = state.generatedTags[0]
+  const hasTagInCandidate = tag
+    ? bestCandidate.includes(tag)
+    : true
 
-  const withTags =
-    !hasTagsInCandidate && tagsText
-      ? `${bestCandidate}\n\n${tagsText}`
+  const withTag =
+    !hasTagInCandidate && tag
+      ? `${bestCandidate}\n\n${tag}`
       : bestCandidate
 
   // 文字数最終チェック（researchモードのみ）
   const finalPost =
-    state.mode === 'research' && withTags.length > 280
+    state.mode === 'research' && withTag.length > 280
       ? bestCandidate.length <= 280
         ? bestCandidate
-        : withTags.slice(0, 277) + '...'
-      : withTags
+        : withTag.slice(0, 277) + '...'
+      : withTag
 
   return { finalPost }
 }
@@ -516,7 +515,7 @@ export async function generateXPost(
 
   return {
     finalPost: result.finalPost,
-    patternUsed: result.selectedPatternId ?? 'breaking_insight',
+    patternUsed: result.selectedPatternId ?? 'practitioner_take',
     tags: result.generatedTags,
     scores: result.scores,
     allCandidates: result.candidates,

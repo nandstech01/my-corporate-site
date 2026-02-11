@@ -1,5 +1,5 @@
 /**
- * X投稿生成テンプレート（引用機能強化版）
+ * X投稿生成テンプレート（実務家ペルソナ版）
  */
 
 export interface PatternTemplate {
@@ -15,162 +15,87 @@ export interface PatternTemplate {
 
 export const patternTemplates: PatternTemplate[] = [
   {
-    id: 'breaking_insight',
-    name: '🔥 速報インサイト',
-    description: 'X引用を含む最新ニュースの独自分析',
-    template: `🔥速報インサイト：{industry}で重要な動きが発生！
+    id: 'practitioner_take',
+    name: '実務家の視点',
+    description: 'ニュースを自分の実装経験から語る',
+    template: `{practitioner_context}
 
-📊 注目すべき事実：
-{important_fact}
+{insight_from_experience}
 
-💡 これが業界に与える影響：
-{analysis}
-
-🎯 実務への応用ポイント：
-・{practical_point_1}
-・{practical_point_2}
-
-引用元：{url}
-
-#AI動向 #最新情報 {hashtags}`,
-    category: 'news',
+{question_to_readers}`,
+    category: 'perspective',
     dataSources: ['trend', 'company', 'x_post'],
-    features: ['引用優先', '分析強化', '実用性重視'],
+    features: ['実装経験ベース', '独自視点', '問いかけ'],
     generateDiagram: false
   },
   {
-    id: 'data_analysis',
-    name: '📈 データ分析投稿',
-    description: 'URL引用付きデータ分析とトレンド解説',
-    template: `📈 驚きの数字が判明！
+    id: 'build_log',
+    name: '実装メモ',
+    description: '実際に作って/運用して気づいたこと',
+    template: `{what_i_built}
 
-🔸 {shocking_number}
+{surprising_finding}
 
-🎯 注目ポイント：
-• {insight_1}
-• {insight_2}  
-• {insight_3}
+{lesson_learned}`,
+    category: 'engineering',
+    dataSources: ['company', 'trend'],
+    features: ['実装体験', '発見共有', '学び'],
+    generateDiagram: false
+  },
+  {
+    id: 'design_decision',
+    name: '設計判断',
+    description: 'なぜXを選んだか、トレードオフ',
+    template: `{decision_context}
 
-引用元：{url}
+{tradeoff_analysis}
 
-#データ分析 #トレンド {hashtags}`,
+{what_would_you_choose}`,
+    category: 'architecture',
+    dataSources: ['company', 'trend'],
+    features: ['設計思考', 'トレードオフ', '選択の背景'],
+    generateDiagram: false
+  },
+  {
+    id: 'contrarian_view',
+    name: '逆張り考察',
+    description: '通説と異なる実務の観察',
+    template: `{common_belief}
+
+{contrarian_observation}
+
+{open_question}`,
     category: 'analysis',
     dataSources: ['trend', 'company'],
-    features: ['URL引用', '詳細分析'],
+    features: ['通説への疑問', '実務からの反証', '議論喚起'],
     generateDiagram: false
   },
   {
-    id: 'tech_explanation',
-    name: '⚡ 技術解説',
-    description: '技術的内容の分かりやすい解説',
-    template: `⚡ {tech_theme}を理解する
+    id: 'question_thread',
+    name: '問いかけ',
+    description: '読者に議論を投げかける',
+    template: `{context_setting}
 
-押さえておきたいポイント：
-✓ {point_1}
-✓ {point_2}
-✓ {point_3}
+{core_question}
 
-詳しい解説 👉 {url}
-
-{hashtags}`,
-    category: 'technical',
-    dataSources: ['youtube', 'company'],
-    features: ['技術解説', 'わかりやすさ'],
-    generateDiagram: true
-  },
-  {
-    id: 'company_comparison',
-    name: '🏢 企業比較',
-    description: '競合他社との比較分析',
-    template: `🏢 {industry}の動向比較
-
-各社のアプローチの違い：
-{company_a}: {feature_a}
-{company_b}: {feature_b}
-{company_c}: {feature_c}
-
-比較詳細 👉 {url}
-
-{hashtags}`,
-    category: 'analysis',
-    dataSources: ['trend', 'company'],
-    features: ['比較分析', '業界動向'],
-    generateDiagram: true
-  },
-  {
-    id: 'use_case',
-    name: '💡 活用事例',
-    description: '実際の活用事例の紹介',
-    template: `💡 {technology}の実際の活用シーン
-
-実用例から見えてくるもの：
-📌 {use_case_1}
-📌 {use_case_2}
-📌 {use_case_3}
-
-事例詳細 👉 {url}
-
-{hashtags}`,
-    category: 'practical',
-    dataSources: ['youtube', 'company'],
-    features: ['実例紹介', '実用性'],
+{my_current_thinking}`,
+    category: 'discussion',
+    dataSources: ['trend', 'company', 'x_post'],
+    features: ['議論喚起', '読者参加', '思考共有'],
     generateDiagram: false
   },
   {
-    id: 'trend_forecast',
-    name: '🔮 トレンド予測',
-    description: '将来展望の分析・予測',
-    template: `🔮 {tech_field}の向かう先
+    id: 'future_bet',
+    name: '未来予測',
+    description: '現状シグナルからの予測',
+    template: `{current_signal}
 
-現在の兆候から読み取れること：
-→ {prediction_1}
-→ {prediction_2}
-→ {prediction_3}
+{prediction_and_reasoning}
 
-根拠となるデータ 👉 {url}
-
-{hashtags}`,
+{what_are_you_betting_on}`,
     category: 'forecast',
-    dataSources: ['trend', 'youtube', 'company'],
-    features: ['将来予測', 'データ根拠'],
-    generateDiagram: false
-  },
-  {
-    id: 'question_answer',
-    name: '🔍 疑問解決',
-    description: 'Q&A形式での疑問解決',
-    template: `🔍 よくある疑問
-
-Q: {question}
-A: {answer}
-
-理由：{reasoning}
-
-より詳しく 👉 {url}
-
-{hashtags}`,
-    category: 'qa',
-    dataSources: ['company', 'youtube'],
-    features: ['Q&A形式', '疑問解決'],
-    generateDiagram: false
-  },
-  {
-    id: 'learning_guide',
-    name: '🎓 学習ガイド',
-    description: '学習プロセスのガイド',
-    template: `🎓 {technology}を学ぶなら
-
-ステップバイステップで：
-1. {step_1}
-2. {step_2}
-3. {step_3}
-
-学習リソース 👉 {url}
-
-{hashtags}`,
-    category: 'education',
-    dataSources: ['youtube', 'company'],
-    features: ['学習支援', 'ステップ解説'],
+    dataSources: ['trend', 'company'],
+    features: ['シグナル分析', '予測', '賭け'],
     generateDiagram: false
   }
 ];
@@ -179,16 +104,16 @@ A: {answer}
 export const TONE_GUIDELINES = {
   // 推奨表現
   good_expressions: [
-    '注目すべき動きが',
-    'これが持つ意味',
-    '実態を見ると',
-    '押さえておきたいポイント',
-    '見えてくるもの',
-    'よくある疑問',
-    '実用例から分かること',
-    '現在の兆候から読み取れること'
+    '実際に試してみたら',
+    'うちの環境では',
+    '設計判断として',
+    '皆さんのチームでは？',
+    '運用してみて分かったけど',
+    '同じ経験した人いる？',
+    'ここが意外だった',
+    'トレードオフとして'
   ],
-  
+
   // 避ける表現
   avoid_expressions: [
     'すごい！',
@@ -198,47 +123,28 @@ export const TONE_GUIDELINES = {
     '革命的',
     '世界が変わる',
     '信じられない',
-    '驚愕の'
+    '驚愕の',
+    '〜を発表',
+    '〜がリリース',
+    '詳細は👉',
+    '知らないと損',
+    '致命的',
+    '今すぐ確認'
   ],
-  
+
   // 基本方針
   principles: [
-    '控えめながら印象的',
-    '専門性を感じさせる',
-    '親しみやすい距離感',
-    '全パターンで統一感'
+    '実務家の思考共有',
+    '教えるのではなく同じ立場から語る',
+    '断定より問いかけ',
+    'ハッシュタグ0-1個'
   ]
 };
 
-// タグ生成用カテゴリ
+// タグ生成用カテゴリ（最小化）
 export const TAG_CATEGORIES = {
-  primary: [
-    '#AI動向',
-    '#技術解説',
-    '#データ分析',
-    '#トレンド分析',
-    '#企業比較',
-    '#活用事例',
-    '#学習ガイド',
-    '#疑問解決'
-  ],
-  secondary: [
-    '#実用性',
-    '#理解促進',
-    '#実態解明',
-    '#未来予測',
-    '#業界分析',
-    '#スキルアップ'
-  ],
-  trending: [
-    '#AI2025',
-    '#テクノロジー',
-    '#イノベーション',
-    '#DX',
-    '#最新技術'
-  ],
-  company: [
-    '#エヌアンドエス',
-    '#nands_tech'
-  ]
-}; 
+  primary: ['#AI', '#LLM', '#RAG'],
+  secondary: [],
+  trending: [],
+  company: []
+};
