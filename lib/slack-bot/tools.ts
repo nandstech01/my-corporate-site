@@ -84,6 +84,8 @@ export function createTools(ctx: AgentContext) {
             pattern: result.patternUsed,
             candidates: result.allCandidates,
             scores: result.scores,
+            sourceUrl: sourceUrls[0] ?? null,
+            searchResultUrls: sourceUrls.slice(0, 5),
           })
         }
 
@@ -128,10 +130,11 @@ export function createTools(ctx: AgentContext) {
         // メディア取得 (sourceUrl or topic があれば)
         let mediaIds: string[] | undefined
         let mediaInfo = ''
-        if (input.sourceUrl || input.topic) {
+        if (input.sourceUrl || input.topic || input.searchResultUrls?.length) {
           const media = await fetchMediaForPost({
             sourceUrl: input.sourceUrl ?? '',
             topic: input.topic,
+            searchResultUrls: input.searchResultUrls,
           })
           if (media) {
             // Slackにメディアファイルを送信 (ダウンロード用)
@@ -220,6 +223,10 @@ export function createTools(ctx: AgentContext) {
           .string()
           .optional()
           .describe('動画検索用のトピック。Brave Video Searchで関連動画を探す'),
+        searchResultUrls: z
+          .array(z.string())
+          .optional()
+          .describe('検索結果の記事URLリスト。og:imageを順に試して高解像度画像を取得する'),
       }),
     },
   )

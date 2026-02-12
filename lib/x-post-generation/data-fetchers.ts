@@ -88,7 +88,10 @@ export async function fetchArticle(slug: string): Promise<Article> {
 // Brave Search: 最新情報収集
 // ============================================================
 
-export async function searchBrave(query: string): Promise<SearchResult[]> {
+export async function searchBrave(
+  query: string,
+  options?: { freshness?: string },
+): Promise<SearchResult[]> {
   const apiKey = process.env.BRAVE_API_KEY
   if (!apiKey) {
     throw new Error('BRAVE_API_KEY is required for research mode')
@@ -97,7 +100,7 @@ export async function searchBrave(query: string): Promise<SearchResult[]> {
   const params = new URLSearchParams({
     q: query,
     count: '10',
-    freshness: 'pw',
+    ...(options?.freshness && { freshness: options.freshness }),
   })
 
   const controller = new AbortController()
@@ -315,16 +318,15 @@ export async function researchTopic(
     return { topic: url || '', searchResults: [], urlContent }
   }
 
-  // 3つのクエリを並列実行
-  const queries = [
-    topic,
-    `${topic} site:openai.com OR site:anthropic.com OR site:blog.google OR site:x.com`,
-    `${topic} AI latest news`,
-  ]
-
-  const allResults = await Promise.all(
-    queries.map((q) => searchBrave(q).catch(() => [])),
-  )
+  // 3つのクエリを並列実行（クエリ1,2は今日、クエリ3はフォールバック）
+  const allResults = await Promise.all([
+    searchBrave(topic, { freshness: 'pd' }).catch(() => []),
+    searchBrave(
+      `${topic} site:openai.com OR site:anthropic.com OR site:blog.google OR site:x.com`,
+      { freshness: 'pd' },
+    ).catch(() => []),
+    searchBrave(`${topic} AI latest news`).catch(() => []),
+  ])
 
   const merged = deduplicateAndPrioritize(allResults.flat())
 

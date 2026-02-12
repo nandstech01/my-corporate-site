@@ -1,12 +1,13 @@
 /**
  * X投稿用メディア取得 + アップロード
  *
- * 4段フォールバック:
- *   1. og:video (記事の動画) → 直接MP4ダウンロード
- *   2. Brave Video Search → 関連動画のMP4取得
- *   3. og:image (記事の画像) → ダウンロード
- *   4. Puppeteerスクリーンショット → キャプチャ
- *   5. 全失敗 → null (テキストのみ投稿)
+ * 5段フォールバック:
+ *   1. og:video from sourceUrl → 直接MP4ダウンロード
+ *   2. og:image from sourceUrl → 記事の高解像度画像
+ *   3. og:image from searchResultUrls → 検索結果記事の高解像度画像
+ *   4. Brave Video Search → MP4動画のみ（サムネイル不使用）
+ *   5. Puppeteerスクリーンショット → キャプチャ
+ *   6. 全失敗 → null (テキストのみ投稿)
  */
 
 import * as cheerio from 'cheerio'
@@ -54,6 +55,7 @@ export interface MediaResult {
 export interface FetchMediaParams {
   sourceUrl: string
   topic?: string
+  searchResultUrls?: string[]
 }
 
 interface DownloadedMedia {
@@ -175,15 +177,7 @@ export async function searchBraveVideo(
       }
     }
 
-    // MP4なければサムネイルURLを返す（画像として使用可能）
-    const firstWithThumb = videos.find((v) => v.thumbnail?.src)
-    if (firstWithThumb?.thumbnail?.src) {
-      return {
-        url: '',
-        thumbnail: firstWithThumb.thumbnail.src,
-      }
-    }
-
+    // MP4が見つからなければ null（低解像度サムネイルは使わない）
     return null
   } catch (error) {
     console.error('[media] searchBraveVideo failed:', error)
@@ -411,24 +405,25 @@ export async function uploadMediaToX(
 // ============================================================
 
 /**
- * 4段フォールバックでメディアを取得
+ * 5段フォールバックでメディアを取得
  *
  * メディアが見つかったら:
  *   - buffer を返す (Slack送信用 → ユーザーがダウンロードして手動投稿)
  *   - X upload も試みる (成功すれば mediaId 付き → 自動添付)
  *
- * 1. og:video → 動画
- * 2. Brave Video Search → 動画
- * 3. og:image → 画像
- * 4. Puppeteerスクリーンショット → 画像
- * 5. 全失敗 → null
+ * 1. og:video from sourceUrl → 動画
+ * 2. og:image from sourceUrl → 画像（高解像度）
+ * 3. og:image from searchResultUrls → 検索結果記事の画像（高解像度）
+ * 4. Brave Video Search → MP4動画のみ（サムネイルは使わない）
+ * 5. Puppeteerスクリーンショット → 画像
+ * 6. 全失敗 → null
  */
 export async function fetchMediaForPost(
   params: FetchMediaParams,
 ): Promise<MediaResult | null> {
-  const { sourceUrl, topic } = params
+  const { sourceUrl, topic, searchResultUrls } = params
 
-  // 1. og:video (記事の動画)
+  // 1. og:video from sourceUrl (記事の動画)
   if (sourceUrl) {
     console.log(`[media] Step 1: Trying og:video from ${sourceUrl}`)
     const video = await fetchOgVideo(sourceUrl)
@@ -445,45 +440,9 @@ export async function fetchMediaForPost(
     }
   }
 
-  // 2. Brave Video Search (関連動画MP4)
-  if (topic) {
-    console.log(`[media] Step 2: Trying Brave Video Search for "${topic}"`)
-    const braveResult = await searchBraveVideo(topic)
-    if (braveResult) {
-      if (braveResult.url) {
-        const video = await downloadVideo(braveResult.url)
-        if (video) {
-          const mediaId = await uploadMediaToX(video.buffer, video.mimeType)
-          console.log(`[media] Brave video found, X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
-          return {
-            mediaId,
-            type: 'video',
-            buffer: video.buffer,
-            mimeType: video.mimeType,
-            source: 'brave_video',
-          }
-        }
-      }
-
-      if (braveResult.thumbnail) {
-        const image = await downloadImage(braveResult.thumbnail)
-        if (image) {
-          const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
-          return {
-            mediaId,
-            type: 'image',
-            buffer: image.buffer,
-            mimeType: image.mimeType,
-            source: 'brave_thumbnail',
-          }
-        }
-      }
-    }
-  }
-
-  // 3. og:image (記事の画像)
+  // 2. og:image from sourceUrl (記事の画像 — 高解像度)
   if (sourceUrl) {
-    console.log(`[media] Step 3: Trying og:image from ${sourceUrl}`)
+    console.log(`[media] Step 2: Trying og:image from ${sourceUrl}`)
     const image = await fetchOgImage(sourceUrl)
     if (image) {
       const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
@@ -498,9 +457,48 @@ export async function fetchMediaForPost(
     }
   }
 
-  // 4. Puppeteerスクリーンショット
+  // 3. og:image from searchResultUrls (検索結果記事の画像 — 高解像度)
+  if (searchResultUrls && searchResultUrls.length > 0) {
+    console.log(`[media] Step 3: Trying og:image from ${searchResultUrls.length} search result URLs`)
+    for (const resultUrl of searchResultUrls.slice(0, 5)) {
+      const image = await fetchOgImage(resultUrl)
+      if (image) {
+        const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
+        console.log(`[media] og:image from search result found (${resultUrl}), X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
+        return {
+          mediaId,
+          type: 'image',
+          buffer: image.buffer,
+          mimeType: image.mimeType,
+          source: `og:image:search(${resultUrl})`,
+        }
+      }
+    }
+  }
+
+  // 4. Brave Video Search (MP4動画のみ — サムネイルは使わない)
+  if (topic) {
+    console.log(`[media] Step 4: Trying Brave Video Search for "${topic}"`)
+    const braveResult = await searchBraveVideo(topic)
+    if (braveResult?.url) {
+      const video = await downloadVideo(braveResult.url)
+      if (video) {
+        const mediaId = await uploadMediaToX(video.buffer, video.mimeType)
+        console.log(`[media] Brave video found, X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
+        return {
+          mediaId,
+          type: 'video',
+          buffer: video.buffer,
+          mimeType: video.mimeType,
+          source: 'brave_video',
+        }
+      }
+    }
+  }
+
+  // 5. Puppeteerスクリーンショット
   if (sourceUrl) {
-    console.log(`[media] Step 4: Trying Puppeteer screenshot of ${sourceUrl}`)
+    console.log(`[media] Step 5: Trying Puppeteer screenshot of ${sourceUrl}`)
     const screenshot = await screenshotUrl(sourceUrl)
     if (screenshot) {
       const mediaId = await uploadMediaToX(screenshot, 'image/png')
@@ -515,7 +513,7 @@ export async function fetchMediaForPost(
     }
   }
 
-  // 5. 全失敗
+  // 6. 全失敗
   console.log('[media] All media fetch methods failed')
   return null
 }
