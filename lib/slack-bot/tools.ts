@@ -21,7 +21,9 @@ import {
   recallMemories,
   getPostAnalytics,
   savePostAnalytics,
+  saveLinkedInPostAnalytics,
 } from './memory'
+import { generateLinkedInPost } from '@/lib/linkedin-post-generation/linkedin-graph'
 import { sendMessage, buildApprovalBlocks, uploadFile } from './slack-client'
 import type { AgentContext } from './types'
 
@@ -542,6 +544,133 @@ export function createTools(ctx: AgentContext) {
     },
   )
 
+  // ----------------------------------------------------------
+  // 9. generate_linkedin_post: LinkedIn投稿文生成
+  // ----------------------------------------------------------
+  // @ts-expect-error TS2589: LangChain tool() deep type instantiation with Zod
+  const generateLinkedInPostTool = tool(
+    async (input) => {
+      try {
+        const result = await generateLinkedInPost({
+          sourceData: input.sourceData,
+          sourceType: input.sourceType,
+          sourceUrl: input.sourceUrl,
+          sourceAuthor: input.sourceAuthor,
+          japanAngle: input.japanAngle,
+        })
+        return JSON.stringify({
+          success: true,
+          post: result.finalPost,
+          pattern: result.patternUsed,
+          candidates: result.allCandidates,
+          scores: result.scores,
+          tags: result.tags,
+        })
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error'
+        return JSON.stringify({ success: false, error: message })
+      }
+    },
+    {
+      name: 'generate_linkedin_post',
+      description:
+        'LinkedIn バズ投稿文を生成する。海外事例（Reddit/HN/GitHub）を元に、日本市場の視点を加えた1000-1500文字の投稿を3候補生成しスコアリング。',
+      schema: z.object({
+        sourceData: z
+          .string()
+          .describe('元ソースの内容（記事テキスト、Reddit投稿文など）'),
+        sourceType: z
+          .enum(['practitioner_experience', 'new_release', 'trend_analysis'])
+          .describe('ソースタイプ'),
+        sourceUrl: z.string().describe('元ソースのURL'),
+        sourceAuthor: z
+          .string()
+          .optional()
+          .describe('元ソースの著者名'),
+        japanAngle: z
+          .string()
+          .optional()
+          .describe('日本市場への切り口ヒント'),
+      }),
+    },
+  )
+
+  // ----------------------------------------------------------
+  // 10. post_to_linkedin: LinkedIn投稿実行 (HITL承認)
+  // ----------------------------------------------------------
+  // @ts-expect-error TS2589: LangChain tool() deep type instantiation with Zod
+  const postToLinkedInTool = tool(
+    async (input) => {
+      try {
+        const action = await createPendingAction({
+          slackChannelId: ctx.slackChannelId,
+          slackUserId: ctx.slackUserId,
+          slackThreadTs: ctx.slackThreadTs,
+          actionType: 'post_linkedin',
+          payload: {
+            text: input.text,
+            sourceType: input.sourceType ?? null,
+            sourceUrl: input.sourceUrl ?? null,
+            patternUsed: input.patternUsed ?? null,
+            tags: input.tags ?? [],
+          },
+          previewText: input.text,
+        })
+
+        const blocks = buildApprovalBlocks({
+          title: ':briefcase: *LinkedIn Post Preview*',
+          previewText: input.text.length > 800
+            ? `${input.text.slice(0, 800)}...`
+            : input.text,
+          actionId: action.id,
+          actionType: 'linkedin',
+        })
+
+        await sendMessage({
+          channel: ctx.slackChannelId,
+          text: `LinkedIn Post Preview: ${input.text.slice(0, 100)}...`,
+          threadTs: ctx.slackThreadTs ?? undefined,
+          blocks,
+        })
+
+        return JSON.stringify({
+          success: true,
+          message: 'LinkedIn approval request sent. Waiting for user confirmation.',
+          actionId: action.id,
+        })
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error'
+        return JSON.stringify({ success: false, error: message })
+      }
+    },
+    {
+      name: 'post_to_linkedin',
+      description:
+        'LinkedIn に投稿する。投稿前にSlackの承認ボタンで確認を求める（HITL）。承認後に自動投稿される。',
+      schema: z.object({
+        text: z.string().describe('投稿テキスト（1000-1500文字推奨）'),
+        sourceType: z
+          .string()
+          .optional()
+          .describe('ソースタイプ'),
+        sourceUrl: z
+          .string()
+          .optional()
+          .describe('元ソースURL'),
+        patternUsed: z
+          .string()
+          .optional()
+          .describe('使用テンプレートID'),
+        tags: z
+          .array(z.string())
+          .optional()
+          .describe('ハッシュタグ配列'),
+      }),
+    },
+  )
+
   return [
     generateXPostTool,
     postToXTool,
@@ -551,5 +680,7 @@ export function createTools(ctx: AgentContext) {
     recallMemoryTool,
     saveMemoryTool,
     fetchXAnalyticsTool,
+    generateLinkedInPostTool,
+    postToLinkedInTool,
   ]
 }

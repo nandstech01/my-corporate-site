@@ -7,10 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as crypto from 'crypto'
 import { postTweet, replyToTweet } from '@/lib/x-api/client'
+import { postToLinkedIn } from '@/lib/linkedin-api/client'
 import {
   resolvePendingAction,
   getPendingAction,
   savePostAnalytics,
+  saveLinkedInPostAnalytics,
   markPendingActionForEdit,
 } from '@/lib/slack-bot/memory'
 import { sendMessage, updateMessage } from '@/lib/slack-bot/slack-client'
@@ -214,6 +216,61 @@ async function handleApproveBlog(
 }
 
 // ============================================================
+// LinkedIn アクション処理
+// ============================================================
+
+async function handleApproveLinkedIn(
+  actionId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') {
+    await sendMessage({
+      channel,
+      text: ':warning: This action has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved')
+  const payload = resolved.payload as {
+    text: string
+    sourceType?: string
+    sourceUrl?: string
+    patternUsed?: string
+    tags?: string[]
+  }
+
+  const result = await postToLinkedIn({ text: payload.text })
+
+  if (result.success) {
+    await saveLinkedInPostAnalytics({
+      linkedinPostId: result.postId ?? `li_${Date.now()}`,
+      postUrl: result.postUrl,
+      postText: payload.text,
+      sourceType: payload.sourceType,
+      sourceUrl: payload.sourceUrl,
+      patternUsed: payload.patternUsed,
+      tags: payload.tags,
+    })
+
+    await sendMessage({
+      channel,
+      text: `:white_check_mark: Posted to LinkedIn!\n${result.postUrl ?? 'Post published successfully'}`,
+      threadTs,
+    })
+  } else {
+    await sendMessage({
+      channel,
+      text: `:x: Failed to post to LinkedIn: ${result.error}`,
+      threadTs,
+    })
+  }
+}
+
+// ============================================================
 // Route Handler
 // ============================================================
 
@@ -273,6 +330,12 @@ export async function POST(request: NextRequest) {
         await handleApproveBlog(action.value, channel, threadTs)
         break
       case 'reject_blog':
+        await handleRejectPost(action.value, channel, threadTs)
+        break
+      case 'approve_linkedin':
+        await handleApproveLinkedIn(action.value, channel, threadTs)
+        break
+      case 'reject_linkedin':
         await handleRejectPost(action.value, channel, threadTs)
         break
       case 'edit_action': {

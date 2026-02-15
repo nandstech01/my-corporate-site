@@ -23,7 +23,7 @@ export interface SlackPendingAction {
   readonly slack_channel_id: string
   readonly slack_user_id: string
   readonly slack_thread_ts: string | null
-  readonly action_type: 'post_x' | 'post_x_long' | 'trigger_blog'
+  readonly action_type: 'post_x' | 'post_x_long' | 'trigger_blog' | 'post_linkedin'
   readonly payload: Record<string, unknown>
   readonly preview_text: string | null
   readonly status: 'pending' | 'approved' | 'rejected' | 'expired'
@@ -145,4 +145,24 @@ export interface SaveMemoryInput {
 
 export interface FetchXAnalyticsInput {
   readonly days?: number
+}
+
+// ============================================================
+// LinkedIn 型
+// ============================================================
+
+export interface LinkedInPostAnalytics {
+  readonly id: string
+  readonly linkedin_post_id: string
+  readonly post_url: string | null
+  readonly post_text: string
+  readonly source_type: string | null
+  readonly source_url: string | null
+  readonly pattern_used: string | null
+  readonly posted_at: string
+  readonly likes: number
+  readonly comments: number
+  readonly reposts: number
+  readonly impressions: number
+  readonly tags: string[] | null
 }

@@ -12,6 +12,7 @@ import type {
   SlackBotMemory,
   SlackPendingAction,
   XPostAnalytics,
+  LinkedInPostAnalytics,
 } from './types'
 
 // ============================================================
@@ -547,4 +548,64 @@ export async function getRecentTweetIds(
   }
 
   return (data ?? []) as readonly { tweet_id: string; post_text: string }[]
+}
+
+// ============================================================
+// LinkedIn投稿分析
+// ============================================================
+
+export async function saveLinkedInPostAnalytics(params: {
+  readonly linkedinPostId: string
+  readonly postUrl?: string
+  readonly postText: string
+  readonly sourceType?: string
+  readonly sourceUrl?: string
+  readonly patternUsed?: string
+  readonly tags?: string[]
+}): Promise<LinkedInPostAnalytics> {
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase
+    .from('linkedin_post_analytics')
+    .insert({
+      linkedin_post_id: params.linkedinPostId,
+      post_url: params.postUrl ?? null,
+      post_text: params.postText,
+      source_type: params.sourceType ?? null,
+      source_url: params.sourceUrl ?? null,
+      pattern_used: params.patternUsed ?? null,
+      posted_at: new Date().toISOString(),
+      tags: params.tags ?? null,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to save LinkedIn post analytics: ${error.message}`)
+  }
+
+  return data as LinkedInPostAnalytics
+}
+
+export async function getLinkedInPostAnalytics(params: {
+  readonly days?: number
+  readonly limit?: number
+}): Promise<readonly LinkedInPostAnalytics[]> {
+  const supabase = getSupabase()
+  const days = params.days ?? 7
+  const limit = params.limit ?? 50
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('linkedin_post_analytics')
+    .select('*')
+    .gte('posted_at', since)
+    .order('posted_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    throw new Error(`Failed to get LinkedIn post analytics: ${error.message}`)
+  }
+
+  return (data ?? []) as readonly LinkedInPostAnalytics[]
 }

@@ -9,8 +9,16 @@ import { runDailySuggestion } from '../lib/slack-bot/proactive/daily-suggestion'
 import { runWeeklyReport } from '../lib/slack-bot/proactive/weekly-report'
 import { runEngagementLearner } from '../lib/slack-bot/proactive/engagement-learner'
 import { runTrendingCollector } from '../lib/x-trending-collector/trending-collector'
+import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/source-collector'
+import { runLinkedInSuggestion } from '../lib/slack-bot/proactive/linkedin-suggestion'
 
-type JobName = 'daily-suggestion' | 'weekly-report' | 'engagement-learner' | 'trending-collector'
+type JobName =
+  | 'daily-suggestion'
+  | 'weekly-report'
+  | 'engagement-learner'
+  | 'trending-collector'
+  | 'linkedin-source-collector'
+  | 'linkedin-suggestion'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -18,7 +26,9 @@ function detectJob(): JobName {
     explicit === 'daily-suggestion' ||
     explicit === 'weekly-report' ||
     explicit === 'engagement-learner' ||
-    explicit === 'trending-collector'
+    explicit === 'trending-collector' ||
+    explicit === 'linkedin-source-collector' ||
+    explicit === 'linkedin-suggestion'
   ) {
     return explicit
   }
@@ -33,9 +43,19 @@ function detectJob(): JobName {
     return 'daily-suggestion'
   }
 
-  // JST 10:00 Monday = UTC 1:00 Monday → weekly report
-  if (utcHour === 1 && dayOfWeek === 1) {
-    return 'weekly-report'
+  // JST 10:00 = UTC 1:00
+  if (utcHour === 1) {
+    // Monday → weekly report
+    if (dayOfWeek === 1) {
+      return 'weekly-report'
+    }
+    // Tue-Sun → LinkedIn suggestion
+    return 'linkedin-suggestion'
+  }
+
+  // JST 22:00 = UTC 13:00 → LinkedIn source collector
+  if (utcHour === 13) {
+    return 'linkedin-source-collector'
   }
 
   // JST 23:00 = UTC 14:00 → trending collector
@@ -56,6 +76,8 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'weekly-report': runWeeklyReport,
   'engagement-learner': runEngagementLearner,
   'trending-collector': runTrendingCollector,
+  'linkedin-source-collector': runLinkedInSourceCollector,
+  'linkedin-suggestion': runLinkedInSuggestion,
 }
 
 async function main() {

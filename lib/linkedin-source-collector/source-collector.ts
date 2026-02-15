@@ -1,0 +1,194 @@
+/**
+ * LinkedIn ソース収集オーケストレーター
+ *
+ * Reddit + GitHub Releases + HN/Dev.to を並列取得し、
+ * LLM で選別して slack_bot_memory に保存する。
+ *
+ * GitHub Actions cron (毎日 13:00 UTC = JST 22:00) で実行。
+ */
+
+import { createClient } from '@supabase/supabase-js'
+import { fetchRedditPractitionerPosts } from './reddit-client'
+import { fetchRecentGitHubReleases } from './github-releases-client'
+import { fetchTrendingStories } from '../x-trending-collector/trending-client'
+import {
+  analyzeSourcesForLinkedIn,
+  type CollectedSource,
+} from './source-analyzer'
+
+// ============================================================
+// Supabase ヘルパー
+// ============================================================
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
+  }
+  return createClient(url, key)
+}
+
+// ============================================================
+// 重複チェック
+// ============================================================
+
+async function filterNewSources(
+  sources: readonly CollectedSource[],
+): Promise<readonly CollectedSource[]> {
+  if (sources.length === 0) return []
+
+  const supabase = getSupabase()
+  const ids = sources.map((s) => s.id)
+
+  const { data: existing } = await supabase
+    .from('linkedin_source_cache')
+    .select('source_id')
+    .in('source_id', ids)
+
+  const existingIds = new Set((existing ?? []).map((e) => e.source_id))
+  return sources.filter((s) => !existingIds.has(s.id))
+}
+
+// ============================================================
+// ソースキャッシュに保存
+// ============================================================
+
+async function cacheNewSources(
+  sources: readonly CollectedSource[],
+): Promise<void> {
+  if (sources.length === 0) return
+
+  const supabase = getSupabase()
+  const rows = sources.map((s) => ({
+    source_id: s.id,
+    source_type: s.sourceType,
+    title: s.title,
+    url: s.url,
+    score: s.score,
+  }))
+
+  const { error } = await supabase
+    .from('linkedin_source_cache')
+    .upsert(rows, { onConflict: 'source_id' })
+
+  if (error) {
+    throw new Error(`Failed to cache sources: ${error.message}`)
+  }
+}
+
+// ============================================================
+// メモリに保存
+// ============================================================
+
+async function saveSummaryToMemory(summaryText: string): Promise<void> {
+  const supabase = getSupabase()
+  const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+  if (!userId || !summaryText) return
+
+  const { error } = await supabase.from('slack_bot_memory').insert({
+    slack_user_id: userId,
+    memory_type: 'fact',
+    content: summaryText,
+    context: { source: 'linkedin_sources' },
+    importance: 0.7,
+  })
+
+  if (error) {
+    throw new Error(`Failed to save LinkedIn summary to memory: ${error.message}`)
+  }
+}
+
+// ============================================================
+// メインオーケストレーター
+// ============================================================
+
+export async function runLinkedInSourceCollector(): Promise<void> {
+  process.stdout.write('Collecting LinkedIn sources...\n')
+
+  // 1. 全ソースを並列取得
+  const [redditResult, githubResult, trendingResult] = await Promise.allSettled([
+    fetchRedditPractitionerPosts(),
+    fetchRecentGitHubReleases(),
+    fetchTrendingStories(),
+  ])
+
+  // 2. CollectedSource に正規化
+  const allSources: CollectedSource[] = []
+
+  if (redditResult.status === 'fulfilled') {
+    for (const post of redditResult.value) {
+      allSources.push({
+        id: `reddit_${post.id}`,
+        sourceType: 'reddit',
+        title: post.title,
+        body: post.selftext,
+        url: post.permalink,
+        score: post.score,
+      })
+    }
+    process.stdout.write(`Reddit: ${redditResult.value.length} posts\n`)
+  } else {
+    process.stdout.write(`Reddit: failed (${redditResult.reason})\n`)
+  }
+
+  if (githubResult.status === 'fulfilled') {
+    for (const release of githubResult.value) {
+      allSources.push({
+        id: `gh_${release.repo}_${release.tagName}`,
+        sourceType: 'github_release',
+        title: `${release.repo} ${release.name}`,
+        body: release.body,
+        url: release.htmlUrl,
+        score: 100, // GitHub releases are high priority
+      })
+    }
+    process.stdout.write(`GitHub Releases: ${githubResult.value.length} releases\n`)
+  } else {
+    process.stdout.write(`GitHub Releases: failed (${githubResult.reason})\n`)
+  }
+
+  if (trendingResult.status === 'fulfilled') {
+    for (const story of trendingResult.value.slice(0, 10)) {
+      allSources.push({
+        id: story.id,
+        sourceType: story.source === 'hackernews' ? 'hackernews' : 'devto',
+        title: story.title,
+        body: `${story.title} (${story.points} points, ${story.comments} comments)`,
+        url: story.url ?? '',
+        score: story.points,
+      })
+    }
+    process.stdout.write(`HN/Dev.to: ${trendingResult.value.length} stories\n`)
+  } else {
+    process.stdout.write(`HN/Dev.to: failed (${trendingResult.reason})\n`)
+  }
+
+  if (allSources.length === 0) {
+    process.stdout.write('No sources collected. Exiting.\n')
+    return
+  }
+
+  // 3. 重複チェック
+  const newSources = await filterNewSources(allSources)
+  process.stdout.write(`New sources after dedup: ${newSources.length}\n`)
+
+  if (newSources.length === 0) {
+    process.stdout.write('All sources already cached. Exiting.\n')
+    return
+  }
+
+  // 4. LLM で LinkedIn 投稿候補に選別
+  process.stdout.write('Analyzing sources for LinkedIn...\n')
+  const { candidates, summaryForMemory } =
+    await analyzeSourcesForLinkedIn(newSources)
+  process.stdout.write(`Selected ${candidates.length} LinkedIn topic candidates\n`)
+
+  // 5. slack_bot_memory に保存
+  await saveSummaryToMemory(summaryForMemory)
+  process.stdout.write('Saved LinkedIn summary to memory\n')
+
+  // 6. ソースキャッシュに保存
+  await cacheNewSources(newSources)
+  process.stdout.write(`Cached ${newSources.length} sources\n`)
+}
