@@ -12,6 +12,7 @@
 import { z } from 'zod'
 import { ChatOpenAI } from '@langchain/openai'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
+import { createClient } from '@supabase/supabase-js'
 import {
   patternTemplates,
 } from './pattern-templates'
@@ -228,6 +229,42 @@ function selectPattern(state: GraphStateType): Partial<GraphStateType> {
 }
 
 // ============================================================
+// トレンドトピック取得
+// ============================================================
+
+async function recallTrendingTopics(): Promise<string> {
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) return ''
+
+    const supabase = createClient(url, key)
+    const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+    if (!userId) return ''
+
+    const twoDaysAgo = new Date(
+      Date.now() - 2 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+
+    const { data } = await supabase
+      .from('slack_bot_memory')
+      .select('content')
+      .eq('slack_user_id', userId)
+      .eq('memory_type', 'fact')
+      .contains('context', { source: 'trending_topics' })
+      .gte('created_at', twoDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(3)
+
+    if (!data || data.length === 0) return ''
+
+    return data.map((m) => m.content).join('\n')
+  } catch {
+    return ''
+  }
+}
+
+// ============================================================
 // ノード3: generateCandidates
 // ============================================================
 
@@ -252,6 +289,19 @@ async function generateCandidates(
 - URLは入れるな
 - [URL]や{url}プレースホルダー禁止`
 
+  const trendingTopics = await recallTrendingTopics()
+  const trendingSection = trendingTopics
+    ? `\n## 今AIコミュニティで話題のトピック（関連性を持たせろ）\n${trendingTopics}\n`
+    : ''
+
+  const bestPractices = `
+## 投稿のベストプラクティス
+- 1行目で読者の注意を引くフック
+- 議論を呼ぶ問いかけで締める
+- ハッシュタグ0-1個
+- 抽象分析より具体的な実務価値
+- 実体験ベースの語り口`
+
   const response = await model.invoke([
     {
       role: 'system' as const,
@@ -260,6 +310,8 @@ async function generateCandidates(
 ${X_TWITTER_RULES}
 
 ${modeInstructions}
+${trendingSection}
+${bestPractices}
 
 3候補を「---」で区切って出力。候補のみ、説明不要。`,
     },

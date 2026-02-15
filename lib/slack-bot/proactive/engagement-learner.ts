@@ -111,11 +111,18 @@ export async function runEngagementLearner(): Promise<void> {
   const highPerformers = identifyHighPerformers(results)
 
   for (const hp of highPerformers) {
+    const isExceptional =
+      hp.metrics.likes > 50 || hp.metrics.impressions > 5000
+    const importance = isExceptional ? 0.9 : 0.8
+
     const characteristics = [
-      `High performing post (${hp.metrics.likes} likes, ${hp.metrics.retweets} RT)`,
+      `High performing post (${hp.metrics.likes} likes, ${hp.metrics.retweets} RT, ${hp.metrics.impressions} imp)`,
       `Text preview: "${hp.postText.slice(0, 80)}..."`,
       `Length: ${hp.postText.length} chars`,
-    ].join('. ')
+      isExceptional ? 'Exceptional engagement' : null,
+    ]
+      .filter(Boolean)
+      .join('. ')
 
     await saveMemory({
       slackUserId: userId,
@@ -124,8 +131,9 @@ export async function runEngagementLearner(): Promise<void> {
       context: {
         tweetId: hp.tweetId,
         metrics: hp.metrics,
+        exceptional: isExceptional,
       },
-      importance: 0.8,
+      importance,
     })
   }
 }

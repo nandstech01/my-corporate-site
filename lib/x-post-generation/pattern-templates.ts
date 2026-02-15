@@ -24,7 +24,7 @@ export const patternTemplates: PatternTemplate[] = [
 
 {question_to_readers}`,
     category: 'perspective',
-    dataSources: ['trend', 'company', 'x_post'],
+    dataSources: ['trend', 'company', 'x_post', 'trending'],
     features: ['実装経験ベース', '独自視点', '問いかけ'],
     generateDiagram: false
   },
@@ -66,7 +66,7 @@ export const patternTemplates: PatternTemplate[] = [
 
 {open_question}`,
     category: 'analysis',
-    dataSources: ['trend', 'company'],
+    dataSources: ['trend', 'company', 'trending'],
     features: ['通説への疑問', '実務からの反証', '議論喚起'],
     generateDiagram: false
   },
@@ -80,7 +80,7 @@ export const patternTemplates: PatternTemplate[] = [
 
 {my_current_thinking}`,
     category: 'discussion',
-    dataSources: ['trend', 'company', 'x_post'],
+    dataSources: ['trend', 'company', 'x_post', 'trending'],
     features: ['議論喚起', '読者参加', '思考共有'],
     generateDiagram: false
   },

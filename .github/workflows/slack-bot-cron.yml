@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: '0 0 * * *'    # JST 9:00 daily suggestion
     - cron: '0 1 * * 1'    # JST 10:00 Monday weekly report
+    - cron: '0 14 * * *'   # JST 23:00 trending collector
     - cron: '0 15 * * *'   # JST 00:00 engagement learner
   workflow_dispatch:
     inputs:
@@ -15,6 +16,7 @@ on:
           - daily-suggestion
           - weekly-report
           - engagement-learner
+          - trending-collector
 
 jobs:
   run:
@@ -43,3 +45,4 @@ jobs:
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+

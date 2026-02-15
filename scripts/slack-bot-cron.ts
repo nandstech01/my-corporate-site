@@ -8,15 +8,17 @@
 import { runDailySuggestion } from '../lib/slack-bot/proactive/daily-suggestion'
 import { runWeeklyReport } from '../lib/slack-bot/proactive/weekly-report'
 import { runEngagementLearner } from '../lib/slack-bot/proactive/engagement-learner'
+import { runTrendingCollector } from '../lib/x-trending-collector/trending-collector'
 
-type JobName = 'daily-suggestion' | 'weekly-report' | 'engagement-learner'
+type JobName = 'daily-suggestion' | 'weekly-report' | 'engagement-learner' | 'trending-collector'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
   if (
     explicit === 'daily-suggestion' ||
     explicit === 'weekly-report' ||
-    explicit === 'engagement-learner'
+    explicit === 'engagement-learner' ||
+    explicit === 'trending-collector'
   ) {
     return explicit
   }
@@ -36,6 +38,11 @@ function detectJob(): JobName {
     return 'weekly-report'
   }
 
+  // JST 23:00 = UTC 14:00 → trending collector
+  if (utcHour === 14) {
+    return 'trending-collector'
+  }
+
   // JST 00:00 = UTC 15:00 → engagement learner
   if (utcHour === 15) {
     return 'engagement-learner'
@@ -48,6 +55,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'daily-suggestion': runDailySuggestion,
   'weekly-report': runWeeklyReport,
   'engagement-learner': runEngagementLearner,
+  'trending-collector': runTrendingCollector,
 }
 
 async function main() {
