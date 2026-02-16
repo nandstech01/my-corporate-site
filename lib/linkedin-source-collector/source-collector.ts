@@ -1,7 +1,7 @@
 /**
  * LinkedIn ソース収集オーケストレーター
  *
- * Reddit + GitHub Releases + HN/Dev.to を並列取得し、
+ * Reddit + GitHub Releases + HN/Dev.to + RSS フィード を並列取得し、
  * LLM で選別して slack_bot_memory に保存する。
  *
  * GitHub Actions cron (毎日 13:00 UTC = JST 22:00) で実行。
@@ -11,10 +11,15 @@ import { createClient } from '@supabase/supabase-js'
 import { fetchRedditPractitionerPosts } from './reddit-client'
 import { fetchRecentGitHubReleases } from './github-releases-client'
 import { fetchTrendingStories } from '../x-trending-collector/trending-client'
+import { fetchRSSFeeds } from './rss-feed-client'
 import {
   analyzeSourcesForLinkedIn,
   type CollectedSource,
+  type LinkedInTopicCandidate,
 } from './source-analyzer'
+
+const GITHUB_RELEASE_PRIORITY_SCORE = 100
+const OFFICIAL_BLOG_PRIORITY_SCORE = 150
 
 // ============================================================
 // Supabase ヘルパー
@@ -81,7 +86,10 @@ async function cacheNewSources(
 // メモリに保存
 // ============================================================
 
-async function saveSummaryToMemory(summaryText: string): Promise<void> {
+async function saveSummaryToMemory(
+  summaryText: string,
+  candidates: readonly LinkedInTopicCandidate[],
+): Promise<void> {
   const supabase = getSupabase()
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
   if (!userId || !summaryText) return
@@ -90,7 +98,7 @@ async function saveSummaryToMemory(summaryText: string): Promise<void> {
     slack_user_id: userId,
     memory_type: 'fact',
     content: summaryText,
-    context: { source: 'linkedin_sources' },
+    context: { source: 'linkedin_sources', candidates },
     importance: 0.7,
   })
 
@@ -107,10 +115,11 @@ export async function runLinkedInSourceCollector(): Promise<void> {
   process.stdout.write('Collecting LinkedIn sources...\n')
 
   // 1. 全ソースを並列取得
-  const [redditResult, githubResult, trendingResult] = await Promise.allSettled([
+  const [redditResult, githubResult, trendingResult, rssResult] = await Promise.allSettled([
     fetchRedditPractitionerPosts(),
     fetchRecentGitHubReleases(),
     fetchTrendingStories(),
+    fetchRSSFeeds(),
   ])
 
   // 2. CollectedSource に正規化
@@ -140,7 +149,7 @@ export async function runLinkedInSourceCollector(): Promise<void> {
         title: `${release.repo} ${release.name}`,
         body: release.body,
         url: release.htmlUrl,
-        score: 100, // GitHub releases are high priority
+        score: GITHUB_RELEASE_PRIORITY_SCORE,
       })
     }
     process.stdout.write(`GitHub Releases: ${githubResult.value.length} releases\n`)
@@ -164,6 +173,22 @@ export async function runLinkedInSourceCollector(): Promise<void> {
     process.stdout.write(`HN/Dev.to: failed (${trendingResult.reason})\n`)
   }
 
+  if (rssResult.status === 'fulfilled') {
+    for (const article of rssResult.value) {
+      allSources.push({
+        id: article.id,
+        sourceType: 'official_blog',
+        title: `[${article.feedName}] ${article.title}`,
+        body: article.description,
+        url: article.url,
+        score: OFFICIAL_BLOG_PRIORITY_SCORE,
+      })
+    }
+    process.stdout.write(`RSS Feeds: ${rssResult.value.length} articles\n`)
+  } else {
+    process.stdout.write(`RSS Feeds: failed (${rssResult.reason})\n`)
+  }
+
   if (allSources.length === 0) {
     process.stdout.write('No sources collected. Exiting.\n')
     return
@@ -184,8 +209,8 @@ export async function runLinkedInSourceCollector(): Promise<void> {
     await analyzeSourcesForLinkedIn(newSources)
   process.stdout.write(`Selected ${candidates.length} LinkedIn topic candidates\n`)
 
-  // 5. slack_bot_memory に保存
-  await saveSummaryToMemory(summaryForMemory)
+  // 5. slack_bot_memory に保存（候補データも含む）
+  await saveSummaryToMemory(summaryForMemory, candidates)
   process.stdout.write('Saved LinkedIn summary to memory\n')
 
   // 6. ソースキャッシュに保存

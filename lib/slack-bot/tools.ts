@@ -581,7 +581,7 @@ export function createTools(ctx: AgentContext) {
           .string()
           .describe('元ソースの内容（記事テキスト、Reddit投稿文など）'),
         sourceType: z
-          .enum(['practitioner_experience', 'new_release', 'trend_analysis'])
+          .enum(['practitioner_experience', 'new_release', 'trend_analysis', 'official_announcement'])
           .describe('ソースタイプ'),
         sourceUrl: z.string().describe('元ソースのURL'),
         sourceAuthor: z

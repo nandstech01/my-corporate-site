@@ -9,7 +9,7 @@
  * 4. 生成成功した投稿ごとに承認ブロック付きで Slack 送信
  */
 
-import { recallMemories, createPendingAction } from '../memory'
+import { recallMemories, createPendingAction, getRecentlyPostedSourceUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateLinkedInPost } from '../../linkedin-post-generation/linkedin-graph'
 import { linkedInTemplates } from '../../linkedin-post-generation/linkedin-templates'
@@ -104,14 +104,32 @@ export async function runLinkedInAutoPost(): Promise<void> {
   }
 
   // 2. メモリから候補を抽出
-  const candidates = extractCandidatesFromMemories(memories)
+  const allCandidates = extractCandidatesFromMemories(memories)
 
-  if (candidates.length === 0) {
+  if (allCandidates.length === 0) {
     await sendMessage({
       channel,
       text: ':briefcase: LinkedIn: Source data found but no structured candidates. Run the source collector again.',
     })
     return
+  }
+
+  // 2.5. Source dedup: 直近7日以内に投稿済みのソースURLを除外
+  let candidates: readonly LinkedInTopicCandidate[] = allCandidates
+  try {
+    const recentUrls = await getRecentlyPostedSourceUrls(7)
+    const recentUrlSet = new Set(recentUrls)
+    const deduped = allCandidates.filter(
+      (c) => !recentUrlSet.has(c.sourceUrl),
+    )
+    if (deduped.length < allCandidates.length) {
+      process.stdout.write(
+        `Source dedup: ${allCandidates.length - deduped.length} duplicate(s) removed\n`,
+      )
+    }
+    candidates = deduped.length > 0 ? deduped : allCandidates
+  } catch {
+    // Dedup failure should not block the pipeline
   }
 
   // 学習データがあれば高パフォーマンスパターンに合致する候補を優先
@@ -196,6 +214,26 @@ export async function runLinkedInAutoPost(): Promise<void> {
           )
         : 0
 
+      // ML insight for best candidate
+      const bestScore = [...post.scores].sort((a, b) => b.total - a.total)[0]
+      let mlInsightText = ''
+      if (bestScore && bestScore.mlEngagementPrediction > 0) {
+        const topFeaturesSummary = bestScore.mlTopFeatures
+          .slice(0, 3)
+          .map((f) => `${f.name} ${(f.importance * 100).toFixed(0)}%`)
+          .join(', ')
+        mlInsightText = `:robot_face: *ML予測:* ${bestScore.mlEngagementPrediction.toFixed(1)} (${topFeaturesSummary})`
+      }
+
+      const infoLines = [
+        `:newspaper: *ソース:* ${candidate.title}`,
+        `:bar_chart: *スコア:* ${scoreTotal}/50`,
+        `:memo: *パターン:* ${post.patternUsed}`,
+      ]
+      if (mlInsightText) {
+        infoLines.push(mlInsightText)
+      }
+
       await sendMessage({
         channel,
         text: `LinkedIn auto-post preview: ${candidate.title}`,
@@ -214,11 +252,7 @@ export async function runLinkedInAutoPost(): Promise<void> {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: [
-                `:newspaper: *ソース:* ${candidate.title}`,
-                `:bar_chart: *スコア:* ${scoreTotal}/50`,
-                `:memo: *パターン:* ${post.patternUsed}`,
-              ].join('\n'),
+              text: infoLines.join('\n'),
             },
           },
           ...approvalBlocks,

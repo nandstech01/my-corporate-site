@@ -167,4 +167,8 @@ export interface LinkedInPostAnalytics {
   readonly engagement_rate: number
   readonly fetched_at: string
   readonly tags: string[] | null
+  readonly ml_features: Record<string, number> | null
+  readonly ml_prediction: number | null
+  readonly ml_confidence: number | null
+  readonly ml_model_version: string | null
 }

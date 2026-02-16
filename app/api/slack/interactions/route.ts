@@ -15,6 +15,7 @@ import {
   saveLinkedInPostAnalytics,
   markPendingActionForEdit,
 } from '@/lib/slack-bot/memory'
+import { predictEngagement } from '@/lib/linkedin-ml-bridge/ml-client'
 import { sendMessage, updateMessage } from '@/lib/slack-bot/slack-client'
 import type { SlackInteractionPayload } from '@/lib/slack-bot/types'
 
@@ -246,6 +247,28 @@ async function handleApproveLinkedIn(
   const result = await postToLinkedIn({ text: payload.text })
 
   if (result.success) {
+    // ML prediction for feature storage (best-effort)
+    let mlFeatures: Record<string, number> | undefined
+    let mlPrediction: number | undefined
+    let mlConfidence: number | undefined
+    let mlModelVersion: string | undefined
+
+    try {
+      const now = new Date()
+      const prediction = await predictEngagement(payload.text, {
+        dayOfWeek: now.getUTCDay(),
+        hour: (now.getUTCHours() + 9) % 24,
+      })
+      if (prediction) {
+        mlFeatures = prediction.features
+        mlPrediction = prediction.predictedEngagement
+        mlConfidence = prediction.confidence
+        mlModelVersion = prediction.modelVersion
+      }
+    } catch {
+      // ML prediction failure should not block posting
+    }
+
     await saveLinkedInPostAnalytics({
       linkedinPostId: result.postId ?? `li_${Date.now()}`,
       postUrl: result.postUrl,
@@ -254,6 +277,10 @@ async function handleApproveLinkedIn(
       sourceUrl: payload.sourceUrl,
       patternUsed: payload.patternUsed,
       tags: payload.tags,
+      mlFeatures,
+      mlPrediction,
+      mlConfidence,
+      mlModelVersion,
     })
 
     await sendMessage({

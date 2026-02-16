@@ -13,7 +13,7 @@ import { linkedInTemplates, findTemplateForSourceType } from './linkedin-templat
 import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
-import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
+import { predictEngagement, getInsights } from '../linkedin-ml-bridge/ml-client'
 import type { MlPrediction } from '../linkedin-ml-bridge/types'
 
 // ============================================================
@@ -38,6 +38,7 @@ export interface LinkedInCandidateScore {
   readonly total: number
   readonly mlEngagementPrediction: number
   readonly mlConfidence: number
+  readonly mlTopFeatures: readonly { name: string; importance: number }[]
 }
 
 export interface LinkedInGraphOutput {
@@ -280,14 +281,30 @@ JSON配列のみ出力:
         total: 25,
       }))
 
-  // ML 予測でブレンドスコアを計算
+  // Determine dynamic ML weight based on model quality
   const mlPredictions = mlResults
+  let mlWeight = 0.3
+
+  try {
+    const insights = await getInsights()
+    if (insights && insights.modelVersion !== 'baseline') {
+      if (insights.trainingSize >= 100) {
+        mlWeight = 0.5
+      } else if (insights.trainingSize >= 50) {
+        mlWeight = 0.4
+      } else if (insights.trainingSize >= 30) {
+        mlWeight = 0.35
+      }
+    }
+  } catch {
+    // Use default weight on error
+  }
+
   const maxEngagement = Math.max(
     ...mlPredictions.map((p) => p?.predictedEngagement ?? 0),
     1,
   )
 
-  const ML_WEIGHT = 0.3
   const ML_SCALE = 10
 
   const scores: LinkedInCandidateScore[] = llmScores.map((llm, i) => {
@@ -295,7 +312,7 @@ JSON配列のみ出力:
     const mlPredicted = ml?.predictedEngagement ?? 0
     const mlConfidence = ml?.confidence ?? 0
     const normalizedMl = (mlPredicted / maxEngagement) * ML_SCALE
-    const mlBonus = normalizedMl * ML_WEIGHT
+    const mlBonus = normalizedMl * mlWeight
 
     const blendedTotal = ml
       ? Math.round((llm.total + mlBonus) * 100) / 100
@@ -304,7 +321,7 @@ JSON配列のみ出力:
     if (ml) {
       process.stdout.write(
         `ML prediction for candidate ${i}: ${mlPredicted.toFixed(1)} ` +
-          `(confidence: ${mlConfidence.toFixed(2)}, bonus: +${mlBonus.toFixed(2)})\n`,
+          `(confidence: ${mlConfidence.toFixed(2)}, weight: ${mlWeight}, bonus: +${mlBonus.toFixed(2)})\n`,
       )
     }
 
@@ -318,6 +335,7 @@ JSON配列のみ出力:
       total: blendedTotal,
       mlEngagementPrediction: mlPredicted,
       mlConfidence,
+      mlTopFeatures: ml?.topFeatures ?? [],
     }
   })
 

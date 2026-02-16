@@ -23,7 +23,7 @@ export const linkedInTemplates: readonly LinkedInTemplate[] = [
     name: 'リリース分析',
     description: 'GitHub新リリース → 実務インパクト解説',
     structure: `フック（1-2行） → リリース内容の要約（2-3行） → 実務へのインパクト（3-4行） → 導入時の注意点（2-3行） → 問いかけ（1行） → ハッシュタグ`,
-    sourceTypes: ['new_release'],
+    sourceTypes: ['new_release', 'official_announcement'],
   },
   {
     id: 'trend_bridge',

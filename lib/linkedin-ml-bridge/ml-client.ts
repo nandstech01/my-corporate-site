@@ -7,7 +7,7 @@
 
 import { execFile } from 'child_process'
 import * as path from 'path'
-import type { MlPrediction, MlInsights } from './types'
+import type { MlPrediction, MlInsights, MlTrainResult } from './types'
 
 const ML_SERVICE_DIR = path.resolve(__dirname, '../../services/linkedin-ml')
 const TIMEOUT_MS = 30_000
@@ -18,6 +18,7 @@ interface RawPredictionResult {
   readonly confidence: number
   readonly top_features: readonly { name: string; importance: number }[]
   readonly model_version: string
+  readonly features: Record<string, number>
 }
 
 interface RawInsightsResult {
@@ -100,6 +101,7 @@ export async function predictEngagement(
       confidence: raw.confidence,
       topFeatures: raw.top_features,
       modelVersion: raw.model_version,
+      features: raw.features ?? {},
     }
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown parse error'
@@ -120,6 +122,51 @@ export async function getInsights(): Promise<MlInsights | null> {
       trainingSize: raw.training_size,
     }
   } catch {
+    return null
+  }
+}
+
+interface RawTrainResult {
+  readonly success: boolean
+  readonly model_version: string
+  readonly training_size: number
+  readonly mae: number
+  readonly rmse: number
+  readonly skipped: boolean
+  readonly reason?: string
+}
+
+export async function trainModel(): Promise<MlTrainResult | null> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    process.stdout.write('ML train: Supabase credentials not configured\n')
+    return null
+  }
+
+  const output = await runPythonCommand('train', [
+    '--supabase-url',
+    supabaseUrl,
+    '--supabase-key',
+    supabaseKey,
+  ])
+  if (!output) return null
+
+  try {
+    const raw: RawTrainResult = JSON.parse(output)
+    return {
+      success: raw.success,
+      modelVersion: raw.model_version,
+      trainingSize: raw.training_size,
+      mae: raw.mae,
+      rmse: raw.rmse,
+      skipped: raw.skipped,
+      reason: raw.reason,
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Unknown parse error'
+    process.stdout.write(`ML train output parse error: ${message}\n`)
     return null
   }
 }

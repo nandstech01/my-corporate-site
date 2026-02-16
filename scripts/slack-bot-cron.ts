@@ -12,6 +12,7 @@ import { runLinkedInEngagementLearner } from '../lib/slack-bot/proactive/linkedi
 import { runTrendingCollector } from '../lib/x-trending-collector/trending-collector'
 import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/source-collector'
 import { runLinkedInAutoPost } from '../lib/slack-bot/proactive/linkedin-auto-post'
+import { runLinkedInModelRetrainer } from '../lib/slack-bot/proactive/linkedin-model-retrainer'
 
 type JobName =
   | 'daily-suggestion'
@@ -21,6 +22,7 @@ type JobName =
   | 'trending-collector'
   | 'linkedin-source-collector'
   | 'linkedin-auto-post'
+  | 'linkedin-model-retrainer'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -31,7 +33,8 @@ function detectJob(): JobName {
     explicit === 'linkedin-engagement-learner' ||
     explicit === 'trending-collector' ||
     explicit === 'linkedin-source-collector' ||
-    explicit === 'linkedin-auto-post'
+    explicit === 'linkedin-auto-post' ||
+    explicit === 'linkedin-model-retrainer'
   ) {
     return explicit
   }
@@ -73,9 +76,19 @@ function detectJob(): JobName {
     return 'trending-collector'
   }
 
-  // JST 00:00 = UTC 15:00 → engagement learner
+  // JST 00:00 = UTC 15:00 → LinkedIn engagement learner
   if (utcHour === 15) {
+    return 'linkedin-engagement-learner'
+  }
+
+  // JST 01:00 = UTC 16:00 → X engagement learner
+  if (utcHour === 16) {
     return 'engagement-learner'
+  }
+
+  // JST 03:00 = UTC 18:00 → LinkedIn ML model retrainer
+  if (utcHour === 18) {
+    return 'linkedin-model-retrainer'
   }
 
   return 'daily-suggestion'
@@ -89,6 +102,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'trending-collector': runTrendingCollector,
   'linkedin-source-collector': runLinkedInSourceCollector,
   'linkedin-auto-post': runLinkedInAutoPost,
+  'linkedin-model-retrainer': runLinkedInModelRetrainer,
 }
 
 async function main() {

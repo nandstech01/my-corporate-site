@@ -6,9 +6,11 @@ from pathlib import Path
 import numpy as np
 from xgboost import XGBRegressor
 
-from linkedin_ml.config import BASELINE_MODEL_PATH
+from linkedin_ml.config import BASELINE_MODEL_PATH, MODELS_DIR
 from linkedin_ml.features.extractor import FEATURE_NAMES, extract_all_features
 from linkedin_ml.model.baseline_generator import generate_baseline_model
+
+TRAINED_MODEL_PATH = MODELS_DIR / "trained.json"
 
 
 class EngagementPredictor:
@@ -19,7 +21,12 @@ class EngagementPredictor:
         self._model_version = "unknown"
         self._training_size = 0
 
-        resolved_path = Path(model_path) if model_path else BASELINE_MODEL_PATH
+        if model_path:
+            resolved_path = Path(model_path)
+        elif TRAINED_MODEL_PATH.exists():
+            resolved_path = TRAINED_MODEL_PATH
+        else:
+            resolved_path = BASELINE_MODEL_PATH
 
         if not resolved_path.exists():
             generate_baseline_model()

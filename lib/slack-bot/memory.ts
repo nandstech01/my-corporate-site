@@ -562,6 +562,10 @@ export async function saveLinkedInPostAnalytics(params: {
   readonly sourceUrl?: string
   readonly patternUsed?: string
   readonly tags?: string[]
+  readonly mlFeatures?: Record<string, number>
+  readonly mlPrediction?: number
+  readonly mlConfidence?: number
+  readonly mlModelVersion?: string
 }): Promise<LinkedInPostAnalytics> {
   const supabase = getSupabase()
 
@@ -576,6 +580,10 @@ export async function saveLinkedInPostAnalytics(params: {
       pattern_used: params.patternUsed ?? null,
       posted_at: new Date().toISOString(),
       tags: params.tags ?? null,
+      ml_features: params.mlFeatures ?? null,
+      ml_prediction: params.mlPrediction ?? null,
+      ml_confidence: params.mlConfidence ?? null,
+      ml_model_version: params.mlModelVersion ?? null,
     })
     .select()
     .single()
@@ -626,6 +634,27 @@ export async function getRecentLinkedInPostIds(
   }
 
   return (data ?? []) as readonly { linkedin_post_id: string; post_text: string }[]
+}
+
+export async function getRecentlyPostedSourceUrls(
+  days: number = 7,
+): Promise<readonly string[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('linkedin_post_analytics')
+    .select('source_url')
+    .gte('posted_at', since)
+    .not('source_url', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to get recently posted source URLs: ${error.message}`)
+  }
+
+  return (data ?? [])
+    .map((row) => row.source_url as string)
+    .filter((url) => url.length > 0)
 }
 
 export async function updateLinkedInPostEngagement(

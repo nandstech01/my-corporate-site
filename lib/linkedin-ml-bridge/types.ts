@@ -8,6 +8,7 @@ export interface MlPrediction {
   readonly confidence: number
   readonly topFeatures: readonly MlFeatureImportance[]
   readonly modelVersion: string
+  readonly features: Record<string, number>
 }
 
 export interface MlFeatures {
@@ -18,4 +19,14 @@ export interface MlInsights {
   readonly topFeatures: readonly MlFeatureImportance[]
   readonly modelVersion: string
   readonly trainingSize: number
+}
+
+export interface MlTrainResult {
+  readonly success: boolean
+  readonly modelVersion: string
+  readonly trainingSize: number
+  readonly mae: number
+  readonly rmse: number
+  readonly skipped: boolean
+  readonly reason?: string
 }

@@ -1,4 +1,4 @@
-"""CLI エントリーポイント: predict / extract / insights"""
+"""CLI エントリーポイント: predict / extract / insights / train"""
 
 import json
 import sys
@@ -74,4 +74,15 @@ def insights(model_path: str | None) -> None:
     """モデルのインサイトを表示"""
     predictor = EngagementPredictor(model_path)
     result = predictor.get_insights()
+    _output_json(result)
+
+
+@cli.command()
+@click.option("--supabase-url", required=True, help="Supabase URL")
+@click.option("--supabase-key", required=True, help="Supabase service role key")
+def train(supabase_url: str, supabase_key: str) -> None:
+    """実データで XGBoost を再学習"""
+    from linkedin_ml.model.trainer import train_model
+
+    result = train_model(supabase_url, supabase_key)
     _output_json(result)
