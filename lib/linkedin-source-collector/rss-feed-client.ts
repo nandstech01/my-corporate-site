@@ -5,7 +5,7 @@
  * 直近 24 時間の記事を取得する。
  */
 
-import * as Parser from 'rss-parser'
+import RssParser from 'rss-parser'
 
 // ============================================================
 // 型定義
@@ -50,7 +50,7 @@ async function fetchSingleFeed(
   source: FeedSource,
   cutoff: Date,
 ): Promise<readonly FeedArticle[]> {
-  const parser = new Parser({
+  const parser = new RssParser({
     timeout: FETCH_TIMEOUT_MS,
     headers: {
       'User-Agent': 'LinkedInAutoPost/1.0 (RSS Reader)',
@@ -60,12 +60,12 @@ async function fetchSingleFeed(
   const feed = await parser.parseURL(source.url)
 
   return (feed.items ?? [])
-    .filter((item) => {
+    .filter((item: any) => {
       if (!item.pubDate) return false
       const published = new Date(item.pubDate)
       return published >= cutoff
     })
-    .map((item) => ({
+    .map((item: any) => ({
       id: `rss_${source.name.toLowerCase().replace(/\s+/g, '_')}_${Buffer.from(item.link ?? item.title ?? '').toString('base64url').slice(0, 20)}`,
       feedName: source.name,
       title: item.title ?? 'Untitled',

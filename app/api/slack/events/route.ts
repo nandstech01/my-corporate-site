@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
   }
 
   // サブタイプ付きメッセージは無視 (edited, deleted 等)
-  if ((event as Record<string, unknown>).subtype) {
+  if ((event as unknown as Record<string, unknown>).subtype) {
     return new Response('OK', { status: 200 })
   }
 

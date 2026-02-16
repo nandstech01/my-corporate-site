@@ -217,6 +217,126 @@ async function handleApproveBlog(
 }
 
 // ============================================================
+// Blog Topic Queue アクション処理
+// ============================================================
+
+async function handleApproveBlogTopic(
+  topicId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  // Get topic from queue
+  const { data: topic, error } = await supabase
+    .from('blog_topic_queue')
+    .select('*')
+    .eq('id', topicId)
+    .single()
+
+  if (error || !topic || topic.status === 'approved') {
+    await sendMessage({
+      channel,
+      text: ':warning: This topic has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  // Update topic status
+  await supabase
+    .from('blog_topic_queue')
+    .update({ status: 'approved' })
+    .eq('id', topicId)
+
+  // Create blog job
+  const { data: job, error: jobError } = await supabase
+    .from('blog_jobs')
+    .insert({
+      topic_queue_id: topicId,
+      topic: topic.suggested_topic || topic.source_title,
+      target_keyword: topic.suggested_keyword || topic.source_title,
+      category_slug: 'ai-technology',
+      business_category: 'ai-technology',
+      status: 'queued',
+    })
+    .select()
+    .single()
+
+  if (jobError || !job) {
+    await sendMessage({
+      channel,
+      text: `:x: Failed to create blog job: ${jobError?.message || 'Unknown error'}`,
+      threadTs,
+    })
+    return
+  }
+
+  // Trigger the pipeline
+  try {
+    const triggerResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nands.tech'}/api/blog-trigger`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.BLOG_WORKER_API_SECRET || ''}`,
+        },
+        body: JSON.stringify({ jobId: job.id }),
+      },
+    )
+
+    if (triggerResponse.ok) {
+      await sendMessage({
+        channel,
+        text: `:white_check_mark: Blog generation triggered!\nTopic: ${topic.suggested_topic || topic.source_title}\nJob ID: ${job.id.substring(0, 8)}`,
+        threadTs,
+      })
+    } else {
+      await sendMessage({
+        channel,
+        text: `:warning: Blog job created but trigger failed (${triggerResponse.status}). Job ID: ${job.id.substring(0, 8)}`,
+        threadTs,
+      })
+    }
+  } catch (triggerError) {
+    const message = triggerError instanceof Error ? triggerError.message : 'Unknown error'
+    await sendMessage({
+      channel,
+      text: `:warning: Blog job created but trigger failed: ${message}. Job ID: ${job.id.substring(0, 8)}`,
+      threadTs,
+    })
+  }
+}
+
+async function handleDismissBlogTopic(
+  topicId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  await supabase
+    .from('blog_topic_queue')
+    .update({ status: 'dismissed' })
+    .eq('id', topicId)
+
+  await sendMessage({
+    channel,
+    text: ':no_entry_sign: Blog topic dismissed.',
+    threadTs,
+  })
+}
+
+// ============================================================
 // LinkedIn アクション処理
 // ============================================================
 
@@ -382,6 +502,12 @@ export async function POST(request: NextRequest) {
         }
         break
       }
+      case 'approve_blog_topic':
+        await handleApproveBlogTopic(action.value, channel, threadTs)
+        break
+      case 'dismiss_blog_topic':
+        await handleDismissBlogTopic(action.value, channel, threadTs)
+        break
       default:
         break
     }

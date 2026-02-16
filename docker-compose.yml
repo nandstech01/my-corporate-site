@@ -54,12 +54,38 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # Blog Worker (ローカル開発用)
+  blog-worker:
+    build:
+      context: ./services/blog-worker
+      dockerfile: Dockerfile
+    container_name: blog_worker
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./services/blog-worker/blog_worker:/app/blog_worker
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    networks:
+      - rag_net
+    depends_on:
+      - mlflow
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["serve", "--port", "8001"]
+
   # MLflow Tracking Server (Phase 4)
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.16.2
     container_name: rag_mlflow
     ports:
-      - "5000:5000"
+      - "5050:5000"
     volumes:
       - mlflow_data:/mlflow
     environment:

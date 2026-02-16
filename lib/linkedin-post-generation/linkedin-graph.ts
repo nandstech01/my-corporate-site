@@ -221,7 +221,7 @@ async function scoreCandidates(
   const dayOfWeek = now.getUTCDay()
   const hourJst = (now.getUTCHours() + 9) % 24
 
-  const [response, ...mlResults] = await Promise.all([
+  const allResults = await Promise.all([
     model.invoke([
       {
         role: 'system' as const,
@@ -248,7 +248,9 @@ JSON配列のみ出力:
     ...state.candidates.map((candidate) =>
       predictEngagement(candidate, { dayOfWeek, hour: hourJst }),
     ),
-  ]) as [typeof response, ...(MlPrediction | null)[]]
+  ])
+
+  const [response, ...mlResults] = allResults as [any, ...(MlPrediction | null)[]]
 
   const text =
     typeof response.content === 'string'

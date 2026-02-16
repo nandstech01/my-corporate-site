@@ -10,6 +10,7 @@ on:
     - cron: '0 15 * * *'     # JST 00:00 LinkedIn engagement learner
     - cron: '0 16 * * *'     # JST 01:00 X engagement learner
     - cron: '0 18 * * *'     # JST 03:00 LinkedIn ML model retrainer
+    - cron: '0 2,8,20 * * *'  # JST 11,17,5 Blog RSS monitor (6h interval, UTC 14 shared with trending)
   workflow_dispatch:
     inputs:
       job:
@@ -25,6 +26,7 @@ on:
           - linkedin-source-collector
           - linkedin-auto-post
           - linkedin-model-retrainer
+          - blog-rss-monitor
 
 jobs:
   run:

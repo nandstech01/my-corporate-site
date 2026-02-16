@@ -77,16 +77,19 @@ export async function uploadFile(params: {
 }): Promise<string | undefined> {
   const client = getSlackClient()
 
-  const result = await client.filesUploadV2({
+  const uploadParams: any = {
     channel_id: params.channelId,
     file: params.buffer,
     filename: params.filename,
-    title: params.title,
-    thread_ts: params.threadTs,
-    initial_comment: params.initialComment,
-  })
+  }
 
-  return result.file?.id
+  if (params.title) uploadParams.title = params.title
+  if (params.threadTs) uploadParams.thread_ts = params.threadTs
+  if (params.initialComment) uploadParams.initial_comment = params.initialComment
+
+  const result = await client.filesUploadV2(uploadParams)
+
+  return (result.files?.[0] as any)?.id
 }
 
 // ============================================================

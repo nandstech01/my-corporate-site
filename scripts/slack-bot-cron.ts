@@ -13,6 +13,7 @@ import { runTrendingCollector } from '../lib/x-trending-collector/trending-colle
 import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/source-collector'
 import { runLinkedInAutoPost } from '../lib/slack-bot/proactive/linkedin-auto-post'
 import { runLinkedInModelRetrainer } from '../lib/slack-bot/proactive/linkedin-model-retrainer'
+import { runBlogRSSMonitor } from '../lib/blog-generation/rss-blog-monitor'
 
 type JobName =
   | 'daily-suggestion'
@@ -23,6 +24,7 @@ type JobName =
   | 'linkedin-source-collector'
   | 'linkedin-auto-post'
   | 'linkedin-model-retrainer'
+  | 'blog-rss-monitor'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -34,7 +36,8 @@ function detectJob(): JobName {
     explicit === 'trending-collector' ||
     explicit === 'linkedin-source-collector' ||
     explicit === 'linkedin-auto-post' ||
-    explicit === 'linkedin-model-retrainer'
+    explicit === 'linkedin-model-retrainer' ||
+    explicit === 'blog-rss-monitor'
   ) {
     return explicit
   }
@@ -91,6 +94,12 @@ function detectJob(): JobName {
     return 'linkedin-model-retrainer'
   }
 
+  // JST 11,17,23,5 = UTC 2,8,14,20 → Blog RSS monitor (6h interval)
+  // Note: UTC 14 is already used by trending-collector, so skip it
+  if (utcHour === 2 || utcHour === 8 || utcHour === 20) {
+    return 'blog-rss-monitor'
+  }
+
   return 'daily-suggestion'
 }
 
@@ -103,6 +112,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'linkedin-source-collector': runLinkedInSourceCollector,
   'linkedin-auto-post': runLinkedInAutoPost,
   'linkedin-model-retrainer': runLinkedInModelRetrainer,
+  'blog-rss-monitor': runBlogRSSMonitor,
 }
 
 async function main() {
