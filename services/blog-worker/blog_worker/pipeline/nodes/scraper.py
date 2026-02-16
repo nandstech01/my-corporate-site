@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+import sys
 from collections import Counter
 from urllib.parse import urlparse
 
@@ -101,13 +102,26 @@ async def _fetch_top_urls(client: httpx.AsyncClient, query: str, max_sites: int 
     if not settings.brave_api_key:
         return []
 
-    resp = await client.get(
-        "https://api.search.brave.com/res/v1/web/search",
-        params={"q": query, "count": str(min(max_sites + 10, 20)), "country": "JP", "search_lang": "jp"},
-        headers={"Accept": "application/json", "X-Subscription-Token": settings.brave_api_key},
-        timeout=30,
-    )
-    resp.raise_for_status()
+    for attempt in range(3):
+        resp = await client.get(
+            "https://api.search.brave.com/res/v1/web/search",
+            params={"q": query, "count": str(min(max_sites + 10, 20)), "country": "JP", "search_lang": "jp"},
+            headers={"Accept": "application/json", "X-Subscription-Token": settings.brave_api_key},
+            timeout=30,
+        )
+        if resp.status_code == 429:
+            wait = (attempt + 1) * 10
+            sys.stdout.write(f"Brave API 429, retrying in {wait}s (attempt {attempt + 1}/3)\n")
+            await asyncio.sleep(wait)
+            continue
+        if resp.status_code != 200:
+            sys.stdout.write(f"Brave API returned {resp.status_code}, skipping scrape\n")
+            return []
+        break
+    else:
+        sys.stdout.write("Brave API rate limited after 3 retries, skipping scrape\n")
+        return []
+
     data = resp.json()
     results = data.get("web", {}).get("results", [])
 
