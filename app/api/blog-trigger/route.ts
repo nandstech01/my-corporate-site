@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { GoogleAuth } from 'google-auth-library'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -15,6 +16,26 @@ export const dynamic = 'force-dynamic'
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+async function getGcpAccessToken(): Promise<string> {
+  const saKeyJson = process.env.GCP_SA_KEY
+  if (!saKeyJson) {
+    throw new Error('GCP_SA_KEY not configured')
+  }
+
+  const credentials = JSON.parse(saKeyJson)
+  const auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  })
+
+  const client = await auth.getClient()
+  const tokenResponse = await client.getAccessToken()
+  if (!tokenResponse.token) {
+    throw new Error('Failed to obtain GCP access token')
+  }
+  return tokenResponse.token
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,56 +83,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Trigger GCP Cloud Run Job (update status only after successful trigger)
+    // Trigger GCP Cloud Run Job
     const gcpProjectId = process.env.GCP_PROJECT_ID
     const gcpRegion = process.env.GCP_REGION || 'asia-northeast1'
-    const gcpAccessToken = process.env.GCP_ACCESS_TOKEN
 
     try {
-      if (!gcpProjectId || !gcpAccessToken) {
-        // Fallback: trigger via GitHub Actions
-        const githubToken = process.env.GITHUB_TOKEN
-        if (githubToken) {
-          const response = await fetch(
-            `https://api.github.com/repos/${process.env.GITHUB_REPO ?? 'nands/my-corporate-site'}/actions/workflows/blog-worker-run.yml/dispatches`,
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${githubToken}`,
-                Accept: 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                ref: 'main',
-                inputs: { job_id: jobId },
-              }),
-            }
-          )
-
-          if (!response.ok) {
-            throw new Error(
-              `GitHub Actions trigger failed: ${response.status}`
-            )
-          }
-
-          // Mark as running only after successful trigger
-          await supabaseServiceRole
-            .from('blog_jobs')
-            .update({ status: 'running', started_at: new Date().toISOString() })
-            .eq('id', jobId)
-
-          return NextResponse.json({
-            success: true,
-            trigger: 'github-actions',
-            jobId,
-          })
-        }
-
+      if (!gcpProjectId) {
         return NextResponse.json(
-          { error: 'No GCP or GitHub Actions credentials configured' },
+          { error: 'GCP_PROJECT_ID not configured' },
           { status: 500 }
         )
       }
+
+      const accessToken = await getGcpAccessToken()
 
       // Cloud Run Jobs API
       const cloudRunUrl = `https://run.googleapis.com/v2/projects/${gcpProjectId}/locations/${gcpRegion}/jobs/blog-pipeline:run`
@@ -119,7 +103,7 @@ export async function POST(request: NextRequest) {
       const response = await fetch(cloudRunUrl, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${gcpAccessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
