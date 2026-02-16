@@ -331,39 +331,84 @@ export function createTools(ctx: AgentContext) {
   )
 
   // ----------------------------------------------------------
-  // 5. trigger_blog_gen: ブログ記事生成トリガー (HITL)
+  // 5. trigger_blog_gen: ブログ記事生成トリガー (HITL → Cloud Run)
   // ----------------------------------------------------------
   // @ts-expect-error TS2589: LangChain tool() deep type instantiation with Zod
   const triggerBlogGenTool = tool(
     async (input) => {
       try {
-        const action = await createPendingAction({
-          slackChannelId: ctx.slackChannelId,
-          slackUserId: ctx.slackUserId,
-          slackThreadTs: ctx.slackThreadTs,
-          actionType: 'trigger_blog',
-          payload: { title: input.title, outline: input.outline },
-          previewText: `Title: ${input.title}\nOutline: ${input.outline}`,
-        })
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        )
 
-        const blocks = buildApprovalBlocks({
-          title: ':notebook: *Blog Generation Request*',
-          previewText: `*Title:* ${input.title}\n*Outline:*\n${input.outline}`,
-          actionId: action.id,
-          actionType: 'blog',
-        })
+        // Insert into blog_topic_queue (same as RSS monitor flow)
+        const { data: topic, error: insertError } = await supabase
+          .from('blog_topic_queue')
+          .insert({
+            source_feed: 'slack_manual',
+            source_url: `slack://${ctx.slackChannelId}/${Date.now()}`,
+            source_title: input.title,
+            source_published_at: new Date().toISOString(),
+            suggested_topic: input.title,
+            suggested_keyword: input.keyword,
+            buzz_score: 50,
+            buzz_breakdown: { manual: true, source: 'slack_bot', category: input.category || 'ai-technology' },
+            status: 'new',
+          })
+          .select()
+          .single()
+
+        if (insertError || !topic) {
+          return JSON.stringify({
+            success: false,
+            error: `Failed to create topic: ${insertError?.message || 'Unknown'}`,
+          })
+        }
+
+        // Send Slack message with approve/dismiss buttons (same as RSS monitor)
+        const message =
+          `:notebook: *Blog Generation Request* (Manual)\n\n` +
+          `*${input.title}*\n` +
+          `Keyword: ${input.keyword}\n` +
+          `Category: ${input.category || 'ai-technology'}`
 
         await sendMessage({
           channel: ctx.slackChannelId,
-          text: `Blog generation request: ${input.title}`,
+          text: message,
           threadTs: ctx.slackThreadTs ?? undefined,
-          blocks,
+          blocks: [
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: message },
+            },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'Approve' },
+                  style: 'primary',
+                  action_id: 'approve_blog_topic',
+                  value: topic.id,
+                },
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'Dismiss' },
+                  style: 'danger',
+                  action_id: 'dismiss_blog_topic',
+                  value: topic.id,
+                },
+              ],
+            },
+          ],
         })
 
         return JSON.stringify({
           success: true,
-          message: 'Blog generation approval request sent.',
-          actionId: action.id,
+          message: 'Blog generation approval request sent. Click Approve to start the Cloud Run pipeline.',
+          topicId: topic.id,
         })
       } catch (error) {
         const message =
@@ -374,10 +419,11 @@ export function createTools(ctx: AgentContext) {
     {
       name: 'trigger_blog_gen',
       description:
-        'ブログ記事の生成をトリガーする。承認後にGitHub Actionsでワークフローを起動。',
+        'ブログ記事の生成をトリガーする。blog_topic_queueに登録し、承認後にGCP Cloud Runパイプラインを起動。',
       schema: z.object({
-        title: z.string().describe('記事タイトル'),
-        outline: z.string().describe('記事のアウトライン'),
+        title: z.string().describe('記事タイトル（日本語）'),
+        keyword: z.string().describe('ターゲットキーワード（SEO用）'),
+        category: z.string().optional().describe('カテゴリスラグ（デフォルト: ai-technology）'),
       }),
     },
   )

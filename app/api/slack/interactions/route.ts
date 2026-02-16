@@ -253,15 +253,18 @@ async function handleApproveBlogTopic(
     .update({ status: 'approved' })
     .eq('id', topicId)
 
-  // Create blog job
+  // Create blog job (category from buzz_breakdown if manual, otherwise default)
+  const breakdown = topic.buzz_breakdown as Record<string, unknown> | null
+  const categorySlug = (breakdown?.category as string) || 'ai-technology'
+
   const { data: job, error: jobError } = await supabase
     .from('blog_jobs')
     .insert({
       topic_queue_id: topicId,
       topic: topic.suggested_topic || topic.source_title,
       target_keyword: topic.suggested_keyword || topic.source_title,
-      category_slug: 'ai-technology',
-      business_category: 'ai-technology',
+      category_slug: categorySlug,
+      business_category: categorySlug,
       status: 'queued',
     })
     .select()
