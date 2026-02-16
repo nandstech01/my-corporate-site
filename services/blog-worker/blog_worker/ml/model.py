@@ -64,9 +64,9 @@ class BlogQualityModel:
     def _rule_based_score(features: dict[str, float]) -> float:
         """Fallback rule-based SEO score."""
         score = 30.0
-        if features.get("char_count", 0) >= 20000:
+        if features.get("char_count", 0) >= 8000:
             score += 15
-        if features.get("h2_count", 0) >= 10:
+        if features.get("h2_count", 0) >= 8:
             score += 10
         if features.get("faq_count", 0) >= 3:
             score += 10
@@ -76,7 +76,18 @@ class BlogQualityModel:
             score += 5
         if features.get("internal_link_count", 0) >= 3:
             score += 5
-        return min(100.0, score)
+        # Quality features bonus/penalty
+        if features.get("citation_count", 0) >= 3:
+            score += 10
+        if features.get("placeholder_count", 0) == 0:
+            score += 5
+        elif features.get("placeholder_count", 0) > 0:
+            score -= 15
+        if features.get("duplicate_ratio", 0) < 0.2:
+            score += 5
+        if features.get("heading_naturalness", 0) >= 0.3:
+            score += 5
+        return max(0.0, min(100.0, score))
 
     @staticmethod
     def _rule_based_aio_score(features: dict[str, float]) -> float:
@@ -90,4 +101,4 @@ class BlogQualityModel:
             score += 10
         if features.get("entity_relation_count", 0) >= 3:
             score += 10
-        return min(100.0, score)
+        return max(0.0, min(100.0, score))

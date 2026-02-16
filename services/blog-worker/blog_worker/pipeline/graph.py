@@ -16,7 +16,7 @@ from blog_worker.pipeline.nodes.rag_query import rag_query_node
 from blog_worker.pipeline.nodes.researcher import research_node
 from blog_worker.pipeline.nodes.scraper import scrape_node
 from blog_worker.pipeline.state import BlogPipelineState
-from blog_worker.slack.notifier import notify_complete, notify_error
+from blog_worker.slack.notifier import notify_error
 
 
 # ============================================================
@@ -170,7 +170,7 @@ async def run_blog_pipeline(job_id: str) -> None:
             "target_keyword": job["target_keyword"],
             "category_slug": job["category_slug"],
             "business_category": job.get("business_category", "ai-technology"),
-            "target_length": 30000,
+            "target_length": 12000,
             "retry_count": 0,
             "error": None,
         }
@@ -179,15 +179,7 @@ async def run_blog_pipeline(job_id: str) -> None:
         compiled = get_compiled_graph()
         final_state = await compiled.ainvoke(initial_state)
 
-        # Update final status
-        await update_job_status(
-            job_id,
-            status="completed",
-            progress_pct=100,
-            post_id=final_state.get("post_id"),
-        )
-
-        await notify_complete(job_id, final_state)
+        # Final status and Slack notification are handled by publish_node
 
     except Exception as exc:
         error_msg = f"{exc}\n{traceback.format_exc()}"

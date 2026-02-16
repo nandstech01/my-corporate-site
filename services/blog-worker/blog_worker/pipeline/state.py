@@ -28,6 +28,7 @@ class BlogPipelineState(TypedDict, total=False):
     company_vectors: list[dict]
     personal_story_data: list[dict]
     kenji_thought_data: list[dict]
+    youtube_rag_data: list[dict]
     scraped_rag_data: list[dict]
     research_rag_data: list[dict]
 

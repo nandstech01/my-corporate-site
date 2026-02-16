@@ -1,8 +1,9 @@
-"""34-feature extraction for blog quality prediction."""
+"""39-feature extraction for blog quality prediction."""
 
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
 
 FEATURE_NAMES: list[str] = [
     # Content (15)
@@ -43,6 +44,12 @@ FEATURE_NAMES: list[str] = [
     "similar_topic_max_clicks",
     "similar_topic_best_position",
     "site_7day_trend",
+    # Quality (5) — new
+    "citation_count",
+    "placeholder_count",
+    "duplicate_ratio",
+    "heading_naturalness",
+    "avg_paragraph_length",
 ]
 
 
@@ -54,7 +61,7 @@ def extract_features(
     seo_keywords: list[str],
     gsc_features: dict | None = None,
 ) -> dict[str, float]:
-    """Extract 34 features from blog content."""
+    """Extract 39 features from blog content."""
     features: dict[str, float] = {}
 
     # Content features
@@ -123,5 +130,53 @@ def extract_features(
     features["similar_topic_max_clicks"] = float(gsc.get("similar_topic_max_clicks", 0))
     features["similar_topic_best_position"] = float(gsc.get("similar_topic_best_position", 50))
     features["site_7day_trend"] = float(gsc.get("site_7day_trend", 0))
+
+    # Quality features (5 new)
+    # 35. Citation count: markdown links to external URLs (excludes nands.tech)
+    all_links = re.findall(r"\[.*?\]\(https?://[^)]+\)", content)
+    external_links = [l for l in all_links if "nands.tech" not in l]
+    features["citation_count"] = float(len(external_links))
+
+    # 36. Placeholder count: leftover placeholders
+    features["placeholder_count"] = float(
+        len(re.findall(r"XXX|TBD|TODO|PLACEHOLDER", content, re.IGNORECASE))
+    )
+
+    # 37. Duplicate ratio: pairwise similarity of H2 sections
+    if len(h2_sections) >= 2:
+        high_sim_pairs = 0
+        total_pairs = 0
+        for i in range(len(h2_sections)):
+            for j in range(i + 1, len(h2_sections)):
+                total_pairs += 1
+                ratio = SequenceMatcher(
+                    None, h2_sections[i][:500], h2_sections[j][:500]
+                ).ratio()
+                if ratio > 0.7:
+                    high_sim_pairs += 1
+        features["duplicate_ratio"] = float(
+            high_sim_pairs / total_pairs if total_pairs else 0.0
+        )
+    else:
+        features["duplicate_ratio"] = 0.0
+
+    # 38. Heading naturalness: ratio of headings containing Japanese particles
+    h2_raw = re.findall(r"^## (.+)$", content, re.MULTILINE)
+    if h2_raw:
+        natural_count = sum(
+            1 for h in h2_raw if re.search(r"[のはをにでがとも]", h)
+        )
+        features["heading_naturalness"] = float(natural_count / len(h2_raw))
+    else:
+        features["heading_naturalness"] = 0.0
+
+    # 39. Average paragraph length (chars per paragraph, 100-400 is ideal)
+    paragraphs = [p for p in content.split("\n\n") if p.strip() and not p.strip().startswith("#")]
+    if paragraphs:
+        features["avg_paragraph_length"] = float(
+            sum(len(p) for p in paragraphs) / len(paragraphs)
+        )
+    else:
+        features["avg_paragraph_length"] = 0.0
 
     return features

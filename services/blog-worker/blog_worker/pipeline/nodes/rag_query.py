@@ -41,10 +41,19 @@ async def rag_query_node(state: BlogPipelineState) -> BlogPipelineState:
     company_vectors: list[dict] = []
     personal_story_data: list[dict] = []
     kenji_thought_data: list[dict] = []
+    youtube_rag_data: list[dict] = []
+
+    # Pre-compute embeddings (shared across searches)
+    embedding: list[float] = []
+    try:
+        embedding = _get_embedding(search_query, 1536)
+    except Exception:
+        pass
 
     # 1. Company Vectors (hybrid search)
     try:
-        embedding = _get_embedding(search_query, 1536)
+        if not embedding:
+            raise ValueError("No embedding available")
         result = db.rpc(
             "hybrid_search_company_vectors",
             {
@@ -130,7 +139,35 @@ async def rag_query_node(state: BlogPipelineState) -> BlogPipelineState:
         except Exception:
             pass
 
-    # 4 & 5: Scraped keywords and research results are already in state
+    # 4. YouTube Vectors (hybrid search, 1536 dims — reuses embedding)
+    try:
+        if not embedding:
+            raise ValueError("No embedding available")
+        yt_result = db.rpc(
+            "hybrid_search_youtube_vectors",
+            {
+                "query_text": search_query,
+                "query_embedding": embedding,
+                "match_count": 5,
+                "match_threshold": 0.4,
+            },
+        ).execute()
+
+        if yt_result.data:
+            youtube_rag_data = [
+                {
+                    "video_title": r.get("video_title", ""),
+                    "channel_name": (r.get("metadata") or {}).get("channel_name", ""),
+                    "content": str(r.get("content", ""))[:500],
+                    "video_url": (r.get("metadata") or {}).get("video_url", ""),
+                    "educational_score": (r.get("metadata") or {}).get("educational_score", 0),
+                }
+                for r in yt_result.data
+            ]
+    except Exception:
+        pass
+
+    # 5 & 6: Scraped keywords and research results are already in state
     scraped_rag_data: list[dict] = []
     research_rag_data: list[dict] = []
 
@@ -144,6 +181,7 @@ async def rag_query_node(state: BlogPipelineState) -> BlogPipelineState:
         "company_vectors": company_vectors,
         "personal_story_data": personal_story_data,
         "kenji_thought_data": kenji_thought_data,
+        "youtube_rag_data": youtube_rag_data,
         "scraped_rag_data": scraped_rag_data,
         "research_rag_data": research_rag_data,
     }

@@ -98,10 +98,22 @@ def _build_rag_summary(state: BlogPipelineState) -> str:
         results_list = research.get("results", [])
         if results_list:
             items = "\n\n".join(
-                f"{i+1}. {r.get('title', '')}\n   {str(r.get('content', ''))[:300]}..."
-                for i, r in enumerate(results_list[:5])
+                f"{i+1}. **{r.get('title', '')}** ({r.get('source', '')})\n"
+                f"   URL: {r.get('url', '')}\n"
+                f"   {str(r.get('content', ''))[:300]}..."
+                for i, r in enumerate(results_list[:10])
             )
             sections.append(f"### ディープリサーチ結果\n{items}")
+
+    youtube = state.get("youtube_rag_data", [])
+    if youtube:
+        items = "\n\n".join(
+            f"{i+1}. 「{y.get('video_title', '')}」（{y.get('channel_name', '')}）\n"
+            f"   {str(y.get('content', ''))[:400]}...\n"
+            f"   URL: {y.get('video_url', '')}"
+            for i, y in enumerate(youtube[:5])
+        )
+        sections.append(f"### 海外教育コンテンツ（YouTube）\n{items}")
 
     return "\n\n".join(sections)
 
@@ -110,17 +122,28 @@ def _format_scraped_keywords(keywords: dict) -> str:
     if not keywords or not isinstance(keywords, dict):
         return "（データなし）"
 
-    parts: list[str] = []
-    if keywords.get("h1"):
-        parts.append(f"【H1キーワード】全て記事に含めること:\n{', '.join(keywords['h1'][:30])}")
-    if keywords.get("h2"):
-        parts.append(f"【H2キーワード】見出しに使用すること:\n{', '.join(keywords['h2'][:50])}")
-    if keywords.get("h3"):
-        parts.append(f"【H3キーワード】サブ見出しに使用すること:\n{', '.join(keywords['h3'][:50])}")
-    if keywords.get("body"):
-        parts.append(f"【本文キーワード】本文に自然に散りばめること:\n{', '.join(keywords['body'][:100])}")
+    # Collect top-10 keywords across all sources for natural placement
+    all_kw: list[str] = []
+    for key in ("h1", "h2", "h3", "body"):
+        all_kw.extend(keywords.get(key, []))
 
-    return "\n\n".join(parts) if parts else "（データなし）"
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for kw in all_kw:
+        lower = kw.lower()
+        if lower not in seen:
+            seen.add(lower)
+            unique.append(kw)
+
+    top10 = unique[:10]
+    if not top10:
+        return "（データなし）"
+
+    return (
+        f"【重要キーワードTop10】本文中に自然に散りばめること（見出しには無理に入れない）:\n"
+        f"{', '.join(top10)}"
+    )
 
 
 def _format_research_results(research: dict) -> str:
@@ -135,8 +158,10 @@ def _format_research_results(research: dict) -> str:
         return "（データなし）"
 
     return "\n\n".join(
-        f"{i+1}. **{r.get('title', '')}**\n   {str(r.get('content', ''))[:200]}..."
-        for i, r in enumerate(results[:5])
+        f"{i+1}. **{r.get('title', '')}** ({r.get('source', '')})\n"
+        f"   URL: {r.get('url', '')}\n"
+        f"   {str(r.get('content', ''))[:300]}..."
+        for i, r in enumerate(results[:10])
     )
 
 
@@ -153,56 +178,64 @@ def _build_system_prompt(
     analysis = _analyze_topic_entity(topic, target_keyword)
     min_length = int(target_length * 0.8)
 
-    return f"""あなたは{analysis['authorRole']}として記事を執筆します。
+    return f"""あなたは{analysis['authorRole']}として、読者の検索意図に直接応える高品質な記事を執筆します。
 
 ## 記事生成指示
 - **トピック**: {topic}
 - **ターゲットキーワード**: {target_keyword}
 - **カテゴリ**: {category_slug}
-- **目標文字数**: {target_length}文字（必須）
+- **目標文字数**: {target_length}文字（{min_length}〜{target_length}文字）
 
-## トピック分析結果（これを踏まえて執筆）
+## トピック分析結果
 {analysis['guidance']}
 
-## 記事品質要件
+## 読者の検索意図
+{analysis['readerNeeds']}
 
-### 1. ユーザーファースト（最重要）
-- **読者が本当に知りたいこと**: {analysis['readerNeeds']}
-- 結論を最初に提示（共感→結論→根拠→方法→体験談→まとめ）
-- 実践的なアクションアイテムを含める
+## 記事構成（この流れで書く）
+共感（読者の悩みに寄り添う）→ 結論（答えを先に提示）→ 根拠（データ・一次情報で裏付け）→ 方法（実践ステップ）→ 体験談（Before/After）→ まとめ（アクションアイテム）
 
-### 2. 具体性の徹底
-- **必須**: スクレイピングで取得した会社名・サービス名を具体的に記載
-- 「A社」「B社」などの抽象的な表現は絶対禁止
-- 費用相場は具体的な数字で示す（ただしRAGデータにある情報のみ）
+## 見出しルール
+- **自然な日本語**で書く（「Claude Codeの料金プランと選び方」○ / 「claude code 料金 比較 選び方」×）
+- Fragment IDは書かない（後処理で自動付与するのでプレーンな見出しのみ）
+- H2は**8〜12個**（内容密度を優先、水増ししない）
+- H3は必要に応じて各H2内に2〜4個
 
-### 3. E-E-A-T（経験・専門性・権威性・信頼性）
-- 一次情報（実体験）は補助的に使用
-- 読者の悩みへの具体的解決策を優先
+## 引用ルール（最低5箇所の一次情報引用を含めること）
+- ディープリサーチ結果は「[出典名](URL)によると〜」で引用
+- YouTube RAGは「海外の専門家（チャンネル名）の解説では〜」で引用
+- 公式サイト（Anthropic, OpenAI等）は直接リンク
+- cited_sourcesフィールドに引用元をまとめること
 
-### 4. SEO・AIO最適化
-- Fragment ID付き見出し（例：## はじめに {{#introduction}}）
-- 適切なキーワード密度（2-3%）
-- FAQセクション必須（**12問以上**、各{{#faq-1}}～{{#faq-12}}）
+## 体験談ルール
+- リサーチで得た具体的操作手順を「実際に試してみると〜」視点で書く
+- Before/After形式（導入前→導入後の変化）を含める
+- 具体的な作業時間・工数の比較があると良い
+- 推測の場合は「推測ですが〜」「一般的に〜」と明示（嘘の回避）
 
-### 5. 構造化
-- H1→H2→H3の論理的な見出し構造
-- 段落は3-4行以内
-- 比較表、チェックリストを効果的に使用
+## 自社RAG・パーソナルRAGの活用
+- 自社情報（company_vectors）やパーソナルストーリーが提供された場合、記事の冒頭や体験談セクションに**さりげなく1箇所だけ**織り込む
+- 例:「nands.techでの導入事例では〜」「筆者自身のAI開発経験から〜」
+- 量は少なくてよい（全体の1%程度）が、E-E-AT Experienceの差別化になる
+- 自社RAGデータがない場合は無理に挿入しない
 
-### 6. 【絶対条件】文字数要件（最重要）
-- **目標文字数: {target_length}文字**（最低{min_length}文字以上）
-- H2セクションは最低**20個以上**
-- 各H2セクションは**最低2000文字**
-- FAQは**15問以上**（各300文字以上）
-- 比較表は**3つ以上**
-- 具体的事例は**5つ以上**
-- スクレイピングキーワードを**全て**記事内に含める
+## キーワード配置
+- スクレイピングTop10キーワードは**本文中に自然に散りばめる**
+- 見出しには無理に入れない（自然なら入れてOK）
+- キーワード密度1.5〜2.5%（過剰回避）
+
+## FAQセクション
+- **5〜8問**（本当に読者が検索しそうな質問のみ）
+- 各回答は200〜400文字で的確に
+- 「### Q: 質問内容」形式
 
 ## 【絶対禁止】
-- 「A社」「B社」などの匿名表記（具体名を使う）
+- 「A社」「B社」などの匿名表記（具体名がなければ触れない）
 - RAGにない数字の捏造
-- 読者が求めていないAI技術の深堀り
+- 同じ趣旨の繰り返し（重複セクション）
+- 「〜について解説します」「いかがでしたか」的な空文
+- Fragment ID（{{#xxx}}）の記述（後処理で付与）
+- XXX、TBD、TODO、PLACEHOLDERなどのプレースホルダ
 
 ## 出力形式【最重要】
 
@@ -210,13 +243,14 @@ def _build_system_prompt(
 
 ```json
 {{
-  "title": "魅力的なブログタイトル（32文字以内、キーワードを含む）",
-  "meta_description": "160文字以内のメタディスクリプション",
-  "content": "記事本文（Markdown形式、{target_length}文字以上）",
-  "seo_keywords": ["メインキーワード", "関連キーワード1", "関連キーワード2"],
+  "title": "自然な日本語タイトル（32文字以内）",
+  "meta_description": "160文字以内、読者の検索意図に直接応える要約",
+  "content": "Markdown本文（見出しにFragment IDなし）",
+  "seo_keywords": ["メインKW", "関連1", "関連2", "関連3", "関連4"],
   "excerpt": "200文字以内の記事要約",
-  "estimated_reading_time": 30,
-  "word_count": {target_length}
+  "cited_sources": [
+    {{"name": "出典名", "url": "https://..."}}
+  ]
 }}
 ```
 
@@ -281,7 +315,7 @@ async def generate_node(state: BlogPipelineState) -> BlogPipelineState:
     topic = state.get("topic", "")
     target_keyword = state.get("target_keyword", "")
     category_slug = state.get("category_slug", "ai-technology")
-    target_length = state.get("target_length", 30000)
+    target_length = state.get("target_length", 12000)
 
     # Build prompt
     system_prompt = _build_system_prompt(topic, target_keyword, category_slug, target_length)
@@ -293,36 +327,34 @@ async def generate_node(state: BlogPipelineState) -> BlogPipelineState:
 
     full_prompt = f"""{system_prompt}
 
-## RAG参考データ
+## RAG参考データ（引用元として活用すること）
 {rag_summary}
 
-## スクレイピングキーワード（網羅的に活用）
+## スクレイピングキーワード
 {scraped_kw}
 
-## ディープリサーチ結果
+## ディープリサーチ結果（URLを[出典名](URL)形式で本文中に引用すること）
 {research_text}
 
 ---
 
-【絶対条件】文字数要件（これを満たさない記事は不合格）
+品質チェックリスト（出力前に確認）:
+- [ ] 一次情報引用が5箇所以上（[出典名](URL)形式）
+- [ ] H2見出しが8〜12個で自然な日本語
+- [ ] FAQが5〜8問で読者の実際の疑問に回答
+- [ ] Fragment ID（{{#xxx}}）を書いていないこと
+- [ ] プレースホルダ（XXX, TBD等）が残っていないこと
+- [ ] 同じ趣旨の重複セクションがないこと
+- [ ] キーワードが本文に自然に配置されていること"""
 
-目標文字数: {target_length}文字（最低でも{int(target_length * 0.8)}文字以上）
+    # Model fallback chain: GPT-5.2 (primary) -> GPT-5-mini -> DeepSeek -> GPT-4o-mini
+    models_to_try: list[tuple[str | None, str, dict]] = []
 
-### 記事構成の必須要件:
-1. H2セクション数: 最低20個以上
-2. 各H2セクションの文字数: 最低2000文字以上
-3. FAQセクション: 15問以上（各回答300文字以上）
-4. 比較表: 最低3つ以上
-5. チェックリスト: 最低2つ以上
-6. 具体的な事例: 最低5つ以上
-
-### キーワード網羅の必須要件:
-- スクレイピングで取得したH1キーワード: 全て見出しに使用
-- スクレイピングで取得したH2キーワード: 全て見出しに使用
-- スクレイピングで取得した本文キーワード: 全て本文に散りばめる"""
-
-    # Model fallback chain: DeepSeek -> GPT-5.2 -> GPT-5 mini -> GPT-4o-mini
-    models_to_try: list[tuple[str, str, dict]] = []
+    if settings.openai_api_key:
+        models_to_try.extend([
+            (None, "gpt-5.2", {"api_key": settings.openai_api_key}),
+            (None, "gpt-5-mini", {"api_key": settings.openai_api_key}),
+        ])
 
     if settings.deepseek_api_key:
         models_to_try.append((
@@ -332,11 +364,9 @@ async def generate_node(state: BlogPipelineState) -> BlogPipelineState:
         ))
 
     if settings.openai_api_key:
-        models_to_try.extend([
-            (None, "gpt-5.2", {"api_key": settings.openai_api_key}),
-            (None, "gpt-5-mini", {"api_key": settings.openai_api_key}),
+        models_to_try.append(
             (None, "gpt-4o-mini", {"api_key": settings.openai_api_key}),
-        ])
+        )
 
     generated_content: str | None = None
     generation_model: str = "unknown"
@@ -350,7 +380,7 @@ async def generate_node(state: BlogPipelineState) -> BlogPipelineState:
                 completion = await client.chat.completions.create(
                     model=model_name,
                     messages=[{"role": "user", "content": full_prompt}],
-                    max_completion_tokens=8000,
+                    max_completion_tokens=65536,
                     temperature=0.8,
                 )
             elif model_name.startswith("gpt-5"):

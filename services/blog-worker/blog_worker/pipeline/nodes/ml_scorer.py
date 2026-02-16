@@ -23,7 +23,7 @@ def _get_model() -> BlogQualityModel:
 async def ml_score_node(state: BlogPipelineState) -> BlogPipelineState:
     """Score article quality using ML ensemble.
 
-    - Extract 34 features from generated content
+    - Extract 39 features from generated content
     - XGBoost (SEO, weight 0.6) + LightGBM (AIO, weight 0.4)
     - Returns score 0-100 and breakdown
     """
@@ -47,7 +47,7 @@ async def ml_score_node(state: BlogPipelineState) -> BlogPipelineState:
         state.get("topic", ""),
     )
 
-    # Extract 34 features
+    # Extract 39 features
     features = extract_features(
         content=content,
         title=title,
@@ -68,6 +68,12 @@ async def ml_score_node(state: BlogPipelineState) -> BlogPipelineState:
     breakdown["keyword_coverage"] = features.get("keyword_coverage", 0)
     breakdown["fragment_id_count"] = features.get("fragment_id_count", 0)
     breakdown["generation_model"] = generated.get("generation_model", "unknown")
+    # Quality features (used by quality gate hard-fail conditions)
+    breakdown["citation_count"] = features.get("citation_count", 0)
+    breakdown["placeholder_count"] = features.get("placeholder_count", 0)
+    breakdown["duplicate_ratio"] = features.get("duplicate_ratio", 0)
+    breakdown["heading_naturalness"] = features.get("heading_naturalness", 0)
+    breakdown["avg_paragraph_length"] = features.get("avg_paragraph_length", 0)
 
     # Update job with ML score
     job_id = state.get("job_id", "")
