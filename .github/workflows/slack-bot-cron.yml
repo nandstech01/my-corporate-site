@@ -34,6 +34,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'services/linkedin-ml/requirements.txt'
+      - name: Install & verify Python ML dependencies
+        run: |
+          pip install -r services/linkedin-ml/requirements.txt
+          python3 -c "import xgboost, sklearn, fugashi; print('ML dependencies OK')"
       - run: npx tsx scripts/slack-bot-cron.ts
         env:
           CRON_JOB: ${{ github.event.inputs.job || 'auto' }}

@@ -1,0 +1,18 @@
+[project]
+name = "linkedin-ml"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "xgboost>=2.0.0",
+    "scikit-learn>=1.4.0",
+    "numpy>=1.24.0",
+    "pandas>=2.1.0",
+    "click>=8.1.0",
+    "pydantic>=2.5.0",
+    "fugashi>=1.3.0",
+    "unidic-lite>=1.0.8",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

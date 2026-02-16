@@ -13,6 +13,8 @@ import { linkedInTemplates, findTemplateForSourceType } from './linkedin-templat
 import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
+import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
+import type { MlPrediction } from '../linkedin-ml-bridge/types'
 
 // ============================================================
 // 型定義
@@ -34,6 +36,8 @@ export interface LinkedInCandidateScore {
   readonly lengthFit: number
   readonly discussionPotential: number
   readonly total: number
+  readonly mlEngagementPrediction: number
+  readonly mlConfidence: number
 }
 
 export interface LinkedInGraphOutput {
@@ -211,10 +215,16 @@ async function scoreCandidates(
     .map((c, i) => `【候補${i + 1}】\n${c}`)
     .join('\n\n')
 
-  const response = await model.invoke([
-    {
-      role: 'system' as const,
-      content: `あなたはLinkedIn投稿の品質評価者です。以下の候補を5基準で評価してください。各0-10点。
+  // LLM スコアリングと ML 予測を並列実行
+  const now = new Date()
+  const dayOfWeek = now.getUTCDay()
+  const hourJst = (now.getUTCHours() + 9) % 24
+
+  const [response, ...mlResults] = await Promise.all([
+    model.invoke([
+      {
+        role: 'system' as const,
+        content: `あなたはLinkedIn投稿の品質評価者です。以下の候補を5基準で評価してください。各0-10点。
 
 基準:
 1. professionalTone: ビジネスSNSとして適切なトーンか（「です・ます」調、煽り表現なし）
@@ -228,12 +238,16 @@ JSON配列のみ出力:
   {"index":0,"professionalTone":8,"sourceAttribution":9,"japanRelevance":7,"lengthFit":9,"discussionPotential":8,"total":41},
   ...
 ]`,
-    },
-    {
-      role: 'user' as const,
-      content: candidateList,
-    },
-  ])
+      },
+      {
+        role: 'user' as const,
+        content: candidateList,
+      },
+    ]),
+    ...state.candidates.map((candidate) =>
+      predictEngagement(candidate, { dayOfWeek, hour: hourJst }),
+    ),
+  ]) as [typeof response, ...(MlPrediction | null)[]]
 
   const text =
     typeof response.content === 'string'
@@ -241,18 +255,6 @@ JSON配列のみ出力:
       : String(response.content)
 
   const jsonMatch = text.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    const fallbackScores: LinkedInCandidateScore[] = state.candidates.map((_, i) => ({
-      index: i,
-      professionalTone: 5,
-      sourceAttribution: 5,
-      japanRelevance: 5,
-      lengthFit: 5,
-      discussionPotential: 5,
-      total: 25,
-    }))
-    return { scores: fallbackScores }
-  }
 
   const ScoreSchema = z.array(
     z.object({
@@ -266,7 +268,59 @@ JSON配列のみ出力:
     }),
   )
 
-  const scores = ScoreSchema.parse(JSON.parse(jsonMatch[0]))
+  const llmScores = jsonMatch
+    ? ScoreSchema.parse(JSON.parse(jsonMatch[0]))
+    : state.candidates.map((_, i) => ({
+        index: i,
+        professionalTone: 5,
+        sourceAttribution: 5,
+        japanRelevance: 5,
+        lengthFit: 5,
+        discussionPotential: 5,
+        total: 25,
+      }))
+
+  // ML 予測でブレンドスコアを計算
+  const mlPredictions = mlResults
+  const maxEngagement = Math.max(
+    ...mlPredictions.map((p) => p?.predictedEngagement ?? 0),
+    1,
+  )
+
+  const ML_WEIGHT = 0.3
+  const ML_SCALE = 10
+
+  const scores: LinkedInCandidateScore[] = llmScores.map((llm, i) => {
+    const ml = mlPredictions[i]
+    const mlPredicted = ml?.predictedEngagement ?? 0
+    const mlConfidence = ml?.confidence ?? 0
+    const normalizedMl = (mlPredicted / maxEngagement) * ML_SCALE
+    const mlBonus = normalizedMl * ML_WEIGHT
+
+    const blendedTotal = ml
+      ? Math.round((llm.total + mlBonus) * 100) / 100
+      : llm.total
+
+    if (ml) {
+      process.stdout.write(
+        `ML prediction for candidate ${i}: ${mlPredicted.toFixed(1)} ` +
+          `(confidence: ${mlConfidence.toFixed(2)}, bonus: +${mlBonus.toFixed(2)})\n`,
+      )
+    }
+
+    return {
+      index: llm.index,
+      professionalTone: llm.professionalTone,
+      sourceAttribution: llm.sourceAttribution,
+      japanRelevance: llm.japanRelevance,
+      lengthFit: llm.lengthFit,
+      discussionPotential: llm.discussionPotential,
+      total: blendedTotal,
+      mlEngagementPrediction: mlPredicted,
+      mlConfidence,
+    }
+  })
+
   return { scores }
 }
 
