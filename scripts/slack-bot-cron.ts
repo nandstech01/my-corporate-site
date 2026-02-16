@@ -46,17 +46,24 @@ function detectJob(): JobName {
     return 'daily-suggestion'
   }
 
-  // JST 10:00 = UTC 1:00
-  if (utcHour === 1) {
-    // Monday → weekly report
-    if (dayOfWeek === 1) {
-      return 'weekly-report'
-    }
-    // Tue-Sun → LinkedIn suggestion
+  // JST 10:00 = UTC 1:00 Monday → weekly report
+  if (utcHour === 1 && dayOfWeek === 1) {
+    return 'weekly-report'
+  }
+
+  // JST 6,14,22 = UTC 21,5,13 → LinkedIn source collector (1日3回)
+  if (utcHour === 21 || (utcHour === 5 && dayOfWeek !== 1)) {
+    return 'linkedin-source-collector'
+  }
+
+  // JST 8-22 every 2h = UTC 23,1,3,5,7,9,11,13 → LinkedIn auto-post
+  const linkedinAutoPostHours = [23, 1, 3, 7, 9, 11]
+  if (linkedinAutoPostHours.includes(utcHour)) {
     return 'linkedin-auto-post'
   }
 
-  // JST 22:00 = UTC 13:00 → LinkedIn source collector
+  // UTC 13 → source collector (JST 22) or auto-post
+  // Source collector takes priority at UTC 13
   if (utcHour === 13) {
     return 'linkedin-source-collector'
   }
