@@ -74,6 +74,9 @@ async def ml_score_node(state: BlogPipelineState) -> BlogPipelineState:
     breakdown["duplicate_ratio"] = features.get("duplicate_ratio", 0)
     breakdown["heading_naturalness"] = features.get("heading_naturalness", 0)
     breakdown["avg_paragraph_length"] = features.get("avg_paragraph_length", 0)
+    # Review results (from GPT-5.2 fact-checking)
+    breakdown["review_score"] = state.get("review_score", 0)
+    breakdown["review_issues_count"] = len(state.get("review_issues", []))
 
     # Update job with ML score
     job_id = state.get("job_id", "")

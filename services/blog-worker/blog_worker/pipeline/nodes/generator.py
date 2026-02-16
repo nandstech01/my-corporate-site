@@ -158,9 +158,9 @@ def _format_research_results(research: dict) -> str:
         return "（データなし）"
 
     return "\n\n".join(
-        f"{i+1}. **{r.get('title', '')}** ({r.get('source', '')})\n"
+        f"[FACT-{i+1}] **{r.get('title', '')}** ({r.get('source', '')})\n"
         f"   URL: {r.get('url', '')}\n"
-        f"   {str(r.get('content', ''))[:300]}..."
+        f"   Content: {str(r.get('content', ''))[:600]}..."
         for i, r in enumerate(results[:10])
     )
 
@@ -232,6 +232,9 @@ def _build_system_prompt(
 ## 【絶対禁止】
 - 「A社」「B社」などの匿名表記（具体名がなければ触れない）
 - RAGにない数字の捏造
+- リサーチ結果・RAGデータに存在しない事実の記述（人名・組織名・開発元・日付）
+- 「〜と言われている」「一般的に〜」での根拠なき主張（根拠がある場合は出典を明記）
+- 情報不足の場合に推測で補完すること（代わりに「詳細は公式サイトを参照」と書く）
 - 同じ趣旨の繰り返し（重複セクション）
 - 「〜について解説します」「いかがでしたか」的な空文
 - Fragment ID（{{#xxx}}）の記述（後処理で付与）
@@ -327,19 +330,24 @@ async def generate_node(state: BlogPipelineState) -> BlogPipelineState:
 
     full_prompt = f"""{system_prompt}
 
-## RAG参考データ（引用元として活用すること）
+## 事実データベース（以下のデータのみが事実。ここにない事実は絶対に書くな）
+
+### RAG参考データ
 {rag_summary}
+
+### ディープリサーチ結果
+{research_text}
+
+**重要**: 上記の[FACT-N]ラベル付きデータが唯一の事実情報源です。事実を書く際は必ず本文中で [出典名](URL) 形式で引用すること。上記にない人名・組織名・開発元・数値・日付は絶対に書かないこと。
 
 ## スクレイピングキーワード
 {scraped_kw}
-
-## ディープリサーチ結果（URLを[出典名](URL)形式で本文中に引用すること）
-{research_text}
 
 ---
 
 品質チェックリスト（出力前に確認）:
 - [ ] 一次情報引用が5箇所以上（[出典名](URL)形式）
+- [ ] 事実データベースにない情報を書いていないこと（人名・組織名・開発元・日付）
 - [ ] H2見出しが8〜12個で自然な日本語
 - [ ] FAQが5〜8問で読者の実際の疑問に回答
 - [ ] Fragment ID（{{#xxx}}）を書いていないこと

@@ -35,6 +35,11 @@ class BlogPipelineState(TypedDict, total=False):
     # Generator output
     generated_content: dict  # {title, meta_description, content, seo_keywords, excerpt, ...}
 
+    # Review (GPT-5.2 fact-checking)
+    review_score: float          # GPT-5.2 review score (0-100)
+    review_issues: list[dict]    # Detected issues list
+    review_summary: str          # Review summary
+
     # ML scoring
     ml_score: float
     ml_breakdown: dict

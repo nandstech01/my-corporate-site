@@ -38,6 +38,9 @@ def quality_gate(state: BlogPipelineState) -> str:
             return "generate"
         if features.get("duplicate_ratio", 0) > 0.3:
             return "generate"
+        # Review score hard-fail: even after fix, quality is still too low
+        if state.get("review_score", 100) < 50:
+            return "generate"
 
     # Soft condition: score-based
     if score < settings.ml_quality_threshold and retries < max_retries:

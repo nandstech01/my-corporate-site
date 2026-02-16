@@ -8,12 +8,14 @@ from langgraph.graph import END, StateGraph
 
 from blog_worker.db import get_supabase, update_job_status
 from blog_worker.pipeline.edges.quality_gate import quality_gate
+from blog_worker.pipeline.nodes.fixer import fix_node
 from blog_worker.pipeline.nodes.generator import generate_node
 from blog_worker.pipeline.nodes.ml_scorer import ml_score_node
 from blog_worker.pipeline.nodes.post_processor import post_process_node
 from blog_worker.pipeline.nodes.publisher import publish_node
 from blog_worker.pipeline.nodes.rag_query import rag_query_node
 from blog_worker.pipeline.nodes.researcher import research_node
+from blog_worker.pipeline.nodes.reviewer import review_node
 from blog_worker.pipeline.nodes.scraper import scrape_node
 from blog_worker.pipeline.state import BlogPipelineState
 from blog_worker.slack.notifier import notify_error
@@ -45,6 +47,18 @@ async def _generate_with_progress(state: BlogPipelineState) -> BlogPipelineState
     job_id = state.get("job_id", "")
     await update_job_status(job_id, current_step="generate", progress_pct=50)
     return await generate_node(state)
+
+
+async def _review_with_progress(state: BlogPipelineState) -> BlogPipelineState:
+    job_id = state.get("job_id", "")
+    await update_job_status(job_id, current_step="review", progress_pct=60)
+    return await review_node(state)
+
+
+async def _fix_with_progress(state: BlogPipelineState) -> BlogPipelineState:
+    job_id = state.get("job_id", "")
+    await update_job_status(job_id, current_step="fix", progress_pct=65)
+    return await fix_node(state)
 
 
 async def _ml_score_with_progress(state: BlogPipelineState) -> BlogPipelineState:
@@ -103,16 +117,20 @@ def build_pipeline_graph() -> StateGraph:
     graph.add_node("research", _research_with_progress)
     graph.add_node("rag_query", _rag_with_progress)
     graph.add_node("generate", _generate_with_progress)
+    graph.add_node("review", _review_with_progress)
+    graph.add_node("fix", _fix_with_progress)
     graph.add_node("ml_score", _ml_score_with_progress)
     graph.add_node("increment_retry", _increment_retry)
     graph.add_node("post_process", _post_process_with_progress)
     graph.add_node("publish", _publish_with_progress)
 
-    # Linear edges: scrape -> research -> rag_query -> generate -> ml_score
+    # Linear edges: scrape -> research -> rag_query -> generate -> review -> fix -> ml_score
     graph.add_edge("scrape", "research")
     graph.add_edge("research", "rag_query")
     graph.add_edge("rag_query", "generate")
-    graph.add_edge("generate", "ml_score")
+    graph.add_edge("generate", "review")
+    graph.add_edge("review", "fix")
+    graph.add_edge("fix", "ml_score")
 
     # Conditional edge: ml_score -> post_process OR generate (via retry)
     graph.add_conditional_edges(
