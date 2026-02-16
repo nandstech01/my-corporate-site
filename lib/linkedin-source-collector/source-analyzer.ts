@@ -7,6 +7,7 @@
 
 import { z } from 'zod'
 import { ChatOpenAI } from '@langchain/openai'
+import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 
 // ============================================================
 // 型定義
@@ -14,7 +15,7 @@ import { ChatOpenAI } from '@langchain/openai'
 
 export interface CollectedSource {
   readonly id: string
-  readonly sourceType: 'reddit' | 'github_release' | 'hackernews' | 'devto'
+  readonly sourceType: 'reddit' | 'github_release' | 'hackernews' | 'devto' | 'official_blog'
   readonly title: string
   readonly body: string
   readonly url: string
@@ -23,7 +24,7 @@ export interface CollectedSource {
 
 export interface LinkedInTopicCandidate {
   readonly title: string
-  readonly sourceType: 'practitioner_experience' | 'new_release' | 'trend_analysis'
+  readonly sourceType: 'practitioner_experience' | 'new_release' | 'trend_analysis' | 'official_announcement'
   readonly sourceBody: string
   readonly sourceUrl: string
   readonly japanAngle: string
@@ -33,7 +34,7 @@ export interface LinkedInTopicCandidate {
 
 const LinkedInTopicCandidateSchema = z.object({
   title: z.string(),
-  sourceType: z.enum(['practitioner_experience', 'new_release', 'trend_analysis']),
+  sourceType: z.enum(['practitioner_experience', 'new_release', 'trend_analysis', 'official_announcement']),
   sourceBody: z.string(),
   sourceUrl: z.string(),
   japanAngle: z.string(),
@@ -74,6 +75,10 @@ export async function analyzeSourcesForLinkedIn(
 
   const model = createMiniModel()
 
+  // 学習データの取得（コールドスタート時は null）
+  const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+  const learnings = userId ? await getLinkedInLearnings(userId) : null
+
   const sourceList = sources
     .slice(0, 20)
     .map(
@@ -82,6 +87,10 @@ export async function analyzeSourcesForLinkedIn(
     )
     .join('\n\n')
 
+  const learningsSection = learnings
+    ? `\n\n## 過去のエンゲージメント分析から学んだこと:\n${learnings.highPerformerSummary}\n\nこの情報を参考に、高エンゲージメントが期待できるソースを優先的に選択してください。`
+    : ''
+
   const response = await model.invoke([
     {
       role: 'system' as const,
@@ -89,16 +98,17 @@ export async function analyzeSourcesForLinkedIn(
 以下の海外ソースから、LinkedIn投稿に最適な3-5件を選び、日本市場への切り口を提案してください。
 
 優先度:
-1. practitioner_experience: 具体的な「使ってみた」体験談（Reddit等）
-2. new_release: 重要なAIツールのリリース（GitHub）
-3. trend_analysis: 複数ソースにまたがるトレンド
+1. official_announcement: 公式ブログの重要発表（OpenAI, Anthropic等）
+2. practitioner_experience: 具体的な「使ってみた」体験談（Reddit等）
+3. new_release: 重要なAIツールのリリース（GitHub）
+4. trend_analysis: 複数ソースにまたがるトレンド
 
 JSON形式のみで出力:
 {
   "candidates": [
     {
       "title": "投稿タイトル案",
-      "sourceType": "practitioner_experience|new_release|trend_analysis",
+      "sourceType": "official_announcement|practitioner_experience|new_release|trend_analysis",
       "sourceBody": "元ソースの要約（200文字）",
       "sourceUrl": "元ソースのURL",
       "japanAngle": "日本市場への示唆・切り口",
@@ -112,7 +122,7 @@ JSON形式のみで出力:
 注意:
 - 日本のビジネスパーソンが関心を持つ切り口を必ず付ける
 - ハッシュタグは日英ミックスで2-3個
-- 元ソースへの帰属を明確に`,
+- 元ソースへの帰属を明確に${learningsSection}`,
     },
     {
       role: 'user' as const,

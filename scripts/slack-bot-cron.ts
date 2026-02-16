@@ -8,17 +8,19 @@
 import { runDailySuggestion } from '../lib/slack-bot/proactive/daily-suggestion'
 import { runWeeklyReport } from '../lib/slack-bot/proactive/weekly-report'
 import { runEngagementLearner } from '../lib/slack-bot/proactive/engagement-learner'
+import { runLinkedInEngagementLearner } from '../lib/slack-bot/proactive/linkedin-engagement-learner'
 import { runTrendingCollector } from '../lib/x-trending-collector/trending-collector'
 import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/source-collector'
-import { runLinkedInSuggestion } from '../lib/slack-bot/proactive/linkedin-suggestion'
+import { runLinkedInAutoPost } from '../lib/slack-bot/proactive/linkedin-auto-post'
 
 type JobName =
   | 'daily-suggestion'
   | 'weekly-report'
   | 'engagement-learner'
+  | 'linkedin-engagement-learner'
   | 'trending-collector'
   | 'linkedin-source-collector'
-  | 'linkedin-suggestion'
+  | 'linkedin-auto-post'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -26,9 +28,10 @@ function detectJob(): JobName {
     explicit === 'daily-suggestion' ||
     explicit === 'weekly-report' ||
     explicit === 'engagement-learner' ||
+    explicit === 'linkedin-engagement-learner' ||
     explicit === 'trending-collector' ||
     explicit === 'linkedin-source-collector' ||
-    explicit === 'linkedin-suggestion'
+    explicit === 'linkedin-auto-post'
   ) {
     return explicit
   }
@@ -50,7 +53,7 @@ function detectJob(): JobName {
       return 'weekly-report'
     }
     // Tue-Sun → LinkedIn suggestion
-    return 'linkedin-suggestion'
+    return 'linkedin-auto-post'
   }
 
   // JST 22:00 = UTC 13:00 → LinkedIn source collector
@@ -75,9 +78,10 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'daily-suggestion': runDailySuggestion,
   'weekly-report': runWeeklyReport,
   'engagement-learner': runEngagementLearner,
+  'linkedin-engagement-learner': runLinkedInEngagementLearner,
   'trending-collector': runTrendingCollector,
   'linkedin-source-collector': runLinkedInSourceCollector,
-  'linkedin-suggestion': runLinkedInSuggestion,
+  'linkedin-auto-post': runLinkedInAutoPost,
 }
 
 async function main() {

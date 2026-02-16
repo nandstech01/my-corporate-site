@@ -3,7 +3,7 @@ name: Slack Bot Cron Jobs
 on:
   schedule:
     - cron: '0 0 * * *'      # JST 9:00 daily suggestion
-    - cron: '0 1 * * 2-0'    # JST 10:00 Tue-Sun LinkedIn suggestion
+    - cron: '0 1 * * 2-0'    # JST 10:00 Tue-Sun LinkedIn auto-post
     - cron: '0 1 * * 1'      # JST 10:00 Monday weekly report
     - cron: '0 13 * * *'     # JST 22:00 LinkedIn source collector
     - cron: '0 14 * * *'     # JST 23:00 trending collector
@@ -18,9 +18,10 @@ on:
           - daily-suggestion
           - weekly-report
           - engagement-learner
+          - linkedin-engagement-learner
           - trending-collector
           - linkedin-source-collector
-          - linkedin-suggestion
+          - linkedin-auto-post
 
 jobs:
   run:

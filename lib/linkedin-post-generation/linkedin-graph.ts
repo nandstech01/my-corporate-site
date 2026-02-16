@@ -12,6 +12,7 @@ import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { linkedInTemplates, findTemplateForSourceType } from './linkedin-templates'
 import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
+import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 
 // ============================================================
 // 型定義
@@ -19,7 +20,7 @@ import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
 
 export interface LinkedInGraphInput {
   readonly sourceData: string
-  readonly sourceType: 'practitioner_experience' | 'new_release' | 'trend_analysis'
+  readonly sourceType: 'practitioner_experience' | 'new_release' | 'trend_analysis' | 'official_announcement'
   readonly sourceUrl: string
   readonly sourceAuthor?: string
   readonly japanAngle?: string
@@ -50,7 +51,7 @@ export interface LinkedInGraphOutput {
 const LinkedInGraphState = Annotation.Root({
   // 入力
   sourceData: Annotation<string>,
-  sourceType: Annotation<'practitioner_experience' | 'new_release' | 'trend_analysis'>,
+  sourceType: Annotation<'practitioner_experience' | 'new_release' | 'trend_analysis' | 'official_announcement'>,
   sourceUrl: Annotation<string>,
   sourceAuthor: Annotation<string | null>({
     reducer: (_prev, next) => next,
@@ -136,6 +137,21 @@ async function generateCandidates(
     ? `\n日本市場の切り口ヒント: ${state.japanAngle}`
     : ''
 
+  // 学習データの注入（コールドスタート時はスキップ）
+  let learningsHint = ''
+  try {
+    const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+    if (userId) {
+      const learnings = await getLinkedInLearnings(userId)
+      if (learnings) {
+        learningsHint = `\n\n過去のエンゲージメント分析から学んだ高パフォーマンス投稿の特徴:\n${learnings.highPerformerSummary}\nこれらの特徴を参考に、バズりやすい投稿を生成してください。`
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`LinkedIn learnings fetch skipped: ${message}\n`)
+  }
+
   const response = await model.invoke([
     {
       role: 'system' as const,
@@ -148,7 +164,7 @@ ${templateInfo}
 元ソースタイプ: ${state.sourceType}
 元ソースURL: ${state.sourceUrl}
 ${state.sourceAuthor ? `元ソース著者: ${state.sourceAuthor}` : ''}
-${japanAngleHint}
+${japanAngleHint}${learningsHint}
 
 ハッシュタグ候補: ${state.generatedTags.join(' ')}
 

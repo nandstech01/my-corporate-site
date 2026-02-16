@@ -1,0 +1,250 @@
+/**
+ * LinkedIn 自動投稿生成ジョブ
+ *
+ * GitHub Actions cron (火-日 01:00 UTC = JST 10:00) で実行。
+ *
+ * 1. slack_bot_memory から直近の linkedin_sources を recall
+ * 2. メモリからトップ2件の候補を抽出
+ * 3. 各候補に対して generateLinkedInPost() を並列実行
+ * 4. 生成成功した投稿ごとに承認ブロック付きで Slack 送信
+ */
+
+import { recallMemories, createPendingAction } from '../memory'
+import { sendMessage, buildApprovalBlocks } from '../slack-client'
+import { generateLinkedInPost } from '../../linkedin-post-generation/linkedin-graph'
+import { linkedInTemplates } from '../../linkedin-post-generation/linkedin-templates'
+import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
+import { getLinkedInLearnings } from './linkedin-learnings'
+
+// ============================================================
+// 候補抽出
+// ============================================================
+
+interface MemoryContext {
+  readonly source?: string
+  readonly candidates?: readonly LinkedInTopicCandidate[]
+}
+
+function extractCandidatesFromMemories(
+  memories: readonly { readonly content: string; readonly context: Record<string, unknown> | null }[],
+): readonly LinkedInTopicCandidate[] {
+  const allCandidates: LinkedInTopicCandidate[] = []
+
+  for (const memory of memories) {
+    const ctx = memory.context as MemoryContext | null
+    if (ctx?.candidates && Array.isArray(ctx.candidates)) {
+      allCandidates.push(...ctx.candidates)
+    }
+  }
+
+  return allCandidates
+}
+
+// ============================================================
+// パターンマッチによる候補ランキング
+// ============================================================
+
+function rankCandidatesByPatternMatch(
+  candidates: readonly LinkedInTopicCandidate[],
+  topPatterns: readonly string[],
+): readonly LinkedInTopicCandidate[] {
+  if (topPatterns.length === 0) return candidates
+
+  // Build a set of preferred source types from high-performing template IDs
+  const preferredSourceTypes = new Set<string>()
+  for (const patternId of topPatterns) {
+    const template = linkedInTemplates.find((t) => t.id === patternId)
+    if (template) {
+      for (const st of template.sourceTypes) {
+        preferredSourceTypes.add(st)
+      }
+    }
+  }
+
+  const scored = candidates.map((candidate) => {
+    const score = preferredSourceTypes.has(candidate.sourceType) ? 1 : 0
+    return { candidate, score }
+  })
+
+  return [...scored]
+    .sort((a, b) => b.score - a.score)
+    .map((s) => s.candidate)
+}
+
+// ============================================================
+// メイン
+// ============================================================
+
+const MAX_POSTS = 2
+const PREVIEW_CHAR_LIMIT = 800
+
+export async function runLinkedInAutoPost(): Promise<void> {
+  const channel = process.env.SLACK_DEFAULT_CHANNEL
+  const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+
+  if (!channel || !userId) {
+    throw new Error(
+      'SLACK_DEFAULT_CHANNEL and SLACK_ALLOWED_USER_IDS are required',
+    )
+  }
+
+  // 1. 直近の linkedin_sources メモリを取得
+  const memories = await recallMemories({
+    slackUserId: userId,
+    query: 'linkedin_sources',
+    limit: 5,
+  })
+
+  if (memories.length === 0) {
+    await sendMessage({
+      channel,
+      text: ':briefcase: LinkedIn: No fresh source data today. Run the source collector first.',
+    })
+    return
+  }
+
+  // 2. メモリから候補を抽出
+  const candidates = extractCandidatesFromMemories(memories)
+
+  if (candidates.length === 0) {
+    await sendMessage({
+      channel,
+      text: ':briefcase: LinkedIn: Source data found but no structured candidates. Run the source collector again.',
+    })
+    return
+  }
+
+  // 学習データがあれば高パフォーマンスパターンに合致する候補を優先
+  let rankedCandidates: readonly LinkedInTopicCandidate[] = candidates
+  try {
+    const learnings = await getLinkedInLearnings(userId)
+    if (learnings && learnings.topPatterns.length > 0) {
+      rankedCandidates = rankCandidatesByPatternMatch(
+        candidates,
+        learnings.topPatterns,
+      )
+      process.stdout.write(
+        `Ranked candidates by learned patterns: ${learnings.topPatterns.join(', ')}\n`,
+      )
+    }
+  } catch {
+    // 学習データ取得失敗時はデフォルト順序で続行
+  }
+
+  const topCandidates = rankedCandidates.slice(0, MAX_POSTS)
+  process.stdout.write(
+    `Generating ${topCandidates.length} LinkedIn posts...\n`,
+  )
+
+  // 3. 各候補に対して generateLinkedInPost() を並列実行
+  const postResults = await Promise.allSettled(
+    topCandidates.map((candidate) =>
+      generateLinkedInPost({
+        sourceData: candidate.sourceBody,
+        sourceType: candidate.sourceType,
+        sourceUrl: candidate.sourceUrl,
+        japanAngle: candidate.japanAngle,
+      }),
+    ),
+  )
+
+  // 4. 生成成功した投稿ごとに承認ブロック付きで Slack 送信
+  let sentCount = 0
+
+  for (let i = 0; i < postResults.length; i++) {
+    const result = postResults[i]
+    if (result.status !== 'fulfilled') {
+      process.stdout.write(
+        `Post generation failed for candidate ${i + 1}: ${result.reason}\n`,
+      )
+      continue
+    }
+
+    const candidate = topCandidates[i]
+    const post = result.value
+
+    try {
+      // pending action を作成
+      const action = await createPendingAction({
+        slackChannelId: channel,
+        slackUserId: userId,
+        slackThreadTs: null,
+        actionType: 'post_linkedin',
+        payload: {
+          text: post.finalPost,
+          sourceType: candidate.sourceType,
+          sourceUrl: candidate.sourceUrl,
+          patternUsed: post.patternUsed,
+          tags: post.tags,
+        },
+        previewText: post.finalPost,
+      })
+
+      // 承認ブロックを構築
+      const approvalBlocks = buildApprovalBlocks({
+        title: `:briefcase: *LinkedIn Post Preview*`,
+        previewText: post.finalPost.slice(0, PREVIEW_CHAR_LIMIT),
+        actionId: action.id,
+        actionType: 'linkedin',
+      })
+
+      // Slack 送信
+      const scoreTotal = post.scores.length > 0
+        ? Math.round(
+            post.scores.reduce((sum, s) => sum + s.total, 0) /
+              post.scores.length,
+          )
+        : 0
+
+      await sendMessage({
+        channel,
+        text: `LinkedIn auto-post preview: ${candidate.title}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: sentCount === 0
+                ? ':mega: *LinkedIn投稿を自動生成しました！確認お願いします*'
+                : ':mega: *次の候補*',
+            },
+          },
+          { type: 'divider' },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: [
+                `:newspaper: *ソース:* ${candidate.title}`,
+                `:bar_chart: *スコア:* ${scoreTotal}/50`,
+                `:memo: *パターン:* ${post.patternUsed}`,
+              ].join('\n'),
+            },
+          },
+          ...approvalBlocks,
+        ],
+      })
+
+      sentCount++
+      process.stdout.write(
+        `Sent approval request for candidate ${i + 1}: ${candidate.title}\n`,
+      )
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(
+        `Failed to send approval for candidate ${i + 1}: ${message}\n`,
+      )
+    }
+  }
+
+  if (sentCount === 0) {
+    await sendMessage({
+      channel,
+      text: ':briefcase: LinkedIn: Post generation failed for all candidates today. Check logs for details.',
+    })
+  } else {
+    process.stdout.write(
+      `LinkedIn auto-post: ${sentCount} approval requests sent\n`,
+    )
+  }
+}

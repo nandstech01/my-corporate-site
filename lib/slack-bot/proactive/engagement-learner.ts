@@ -3,10 +3,10 @@
  *
  * GitHub Actions cron (毎日 15:00 UTC = JST 00:00) で実行
  *
- * 1. 直近24時間に投稿したツイートのIDを取得
- * 2. X API v2 で最新のエンゲージメント数を取得
- * 3. x_post_analytics を更新
- * 4. 高パフォーマンス投稿の特徴を slack_bot_memory に保存
+ * X + LinkedIn 両プラットフォームのエンゲージメントを学習:
+ * 1. 直近48時間の投稿メトリクスを取得
+ * 2. analytics テーブルを更新
+ * 3. 高パフォーマンス投稿の特徴を slack_bot_memory に保存
  */
 
 import { getTwitterClient, isTwitterConfigured } from '@/lib/x-api/client'
@@ -15,6 +15,7 @@ import {
   updatePostEngagement,
   saveMemory,
 } from '../memory'
+import { runLinkedInEngagementLearner } from './linkedin-engagement-learner'
 
 interface TweetMetrics {
   readonly likes: number
@@ -75,7 +76,7 @@ function identifyHighPerformers(
   })
 }
 
-export async function runEngagementLearner(): Promise<void> {
+async function runXEngagementLearner(): Promise<void> {
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
   if (!userId) {
     throw new Error('SLACK_ALLOWED_USER_IDS is required')
@@ -132,8 +133,25 @@ export async function runEngagementLearner(): Promise<void> {
         tweetId: hp.tweetId,
         metrics: hp.metrics,
         exceptional: isExceptional,
+        platform: 'x',
       },
       importance,
     })
+  }
+}
+
+export async function runEngagementLearner(): Promise<void> {
+  try {
+    await runXEngagementLearner()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`X engagement learner failed: ${message}\n`)
+  }
+
+  try {
+    await runLinkedInEngagementLearner()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`LinkedIn engagement learner failed: ${message}\n`)
   }
 }

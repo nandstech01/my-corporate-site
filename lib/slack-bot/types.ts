@@ -164,5 +164,7 @@ export interface LinkedInPostAnalytics {
   readonly comments: number
   readonly reposts: number
   readonly impressions: number
+  readonly engagement_rate: number
+  readonly fetched_at: string
   readonly tags: string[] | null
 }

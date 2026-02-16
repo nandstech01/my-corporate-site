@@ -609,3 +609,56 @@ export async function getLinkedInPostAnalytics(params: {
 
   return (data ?? []) as readonly LinkedInPostAnalytics[]
 }
+
+export async function getRecentLinkedInPostIds(
+  hours: number = 48,
+): Promise<readonly { linkedin_post_id: string; post_text: string }[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('linkedin_post_analytics')
+    .select('linkedin_post_id, post_text')
+    .gte('posted_at', since)
+
+  if (error) {
+    throw new Error(`Failed to get recent LinkedIn post IDs: ${error.message}`)
+  }
+
+  return (data ?? []) as readonly { linkedin_post_id: string; post_text: string }[]
+}
+
+export async function updateLinkedInPostEngagement(
+  linkedinPostId: string,
+  engagement: {
+    readonly reactions: number
+    readonly comments: number
+    readonly reshares: number
+    readonly impressions: number
+  },
+): Promise<void> {
+  const supabase = getSupabase()
+
+  const totalEngagement =
+    engagement.reactions + engagement.comments + engagement.reshares
+  const engagementRate =
+    engagement.impressions > 0
+      ? totalEngagement / engagement.impressions
+      : 0
+
+  const { error } = await supabase
+    .from('linkedin_post_analytics')
+    .update({
+      likes: engagement.reactions,
+      comments: engagement.comments,
+      reposts: engagement.reshares,
+      impressions: engagement.impressions,
+      engagement_rate: engagementRate,
+      fetched_at: new Date().toISOString(),
+    })
+    .eq('linkedin_post_id', linkedinPostId)
+
+  if (error) {
+    throw new Error(`Failed to update LinkedIn engagement: ${error.message}`)
+  }
+}
