@@ -179,7 +179,7 @@ async def post_process_node(state: BlogPipelineState) -> BlogPipelineState:
         resp = await client.post(
             f"{settings.vercel_api_base}/api/blog-post-process",
             json=payload,
-            headers={"Authorization": f"Bearer {settings.vercel_api_secret}"},
+            headers={"Authorization": f"Bearer {settings.blog_worker_api_secret}"},
         )
         if resp.status_code != 200:
             sys.stdout.write(f"Post-process API error: {resp.status_code} {resp.text[:500]}\n")

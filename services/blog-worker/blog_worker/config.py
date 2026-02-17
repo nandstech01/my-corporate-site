@@ -23,9 +23,9 @@ class Settings(BaseSettings):
     gsc_site_url: str = "https://nands.tech"
     gsc_credentials_json: str = ""
 
-    # Vercel
+    # Vercel post-processing bridge
     vercel_api_base: str = "https://nands.tech"
-    vercel_api_secret: str = ""
+    blog_worker_api_secret: str = ""
 
     # MLflow
     mlflow_tracking_uri: str = "http://mlflow:5000"

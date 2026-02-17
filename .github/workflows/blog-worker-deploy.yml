@@ -49,5 +49,6 @@ jobs:
             --set-env-vars "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" \
             --set-env-vars "SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }}" \
             --set-env-vars "SLACK_DEFAULT_CHANNEL=${{ secrets.SLACK_DEFAULT_CHANNEL }}" \
+            --set-env-vars "BLOG_WORKER_API_SECRET=${{ secrets.BLOG_WORKER_API_SECRET }}" \
             --set-env-vars "MLFLOW_TRACKING_URI=http://localhost:5000" \
             --project ${{ secrets.GCP_PROJECT_ID }}
