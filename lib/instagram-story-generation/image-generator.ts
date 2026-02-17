@@ -2,11 +2,14 @@
  * Instagram Story 画像生成
  *
  * 戦略:
- * 1. 主: Google Imagen 3 (Vertex AI経由、1080x1920ポートレート)
+ * 1. 主: Gemini (gemini-3-pro-image-preview) — 既存のブログ図解生成と同じAPI
  * 2. フォールバック: ブログOG画像
  *
  * プラガブル設計: ImageGenerator インターフェースで将来的にプロバイダー交換可能
  */
+
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createClient } from '@supabase/supabase-js'
 
 // ============================================================
 // インターフェース
@@ -14,110 +17,128 @@
 
 export interface ImageGeneratorResult {
   readonly imageUrl: string
-  readonly source: 'imagen' | 'og_image' | 'placeholder'
+  readonly source: 'gemini' | 'og_image' | 'placeholder'
 }
 
 export interface ImageGenerator {
-  generate(prompt: string): Promise<ImageGeneratorResult>
+  generate(prompt: string, blogSlug: string): Promise<ImageGeneratorResult>
 }
 
 // ============================================================
-// Google Imagen 3 (Vertex AI)
+// Supabase Client
 // ============================================================
 
-class GoogleImagenGenerator implements ImageGenerator {
-  private readonly projectId: string
-  private readonly location: string
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
+
+// ============================================================
+// Gemini Image Generator (gemini-3-pro-image-preview)
+// ============================================================
+
+class GeminiImageGenerator implements ImageGenerator {
+  private readonly apiKey: string
 
   constructor() {
-    this.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID ?? ''
-    this.location = process.env.GOOGLE_CLOUD_LOCATION ?? 'us-central1'
+    this.apiKey = process.env.GOOGLE_AI_API_KEY ?? ''
   }
 
   isConfigured(): boolean {
-    return !!(this.projectId && process.env.GOOGLE_APPLICATION_CREDENTIALS)
+    return !!this.apiKey
   }
 
-  async generate(prompt: string): Promise<ImageGeneratorResult> {
+  async generate(
+    prompt: string,
+    blogSlug: string,
+  ): Promise<ImageGeneratorResult> {
     if (!this.isConfigured()) {
-      throw new Error('Google Cloud credentials not configured')
+      throw new Error('GOOGLE_AI_API_KEY not configured')
     }
 
-    const endpoint = `https://${this.location}-aiplatform.googleapis.com/v1/projects/${this.projectId}/locations/${this.location}/publishers/google/models/imagen-3.0-generate-002:predict`
+    const genAI = new GoogleGenerativeAI(this.apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3-pro-image-preview',
+    })
 
-    // Use Google Auth library to get access token
-    const accessToken = await this.getAccessToken()
+    const storyPrompt = [
+      'Instagram Story用の画像を1枚生成してください。',
+      '',
+      `テーマ: ${prompt}`,
+      '',
+      'デザイン要件:',
+      '- 縦長 9:16 のInstagram Story フォーマット',
+      '- モダンなテック系デザイン',
+      '- メインカラー: ネイビー (#1a1a2e) とゴールド (#e2b857)',
+      '- 背景はグラデーション、テキストは最小限',
+      '- プロフェッショナルで洗練された印象',
+      '- 日本語テキストは含めない（キャプションで補足するため）',
+      '- アイコンや図形でコンセプトを視覚的に表現',
+    ].join('\n')
 
-    const body = {
-      instances: [
+    const result = await model.generateContent({
+      contents: [
         {
-          prompt: `${prompt}. Style: modern tech, clean design, navy and gold brand colors, portrait orientation 9:16 ratio, Instagram story format`,
+          role: 'user',
+          parts: [{ text: storyPrompt }],
         },
       ],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: '9:16',
-        safetyFilterLevel: 'block_some',
-      },
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        temperature: 0.8,
+        candidateCount: 1,
+        maxOutputTokens: 8192,
+      } as never,
+    })
+
+    const response = result.response
+    let imageData: string | null = null
+    let mimeType = 'image/png'
+
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        const partAny = part as { inlineData?: { mimeType: string; data: string } }
+        if (partAny.inlineData?.mimeType?.startsWith('image/')) {
+          imageData = partAny.inlineData.data
+          mimeType = partAny.inlineData.mimeType
+          break
+        }
+      }
     }
 
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
+    if (!imageData) {
+      throw new Error('Gemini did not return an image')
+    }
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal,
+    // Supabase Storageにアップロード
+    const supabase = getSupabaseClient()
+    const timestamp = Date.now()
+    const randomStr = Math.random().toString(36).substring(2, 8)
+    const ext = mimeType.includes('png') ? 'png' : 'jpg'
+    const fileName = `ig-story-${blogSlug}-${timestamp}-${randomStr}.${ext}`
+    const filePath = `images/instagram/${fileName}`
+
+    const imageBuffer = Buffer.from(imageData, 'base64')
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog')
+      .upload(filePath, imageBuffer, {
+        contentType: mimeType,
+        cacheControl: '31536000',
+        upsert: false,
       })
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error')
-        throw new Error(`Imagen API error (${response.status}): ${errorText}`)
-      }
-
-      const data = (await response.json()) as {
-        predictions: readonly { bytesBase64Encoded: string; mimeType: string }[]
-      }
-
-      if (!data.predictions?.[0]) {
-        throw new Error('No image generated')
-      }
-
-      // Upload base64 image to a temporary storage or return data URI
-      const base64 = data.predictions[0].bytesBase64Encoded
-      const mimeType = data.predictions[0].mimeType || 'image/png'
-      const imageUrl = `data:${mimeType};base64,${base64}`
-
-      return { imageUrl, source: 'imagen' }
-    } finally {
-      clearTimeout(timeout)
-    }
-  }
-
-  private async getAccessToken(): Promise<string> {
-    // Use gcloud auth or service account JWT
-    const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
-    if (!credentialsPath) {
-      throw new Error('GOOGLE_APPLICATION_CREDENTIALS not set')
+    if (uploadError) {
+      throw new Error(`Upload failed: ${uploadError.message}`)
     }
 
-    // Dynamic import to handle environments where google-auth-library isn't available
-    const { GoogleAuth } = await import('google-auth-library')
-    const auth = new GoogleAuth({
-      keyFilename: credentialsPath,
-      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-    })
-    const client = await auth.getClient()
-    const tokenResponse = await client.getAccessToken()
-    if (!tokenResponse.token) {
-      throw new Error('Failed to get Google Cloud access token')
-    }
-    return tokenResponse.token
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('blog').getPublicUrl(filePath)
+
+    return { imageUrl: publicUrl, source: 'gemini' }
   }
 }
 
@@ -126,12 +147,12 @@ class GoogleImagenGenerator implements ImageGenerator {
 // ============================================================
 
 class OgImageFallback implements ImageGenerator {
-  async generate(_prompt: string): Promise<ImageGeneratorResult> {
-    // Return a placeholder — the trigger will use the blog's OG image
-    return {
-      imageUrl: '',
-      source: 'placeholder',
-    }
+  async generate(
+    _prompt: string,
+    blogSlug: string,
+  ): Promise<ImageGeneratorResult> {
+    const ogUrl = `https://nands.tech/blog/${blogSlug}/opengraph-image`
+    return { imageUrl: ogUrl, source: 'og_image' }
   }
 }
 
@@ -140,13 +161,13 @@ class OgImageFallback implements ImageGenerator {
 // ============================================================
 
 export function createImageGenerator(): ImageGenerator {
-  const imagenGenerator = new GoogleImagenGenerator()
-  if (imagenGenerator.isConfigured()) {
-    return imagenGenerator
+  const geminiGenerator = new GeminiImageGenerator()
+  if (geminiGenerator.isConfigured()) {
+    return geminiGenerator
   }
 
   process.stdout.write(
-    'Image generation: Google Imagen not configured, using OG image fallback\n',
+    'Image generation: Gemini not configured, using OG image fallback\n',
   )
   return new OgImageFallback()
 }
@@ -162,18 +183,12 @@ export async function generateStoryImage(
   const generator = createImageGenerator()
 
   try {
-    const result = await generator.generate(prompt)
-
-    // If placeholder, try to use blog's OG image
-    if (result.source === 'placeholder') {
-      const ogUrl = `https://nands.tech/blog/${blogSlug}/opengraph-image`
-      return { imageUrl: ogUrl, source: 'og_image' }
-    }
-
-    return result
+    return await generator.generate(prompt, blogSlug)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
-    process.stdout.write(`Image generation failed: ${message}, using OG fallback\n`)
+    process.stdout.write(
+      `Image generation failed: ${message}, using OG fallback\n`,
+    )
 
     const ogUrl = `https://nands.tech/blog/${blogSlug}/opengraph-image`
     return { imageUrl: ogUrl, source: 'og_image' }
