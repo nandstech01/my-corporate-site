@@ -40,7 +40,7 @@ export function isInstagramConfigured(): boolean {
 export function isInstagramPostingEnabled(): boolean {
   return (
     isInstagramConfigured() &&
-    process.env.INSTAGRAM_POSTING_ENABLED === 'true'
+    process.env.INSTAGRAM_POSTING_ENABLED?.trim().toLowerCase() === 'true'
   )
 }
 
