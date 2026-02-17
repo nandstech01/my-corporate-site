@@ -38,6 +38,8 @@ export interface StoryGraphOutput {
   readonly hashtags: readonly string[]
   readonly ctaUrl: string
   readonly imagePrompt: string
+  readonly headlineLines: readonly string[]
+  readonly keyPoints: readonly string[]
   readonly scores: readonly StoryCandidateScore[]
   readonly allCandidates: readonly string[]
 }
@@ -81,6 +83,10 @@ const StoryGraphState = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
+  headlineLines: Annotation<string[]>({
+    reducer: (_prev, next) => next,
+    default: () => [],
+  }),
 
   // 出力
   finalCaption: Annotation<string | null>({
@@ -98,6 +104,12 @@ type GraphStateType = typeof StoryGraphState.State
 // ============================================================
 // ヘルパー
 // ============================================================
+
+function deriveHeadlineLines(keyPoints: readonly string[]): string[] {
+  return keyPoints.slice(0, 2).map((kp) =>
+    kp.length > 15 ? `${kp.slice(0, 15)}…` : kp,
+  )
+}
 
 function createModel(temperature = 0.3) {
   return new ChatOpenAI({
@@ -123,9 +135,10 @@ async function analyzeBlogContent(
 1. キーポイント3-5個（各1行）
 2. 画像生成プロンプト（英語、1080x1920ポートレート向け、ブランドカラー: ネイビー×ゴールド）
 3. ハッシュタグ15-20個（ニッチ+ビッグタグ混合）
+4. ヘッドラインコピー2-3行（各10-20文字、ブログの核心を突くキャッチコピー、絵文字なし、日本語）
 
 JSON形式で出力:
-{"keyPoints":["..."],"imagePrompt":"...","hashtags":["#tag1","#tag2"]}`,
+{"keyPoints":["..."],"imagePrompt":"...","hashtags":["#tag1","#tag2"],"headlineLines":["行1","行2"]}`,
     },
     {
       role: 'user' as const,
@@ -142,6 +155,7 @@ JSON形式で出力:
     keyPoints: z.array(z.string()),
     imagePrompt: z.string(),
     hashtags: z.array(z.string()),
+    headlineLines: z.array(z.string()).max(3).optional().default([]),
   })
 
   try {
@@ -151,10 +165,18 @@ JSON形式で出力:
     }
 
     const parsed = AnalysisSchema.parse(JSON.parse(jsonMatch[0]))
+
+    // フォールバック: headlineLines が空の場合、keyPoints の先頭2つを15文字に切り詰め
+    const headlineLines =
+      parsed.headlineLines && parsed.headlineLines.length >= 2
+        ? parsed.headlineLines
+        : deriveHeadlineLines(parsed.keyPoints)
+
     return {
       keyPoints: parsed.keyPoints,
       imagePrompt: parsed.imagePrompt,
       hashtags: parsed.hashtags,
+      headlineLines,
     }
   } catch {
     return { error: 'Blog analysis parsing failed' }
@@ -377,6 +399,10 @@ export async function generateInstagramStory(
     hashtags: result.hashtags,
     ctaUrl,
     imagePrompt: result.imagePrompt ?? '',
+    headlineLines: result.headlineLines.length > 0
+      ? result.headlineLines
+      : deriveHeadlineLines(result.keyPoints),
+    keyPoints: result.keyPoints,
     scores: result.scores,
     allCandidates: result.candidates,
   }

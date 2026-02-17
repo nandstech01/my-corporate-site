@@ -2,19 +2,20 @@
  * Instagram Story 生成トリガー
  *
  * ブログ記事完了時 or 手動呼び出しで:
- * 1. story-graph.ts でキャプション生成
- * 2. image-generator.ts で画像生成
- * 3. instagram_story_queue に保存
- * 4. slack_pending_actions にエントリ作成
- * 5. Slackプレビュー + 承認ボタン送信
+ * 1. story-graph.ts でキャプション + headlineLines 生成
+ * 2. diagram-generator.ts で図解画像生成（Buffer返却）
+ * 3. story-composer.ts でテキスト+図解を1080x1920に合成 → Supabase Upload
+ * 4. instagram_story_queue に保存
+ * 5. slack_pending_actions にエントリ作成
+ * 6. Slackプレビュー + 承認ボタン送信
  */
 
 import { createClient } from '@supabase/supabase-js'
 import { generateInstagramStory } from './story-graph'
-import { generateStoryImage } from './image-generator'
+import { generateDiagramImage } from './diagram-generator'
+import { composeStoryImage } from './story-composer'
 import {
   sendMessage,
-  uploadFile,
   buildApprovalBlocks,
 } from '../slack-bot/slack-client'
 
@@ -48,7 +49,7 @@ function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
-    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
   }
   return createClient(url, key)
 }
@@ -76,13 +77,23 @@ export async function triggerInstagramStory(
       blogTags: options.blogTags,
     })
 
-    // 2. 画像生成
-    const image = await generateStoryImage(
-      story.imagePrompt,
-      options.blogSlug,
-    )
+    // 2. 図解画像生成（Bufferで返却）
+    const diagram = await generateDiagramImage({
+      imagePrompt: story.imagePrompt,
+      blogTitle: options.blogTitle,
+      keyPoints: story.keyPoints,
+      blogSlug: options.blogSlug,
+    })
 
-    // 3. instagram_story_queue に保存
+    // 3. 最終画像合成（テキスト + 図解 → 1080x1920 → Supabase）
+    const image = await composeStoryImage({
+      headlineLines: story.headlineLines,
+      diagramBuffer: diagram.buffer,
+      diagramMimeType: diagram.mimeType,
+      blogSlug: options.blogSlug,
+    })
+
+    // 4. instagram_story_queue に保存
     const { data: queueEntry, error: queueError } = await supabase
       .from('instagram_story_queue')
       .insert({
@@ -110,7 +121,7 @@ export async function triggerInstagramStory(
       }
     }
 
-    // 4. slack_pending_actions にエントリ作成
+    // 5. slack_pending_actions にエントリ作成
     const { data: pendingAction, error: actionError } = await supabase
       .from('slack_pending_actions')
       .insert({
@@ -140,19 +151,17 @@ export async function triggerInstagramStory(
       }
     }
 
-    // 5. Slackにプレビュー送信
+    // 6. Slackにプレビュー送信
     const previewCaption = story.caption.length > 800
       ? `${story.caption.slice(0, 800)}...`
       : story.caption
 
-    // 画像をSlackに送信（Geminiで生成した場合はURLをメッセージで共有）
-    if (image.source === 'gemini' || image.source === 'og_image') {
-      await sendMessage({
-        channel: options.slackChannelId,
-        text: `:camera: Instagram Story 画像プレビュー\n${image.imageUrl}`,
-        threadTs: options.slackThreadTs,
-      })
-    }
+    // 合成画像をSlackに送信
+    await sendMessage({
+      channel: options.slackChannelId,
+      text: `:camera: Instagram Story 画像プレビュー\n${image.imageUrl}`,
+      threadTs: options.slackThreadTs,
+    })
 
     const blocks = buildApprovalBlocks({
       title: ':camera: *Instagram Story Preview*',
