@@ -146,32 +146,32 @@ async function enrichWithRAG(
 
     const contextParts: string[] = []
 
-    if (ragResult.companyResults.length > 0) {
+    if (ragResult.deepResearch.count > 0) {
       contextParts.push(
-        '【自社関連情報】\n' +
-          ragResult.companyResults
+        '【深層リサーチ】\n' +
+          ragResult.deepResearch.results
             .slice(0, 2)
-            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .map((r) => `- ${String(r.content ?? r).slice(0, 200)}`)
             .join('\n'),
       )
     }
 
-    if (ragResult.trendResults.length > 0) {
+    if (ragResult.blogFragments.count > 0) {
       contextParts.push(
-        '【トレンド情報】\n' +
-          ragResult.trendResults
+        '【関連ブログ記事】\n' +
+          ragResult.blogFragments.results
             .slice(0, 2)
-            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .map((r) => `- ${String(r.content ?? r).slice(0, 200)}`)
             .join('\n'),
       )
     }
 
-    if (ragResult.youtubeResults.length > 0) {
+    if (ragResult.personalStories.count > 0) {
       contextParts.push(
-        '【YouTube関連】\n' +
-          ragResult.youtubeResults
+        '【パーソナルストーリー】\n' +
+          ragResult.personalStories.results
             .slice(0, 1)
-            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .map((r) => `- ${String(r.content ?? r).slice(0, 200)}`)
             .join('\n'),
       )
     }

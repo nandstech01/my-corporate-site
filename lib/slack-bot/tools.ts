@@ -731,7 +731,7 @@ export function createTools(ctx: AgentContext) {
           blogSlug: article.slug,
           blogTitle: article.title,
           blogContent: article.content,
-          blogExcerpt: article.excerpt ?? undefined,
+          blogExcerpt: article.meta_description ?? undefined,
           blogTags: article.category_tags ?? undefined,
           slackChannelId: ctx.slackChannelId,
           slackUserId: ctx.slackUserId,
