@@ -42,10 +42,12 @@ function verifySlackSignature(
   hmac.update(sigBasestring)
   const mySignature = `v0=${hmac.digest('hex')}`
 
-  return crypto.timingSafeEqual(
-    Buffer.from(mySignature),
-    Buffer.from(signature),
-  )
+  const myBuf = Buffer.from(mySignature)
+  const sigBuf = Buffer.from(signature)
+  if (myBuf.length !== sigBuf.length) {
+    return false
+  }
+  return crypto.timingSafeEqual(myBuf, sigBuf)
 }
 
 // ============================================================
@@ -465,14 +467,8 @@ async function handleApproveInstagramStory(
     .eq('id', payload.storyQueueId)
 
   // Try posting if enabled
-  const { isInstagramConfigured, isInstagramPostingEnabled, postInstagramStory } = await import(
+  const { isInstagramPostingEnabled, postInstagramStory } = await import(
     '@/lib/instagram-api/client'
-  )
-
-  process.stdout.write(
-    `[IG Debug] configured=${isInstagramConfigured()}, enabled=${isInstagramPostingEnabled()}, ` +
-    `TOKEN=${!!process.env.INSTAGRAM_ACCESS_TOKEN}, USER_ID=${!!process.env.INSTAGRAM_USER_ID}, ` +
-    `POSTING_ENABLED=${process.env.INSTAGRAM_POSTING_ENABLED}\n`
   )
 
   if (isInstagramPostingEnabled()) {
