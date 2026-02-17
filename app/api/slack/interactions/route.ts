@@ -483,6 +483,17 @@ async function handleApproveInstagramStory(
         .update({ status: 'posted', posted_at: new Date().toISOString() })
         .eq('id', payload.storyQueueId)
 
+      // 投稿成功後、Supabase Storageから画像を削除（容量節約）
+      try {
+        const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/blog/'
+        if (payload.imageUrl.startsWith(storageUrl)) {
+          const filePath = payload.imageUrl.replace(storageUrl, '')
+          await supabase.storage.from('blog').remove([filePath])
+        }
+      } catch {
+        // 削除失敗は無視（投稿自体は成功しているため）
+      }
+
       await sendMessage({
         channel,
         text: `:white_check_mark: Instagram Story posted!\nBlog: ${payload.blogSlug}`,
