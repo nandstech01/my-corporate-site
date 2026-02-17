@@ -151,8 +151,55 @@ class OgImageFallback implements ImageGenerator {
     _prompt: string,
     blogSlug: string,
   ): Promise<ImageGeneratorResult> {
+    const supabase = getSupabaseClient()
+
+    // 1. DBからthumbnail_urlを取得（Supabase Storage URL なら直接使える）
+    const { data: post } = await supabase
+      .from('posts')
+      .select('thumbnail_url')
+      .eq('slug', blogSlug)
+      .single()
+
+    if (post?.thumbnail_url && !post.thumbnail_url.includes('/opengraph-image')) {
+      return { imageUrl: post.thumbnail_url, source: 'og_image' }
+    }
+
+    // 2. OG画像をフェッチしてSupabase Storageにアップロード
     const ogUrl = `https://nands.tech/blog/${blogSlug}/opengraph-image`
-    return { imageUrl: ogUrl, source: 'og_image' }
+    const response = await fetch(ogUrl, {
+      signal: AbortSignal.timeout(15000),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch OG image: ${response.status}`)
+    }
+
+    const contentType = response.headers.get('content-type') ?? 'image/png'
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const timestamp = Date.now()
+    const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg' : 'png'
+    const fileName = `ig-story-og-${blogSlug}-${timestamp}.${ext}`
+    const filePath = `images/instagram/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog')
+      .upload(filePath, buffer, {
+        contentType,
+        cacheControl: '31536000',
+        upsert: false,
+      })
+
+    if (uploadError) {
+      throw new Error(`OG image upload failed: ${uploadError.message}`)
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('blog').getPublicUrl(filePath)
+
+    return { imageUrl: publicUrl, source: 'og_image' }
   }
 }
 
@@ -190,7 +237,17 @@ export async function generateStoryImage(
       `Image generation failed: ${message}, using OG fallback\n`,
     )
 
-    const ogUrl = `https://nands.tech/blog/${blogSlug}/opengraph-image`
-    return { imageUrl: ogUrl, source: 'og_image' }
+    // Gemini失敗時はOGフォールバック（Supabase Storage経由）
+    try {
+      const fallback = new OgImageFallback()
+      return await fallback.generate(prompt, blogSlug)
+    } catch (fallbackError) {
+      const fbMsg = fallbackError instanceof Error ? fallbackError.message : 'Unknown'
+      process.stdout.write(`OG fallback also failed: ${fbMsg}\n`)
+      return {
+        imageUrl: `https://nands.tech/blog/${blogSlug}/opengraph-image`,
+        source: 'og_image',
+      }
+    }
   }
 }

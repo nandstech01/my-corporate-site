@@ -145,17 +145,12 @@ export async function triggerInstagramStory(
       ? `${story.caption.slice(0, 800)}...`
       : story.caption
 
-    // 画像をアップロード（OG画像の場合はURL送信）
-    if (image.source === 'imagen' && image.imageUrl.startsWith('data:')) {
-      const base64Data = image.imageUrl.split(',')[1]
-      const buffer = Buffer.from(base64Data, 'base64')
-      await uploadFile({
-        channelId: options.slackChannelId,
-        buffer,
-        filename: `instagram-story-${options.blogSlug}.png`,
-        title: `Instagram Story Preview: ${options.blogTitle}`,
+    // 画像をSlackに送信（Geminiで生成した場合はURLをメッセージで共有）
+    if (image.source === 'gemini' || image.source === 'og_image') {
+      await sendMessage({
+        channel: options.slackChannelId,
+        text: `:camera: Instagram Story 画像プレビュー\n${image.imageUrl}`,
         threadTs: options.slackThreadTs,
-        initialComment: ':camera: Instagram Story 画像プレビュー',
       })
     }
 
