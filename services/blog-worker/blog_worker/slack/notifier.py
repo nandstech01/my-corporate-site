@@ -33,16 +33,18 @@ async def notify_progress(job_id: str, step: str, pct: int) -> None:
     await _send_slack_message(f":gear: Blog pipeline [{pct}%] {step} (job: {job_id[:8]})")
 
 
-async def notify_complete(job_id: str, state: dict) -> None:
+async def notify_complete(
+    *,
+    topic: str = "",
+    post_url: str = "",
+    ml_score: float = 0,
+) -> None:
     """Notify pipeline completion."""
-    title = state.get("generated_content", {}).get("title", "Unknown")
-    score = state.get("ml_score", 0)
-    post_id = state.get("post_id", "N/A")
+    url_line = f"\n{post_url}" if post_url else ""
     await _send_slack_message(
         f":white_check_mark: Blog generated!\n"
-        f"*{title}*\n"
-        f"ML Score: {score:.1f} | Post ID: {post_id}\n"
-        f"Job: {job_id[:8]}"
+        f"*{topic}*\n"
+        f"ML Score: {ml_score:.1f}{url_line}"
     )
 
 
