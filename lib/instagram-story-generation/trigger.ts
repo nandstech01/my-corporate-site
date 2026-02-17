@@ -85,12 +85,13 @@ export async function triggerInstagramStory(
       blogSlug: options.blogSlug,
     })
 
-    // 3. 最終画像合成（テキスト + 図解 → 1080x1920 → Supabase）
+    // 3. 最終画像合成（テキスト + 図解 + URL → 1080x1920 → Supabase）
     const image = await composeStoryImage({
       headlineLines: story.headlineLines,
       diagramBuffer: diagram.buffer,
       diagramMimeType: diagram.mimeType,
       blogSlug: options.blogSlug,
+      ctaUrl: story.ctaUrl,
     })
 
     // 4. instagram_story_queue に保存

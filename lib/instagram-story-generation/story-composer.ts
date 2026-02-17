@@ -17,8 +17,9 @@ import { createClient } from '@supabase/supabase-js'
 
 const STORY_WIDTH = 1080
 const STORY_HEIGHT = 1920
-const UPPER_HEIGHT = 864 // ~45%
-const LOWER_HEIGHT = 1056 // ~55%
+const UPPER_HEIGHT = 580 // ~30% ヘッドライン
+const MIDDLE_HEIGHT = 1100 // ~57% 図解
+const LOWER_HEIGHT = 240 // ~13% URL + CTA
 
 // ============================================================
 // フォント読み込み（モジュールレベルキャッシュ）
@@ -103,6 +104,7 @@ export interface ComposeOptions {
   readonly diagramBuffer: Buffer
   readonly diagramMimeType: string
   readonly blogSlug: string
+  readonly ctaUrl: string
 }
 
 export interface ComposeResult {
@@ -138,7 +140,7 @@ async function composeWithSatori(
   const diagramBase64 = options.diagramBuffer.toString('base64')
   const diagramDataUri = `data:${options.diagramMimeType};base64,${diagramBase64}`
 
-  const element = buildLayoutElement(options.headlineLines, diagramDataUri)
+  const element = buildLayoutElement(options.headlineLines, diagramDataUri, options.ctaUrl)
 
   const imageResponse = new ImageResponse(element, {
     width: STORY_WIDTH,
@@ -165,7 +167,12 @@ async function composeWithSatori(
 function buildLayoutElement(
   headlineLines: readonly string[],
   diagramDataUri: string,
+  ctaUrl: string,
 ) {
+  // headlineLines が空の場合のフォールバック
+  const lines =
+    headlineLines.length > 0 ? headlineLines : ['Check it out']
+
   return {
     type: 'div',
     props: {
@@ -178,7 +185,7 @@ function buildLayoutElement(
         fontFamily: 'NotoSansJP',
       },
       children: [
-        // 上部: テキストエリア
+        // 上部: ヘッドラインテキスト
         {
           type: 'div',
           props: {
@@ -188,19 +195,18 @@ function buildLayoutElement(
               justifyContent: 'center',
               alignItems: 'center',
               height: UPPER_HEIGHT,
-              padding: '60px 60px 30px 60px',
+              padding: '40px 50px 20px 50px',
             },
             children: [
-              // ヘッドラインテキスト
-              ...headlineLines.map((line) => ({
+              ...lines.map((line: string) => ({
                 type: 'div',
                 props: {
                   style: {
                     color: '#ffffff',
-                    fontSize: 52,
+                    fontSize: 48,
                     fontWeight: 700,
                     textAlign: 'center' as const,
-                    lineHeight: 1.5,
+                    lineHeight: 1.4,
                     letterSpacing: '0.02em',
                     textShadow: '0 2px 8px rgba(0,0,0,0.5)',
                   },
@@ -215,14 +221,14 @@ function buildLayoutElement(
                     width: 200,
                     height: 3,
                     background: 'linear-gradient(90deg, transparent, #e2b857, transparent)',
-                    marginTop: 40,
+                    marginTop: 24,
                   },
                 },
               },
             ],
           },
         },
-        // 下部: 図解画像エリア
+        // 中央: 図解画像エリア
         {
           type: 'div',
           props: {
@@ -230,8 +236,8 @@ function buildLayoutElement(
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: LOWER_HEIGHT,
-              padding: '20px 40px 60px 40px',
+              height: MIDDLE_HEIGHT,
+              padding: '10px 40px 10px 40px',
             },
             children: [
               {
@@ -240,10 +246,53 @@ function buildLayoutElement(
                   src: diagramDataUri,
                   style: {
                     maxWidth: 1000,
-                    maxHeight: 960,
+                    maxHeight: 1060,
                     objectFit: 'contain',
                     borderRadius: 16,
                   },
+                },
+              },
+            ],
+          },
+        },
+        // 下部: ブログURL + CTAエリア
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: LOWER_HEIGHT,
+              padding: '10px 50px 40px 50px',
+            },
+            children: [
+              // 「詳しくはこちら」テキスト
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: '#e2b857',
+                    fontSize: 28,
+                    fontWeight: 700,
+                    textAlign: 'center' as const,
+                    marginBottom: 12,
+                  },
+                  children: '\u25B6 詳しくはプロフィールのリンクから',
+                },
+              },
+              // URL表示
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: '#8899aa',
+                    fontSize: 22,
+                    textAlign: 'center' as const,
+                    letterSpacing: '0.01em',
+                  },
+                  children: ctaUrl.replace('https://', '').split('?')[0],
                 },
               },
             ],
