@@ -465,8 +465,14 @@ async function handleApproveInstagramStory(
     .eq('id', payload.storyQueueId)
 
   // Try posting if enabled
-  const { isInstagramPostingEnabled, postInstagramStory } = await import(
+  const { isInstagramConfigured, isInstagramPostingEnabled, postInstagramStory } = await import(
     '@/lib/instagram-api/client'
+  )
+
+  process.stdout.write(
+    `[IG Debug] configured=${isInstagramConfigured()}, enabled=${isInstagramPostingEnabled()}, ` +
+    `TOKEN=${!!process.env.INSTAGRAM_ACCESS_TOKEN}, USER_ID=${!!process.env.INSTAGRAM_USER_ID}, ` +
+    `POSTING_ENABLED=${process.env.INSTAGRAM_POSTING_ENABLED}\n`
   )
 
   if (isInstagramPostingEnabled()) {
