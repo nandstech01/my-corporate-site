@@ -16,7 +16,7 @@ import {
 } from '@/lib/slack-bot/memory'
 import type { SlackEventPayload } from '@/lib/slack-bot/types'
 
-export const maxDuration = 60
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 // ============================================================
@@ -257,7 +257,9 @@ export async function POST(request: NextRequest) {
   if (waitUntilFn) {
     waitUntilFn(processSlackMessage(event))
   } else {
-    processSlackMessage(event).catch(() => {})
+    processSlackMessage(event).catch((err) => {
+      process.stdout.write(`Slack message processing error (no waitUntil): ${err}\n`)
+    })
   }
 
   return new Response('OK', { status: 200 })
