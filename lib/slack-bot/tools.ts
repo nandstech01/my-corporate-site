@@ -24,6 +24,7 @@ import {
   saveLinkedInPostAnalytics,
 } from './memory'
 import { generateLinkedInPost } from '@/lib/linkedin-post-generation/linkedin-graph'
+import { triggerInstagramStory } from '@/lib/instagram-story-generation/trigger'
 import { sendMessage, buildApprovalBlocks, uploadFile } from './slack-client'
 import type { AgentContext } from './types'
 
@@ -717,6 +718,110 @@ export function createTools(ctx: AgentContext) {
     },
   )
 
+  // ----------------------------------------------------------
+  // 11. generate_instagram_story: Instagram Story生成
+  // ----------------------------------------------------------
+  // @ts-expect-error TS2589: LangChain tool() deep type instantiation with Zod
+  const generateInstagramStoryTool = tool(
+    async (input) => {
+      try {
+        const article = await fetchArticle(input.slug)
+
+        const result = await triggerInstagramStory({
+          blogSlug: article.slug,
+          blogTitle: article.title,
+          blogContent: article.content,
+          blogExcerpt: article.excerpt ?? undefined,
+          blogTags: article.category_tags ?? undefined,
+          slackChannelId: ctx.slackChannelId,
+          slackUserId: ctx.slackUserId,
+          slackThreadTs: ctx.slackThreadTs ?? undefined,
+        })
+
+        return JSON.stringify(result)
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error'
+        return JSON.stringify({ success: false, error: message })
+      }
+    },
+    {
+      name: 'generate_instagram_story',
+      description:
+        'ブログ記事のslugからInstagramストーリーコンテンツを生成する。キャプション3候補 + 画像を生成し、Slackで承認リクエストを送信。',
+      schema: z.object({
+        slug: z.string().describe('ブログ記事のslug'),
+      }),
+    },
+  )
+
+  // ----------------------------------------------------------
+  // 12. preview_instagram_story: Instagram Storyプレビュー
+  // ----------------------------------------------------------
+  // @ts-expect-error TS2589: LangChain tool() deep type instantiation with Zod
+  const previewInstagramStoryTool = tool(
+    async (input) => {
+      try {
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        )
+
+        const { data: story, error } = await supabase
+          .from('instagram_story_queue')
+          .select('*')
+          .eq('id', input.storyId)
+          .single()
+
+        if (error || !story) {
+          return JSON.stringify({
+            success: false,
+            error: `Story not found: ${error?.message ?? 'Unknown'}`,
+          })
+        }
+
+        const preview = [
+          `:camera: *Instagram Story Preview*`,
+          `*Blog:* ${story.blog_title ?? story.blog_slug}`,
+          `*Status:* ${story.status}`,
+          `*Score:* ${story.score}`,
+          '',
+          story.caption,
+        ].join('\n')
+
+        await sendMessage({
+          channel: ctx.slackChannelId,
+          text: preview,
+          threadTs: ctx.slackThreadTs ?? undefined,
+        })
+
+        return JSON.stringify({
+          success: true,
+          story: {
+            id: story.id,
+            blogSlug: story.blog_slug,
+            status: story.status,
+            caption: story.caption.slice(0, 200),
+            hashtags: story.hashtags,
+          },
+        })
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error'
+        return JSON.stringify({ success: false, error: message })
+      }
+    },
+    {
+      name: 'preview_instagram_story',
+      description:
+        'instagram_story_queueに保存済みのストーリーをSlackにプレビュー表示する。',
+      schema: z.object({
+        storyId: z.string().describe('ストーリーキューID'),
+      }),
+    },
+  )
+
   return [
     generateXPostTool,
     postToXTool,
@@ -728,5 +833,7 @@ export function createTools(ctx: AgentContext) {
     fetchXAnalyticsTool,
     generateLinkedInPostTool,
     postToLinkedInTool,
+    generateInstagramStoryTool,
+    previewInstagramStoryTool,
   ]
 }

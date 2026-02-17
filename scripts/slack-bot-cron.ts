@@ -14,12 +14,43 @@ import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/sou
 import { runLinkedInAutoPost } from '../lib/slack-bot/proactive/linkedin-auto-post'
 import { runLinkedInModelRetrainer } from '../lib/slack-bot/proactive/linkedin-model-retrainer'
 import { runBlogRSSMonitor } from '../lib/blog-generation/rss-blog-monitor'
+import { runInstagramEngagementLearner } from '../lib/slack-bot/proactive/instagram-engagement-learner'
+import { findUnstoriedBlogs } from '../lib/instagram-story-generation/trigger'
+
+async function runInstagramStoryAutoCheck(): Promise<void> {
+  const unstoriedBlogs = await findUnstoriedBlogs()
+  if (unstoriedBlogs.length === 0) {
+    process.stdout.write('Instagram Story Auto-Check: all blogs have stories\n')
+    return
+  }
+  process.stdout.write(
+    `Instagram Story Auto-Check: ${unstoriedBlogs.length} blog(s) without stories:\n`,
+  )
+  for (const blog of unstoriedBlogs) {
+    process.stdout.write(`  - ${blog.slug}: ${blog.title}\n`)
+  }
+  // Notification only — actual generation is triggered via Slack bot
+  const { sendMessage } = await import('../lib/slack-bot/slack-client')
+  const channel = process.env.SLACK_DEFAULT_CHANNEL
+  if (channel && unstoriedBlogs.length > 0) {
+    const slugList = unstoriedBlogs
+      .slice(0, 5)
+      .map((b) => `• ${b.title} (\`${b.slug}\`)`)
+      .join('\n')
+    await sendMessage({
+      channel,
+      text: `:camera: *未ストーリー化ブログ ${unstoriedBlogs.length}件*\n${slugList}\n\n\`generate_instagram_story\` で生成できます`,
+    })
+  }
+}
 
 type JobName =
   | 'daily-suggestion'
   | 'weekly-report'
   | 'engagement-learner'
   | 'linkedin-engagement-learner'
+  | 'instagram-engagement-learner'
+  | 'instagram-story-auto-check'
   | 'trending-collector'
   | 'linkedin-source-collector'
   | 'linkedin-auto-post'
@@ -33,6 +64,8 @@ function detectJob(): JobName {
     explicit === 'weekly-report' ||
     explicit === 'engagement-learner' ||
     explicit === 'linkedin-engagement-learner' ||
+    explicit === 'instagram-engagement-learner' ||
+    explicit === 'instagram-story-auto-check' ||
     explicit === 'trending-collector' ||
     explicit === 'linkedin-source-collector' ||
     explicit === 'linkedin-auto-post' ||
@@ -84,9 +117,18 @@ function detectJob(): JobName {
     return 'linkedin-engagement-learner'
   }
 
+  // JST 00:30 = UTC 15:30 → Instagram engagement learner
+  // (shares UTC 15 slot, run after LinkedIn if minute >= 30)
+  // In practice, use explicit CRON_JOB=instagram-engagement-learner
+
   // JST 01:00 = UTC 16:00 → X engagement learner
   if (utcHour === 16) {
     return 'engagement-learner'
+  }
+
+  // JST 12:00 = UTC 03:00 → Instagram story auto-check
+  if (utcHour === 3) {
+    return 'instagram-story-auto-check'
   }
 
   // JST 03:00 = UTC 18:00 → LinkedIn ML model retrainer
@@ -108,6 +150,8 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'weekly-report': runWeeklyReport,
   'engagement-learner': runEngagementLearner,
   'linkedin-engagement-learner': runLinkedInEngagementLearner,
+  'instagram-engagement-learner': runInstagramEngagementLearner,
+  'instagram-story-auto-check': runInstagramStoryAutoCheck,
   'trending-collector': runTrendingCollector,
   'linkedin-source-collector': runLinkedInSourceCollector,
   'linkedin-auto-post': runLinkedInAutoPost,

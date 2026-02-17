@@ -17,6 +17,7 @@ import {
   type CollectedSource,
   type LinkedInTopicCandidate,
 } from './source-analyzer'
+import { HybridSearchSystem } from '../vector/hybrid-search'
 
 const GITHUB_RELEASE_PRIORITY_SCORE = 100
 const OFFICIAL_BLOG_PRIORITY_SCORE = 150
@@ -187,6 +188,42 @@ export async function runLinkedInSourceCollector(): Promise<void> {
     process.stdout.write(`RSS Feeds: ${rssResult.value.length} articles\n`)
   } else {
     process.stdout.write(`RSS Feeds: failed (${rssResult.reason})\n`)
+  }
+
+  // 1b. 内部ハイブリッド検索で関連トレンドデータも取得
+  try {
+    const hybridSearch = new HybridSearchSystem()
+    const trendTopics = ['AI', 'LLM', 'DevOps', 'Cloud Native', 'TypeScript']
+
+    for (const topic of trendTopics) {
+      const results = await hybridSearch.search({
+        query: topic,
+        source: 'trend',
+        limit: 3,
+        threshold: 0.7,
+      })
+
+      for (const result of results) {
+        const trendId = `trend_${typeof result.id === 'number' ? result.id : String(result.id)}`
+        const isDuplicate = allSources.some((s) => s.id === trendId)
+        if (!isDuplicate) {
+          allSources.push({
+            id: trendId,
+            sourceType: 'internal_trend',
+            title: result.content.slice(0, 100),
+            body: result.content,
+            url: '',
+            score: Math.round(result.combinedScore * 100),
+          })
+        }
+      }
+    }
+    process.stdout.write(
+      `Hybrid search: added internal trend sources\n`,
+    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`Hybrid search: skipped (${message})\n`)
   }
 
   if (allSources.length === 0) {

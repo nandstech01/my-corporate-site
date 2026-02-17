@@ -100,12 +100,13 @@ export function buildApprovalBlocks(params: {
   readonly title: string
   readonly previewText: string
   readonly actionId: string
-  readonly actionType: 'post' | 'blog' | 'linkedin'
+  readonly actionType: 'post' | 'blog' | 'linkedin' | 'instagram_story'
 }): readonly SlackBlock[] {
   const actionIdMap = {
     post: { approve: 'approve_post', reject: 'reject_post' },
     blog: { approve: 'approve_blog', reject: 'reject_blog' },
     linkedin: { approve: 'approve_linkedin', reject: 'reject_linkedin' },
+    instagram_story: { approve: 'approve_instagram_story', reject: 'reject_instagram_story' },
   }
   const ids = actionIdMap[params.actionType]
   const approveActionId = ids.approve

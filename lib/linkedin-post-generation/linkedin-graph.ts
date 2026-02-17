@@ -14,6 +14,7 @@ import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 import { predictEngagement, getInsights } from '../linkedin-ml-bridge/ml-client'
+import { searchMultipleRAGs } from '../rag/multi-rag-search'
 import type { MlPrediction } from '../linkedin-ml-bridge/types'
 
 // ============================================================
@@ -76,6 +77,10 @@ const LinkedInGraphState = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => [],
   }),
+  ragContext: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
   candidates: Annotation<string[]>({
     reducer: (_prev, next) => next,
     default: () => [],
@@ -125,6 +130,70 @@ function analyzeSource(state: GraphStateType): Partial<GraphStateType> {
 }
 
 // ============================================================
+// ノード1.5: enrichWithRAG
+// ============================================================
+
+async function enrichWithRAG(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  try {
+    const ragResult = await searchMultipleRAGs(
+      state.sourceData.slice(0, 500),
+      state.sourceData.slice(0, 100),
+      'linkedin-post',
+      'developer',
+    )
+
+    const contextParts: string[] = []
+
+    if (ragResult.companyResults.length > 0) {
+      contextParts.push(
+        '【自社関連情報】\n' +
+          ragResult.companyResults
+            .slice(0, 2)
+            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .join('\n'),
+      )
+    }
+
+    if (ragResult.trendResults.length > 0) {
+      contextParts.push(
+        '【トレンド情報】\n' +
+          ragResult.trendResults
+            .slice(0, 2)
+            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .join('\n'),
+      )
+    }
+
+    if (ragResult.youtubeResults.length > 0) {
+      contextParts.push(
+        '【YouTube関連】\n' +
+          ragResult.youtubeResults
+            .slice(0, 1)
+            .map((r) => `- ${r.content.slice(0, 200)}`)
+            .join('\n'),
+      )
+    }
+
+    const ragContext =
+      contextParts.length > 0 ? contextParts.join('\n\n') : null
+
+    if (ragContext) {
+      process.stdout.write(
+        `LinkedIn RAG enrichment: ${contextParts.length} context sections added\n`,
+      )
+    }
+
+    return { ragContext }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`LinkedIn RAG enrichment skipped: ${message}\n`)
+    return { ragContext: null }
+  }
+}
+
+// ============================================================
 // ノード2: generateCandidates
 // ============================================================
 
@@ -140,6 +209,10 @@ async function generateCandidates(
 
   const japanAngleHint = state.japanAngle
     ? `\n日本市場の切り口ヒント: ${state.japanAngle}`
+    : ''
+
+  const ragHint = state.ragContext
+    ? `\n\n内部RAGから取得した関連コンテキスト（深みと引用の追加に活用）:\n${state.ragContext}`
     : ''
 
   // 学習データの注入（コールドスタート時はスキップ）
@@ -169,7 +242,7 @@ ${templateInfo}
 元ソースタイプ: ${state.sourceType}
 元ソースURL: ${state.sourceUrl}
 ${state.sourceAuthor ? `元ソース著者: ${state.sourceAuthor}` : ''}
-${japanAngleHint}${learningsHint}
+${japanAngleHint}${learningsHint}${ragHint}
 
 ハッシュタグ候補: ${state.generatedTags.join(' ')}
 
@@ -396,11 +469,13 @@ function shouldContinueAfterScoring(
 function buildLinkedInGraph() {
   const graph = new StateGraph(LinkedInGraphState)
     .addNode('analyzeSource', analyzeSource)
+    .addNode('enrichWithRAG', enrichWithRAG)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeSource')
-    .addEdge('analyzeSource', 'generateCandidates')
+    .addEdge('analyzeSource', 'enrichWithRAG')
+    .addEdge('enrichWithRAG', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
     .addEdge('formatFinal', END)

@@ -23,7 +23,7 @@ export interface SlackPendingAction {
   readonly slack_channel_id: string
   readonly slack_user_id: string
   readonly slack_thread_ts: string | null
-  readonly action_type: 'post_x' | 'post_x_long' | 'trigger_blog' | 'post_linkedin'
+  readonly action_type: 'post_x' | 'post_x_long' | 'trigger_blog' | 'post_linkedin' | 'post_instagram_story'
   readonly payload: Record<string, unknown>
   readonly preview_text: string | null
   readonly status: 'pending' | 'approved' | 'rejected' | 'expired'
@@ -171,4 +171,50 @@ export interface LinkedInPostAnalytics {
   readonly ml_prediction: number | null
   readonly ml_confidence: number | null
   readonly ml_model_version: string | null
+}
+
+// ============================================================
+// Instagram 型
+// ============================================================
+
+export interface InstagramStoryQueue {
+  readonly id: string
+  readonly blog_slug: string
+  readonly blog_title: string | null
+  readonly caption: string
+  readonly image_url: string | null
+  readonly image_prompt: string | null
+  readonly hashtags: string[] | null
+  readonly cta_url: string | null
+  readonly status: 'draft' | 'pending_approval' | 'approved' | 'ready_to_post' | 'posted' | 'rejected'
+  readonly score: number
+  readonly all_candidates: string[] | null
+  readonly scores: Record<string, unknown>[] | null
+  readonly created_at: string
+  readonly approved_at: string | null
+  readonly posted_at: string | null
+}
+
+export interface InstagramPostAnalytics {
+  readonly id: string
+  readonly instagram_media_id: string
+  readonly media_type: string
+  readonly post_url: string | null
+  readonly caption: string
+  readonly blog_slug: string | null
+  readonly posted_at: string
+  readonly reach: number
+  readonly impressions: number
+  readonly taps_forward: number
+  readonly taps_back: number
+  readonly exits: number
+  readonly replies: number
+  readonly likes: number
+  readonly comments: number
+  readonly saves: number
+  readonly shares: number
+  readonly engagement_rate: number
+  readonly fetched_at: string
+  readonly hashtags: string[] | null
+  readonly utm_campaign: string | null
 }

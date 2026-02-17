@@ -421,6 +421,88 @@ async function handleApproveLinkedIn(
 }
 
 // ============================================================
+// Instagram Story アクション処理
+// ============================================================
+
+async function handleApproveInstagramStory(
+  actionId: string,
+  channel: string,
+  threadTs?: string,
+): Promise<void> {
+  const action = await getPendingAction(actionId)
+  if (!action || action.status !== 'pending') {
+    await sendMessage({
+      channel,
+      text: ':warning: This action has already been processed.',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved')
+  const payload = resolved.payload as {
+    storyQueueId: string
+    blogSlug: string
+    caption: string
+    imageUrl: string
+    hashtags: string[]
+    ctaUrl: string
+  }
+
+  // Update instagram_story_queue status
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  await supabase
+    .from('instagram_story_queue')
+    .update({
+      status: 'ready_to_post',
+      approved_at: new Date().toISOString(),
+    })
+    .eq('id', payload.storyQueueId)
+
+  // Try posting if enabled
+  const { isInstagramPostingEnabled, postInstagramStory } = await import(
+    '@/lib/instagram-api/client'
+  )
+
+  if (isInstagramPostingEnabled()) {
+    const result = await postInstagramStory({
+      imageUrl: payload.imageUrl,
+      caption: payload.caption,
+    })
+
+    if (result.success && result.status === 'posted') {
+      await supabase
+        .from('instagram_story_queue')
+        .update({ status: 'posted', posted_at: new Date().toISOString() })
+        .eq('id', payload.storyQueueId)
+
+      await sendMessage({
+        channel,
+        text: `:white_check_mark: Instagram Story posted!\nBlog: ${payload.blogSlug}`,
+        threadTs,
+      })
+    } else {
+      await sendMessage({
+        channel,
+        text: `:warning: Story approved but posting failed: ${result.error}`,
+        threadTs,
+      })
+    }
+  } else {
+    await sendMessage({
+      channel,
+      text: `:white_check_mark: Instagram Story approved! (ready_to_post)\nPosting is disabled — content will be posted when Akool integration is configured.\nBlog: ${payload.blogSlug}`,
+      threadTs,
+    })
+  }
+}
+
+// ============================================================
 // Route Handler
 // ============================================================
 
@@ -510,6 +592,12 @@ export async function POST(request: NextRequest) {
         break
       case 'dismiss_blog_topic':
         await handleDismissBlogTopic(action.value, channel, threadTs)
+        break
+      case 'approve_instagram_story':
+        await handleApproveInstagramStory(action.value, channel, threadTs)
+        break
+      case 'reject_instagram_story':
+        await handleRejectPost(action.value, channel, threadTs)
         break
       default:
         break

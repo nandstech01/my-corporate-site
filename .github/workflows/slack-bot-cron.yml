@@ -10,6 +10,8 @@ on:
     - cron: '0 15 * * *'     # JST 00:00 LinkedIn engagement learner
     - cron: '0 16 * * *'     # JST 01:00 X engagement learner
     - cron: '0 18 * * *'     # JST 03:00 LinkedIn ML model retrainer
+    - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner
+    - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check
     - cron: '0 2,8,20 * * *'  # JST 11,17,5 Blog RSS monitor (6h interval, UTC 14 shared with trending)
   workflow_dispatch:
     inputs:
@@ -26,6 +28,8 @@ on:
           - linkedin-source-collector
           - linkedin-auto-post
           - linkedin-model-retrainer
+          - instagram-engagement-learner
+          - instagram-story-auto-check
           - blog-rss-monitor
 
 jobs:
@@ -69,4 +73,8 @@ jobs:
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
           LINKEDIN_PERSON_ID: ${{ secrets.LINKEDIN_PERSON_ID }}
           LINKEDIN_TOKEN_EXPIRES_AT: ${{ secrets.LINKEDIN_TOKEN_EXPIRES_AT }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_TOKEN_EXPIRES_AT: ${{ secrets.INSTAGRAM_TOKEN_EXPIRES_AT }}
+          INSTAGRAM_POSTING_ENABLED: ${{ secrets.INSTAGRAM_POSTING_ENABLED }}
 

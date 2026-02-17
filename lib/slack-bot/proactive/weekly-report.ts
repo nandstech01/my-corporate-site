@@ -12,6 +12,14 @@
 
 import { getPostAnalytics, saveMemory } from '../memory'
 import { sendMessage, buildAnalyticsBlocks } from '../slack-client'
+import {
+  generateCrossPlatformReport,
+  formatCrossPlatformReport,
+} from '../../analytics/cross-platform-analytics'
+import {
+  getOptimalPostingTimes,
+  formatOptimalTimes,
+} from '../../analytics/posting-time-optimizer'
 import type { XPostAnalytics } from '../types'
 
 interface WeeklyStats {
@@ -172,4 +180,45 @@ export async function runWeeklyReport(): Promise<void> {
     text: 'Weekly X Performance Report',
     blocks,
   })
+
+  // クロスプラットフォームレポート
+  try {
+    const crossPlatformReport = await generateCrossPlatformReport(7)
+    const crossPlatformBody = formatCrossPlatformReport(crossPlatformReport)
+    const optimalTimes = await getOptimalPostingTimes(90)
+    const timingSection = formatOptimalTimes(optimalTimes)
+
+    const crossPlatformBlocks = buildAnalyticsBlocks({
+      title: `:globe_with_meridians: Cross-Platform Report (${weekStart.toLocaleDateString('ja-JP')} - ${now.toLocaleDateString('ja-JP')})`,
+      body: `${crossPlatformBody}\n\n:clock3: *Optimal Posting Times*\n${timingSection}`,
+    })
+
+    await sendMessage({
+      channel,
+      text: 'Cross-Platform Performance Report',
+      blocks: crossPlatformBlocks,
+    })
+
+    // Save cross-platform learnings
+    const platformSummaries = crossPlatformReport.platforms
+      .filter((p) => p.postCount > 0)
+      .map(
+        (p) =>
+          `${p.platform}: ${p.postCount} posts, ${(p.avgEngagementRate * 100).toFixed(2)}% avg engagement`,
+      )
+
+    if (platformSummaries.length > 0) {
+      await saveMemory({
+        slackUserId: userId,
+        memoryType: 'fact',
+        content: `Weekly cross-platform: ${platformSummaries.join('. ')}. ${timingSection}`,
+        importance: 0.7,
+      })
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(
+      `Cross-platform report skipped: ${message}\n`,
+    )
+  }
 }
