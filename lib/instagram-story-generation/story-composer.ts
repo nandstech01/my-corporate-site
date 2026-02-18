@@ -65,6 +65,13 @@ async function fetchNotoSansJpBold(): Promise<ArrayBuffer> {
     throw new Error('Could not extract TrueType font URL from Google Fonts CSS')
   }
 
+  // SSRF防止: フォントURLのホスト名をGoogle Fontsドメインに制限
+  const fontUrl = new URL(urlMatch[1])
+  const allowedFontHosts = new Set(['fonts.gstatic.com', 'fonts.googleapis.com'])
+  if (!allowedFontHosts.has(fontUrl.hostname)) {
+    throw new Error(`Unexpected font host: ${fontUrl.hostname}`)
+  }
+
   const fontResponse = await fetch(urlMatch[1], {
     signal: AbortSignal.timeout(30000),
   })

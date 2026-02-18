@@ -13,6 +13,7 @@
 import { z } from 'zod'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
+import { traceable } from 'langsmith/traceable'
 
 // ============================================================
 // 型定義
@@ -34,6 +35,21 @@ export interface DiagramGenerationInput {
 // ============================================================
 // バリデーション
 // ============================================================
+
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+])
+
+function validateMimeType(mimeType: string): string {
+  const normalized = mimeType.split(';')[0].trim().toLowerCase()
+  if (ALLOWED_IMAGE_MIME_TYPES.has(normalized)) {
+    return normalized
+  }
+  return 'image/png'
+}
 
 const slugSchema = z
   .string()
@@ -243,52 +259,57 @@ ${input.imagePrompt}
 // 図解生成ストラテジー
 // ============================================================
 
-async function generateGeminiDiagram(
-  input: DiagramGenerationInput,
-): Promise<DiagramResult> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY
-  if (!apiKey) {
-    throw new Error('GOOGLE_AI_API_KEY not configured')
-  }
+const generateGeminiDiagram = traceable(
+  async (input: DiagramGenerationInput): Promise<DiagramResult> => {
+    const apiKey = process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) {
+      throw new Error('GOOGLE_AI_API_KEY not configured')
+    }
 
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-3-pro-image-preview',
-  })
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3-pro-image-preview',
+    })
 
-  const style = selectDiagramStyle()
-  const diagramPrompt = buildStoryDiagramPrompt(input, style)
+    const style = selectDiagramStyle()
+    const diagramPrompt = buildStoryDiagramPrompt(input, style)
 
-  process.stdout.write(`Diagram style: ${style.name} (${style.layout})\n`)
+    process.stdout.write(`Diagram style: ${style.name} (${style.layout})\n`)
 
-  const result = await model.generateContent({
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: diagramPrompt }],
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: diagramPrompt }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        temperature: 0.7,
+        candidateCount: 1,
+        maxOutputTokens: 8192,
+      } as Parameters<typeof model.generateContent>[0]['generationConfig'] & {
+        responseModalities: string[]
       },
-    ],
-    generationConfig: {
-      responseModalities: ['TEXT', 'IMAGE'],
-      temperature: 0.7,
-      candidateCount: 1,
-      maxOutputTokens: 8192,
-    } as Parameters<typeof model.generateContent>[0]['generationConfig'] & {
-      responseModalities: string[]
-    },
-  })
+    })
 
-  const imageData = extractGeminiImageData(result.response)
-  if (!imageData) {
-    throw new Error('Gemini did not return a diagram image')
-  }
+    const imageData = extractGeminiImageData(result.response)
+    if (!imageData) {
+      throw new Error('Gemini did not return a diagram image')
+    }
 
-  return {
-    buffer: Buffer.from(imageData.data, 'base64'),
-    mimeType: imageData.mimeType,
-    source: 'gemini',
-  }
-}
+    return {
+      buffer: Buffer.from(imageData.data, 'base64'),
+      mimeType: validateMimeType(imageData.mimeType),
+      source: 'gemini',
+    }
+  },
+  {
+    name: 'gemini-diagram-generation',
+    run_type: 'llm',
+    tags: ['instagram', 'image-gen'],
+  },
+)
 
 async function fetchOgImageBuffer(blogSlug: string): Promise<DiagramResult> {
   const supabase = getSupabaseClient()
@@ -317,7 +338,7 @@ async function fetchOgImageBuffer(blogSlug: string): Promise<DiagramResult> {
 
   return {
     buffer: Buffer.from(arrayBuffer),
-    mimeType: contentType,
+    mimeType: validateMimeType(contentType),
     source: 'og_image',
   }
 }
@@ -335,7 +356,7 @@ async function fetchRawOgImage(blogSlug: string): Promise<DiagramResult> {
   const arrayBuffer = await response.arrayBuffer()
   return {
     buffer: Buffer.from(arrayBuffer),
-    mimeType: response.headers.get('content-type') ?? 'image/png',
+    mimeType: validateMimeType(response.headers.get('content-type') ?? 'image/png'),
     source: 'og_image',
   }
 }

@@ -77,4 +77,7 @@ jobs:
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_TOKEN_EXPIRES_AT: ${{ secrets.INSTAGRAM_TOKEN_EXPIRES_AT }}
           INSTAGRAM_POSTING_ENABLED: ${{ secrets.INSTAGRAM_POSTING_ENABLED }}
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_PROJECT: nands-sns-pipeline
 
