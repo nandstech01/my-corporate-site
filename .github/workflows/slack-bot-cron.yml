@@ -12,7 +12,7 @@ on:
     - cron: '0 18 * * *'     # JST 03:00 LinkedIn ML model retrainer
     - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner
     - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check
-    - cron: '0 2,8,20 * * *'  # JST 11,17,5 Blog RSS monitor (6h interval, UTC 14 shared with trending)
+    - cron: '0 4,10,20 * * *'  # JST 13,19,5 Blog RSS monitor (shifted from 2,8 to avoid cron collision)
   workflow_dispatch:
     inputs:
       job:

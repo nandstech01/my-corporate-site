@@ -43,38 +43,81 @@ interface FeedItem {
   description?: string
 }
 
+function parseRSSItems(xml: string): FeedItem[] {
+  const items: FeedItem[] = []
+  const itemMatches = Array.from(xml.matchAll(/<item>([\s\S]*?)<\/item>/g))
+  for (const match of itemMatches) {
+    const itemXml = match[1]
+    const titleMatch = itemXml.match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/)
+    const linkMatch = itemXml.match(/<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/)
+    const dateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/)
+    const descMatch = itemXml.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/)
+
+    if (titleMatch && linkMatch) {
+      items.push({
+        title: titleMatch[1].trim(),
+        link: linkMatch[1].trim(),
+        pubDate: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
+        description: descMatch ? descMatch[1].trim().substring(0, 500) : undefined,
+      })
+    }
+  }
+  return items
+}
+
+function parseAtomEntries(xml: string): FeedItem[] {
+  const items: FeedItem[] = []
+  const entryMatches = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g))
+  for (const match of entryMatches) {
+    const entryXml = match[1]
+    const titleMatch = entryXml.match(/<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/)
+    // Prefer rel="alternate" link, fall back to first href
+    const linkMatch =
+      entryXml.match(/<link[^>]*rel=["']alternate["'][^>]*href=["']([^"']*?)["']/) ||
+      entryXml.match(/<link[^>]*href=["']([^"']*?)["'][^>]*rel=["']alternate["']/) ||
+      entryXml.match(/<link[^>]*href=["']([^"']*?)["']/)
+    // Prefer <published> over <updated> for accurate freshness scoring
+    const dateMatch =
+      entryXml.match(/<published>(.*?)<\/published>/) ||
+      entryXml.match(/<updated>(.*?)<\/updated>/)
+    const descMatch = entryXml.match(/<(?:summary|content)[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/(?:summary|content)>/)
+
+    if (titleMatch && linkMatch) {
+      items.push({
+        title: titleMatch[1].trim(),
+        link: linkMatch[1].trim(),
+        pubDate: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
+        description: descMatch ? descMatch[1].trim().replace(/<[^>]*>/g, '').substring(0, 500) : undefined,
+      })
+    }
+  }
+  return items
+}
+
 async function fetchFeedItems(feed: RSSFeedConfig): Promise<FeedItem[]> {
   try {
     const response = await fetch(feed.feedUrl, {
       headers: { 'User-Agent': 'NANDS-BlogMonitor/1.0' },
       signal: AbortSignal.timeout(10000),
     })
-    if (!response.ok) return []
-
-    const xml = await response.text()
-    const items: FeedItem[] = []
-
-    // Simple XML parsing for RSS items
-    const itemMatches = Array.from(xml.matchAll(/<item>([\s\S]*?)<\/item>/g))
-    for (const match of itemMatches) {
-      const itemXml = match[1]
-      const titleMatch = itemXml.match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/)
-      const linkMatch = itemXml.match(/<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/)
-      const dateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/)
-      const descMatch = itemXml.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/)
-
-      if (titleMatch && linkMatch) {
-        items.push({
-          title: titleMatch[1].trim(),
-          link: linkMatch[1].trim(),
-          pubDate: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
-          description: descMatch ? descMatch[1].trim().substring(0, 500) : undefined,
-        })
-      }
+    if (!response.ok) {
+      process.stdout.write(`  [${feed.name}] HTTP ${response.status}\n`)
+      return []
     }
 
-    return items.slice(0, 5) // Latest 5 per feed
-  } catch {
+    const xml = await response.text()
+
+    // Try RSS format first, then Atom
+    let items = parseRSSItems(xml)
+    if (items.length === 0) {
+      items = parseAtomEntries(xml)
+    }
+
+    process.stdout.write(`  [${feed.name}] ${items.length} items fetched\n`)
+    return items.slice(0, 5)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'unknown'
+    process.stdout.write(`  [${feed.name}] fetch error: ${msg}\n`)
     return []
   }
 }
@@ -143,66 +186,81 @@ export async function runBlogRSSMonitor(): Promise<void> {
         status: 'new',
       })
 
-    if (!insertError) totalNew++
+    if (insertError) {
+      process.stdout.write(`  Insert error for "${item.title}": ${insertError.message}\n`)
+    } else {
+      totalNew++
+    }
   }
 
   process.stdout.write(`Blog RSS Monitor: ${totalNew} new topics found\n`)
 
   // Notify Slack for high-score topics
   if (totalNew > 0) {
-    const { data: topTopics } = await supabase
-      .from('blog_topic_queue')
-      .select('*')
-      .eq('status', 'new')
-      .order('buzz_score', { ascending: false })
-      .limit(5)
+    const channel = process.env.SLACK_DEFAULT_CHANNEL
+    if (!channel) {
+      process.stdout.write('Blog RSS Monitor: SLACK_DEFAULT_CHANNEL not set, skipping notifications\n')
+    } else {
+      const { data: topTopics } = await supabase
+        .from('blog_topic_queue')
+        .select('*')
+        .eq('status', 'new')
+        .order('buzz_score', { ascending: false })
+        .limit(5)
 
-    if (topTopics && topTopics.length > 0) {
-      for (const topic of topTopics) {
-        if (topic.buzz_score < 30) continue
+      const notifiable = (topTopics ?? []).filter((t) => t.buzz_score >= 30)
+      process.stdout.write(`Blog RSS Monitor: ${topTopics?.length ?? 0} queued, ${notifiable.length} above threshold (>=30)\n`)
 
-        const message = `:newspaper: *Blog Topic Detected* (Score: ${topic.buzz_score}/100)\n\n` +
-          `*${topic.source_title}*\n` +
-          `Source: ${topic.source_feed} | ${topic.source_url}\n` +
-          `Suggested: ${topic.suggested_topic || 'N/A'}\n` +
-          `Keyword: ${topic.suggested_keyword || 'N/A'}`
+      for (const topic of notifiable) {
+        try {
+          const message = `:newspaper: *Blog Topic Detected* (Score: ${topic.buzz_score}/100)\n\n` +
+            `*${topic.source_title}*\n` +
+            `Source: ${topic.source_feed} | ${topic.source_url}\n` +
+            `Suggested: ${topic.suggested_topic || 'N/A'}\n` +
+            `Keyword: ${topic.suggested_keyword || 'N/A'}`
 
-        const result = await sendMessage({
-          channel: process.env.SLACK_DEFAULT_CHANNEL || '',
-          text: message,
-          blocks: [
-            {
-              type: 'section',
-              text: { type: 'mrkdwn', text: message },
-            },
-            {
-              type: 'actions',
-              elements: [
-                {
-                  type: 'button',
-                  text: { type: 'plain_text', text: ':white_check_mark: Approve' },
-                  style: 'primary',
-                  action_id: 'approve_blog_topic',
-                  value: topic.id,
-                },
-                {
-                  type: 'button',
-                  text: { type: 'plain_text', text: ':no_entry_sign: Dismiss' },
-                  style: 'danger',
-                  action_id: 'dismiss_blog_topic',
-                  value: topic.id,
-                },
-              ],
-            },
-          ],
-        })
+          const result = await sendMessage({
+            channel,
+            text: message,
+            blocks: [
+              {
+                type: 'section',
+                text: { type: 'mrkdwn', text: message },
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: ':white_check_mark: Approve' },
+                    style: 'primary',
+                    action_id: 'approve_blog_topic',
+                    value: topic.id,
+                  },
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: ':no_entry_sign: Dismiss' },
+                    style: 'danger',
+                    action_id: 'dismiss_blog_topic',
+                    value: topic.id,
+                  },
+                ],
+              },
+            ],
+          })
 
-        // Save Slack message timestamp
-        if (result) {
-          await supabase
-            .from('blog_topic_queue')
-            .update({ status: 'notified', slack_message_ts: result })
-            .eq('id', topic.id)
+          if (result) {
+            await supabase
+              .from('blog_topic_queue')
+              .update({ status: 'notified', slack_message_ts: result })
+              .eq('id', topic.id)
+            process.stdout.write(`Blog RSS Monitor: Notified "${topic.source_title}" (score: ${topic.buzz_score})\n`)
+          } else {
+            process.stdout.write(`Blog RSS Monitor: sendMessage returned falsy for "${topic.source_title}"\n`)
+          }
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : 'unknown'
+          process.stdout.write(`Blog RSS Monitor: Slack notification error: ${msg}\n`)
         }
       }
     }

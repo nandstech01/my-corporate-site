@@ -136,9 +136,9 @@ function detectJob(): JobName {
     return 'linkedin-model-retrainer'
   }
 
-  // JST 11,17,23,5 = UTC 2,8,14,20 → Blog RSS monitor (6h interval)
-  // Note: UTC 14 is already used by trending-collector, so skip it
-  if (utcHour === 2 || utcHour === 8 || utcHour === 20) {
+  // JST 13,19,5 = UTC 4,10,20 → Blog RSS monitor
+  // Note: shifted from UTC 2,8 to UTC 4,10 to avoid GitHub Actions cron collision
+  if (utcHour === 4 || utcHour === 10 || utcHour === 20) {
     return 'blog-rss-monitor'
   }
 
