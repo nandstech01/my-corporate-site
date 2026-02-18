@@ -525,14 +525,24 @@ export async function generateXPost(
 ): Promise<PostGraphOutput> {
   const app = compiledGraph
 
-  const result = await app.invoke({
-    mode: input.mode,
-    content: input.content,
-    title: input.title ?? null,
-    slug: input.slug ?? null,
-    topic: input.topic ?? null,
-    tags: input.tags ?? null,
-  })
+  const result = await app.invoke(
+    {
+      mode: input.mode,
+      content: input.content,
+      title: input.title ?? null,
+      slug: input.slug ?? null,
+      topic: input.topic ?? null,
+      tags: input.tags ?? null,
+    },
+    {
+      runName: `x-post-${input.mode}`,
+      tags: ['x-post', input.mode],
+      metadata: {
+        mode: input.mode,
+        slug: input.slug ?? null,
+      },
+    },
+  )
 
   if (result.error) {
     throw new Error(result.error)

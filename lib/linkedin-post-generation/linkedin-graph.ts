@@ -491,13 +491,23 @@ const compiledGraph = buildLinkedInGraph()
 export async function generateLinkedInPost(
   input: LinkedInGraphInput,
 ): Promise<LinkedInGraphOutput> {
-  const result = await compiledGraph.invoke({
-    sourceData: input.sourceData,
-    sourceType: input.sourceType,
-    sourceUrl: input.sourceUrl,
-    sourceAuthor: input.sourceAuthor ?? null,
-    japanAngle: input.japanAngle ?? null,
-  })
+  const result = await compiledGraph.invoke(
+    {
+      sourceData: input.sourceData,
+      sourceType: input.sourceType,
+      sourceUrl: input.sourceUrl,
+      sourceAuthor: input.sourceAuthor ?? null,
+      japanAngle: input.japanAngle ?? null,
+    },
+    {
+      runName: `linkedin-post-${input.sourceType}`,
+      tags: ['linkedin', 'post-generation'],
+      metadata: {
+        sourceType: input.sourceType,
+        sourceUrl: input.sourceUrl,
+      },
+    },
+  )
 
   if (result.error) {
     throw new Error(result.error)

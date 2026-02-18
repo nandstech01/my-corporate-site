@@ -394,12 +394,23 @@ export async function runAgent(params: {
     content: params.message,
   })
 
-  const result = await app.invoke({
-    messages: [new HumanMessage(params.message)],
-    slackChannelId: params.slackChannelId,
-    slackUserId: params.slackUserId,
-    slackThreadTs: params.slackThreadTs,
-  })
+  const result = await app.invoke(
+    {
+      messages: [new HumanMessage(params.message)],
+      slackChannelId: params.slackChannelId,
+      slackUserId: params.slackUserId,
+      slackThreadTs: params.slackThreadTs,
+    },
+    {
+      runName: `slack-agent-${params.slackChannelId}`,
+      tags: ['slack-bot', 'interactive'],
+      metadata: {
+        slackChannelId: params.slackChannelId,
+        slackUserId: params.slackUserId,
+        slackThreadTs: params.slackThreadTs,
+      },
+    },
+  )
 
   // Save tool calls and results to conversation history
   const toolSummaries: string[] = []

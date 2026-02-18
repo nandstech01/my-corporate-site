@@ -386,13 +386,23 @@ const compiledGraph = buildStoryGraph()
 export async function generateInstagramStory(
   input: StoryGraphInput,
 ): Promise<StoryGraphOutput> {
-  const result = await compiledGraph.invoke({
-    blogTitle: input.blogTitle,
-    blogSlug: input.blogSlug,
-    blogContent: input.blogContent,
-    blogExcerpt: input.blogExcerpt ?? null,
-    blogTags: input.blogTags ? [...input.blogTags] : [],
-  })
+  const result = await compiledGraph.invoke(
+    {
+      blogTitle: input.blogTitle,
+      blogSlug: input.blogSlug,
+      blogContent: input.blogContent,
+      blogExcerpt: input.blogExcerpt ?? null,
+      blogTags: input.blogTags ? [...input.blogTags] : [],
+    },
+    {
+      runName: `instagram-story-${input.blogSlug}`,
+      tags: ['instagram', 'story-generation'],
+      metadata: {
+        blogSlug: input.blogSlug,
+        blogTitle: input.blogTitle,
+      },
+    },
+  )
 
   if (result.error) {
     throw new Error(result.error)

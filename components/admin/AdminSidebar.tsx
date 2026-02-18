@@ -87,6 +87,12 @@ export default function AdminSidebar({ onItemClick }: AdminSidebarProps) {
       current: pathname?.startsWith('/admin/video-jobs')
     },
     {
+      name: 'SNS Pipeline',
+      href: '/admin/sns-pipeline',
+      icon: GlobeAltIcon,
+      current: pathname?.startsWith('/admin/sns-pipeline')
+    },
+    {
       name: 'トリプルRAG',
       icon: CubeIcon,
       children: [

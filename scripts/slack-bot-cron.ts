@@ -5,6 +5,7 @@
  * CRON_JOB 環境変数またはスケジュールに基づいてジョブを選択。
  */
 
+import { traceable } from 'langsmith/traceable'
 import { runDailySuggestion } from '../lib/slack-bot/proactive/daily-suggestion'
 import { runWeeklyReport } from '../lib/slack-bot/proactive/weekly-report'
 import { runEngagementLearner } from '../lib/slack-bot/proactive/engagement-learner'
@@ -159,6 +160,19 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'blog-rss-monitor': runBlogRSSMonitor,
 }
 
+function createTracedCronJob(jobName: JobName) {
+  return traceable(
+    async (jobFn: () => Promise<void>): Promise<void> => {
+      await jobFn()
+    },
+    {
+      name: `cron-${jobName}`,
+      tags: ['cron', jobName],
+      metadata: { jobName },
+    },
+  )
+}
+
 async function main() {
   const jobName = detectJob()
   const runner = jobRunners[jobName]
@@ -166,7 +180,8 @@ async function main() {
   process.stdout.write(`Running job: ${jobName}\n`)
 
   try {
-    await runner()
+    const runCronJob = createTracedCronJob(jobName)
+    await runCronJob(runner)
     process.stdout.write(`Job ${jobName} completed successfully\n`)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
