@@ -52,7 +52,7 @@ export async function detectTargetAudience(
 必ず "general", "developer", "architect" のいずれか1つだけを返してください。`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages: [
       {
         role: 'system',
@@ -63,8 +63,7 @@ export async function detectTargetAudience(
         content: prompt
       }
     ],
-    temperature: 0.3,
-    max_tokens: 50
+    max_completion_tokens: 300
   });
 
   const result = response.choices[0].message.content?.trim().toLowerCase() || 'general';
@@ -119,7 +118,7 @@ ${topPatterns.map((p, i) => `${i + 1}. ${p.name} (${p.id})
 最適なパターンのIDを1つだけ返してください（例: shock-mrbeast-challenge）`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages: [
       {
         role: 'system',
@@ -130,8 +129,7 @@ ${topPatterns.map((p, i) => `${i + 1}. ${p.name} (${p.id})
         content: prompt
       }
     ],
-    temperature: 0.3,
-    max_tokens: 100
+    max_completion_tokens: 500
   });
 
   const selectedId = response.choices[0].message.content?.trim() || topPatterns[0].id;
@@ -173,7 +171,7 @@ export async function extractHookVariables(
 必ずJSON形式で返してください: { "変数名": "値", ... }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -185,8 +183,7 @@ export async function extractHookVariables(
       }
     ],
     response_format: { type: 'json_object' },
-    temperature: 0.7,
-    max_tokens: 300
+    max_completion_tokens: 1000
   });
 
   const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -228,7 +225,7 @@ export async function generateHookText(
 最適化されたフックテキストのみを返してください（説明不要）。`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -239,8 +236,7 @@ export async function generateHookText(
         content: prompt
       }
     ],
-    temperature: 0.8,
-    max_tokens: 100
+    max_completion_tokens: 500
   });
 
   const optimizedHook = response.choices[0].message.content?.trim() || hookText;

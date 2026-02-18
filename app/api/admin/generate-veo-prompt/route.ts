@@ -268,17 +268,16 @@ ${relatedNews ? `- **関連ニュース**: ${relatedNews}` : ''}
 必ずJSON形式で5つのパターンを返してください。`;
 
     console.log('🤖 OpenAI API呼び出し中...');
-    console.log('  モデル: gpt-4o（映画撮影監督モード）');
+    console.log('  モデル: gpt-5.2（映画撮影監督モード）');
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // GPT-4oでプロンプト生成（映画的創造性重視）
+      model: 'gpt-5.2',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
       response_format: { type: 'json_object' },
-      temperature: 1.0, // 映画的創造性を最大化
-      max_tokens: 4096, // 詳細なプロンプトのため増量
+      max_completion_tokens: 12000,
     });
 
     const responseContent = completion.choices[0].message.content;

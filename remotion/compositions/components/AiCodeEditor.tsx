@@ -24,7 +24,7 @@ const CODE_SEGMENTS: CodeSegment[] = [
   { text: '({\n', color: SDLP_VP_COLORS.text.primary },
   { text: '      model', color: SDLP_VP_COLORS.code.supabase },
   { text: ': ', color: SDLP_VP_COLORS.text.secondary },
-  { text: '"gpt-4o"', color: SDLP_VP_COLORS.code.string },
+  { text: '"gpt-5.2"', color: SDLP_VP_COLORS.code.string },
   { text: ',\n', color: SDLP_VP_COLORS.text.secondary },
   { text: '      db', color: SDLP_VP_COLORS.code.supabase },
   { text: ': ', color: SDLP_VP_COLORS.text.secondary },

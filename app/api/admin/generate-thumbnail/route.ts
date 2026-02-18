@@ -383,7 +383,7 @@ export async function POST(request: NextRequest) {
     console.log('🤖 OpenAI API呼び出し中...');
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }

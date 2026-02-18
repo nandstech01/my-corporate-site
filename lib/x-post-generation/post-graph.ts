@@ -131,10 +131,9 @@ type GraphStateType = typeof PostGraphState.State
 // ヘルパー
 // ============================================================
 
-function createModel(temperature = 0.3) {
+function createModel() {
   return new ChatOpenAI({
-    modelName: 'gpt-4o',
-    temperature,
+    modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }
@@ -146,7 +145,7 @@ function createModel(temperature = 0.3) {
 async function analyzeContent(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel(0.2)
+  const model = createModel()
 
   const patternList = patternTemplates
     .map((p) => `- ${p.id}: ${p.name} (${p.description})`)
@@ -271,7 +270,7 @@ async function recallTrendingTopics(): Promise<string> {
 async function generateCandidates(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel(0.8)
+  const model = createModel()
 
   const isArticle = state.mode === 'article'
 
@@ -351,7 +350,7 @@ async function scoreCandidates(
     return { error: 'No candidates to score' }
   }
 
-  const model = createModel(0.1)
+  const model = createModel()
 
   const candidateList = state.candidates
     .map((c, i) => `【候補${i + 1}】\n${c}`)

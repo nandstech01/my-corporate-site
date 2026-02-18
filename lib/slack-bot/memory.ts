@@ -346,8 +346,7 @@ export async function compactConversationIfNeeded(params: {
 
   // LLM でサマリー生成
   const model = new ChatOpenAI({
-    modelName: 'gpt-4o-mini',
-    temperature: 0,
+    modelName: 'gpt-5-mini',
     apiKey: process.env.OPENAI_API_KEY,
   })
 
@@ -404,8 +403,7 @@ async function preCompactionMemoryFlush(
   if (toolResults.length === 0) return
 
   const model = new ChatOpenAI({
-    modelName: 'gpt-4o-mini',
-    temperature: 0,
+    modelName: 'gpt-5-mini',
     apiKey: process.env.OPENAI_API_KEY,
   })
 

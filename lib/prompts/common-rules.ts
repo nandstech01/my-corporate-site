@@ -337,38 +337,26 @@ export const CTA_PATTERNS = [
 ] as const;
 
 /**
- * モデル設定（GPT-5 / GPT-4o）
- * 
- * 【GPT-5の制限】
+ * モデル設定（GPT-5.2）
+ *
+ * 【GPT-5系の制限】
  * - temperature: デフォルト値(1)のみサポート（カスタム値は使用不可）
- * - max_tokens: 使用不可 → max_completion_tokens を使用
- * 
- * ⚠️ GPT-5がまだ利用できない場合は、gpt-4o を使用してください
+ * - max_tokens: 非推奨 → max_completion_tokens を使用
  */
 export const MODEL_CONFIG = {
   /**
    * 台本生成モデル
-   * - 'gpt-5': 最高品質（利用可能な場合）
-   * - 'gpt-4o': 高品質で安定
+   * - 'gpt-5.2': GPT-5系列の最新モデル
    */
-  SCRIPT_MODEL: 'gpt-5' as 'gpt-4o' | 'gpt-5', // GPT-5を使用（ブログ記事生成で動作確認済み）
-  
-  /**
-   * 温度設定（GPT-5では使用不可、記録用のみ）
-   */
-  TEMPERATURE: {
-    SHORT: 0.7,  // ショート動画（GPT-5では使用されない）
-    MEDIUM: 0.8, // 中尺動画（GPT-5では使用されない）
-  },
-  
+  SCRIPT_MODEL: 'gpt-5.2' as const,
+
   /**
    * トークン制限
-   * GPT-5は推論トークン（reasoning_tokens）を使用するため、通常より多めに設定
-   * GPT-5の推論は8000-10000トークン使用する可能性があるため、余裕を持たせる
+   * GPT-5系は推論トークン（reasoning_tokens）を内部消費するため、多めに設定
    */
   MAX_TOKENS: {
-    SHORT: 16000,  // ショート動画（GPT-5推論8000 + 出力8000）
-    MEDIUM: 32000, // 中尺動画（GPT-5推論10000 + 出力22000）
+    SHORT: 16000,  // ショート動画（推論トークン + 出力トークン）
+    MEDIUM: 32000, // 中尺動画（推論トークン + 出力トークン）
   },
 };
 

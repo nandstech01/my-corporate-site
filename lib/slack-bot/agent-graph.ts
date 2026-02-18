@@ -94,8 +94,7 @@ type AgentStateType = typeof AgentState.State
 
 function createModel() {
   return new ChatOpenAI({
-    modelName: 'gpt-4o',
-    temperature: 0.7,
+    modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }

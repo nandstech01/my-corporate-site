@@ -56,17 +56,16 @@ const GraphState = Annotation.Root({
 
 type GraphStateType = typeof GraphState.State
 
-function createModel(temperature = 0.3) {
+function createModel() {
   if (process.env.ANTHROPIC_API_KEY) {
     return new ChatAnthropic({
       model: 'claude-sonnet-4-5-20250929',
-      temperature,
+      temperature: 0.3,
       apiKey: process.env.ANTHROPIC_API_KEY,
     })
   }
   return new ChatOpenAI({
-    modelName: 'gpt-4o',
-    temperature,
+    modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }
@@ -84,7 +83,7 @@ async function analyzeRequirements(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
   const config = getServiceConfig(state.serviceType)
-  const model = createModel(0.2)
+  const model = createModel()
 
   const response = await model.invoke([
     { role: 'system' as const, content: config.prompts.requirementsAnalysis },
@@ -139,7 +138,7 @@ async function generateProposal(
   }
 
   const config = getServiceConfig(state.serviceType)
-  const model = createModel(0.5)
+  const model = createModel()
 
   const response = await model.invoke([
     { role: 'system' as const, content: config.prompts.proposalGeneration },

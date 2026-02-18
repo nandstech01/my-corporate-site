@@ -107,10 +107,9 @@ type GraphStateType = typeof LinkedInGraphState.State
 // ヘルパー
 // ============================================================
 
-function createModel(temperature = 0.3) {
+function createModel() {
   return new ChatOpenAI({
-    modelName: 'gpt-4o',
-    temperature,
+    modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }
@@ -200,7 +199,7 @@ async function enrichWithRAG(
 async function generateCandidates(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel(0.7)
+  const model = createModel()
 
   const template = linkedInTemplates.find((t) => t.id === state.selectedTemplateId)
   const templateInfo = template
@@ -283,7 +282,7 @@ async function scoreCandidates(
     return { error: 'No candidates to score' }
   }
 
-  const model = createModel(0.1)
+  const model = createModel()
 
   const candidateList = state.candidates
     .map((c, i) => `【候補${i + 1}】\n${c}`)

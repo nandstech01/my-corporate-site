@@ -111,10 +111,9 @@ function deriveHeadlineLines(keyPoints: readonly string[]): string[] {
   )
 }
 
-function createModel(temperature = 0.3) {
+function createModel() {
   return new ChatOpenAI({
-    modelName: 'gpt-4o',
-    temperature,
+    modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }
@@ -126,7 +125,7 @@ function createModel(temperature = 0.3) {
 async function analyzeBlogContent(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel(0.2)
+  const model = createModel()
 
   const response = await model.invoke([
     {
@@ -190,7 +189,7 @@ JSON形式で出力:
 async function generateStoryCaption(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel(0.7)
+  const model = createModel()
 
   const keyPointsStr = state.keyPoints.join('\n- ')
   const utmUrl = `https://nands.tech/system-dev-lp?utm_source=instagram&utm_medium=story&utm_campaign=blog_${state.blogSlug}`
@@ -232,6 +231,10 @@ ${INSTAGRAM_RULES}
     .map((c) => c.trim())
     .filter((c) => c.length > 0)
 
+  if (candidates.length === 0) {
+    return { error: 'No valid candidates generated from LLM response' }
+  }
+
   return { candidates }
 }
 
@@ -246,7 +249,7 @@ async function scoreCandidates(
     return { error: 'No candidates to score' }
   }
 
-  const model = createModel(0.1)
+  const model = createModel()
 
   const candidateList = state.candidates
     .map((c, i) => `【候補${i + 1}】\n${c}`)
@@ -295,19 +298,26 @@ JSON配列のみ出力:
     }),
   )
 
-  const scores = jsonMatch
-    ? ScoreSchema.parse(JSON.parse(jsonMatch[0]))
-    : state.candidates.map((_, i) => ({
-        index: i,
-        emotionalAppeal: 5,
-        hashtagQuality: 5,
-        ctaClarity: 5,
-        lengthFit: 5,
-        visualLanguage: 5,
-        total: 25,
-      }))
+  const defaultScores = state.candidates.map((_, i) => ({
+    index: i,
+    emotionalAppeal: 5,
+    hashtagQuality: 5,
+    ctaClarity: 5,
+    lengthFit: 5,
+    visualLanguage: 5,
+    total: 25,
+  }))
 
-  return { scores }
+  if (!jsonMatch) {
+    return { scores: defaultScores }
+  }
+
+  try {
+    const scores = ScoreSchema.parse(JSON.parse(jsonMatch[0]))
+    return { scores }
+  } catch {
+    return { scores: defaultScores }
+  }
 }
 
 // ============================================================

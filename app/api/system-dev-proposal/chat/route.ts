@@ -79,10 +79,9 @@ async function createOpenAIStream(
   ]
 
   return openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages,
-    max_tokens: 300,
-    temperature: 0.7,
+    max_completion_tokens: 1000,
     stream: true,
   })
 }

@@ -240,16 +240,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<Architect
     // ========================================
     // Step 6: OpenAI API呼び出し（GPT-4o）
     // ========================================
-    console.log('🤖 Step 6: OpenAI API呼び出し中（GPT-4o）...');
+    console.log('🤖 Step 6: OpenAI API呼び出し中（GPT-5.2）...');
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.8,
-      max_tokens: 2000
+      max_completion_tokens: 6000
     });
 
     const generatedContent = completion.choices[0].message.content;

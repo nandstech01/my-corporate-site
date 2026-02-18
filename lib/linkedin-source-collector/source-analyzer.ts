@@ -53,8 +53,7 @@ const AnalysisResultSchema = z.object({
 
 function createMiniModel() {
   return new ChatOpenAI({
-    modelName: 'gpt-4o-mini',
-    temperature: 0.3,
+    modelName: 'gpt-5-mini',
     apiKey: process.env.OPENAI_API_KEY,
   })
 }
