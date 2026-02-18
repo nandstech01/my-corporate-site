@@ -3,7 +3,7 @@ import { Client } from 'langsmith'
 
 export const dynamic = 'force-dynamic'
 
-const PROJECT_NAME = 'nands-sns-pipeline'
+const PROJECT_NAME = process.env.LANGCHAIN_PROJECT ?? 'nands-sns-pipeline'
 
 interface ToolUsageStat {
   readonly name: string
