@@ -67,30 +67,35 @@ export function useLangSmithData(enabled: boolean): LangSmithData {
   const fetchData = useCallback(async () => {
     try {
       const [tracesRes, statsRes] = await Promise.all([
-        fetch('/api/admin/langsmith/traces?limit=50&days=7'),
-        fetch('/api/admin/langsmith/stats?days=7'),
+        fetch('/api/admin/langsmith/traces?limit=50&days=7', { cache: 'no-store' }),
+        fetch('/api/admin/langsmith/stats?days=7', { cache: 'no-store' }),
       ])
 
-      if (!tracesRes.ok || !statsRes.ok) {
-        const errMsg = !tracesRes.ok
-          ? `Traces: ${tracesRes.status}`
-          : `Stats: ${statsRes.status}`
-        setError(`Failed to fetch LangSmith data (${errMsg})`)
-        return
+      const errors: string[] = []
+
+      if (tracesRes.ok) {
+        const tracesJson = await tracesRes.json()
+        if (tracesJson.success) {
+          setTraces(tracesJson.data)
+        }
+      } else {
+        const body = await tracesRes.json().catch(() => null)
+        const detail = body?.error ?? tracesRes.statusText
+        errors.push(`Traces: ${detail}`)
       }
 
-      const [tracesJson, statsJson] = await Promise.all([
-        tracesRes.json(),
-        statsRes.json(),
-      ])
+      if (statsRes.ok) {
+        const statsJson = await statsRes.json()
+        if (statsJson.success) {
+          setStats(statsJson.data)
+        }
+      } else {
+        const body = await statsRes.json().catch(() => null)
+        const detail = body?.error ?? statsRes.statusText
+        errors.push(`Stats: ${detail}`)
+      }
 
-      if (tracesJson.success) {
-        setTraces(tracesJson.data)
-      }
-      if (statsJson.success) {
-        setStats(statsJson.data)
-      }
-      setError(null)
+      setError(errors.length > 0 ? `Failed to fetch LangSmith data (${errors.join(', ')})` : null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch LangSmith data')
     } finally {

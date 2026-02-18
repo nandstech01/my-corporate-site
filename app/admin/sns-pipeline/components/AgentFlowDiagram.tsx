@@ -129,7 +129,7 @@ export default function AgentFlowDiagram({ latestTrace }: AgentFlowDiagramProps)
         />
 
         {/* SVG overlay for edges + particles */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1]" xmlns="http://www.w3.org/2000/svg">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <filter id="glow-line">
               <feGaussianBlur result="coloredBlur" stdDeviation="2" />
@@ -183,7 +183,7 @@ export default function AgentFlowDiagram({ latestTrace }: AgentFlowDiagramProps)
 
           {/* Curved tools→agent loop-back */}
           <path
-            d="M 28% 75% C 15% 75%, 15% 50%, 28% 50%"
+            d="M 28 75 C 15 75, 15 50, 28 50"
             fill="none"
             stroke="url(#grad-tools-agent)"
             strokeWidth="2"
@@ -203,8 +203,8 @@ export default function AgentFlowDiagram({ latestTrace }: AgentFlowDiagramProps)
 
           {/* Particle for curved tools→agent path */}
           <circle r="3" fill={COLORS.accent} opacity="0">
-            <animate attributeName="cx" values="28%;15%;15%;28%" dur="4.4s" repeatCount="indefinite" keyTimes="0;0.3;0.7;1" />
-            <animate attributeName="cy" values="75%;75%;50%;50%" dur="4.4s" repeatCount="indefinite" keyTimes="0;0.3;0.7;1" />
+            <animate attributeName="cx" values="28;15;15;28" dur="4.4s" repeatCount="indefinite" keyTimes="0;0.3;0.7;1" />
+            <animate attributeName="cy" values="75;75;50;50" dur="4.4s" repeatCount="indefinite" keyTimes="0;0.3;0.7;1" />
             <animate attributeName="opacity" values="0;1;1;0" dur="4.4s" repeatCount="indefinite" />
           </circle>
         </svg>

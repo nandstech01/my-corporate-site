@@ -21,8 +21,11 @@ interface TraceRecord {
 }
 
 export async function GET(request: Request) {
+  console.log('[langsmith/traces] Handler called')
+
   const apiKey = process.env.LANGCHAIN_API_KEY
   if (!apiKey) {
+    console.error('[langsmith/traces] LANGCHAIN_API_KEY not configured')
     return NextResponse.json(
       { success: false, error: 'LANGCHAIN_API_KEY not configured' },
       { status: 500 },
@@ -30,8 +33,9 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const limit = Math.min(Number(searchParams.get('limit') ?? '50'), 200)
+  const limit = Math.min(Number(searchParams.get('limit') ?? '50'), 100)
   const days = Math.min(Number(searchParams.get('days') ?? '7'), 30)
+  console.log(`[langsmith/traces] project=${PROJECT_NAME} limit=${limit} days=${days}`)
 
   const startTime = new Date()
   startTime.setDate(startTime.getDate() - days)
@@ -84,13 +88,21 @@ export async function GET(request: Request) {
       b.startTime.localeCompare(a.startTime),
     )
 
-    return NextResponse.json({
-      success: true,
-      data: sortedTraces,
-      meta: { total: sortedTraces.length, limit, days },
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        data: sortedTraces,
+        meta: { total: sortedTraces.length, limit, days },
+      },
+      {
+        headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' },
+      },
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch traces'
+    const stack = error instanceof Error ? error.stack : String(error)
+    console.error('[langsmith/traces] ERROR:', message)
+    console.error('[langsmith/traces] STACK:', stack)
     return NextResponse.json(
       { success: false, error: message },
       { status: 500 },

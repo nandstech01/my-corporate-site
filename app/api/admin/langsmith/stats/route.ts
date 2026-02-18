@@ -54,8 +54,11 @@ function detectPlatform(tags: readonly string[], name: string): string {
 }
 
 export async function GET(request: Request) {
+  console.log('[langsmith/stats] Handler called')
+
   const apiKey = process.env.LANGCHAIN_API_KEY
   if (!apiKey) {
+    console.error('[langsmith/stats] LANGCHAIN_API_KEY not configured')
     return NextResponse.json(
       { success: false, error: 'LANGCHAIN_API_KEY not configured' },
       { status: 500 },
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
     for await (const run of client.listRuns({
       projectName: PROJECT_NAME,
       filter: `gte(start_time, "${startTime.toISOString()}")`,
-      limit: 500,
+      limit: 100,
     })) {
       totalRuns++
       if (run.error) totalErrors++
@@ -168,9 +171,17 @@ export async function GET(request: Request) {
       totalErrors,
     }
 
-    return NextResponse.json({ success: true, data: stats })
+    return NextResponse.json(
+      { success: true, data: stats },
+      {
+        headers: { 'Cache-Control': 'private, no-cache, no-store, must-revalidate' },
+      },
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch stats'
+    const stack = error instanceof Error ? error.stack : String(error)
+    console.error('[langsmith/stats] ERROR:', message)
+    console.error('[langsmith/stats] STACK:', stack)
     return NextResponse.json(
       { success: false, error: message },
       { status: 500 },
