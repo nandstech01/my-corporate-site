@@ -143,7 +143,11 @@ function detectJob(): JobName {
     return 'blog-rss-monitor'
   }
 
-  return 'daily-suggestion'
+  // Fallback: 明示的な CRON_JOB が指定されていない場合で
+  // どの時間帯にもマッチしない場合はエラーにする（重複投稿防止）
+  throw new Error(
+    `No job matched for UTC hour ${utcHour} (day ${dayOfWeek}). Set CRON_JOB explicitly.`,
+  )
 }
 
 const jobRunners: Record<JobName, () => Promise<void>> = {

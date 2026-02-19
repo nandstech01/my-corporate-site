@@ -66,13 +66,29 @@ async function cacheNewSources(
   if (sources.length === 0) return
 
   const supabase = getSupabase()
-  const rows = sources.map((s) => ({
-    source_id: s.id,
-    source_type: s.sourceType,
-    title: s.title,
-    url: s.url,
-    score: s.score,
-  }))
+
+  // Deduplicate by source_id within the batch to avoid
+  // "ON CONFLICT DO UPDATE command cannot affect row a second time"
+  const seen = new Set<string>()
+  const rows: Array<{
+    source_id: string
+    source_type: string
+    title: string
+    url: string
+    score: number
+  }> = []
+  for (const s of sources) {
+    if (!seen.has(s.id)) {
+      seen.add(s.id)
+      rows.push({
+        source_id: s.id,
+        source_type: s.sourceType,
+        title: s.title,
+        url: s.url,
+        score: s.score,
+      })
+    }
+  }
 
   const { error } = await supabase
     .from('linkedin_source_cache')

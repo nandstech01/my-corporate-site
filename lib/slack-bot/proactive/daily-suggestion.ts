@@ -9,6 +9,7 @@
  * 4. 3つの候補を Slack DM で送信
  */
 
+import { createClient } from '@supabase/supabase-js'
 import { searchBrave } from '@/lib/x-post-generation/data-fetchers'
 import { recallMemories, getPostAnalytics } from '../memory'
 import { sendMessage, buildSuggestionBlocks } from '../slack-client'
@@ -82,6 +83,56 @@ async function getPerformanceInsights(userId: string): Promise<string> {
   }
 }
 
+// ============================================================
+// 重複投稿防止 (べき等性チェック)
+// ============================================================
+
+async function hasAlreadyPostedToday(): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return false
+
+  const supabase = createClient(url, key)
+
+  // 今日のUTC 0:00 (JST 9:00) 以降のメッセージをチェック
+  const todayStart = new Date()
+  todayStart.setUTCHours(0, 0, 0, 0)
+
+  const { data } = await supabase
+    .from('slack_pending_actions')
+    .select('id')
+    .eq('action_type', 'daily_suggestion')
+    .gte('created_at', todayStart.toISOString())
+    .limit(1)
+
+  return (data ?? []).length > 0
+}
+
+async function markDailySuggestionSent(
+  channel: string,
+  userId: string,
+): Promise<void> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return
+
+  const supabase = createClient(url, key)
+
+  await supabase.from('slack_pending_actions').insert({
+    slack_channel_id: channel,
+    slack_user_id: userId,
+    slack_thread_ts: null,
+    action_type: 'daily_suggestion',
+    payload: { sentAt: new Date().toISOString() },
+    status: 'approved',
+    resolved_at: new Date().toISOString(),
+  })
+}
+
+// ============================================================
+// メイン
+// ============================================================
+
 export async function runDailySuggestion(): Promise<void> {
   const channel = process.env.SLACK_DEFAULT_CHANNEL
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
@@ -90,6 +141,13 @@ export async function runDailySuggestion(): Promise<void> {
     throw new Error(
       'SLACK_DEFAULT_CHANNEL and SLACK_ALLOWED_USER_IDS are required',
     )
+  }
+
+  // べき等性チェック: 今日既に投稿済みならスキップ
+  const alreadyPosted = await hasAlreadyPostedToday()
+  if (alreadyPosted) {
+    process.stdout.write('Daily suggestion already posted today. Skipping.\n')
+    return
   }
 
   // Gather data in parallel
@@ -132,4 +190,7 @@ export async function runDailySuggestion(): Promise<void> {
     text: 'Daily post suggestions',
     blocks,
   })
+
+  // べき等性マーカーを記録
+  await markDailySuggestionSent(channel, userId)
 }

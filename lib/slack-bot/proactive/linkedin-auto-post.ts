@@ -9,12 +9,50 @@
  * 4. 生成成功した投稿ごとに承認ブロック付きで Slack 送信
  */
 
-import { recallMemories, createPendingAction, getRecentlyPostedSourceUrls } from '../memory'
+import { createClient } from '@supabase/supabase-js'
+import { createPendingAction, getRecentlyPostedSourceUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateLinkedInPost } from '../../linkedin-post-generation/linkedin-graph'
 import { linkedInTemplates } from '../../linkedin-post-generation/linkedin-templates'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 import { getLinkedInLearnings } from './linkedin-learnings'
+
+// ============================================================
+// LinkedIn ソースメモリの取得
+// ============================================================
+
+/**
+ * source-collector は context JSON に { source: 'linkedin_sources', candidates: [...] }
+ * として保存する。content フィールドは LLM が生成した自然言語サマリーなので
+ * 'linkedin_sources' という文字列を含む保証がない。
+ * context->>'source' = 'linkedin_sources' で直接検索する。
+ */
+async function recallLinkedInSourceMemories(
+  slackUserId: string,
+  limit: number,
+): Promise<readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
+  }
+
+  const supabase = createClient(url, key)
+
+  const { data, error } = await supabase
+    .from('slack_bot_memory')
+    .select('*')
+    .eq('slack_user_id', slackUserId)
+    .eq('context->>source', 'linkedin_sources')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    throw new Error(`Failed to recall LinkedIn source memories: ${error.message}`)
+  }
+
+  return (data ?? []) as readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]
+}
 
 // ============================================================
 // 候補抽出
@@ -89,11 +127,9 @@ export async function runLinkedInAutoPost(): Promise<void> {
   }
 
   // 1. 直近の linkedin_sources メモリを取得
-  const memories = await recallMemories({
-    slackUserId: userId,
-    query: 'linkedin_sources',
-    limit: 5,
-  })
+  //    source-collector は context.source = 'linkedin_sources' で保存するので
+  //    content の ilike 検索ではなく context ベースで検索する
+  const memories = await recallLinkedInSourceMemories(userId, 5)
 
   if (memories.length === 0) {
     await sendMessage({

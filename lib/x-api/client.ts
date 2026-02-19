@@ -1,4 +1,4 @@
-import { TwitterApi } from 'twitter-api-v2';
+import { TwitterApi, ApiResponseError } from 'twitter-api-v2';
 
 /**
  * X (Twitter) API Client
@@ -34,6 +34,60 @@ export function getTwitterClient(): TwitterApi {
     accessToken: process.env.TWITTER_ACCESS_TOKEN!,
     accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET!,
   });
+}
+
+/**
+ * Twitter API エラーから詳細メッセージを抽出
+ */
+export function extractTwitterErrorDetail(error: unknown): string {
+  if (error instanceof ApiResponseError) {
+    const code = error.code
+    const apiData = error.data
+
+    // v2 error detail (e.g. "You are not permitted to perform this action")
+    const detail = apiData?.detail ?? apiData?.error ?? ''
+    const title = apiData?.title ?? ''
+
+    // v1/v2 error array
+    const errorMessages = apiData?.errors
+      ?.map((e) => {
+        if ('message' in e) return (e as { message: string }).message
+        if ('detail' in e) return (e as { detail: string }).detail
+        return ''
+      })
+      .filter(Boolean)
+      .join('; ')
+
+    const parts = [`HTTP ${code}`]
+    if (title) parts.push(title)
+    if (detail) parts.push(detail)
+    if (errorMessages) parts.push(`[${errorMessages}]`)
+
+    if (code === 401) {
+      parts.push(
+        '→ 認証エラー: TWITTER_API_KEY / TWITTER_API_SECRET / TWITTER_ACCESS_TOKEN / TWITTER_ACCESS_TOKEN_SECRET を確認してください',
+      )
+    } else if (code === 403) {
+      parts.push(
+        '→ 権限エラー対処法: (1) X Developer Portalでアプリの権限を "Read and Write" に変更 ' +
+          '(2) 権限変更後、Access Token と Secret を再生成 ' +
+          '(3) Free tierの場合、POST /2/tweets は月1,500件まで',
+      )
+    } else if (code === 429) {
+      const resetAt = error.rateLimit?.reset
+        ? new Date(error.rateLimit.reset * 1000).toISOString()
+        : 'unknown'
+      parts.push(`→ レート制限: リセット時刻 ${resetAt}`)
+    }
+
+    return parts.join(' | ')
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'Unknown error'
 }
 
 /**
@@ -85,27 +139,12 @@ export async function replyToTweet(
       tweetUrl: `https://twitter.com/i/web/status/${result.data.id}`,
     };
   } catch (error) {
-    console.error('Twitter API Reply Error:', error);
-
-    let errorMessage = 'リプライの投稿に失敗しました';
-
-    if (error instanceof Error) {
-      if (error.message.includes('duplicate')) {
-        errorMessage = '同一内容のリプライが既に存在します';
-      } else if (error.message.includes('rate limit')) {
-        errorMessage = 'レート制限に達しました。しばらく待ってから再試行してください';
-      } else if (error.message.includes('401') || error.message.includes('authentication')) {
-        errorMessage = '認証エラー: API認証情報を確認してください';
-      } else if (error.message.includes('403')) {
-        errorMessage = 'アクセス権限エラー: アプリの権限設定を確認してください';
-      } else {
-        errorMessage = error.message;
-      }
-    }
+    const detail = extractTwitterErrorDetail(error)
+    console.error('Twitter API Reply Error:', detail, error)
 
     return {
       success: false,
-      error: errorMessage,
+      error: `リプライの投稿に失敗しました: ${detail}`,
     };
   }
 }
@@ -149,28 +188,12 @@ export async function postTweet(text: string, options?: PostTweetOptions): Promi
       tweetUrl: `https://twitter.com/i/web/status/${result.data.id}`,
     };
   } catch (error) {
-    console.error('Twitter API Error:', error);
-
-    // エラーメッセージを解析
-    let errorMessage = 'Xへの投稿に失敗しました';
-
-    if (error instanceof Error) {
-      if (error.message.includes('duplicate')) {
-        errorMessage = '同一内容の投稿が既に存在します';
-      } else if (error.message.includes('rate limit')) {
-        errorMessage = 'レート制限に達しました。しばらく待ってから再試行してください';
-      } else if (error.message.includes('401') || error.message.includes('authentication')) {
-        errorMessage = '認証エラー: API認証情報を確認してください';
-      } else if (error.message.includes('403')) {
-        errorMessage = 'アクセス権限エラー: アプリの権限設定を確認してください';
-      } else {
-        errorMessage = error.message;
-      }
-    }
+    const detail = extractTwitterErrorDetail(error)
+    console.error('Twitter API Error:', detail, error)
 
     return {
       success: false,
-      error: errorMessage,
+      error: `Xへの投稿に失敗しました: ${detail}`,
     };
   }
 }

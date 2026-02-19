@@ -11,7 +11,7 @@
  */
 
 import * as cheerio from 'cheerio'
-import { getTwitterClient } from './client'
+import { getTwitterClient, extractTwitterErrorDetail } from './client'
 
 // ============================================================
 // 定数
@@ -395,7 +395,8 @@ export async function uploadMediaToX(
     console.log(`[media] Uploaded to X: media_id=${mediaId}`)
     return mediaId
   } catch (error) {
-    console.error('[media] uploadMediaToX failed:', error)
+    const detail = extractTwitterErrorDetail(error)
+    console.error('[media] uploadMediaToX failed:', detail, error)
     return null
   }
 }

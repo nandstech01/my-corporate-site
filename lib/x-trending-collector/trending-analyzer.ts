@@ -87,5 +87,15 @@ summaryText: 200文字程度の要約テキスト`,
     throw new Error('Failed to parse trending topics JSON from LLM response')
   }
 
-  return TrendingTopicSummarySchema.parse(JSON.parse(jsonMatch[0]))
+  const raw = JSON.parse(jsonMatch[0])
+
+  // LLM may return more items than the schema allows — truncate to fit
+  const truncated = {
+    ...raw,
+    hotTopics: Array.isArray(raw.hotTopics) ? raw.hotTopics.slice(0, 5) : raw.hotTopics,
+    discussionAngles: Array.isArray(raw.discussionAngles) ? raw.discussionAngles.slice(0, 5) : raw.discussionAngles,
+    keyTalkingPoints: Array.isArray(raw.keyTalkingPoints) ? raw.keyTalkingPoints.slice(0, 5) : raw.keyTalkingPoints,
+  }
+
+  return TrendingTopicSummarySchema.parse(truncated)
 }
