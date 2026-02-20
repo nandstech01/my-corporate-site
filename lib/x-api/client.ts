@@ -69,8 +69,8 @@ export function extractTwitterErrorDetail(error: unknown): string {
       )
     } else if (code === 403) {
       parts.push(
-        '→ 権限エラー対処法: (1) X Developer Portalでアプリの権限を "Read and Write" に変更 ' +
-          '(2) 権限変更後、Access Token と Secret を再生成 ' +
+        '→ 403原因: (1) CJK文字数超過（日本語は2文字換算、280加重文字制限） ' +
+          '(2) アプリ権限が "Read and Write" でない場合はX Developer Portalで変更→トークン再生成 ' +
           '(3) Free tierの場合、POST /2/tweets は月1,500件まで',
       )
     } else if (code === 429) {
@@ -88,6 +88,37 @@ export function extractTwitterErrorDetail(error: unknown): string {
   }
 
   return 'Unknown error'
+}
+
+/**
+ * Twitter加重文字数カウント
+ * CJK文字（日本語・中国語・韓国語）は2文字、その他は1文字としてカウント
+ * X APIはこの加重カウントで280文字制限を判定する
+ */
+export function getTwitterWeightedLength(text: string): number {
+  let weighted = 0;
+  for (const ch of text) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (
+      (cp >= 0x1100 && cp <= 0x115f) ||  // Hangul Jamo
+      (cp >= 0x2e80 && cp <= 0x9fff) ||  // CJK Unified
+      (cp >= 0xac00 && cp <= 0xd7ff) ||  // Hangul Syllables
+      (cp >= 0xf900 && cp <= 0xfaff) ||  // CJK Compatibility
+      (cp >= 0xfe30 && cp <= 0xfe6f) ||  // CJK Forms
+      (cp >= 0xff01 && cp <= 0xff60) ||  // Fullwidth Forms
+      (cp >= 0xffe0 && cp <= 0xffe6) ||  // Fullwidth Signs
+      (cp >= 0x20000 && cp <= 0x2fa1f) || // CJK Extension B+
+      (cp >= 0x3000 && cp <= 0x303f) ||  // CJK Symbols
+      (cp >= 0x3040 && cp <= 0x309f) ||  // Hiragana
+      (cp >= 0x30a0 && cp <= 0x30ff) ||  // Katakana
+      (cp >= 0x31f0 && cp <= 0x31ff)     // Katakana Extension
+    ) {
+      weighted += 2;
+    } else {
+      weighted += 1;
+    }
+  }
+  return weighted;
 }
 
 /**
@@ -163,14 +194,15 @@ export async function postTweet(text: string, options?: PostTweetOptions): Promi
     };
   }
 
-  // 文字数制限チェック（Premium長文: 25,000文字、通常: 280文字）
+  // 文字数制限チェック（Twitter加重カウント: CJK=2文字）
   const TWEET_MAX_LENGTH = 280;
   const LONG_FORM_MAX_LENGTH = 25000;
   const maxLength = options?.longForm ? LONG_FORM_MAX_LENGTH : TWEET_MAX_LENGTH;
-  if (text.length > maxLength) {
+  const weightedLength = getTwitterWeightedLength(text);
+  if (weightedLength > maxLength) {
     return {
       success: false,
-      error: `投稿テキストが${maxLength}文字を超えています（現在: ${text.length}文字）`,
+      error: `投稿テキストが${maxLength}文字を超えています（加重カウント: ${weightedLength}文字、JS文字数: ${text.length}文字）`,
     };
   }
 

@@ -19,6 +19,21 @@ import {
 } from '@heroicons/react/24/outline';
 import { patternTemplates } from '@/lib/x-post-generation/pattern-templates';
 
+/** Twitter加重文字数カウント（CJK=2, その他=1） */
+function getWeightedLength(text: string): number {
+  let w = 0;
+  for (const ch of text) {
+    const cp = ch.codePointAt(0) ?? 0;
+    w += (cp >= 0x1100 && cp <= 0x115f) || (cp >= 0x2e80 && cp <= 0x9fff) ||
+      (cp >= 0xac00 && cp <= 0xd7ff) || (cp >= 0xf900 && cp <= 0xfaff) ||
+      (cp >= 0xfe30 && cp <= 0xfe6f) || (cp >= 0xff01 && cp <= 0xff60) ||
+      (cp >= 0xffe0 && cp <= 0xffe6) || (cp >= 0x20000 && cp <= 0x2fa1f) ||
+      (cp >= 0x3000 && cp <= 0x303f) || (cp >= 0x3040 && cp <= 0x309f) ||
+      (cp >= 0x30a0 && cp <= 0x30ff) || (cp >= 0x31f0 && cp <= 0x31ff) ? 2 : 1;
+  }
+  return w;
+}
+
 // 生成された投稿の型定義を更新
 interface GeneratedXPost {
   success: boolean;
@@ -408,9 +423,12 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
 
     const isLongForm = post.pattern.category === 'article';
     let text = post.generatedPost;
-    // 長文モード以外で280文字を超える場合は切り詰め
-    if (!isLongForm && text.length > 280) {
-      text = text.substring(0, 277) + '...';
+    // 長文モード以外でTwitter加重280文字を超える場合は切り詰め
+    if (!isLongForm && getWeightedLength(text) > 280) {
+      while (getWeightedLength(text) > 277 && text.length > 0) {
+        text = text.slice(0, -1);
+      }
+      text = text + '...';
     }
 
     setPostingToX(index);
@@ -865,14 +883,16 @@ export default function XPostGenerationSection({ className = '' }: XPostGenerati
                     {post.generatedPost}
                   </div>
 
-                  {/* 文字数表示 */}
+                  {/* 文字数表示（Twitter加重カウント） */}
                   <div className={`mt-1 text-xs ${
                     post.pattern.category === 'article'
                       ? post.generatedPost.length > 25000 ? 'text-red-400' : 'text-green-400'
-                      : post.generatedPost.length > 280 ? 'text-yellow-400' : 'text-gray-500'
+                      : getWeightedLength(post.generatedPost) > 280 ? 'text-yellow-400' : 'text-gray-500'
                   }`}>
-                    {post.generatedPost.length}{post.pattern.category === 'article' ? '/25000文字（長文）' : '/280文字'}
-                    {post.pattern.category !== 'article' && post.generatedPost.length > 280 && ' (投稿時に自動切り詰め)'}
+                    {post.pattern.category === 'article'
+                      ? `${post.generatedPost.length}/25000文字（長文）`
+                      : `${getWeightedLength(post.generatedPost)}/280加重文字（${post.generatedPost.length}文字）`}
+                    {post.pattern.category !== 'article' && getWeightedLength(post.generatedPost) > 280 && ' (投稿時に自動切り詰め)'}
                   </div>
                   
                   {post.tags && post.tags.length > 0 && (

@@ -18,6 +18,7 @@ import {
 } from './pattern-templates'
 import { TagGenerator } from './tag-generator'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
+import { getTwitterWeightedLength } from '../x-api/client'
 
 // ============================================================
 // 型定義
@@ -276,7 +277,7 @@ async function generateCandidates(
 
   const charConstraint = isArticle
     ? '1000-2000文字の長文投稿'
-    : '280文字以内の投稿'
+    : '日本語120文字以内の投稿（X APIはCJK文字を2カウント換算。280カウント上限のため日本語は実質140文字が限界。余裕を持って120文字以内で）'
 
   const modeInstructions = isArticle
     ? `- 記事の内容を実務家視点で語る長文投稿を作成
@@ -284,7 +285,7 @@ async function generateCandidates(
 - 構成: 自分の経験から入る → 記事のポイントを実務家視点で解説 → 問いかけで締める
 - ハッシュタグ0-1個
 - ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
-    : `- 280文字以内厳守
+    : `- 日本語120文字以内厳守（X APIはCJK=2カウント。280カウント上限のため日本語テキストは120文字以内で書け）
 - URLは入れるな
 - [URL]や{url}プレースホルダー禁止`
 
@@ -357,7 +358,7 @@ async function scoreCandidates(
     .join('\n\n')
 
   const isArticle = state.mode === 'article'
-  const targetLength = isArticle ? '1000-2000文字' : '280文字以内'
+  const targetLength = isArticle ? '1000-2000文字' : '日本語120文字以内（280加重カウント以内）'
 
   const response = await model.invoke([
     {
@@ -460,15 +461,22 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
       ? `${bestCandidate}\n\n${tag}`
       : bestCandidate
 
-  // 文字数最終チェック（researchモードのみ）
-  const finalPost =
-    state.mode === 'research' && withTag.length > 280
-      ? bestCandidate.length <= 280
-        ? bestCandidate
-        : withTag.slice(0, 277) + '...'
-      : withTag
+  // 文字数最終チェック（researchモードのみ、Twitter加重カウント使用）
+  const WEIGHTED_LIMIT = 280
+  if (state.mode === 'research' && getTwitterWeightedLength(withTag) > WEIGHTED_LIMIT) {
+    // タグなし版が制限内ならタグを除去
+    if (getTwitterWeightedLength(bestCandidate) <= WEIGHTED_LIMIT) {
+      return { finalPost: bestCandidate }
+    }
+    // それでも超過する場合は切り詰め
+    let truncated = withTag
+    while (getTwitterWeightedLength(truncated) > WEIGHTED_LIMIT - 3 && truncated.length > 0) {
+      truncated = truncated.slice(0, -1)
+    }
+    return { finalPost: truncated + '...' }
+  }
 
-  return { finalPost }
+  return { finalPost: withTag }
 }
 
 // ============================================================
