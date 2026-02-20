@@ -17,6 +17,7 @@ import { runLinkedInModelRetrainer } from '../lib/slack-bot/proactive/linkedin-m
 import { runBlogRSSMonitor } from '../lib/blog-generation/rss-blog-monitor'
 import { runInstagramEngagementLearner } from '../lib/slack-bot/proactive/instagram-engagement-learner'
 import { findUnstoriedBlogs } from '../lib/instagram-story-generation/trigger'
+import { runXAutoPost } from '../lib/slack-bot/proactive/x-auto-post'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -57,6 +58,7 @@ type JobName =
   | 'linkedin-auto-post'
   | 'linkedin-model-retrainer'
   | 'blog-rss-monitor'
+  | 'x-auto-post'
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -71,7 +73,8 @@ function detectJob(): JobName {
     explicit === 'linkedin-source-collector' ||
     explicit === 'linkedin-auto-post' ||
     explicit === 'linkedin-model-retrainer' ||
-    explicit === 'blog-rss-monitor'
+    explicit === 'blog-rss-monitor' ||
+    explicit === 'x-auto-post'
   ) {
     return explicit
   }
@@ -137,6 +140,11 @@ function detectJob(): JobName {
     return 'linkedin-model-retrainer'
   }
 
+  // JST 11,15,21 = UTC 2,6,12 → X auto-post (1日3回)
+  if (utcHour === 2 || utcHour === 6 || utcHour === 12) {
+    return 'x-auto-post'
+  }
+
   // JST 13,19,5 = UTC 4,10,20 → Blog RSS monitor
   // Note: shifted from UTC 2,8 to UTC 4,10 to avoid GitHub Actions cron collision
   if (utcHour === 4 || utcHour === 10 || utcHour === 20) {
@@ -162,6 +170,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'linkedin-auto-post': runLinkedInAutoPost,
   'linkedin-model-retrainer': runLinkedInModelRetrainer,
   'blog-rss-monitor': runBlogRSSMonitor,
+  'x-auto-post': runXAutoPost,
 }
 
 function createTracedCronJob(jobName: JobName) {

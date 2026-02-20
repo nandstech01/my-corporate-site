@@ -634,6 +634,27 @@ export async function getRecentLinkedInPostIds(
   return (data ?? []) as readonly { linkedin_post_id: string; post_text: string }[]
 }
 
+/** X自動投稿用: 直近N日間に投稿されたX投稿のテキストを取得（重複排除用） */
+export async function getRecentXPostTexts(
+  days: number = 7,
+): Promise<readonly string[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('x_post_analytics')
+    .select('post_text')
+    .gte('posted_at', since)
+
+  if (error) {
+    throw new Error(`Failed to get recent X post texts: ${error.message}`)
+  }
+
+  return (data ?? [])
+    .map((row) => row.post_text as string)
+    .filter((text) => text.length > 0)
+}
+
 export async function getRecentlyPostedSourceUrls(
   days: number = 7,
 ): Promise<readonly string[]> {

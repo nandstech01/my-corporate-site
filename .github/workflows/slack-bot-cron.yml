@@ -13,6 +13,7 @@ on:
     - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner
     - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check
     - cron: '0 4,10,20 * * *'  # JST 13,19,5 Blog RSS monitor (shifted from 2,8 to avoid cron collision)
+    - cron: '0 2,6,12 * * *'  # JST 11,15,21 X auto-post (1日3回)
   workflow_dispatch:
     inputs:
       job:
@@ -31,6 +32,7 @@ on:
           - instagram-engagement-learner
           - instagram-story-auto-check
           - blog-rss-monitor
+          - x-auto-post
 
 jobs:
   run:

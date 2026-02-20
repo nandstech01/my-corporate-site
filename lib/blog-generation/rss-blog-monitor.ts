@@ -10,6 +10,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { sendMessage } from '../slack-bot/slack-client'
 import { scoreBlogTopic } from './blog-topic-scorer'
+import { triggerXPostFromSource } from '../slack-bot/proactive/x-auto-post'
 
 interface RSSFeedConfig {
   name: string
@@ -262,6 +263,37 @@ export async function runBlogRSSMonitor(): Promise<void> {
           const msg = error instanceof Error ? error.message : 'unknown'
           process.stdout.write(`Blog RSS Monitor: Slack notification error: ${msg}\n`)
         }
+      }
+    }
+  }
+
+  // X auto-post trigger: 高スコアの公式記事にはX投稿ドラフトも自動生成
+  if (totalNew > 0) {
+    const { data: xCandidates } = await supabase
+      .from('blog_topic_queue')
+      .select('*')
+      .eq('status', 'notified')
+      .gte('buzz_score', 40)
+      .order('buzz_score', { ascending: false })
+      .limit(1)
+
+    for (const topic of xCandidates ?? []) {
+      try {
+        const triggered = await triggerXPostFromSource({
+          title: topic.source_title,
+          sourceUrl: topic.source_url,
+          description: topic.suggested_topic,
+          sourceFeed: topic.source_feed,
+          buzzScore: topic.buzz_score,
+        })
+        if (triggered) {
+          process.stdout.write(
+            `Blog RSS Monitor: X post triggered for "${topic.source_title}"\n`,
+          )
+        }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown'
+        process.stdout.write(`Blog RSS Monitor: X post trigger failed: ${msg}\n`)
       }
     }
   }
