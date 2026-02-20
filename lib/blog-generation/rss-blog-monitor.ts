@@ -1,7 +1,7 @@
 /**
  * Blog RSS Monitor
  *
- * RSS feeds from AI companies (OpenAI, Anthropic, Google, Meta, HF, LangChain, Microsoft)
+ * RSS feeds from AI companies (OpenAI, Google, Meta, HF, LangChain, Microsoft)
  * Scores topics for buzz potential and notifies via Slack.
  *
  * Called from scripts/slack-bot-cron.ts every 6 hours.
@@ -19,12 +19,12 @@ interface RSSFeedConfig {
 }
 
 const RSS_FEEDS: RSSFeedConfig[] = [
-  { name: 'openai_blog', feedUrl: 'https://openai.com/blog/rss.xml', authority: 20 },
-  { name: 'anthropic_blog', feedUrl: 'https://www.anthropic.com/feed', authority: 20 },
+  { name: 'openai_blog', feedUrl: 'https://openai.com/news/rss.xml', authority: 20 },
+  // Anthropic has no public RSS feed (all /feed, /rss paths return 404)
   { name: 'google_ai_blog', feedUrl: 'https://blog.google/technology/ai/rss/', authority: 20 },
-  { name: 'meta_ai_blog', feedUrl: 'https://ai.meta.com/blog/rss/', authority: 15 },
+  { name: 'meta_engineering', feedUrl: 'https://engineering.fb.com/feed/', authority: 12 },
   { name: 'huggingface_blog', feedUrl: 'https://huggingface.co/blog/feed.xml', authority: 10 },
-  { name: 'langchain_blog', feedUrl: 'https://blog.langchain.dev/rss/', authority: 10 },
+  { name: 'langchain_blog', feedUrl: 'https://blog.langchain.com/rss/', authority: 10 },
   { name: 'microsoft_ai_blog', feedUrl: 'https://blogs.microsoft.com/ai/feed/', authority: 15 },
 ]
 
@@ -148,7 +148,7 @@ export async function runBlogRSSMonitor(): Promise<void> {
     }
   }
 
-  // Batch check existing URLs
+  // Batch check existing URLs (only skip active statuses; dismissed can be re-proposed)
   const allUrls = candidateItems.map((c) => c.item.link)
   const existingSet = new Set<string>()
   if (allUrls.length > 0) {
@@ -156,6 +156,7 @@ export async function runBlogRSSMonitor(): Promise<void> {
       .from('blog_topic_queue')
       .select('source_url')
       .in('source_url', allUrls)
+      .in('status', ['new', 'notified', 'approved', 'published'])
     for (const row of existingRows ?? []) {
       existingSet.add(row.source_url)
     }
@@ -196,79 +197,77 @@ export async function runBlogRSSMonitor(): Promise<void> {
 
   process.stdout.write(`Blog RSS Monitor: ${totalNew} new topics found\n`)
 
-  // Notify Slack for high-score topics
-  if (totalNew > 0) {
-    const channel = process.env.SLACK_DEFAULT_CHANNEL
-    if (!channel) {
-      process.stdout.write('Blog RSS Monitor: SLACK_DEFAULT_CHANNEL not set, skipping notifications\n')
-    } else {
-      const { data: topTopics } = await supabase
-        .from('blog_topic_queue')
-        .select('*')
-        .eq('status', 'new')
-        .order('buzz_score', { ascending: false })
-        .limit(5)
+  // Notify Slack for high-score topics (always check, not just when new topics inserted)
+  const channel = process.env.SLACK_DEFAULT_CHANNEL
+  if (!channel) {
+    process.stdout.write('Blog RSS Monitor: SLACK_DEFAULT_CHANNEL not set, skipping notifications\n')
+  } else {
+    const { data: topTopics } = await supabase
+      .from('blog_topic_queue')
+      .select('*')
+      .eq('status', 'new')
+      .order('buzz_score', { ascending: false })
+      .limit(5)
 
-      const notifiable = (topTopics ?? []).filter((t) => t.buzz_score >= 30)
-      process.stdout.write(`Blog RSS Monitor: ${topTopics?.length ?? 0} queued, ${notifiable.length} above threshold (>=30)\n`)
+    const notifiable = (topTopics ?? []).filter((t) => t.buzz_score >= 30)
+    process.stdout.write(`Blog RSS Monitor: ${topTopics?.length ?? 0} queued, ${notifiable.length} above threshold (>=30)\n`)
 
-      for (const topic of notifiable) {
-        try {
-          const message = `:newspaper: *Blog Topic Detected* (Score: ${topic.buzz_score}/100)\n\n` +
-            `*${topic.source_title}*\n` +
-            `Source: ${topic.source_feed} | ${topic.source_url}\n` +
-            `Suggested: ${topic.suggested_topic || 'N/A'}\n` +
-            `Keyword: ${topic.suggested_keyword || 'N/A'}`
+    for (const topic of notifiable) {
+      try {
+        const message = `:newspaper: *Blog Topic Detected* (Score: ${topic.buzz_score}/100)\n\n` +
+          `*${topic.source_title}*\n` +
+          `Source: ${topic.source_feed} | ${topic.source_url}\n` +
+          `Suggested: ${topic.suggested_topic || 'N/A'}\n` +
+          `Keyword: ${topic.suggested_keyword || 'N/A'}`
 
-          const result = await sendMessage({
-            channel,
-            text: message,
-            blocks: [
-              {
-                type: 'section',
-                text: { type: 'mrkdwn', text: message },
-              },
-              {
-                type: 'actions',
-                elements: [
-                  {
-                    type: 'button',
-                    text: { type: 'plain_text', text: ':white_check_mark: Approve' },
-                    style: 'primary',
-                    action_id: 'approve_blog_topic',
-                    value: topic.id,
-                  },
-                  {
-                    type: 'button',
-                    text: { type: 'plain_text', text: ':no_entry_sign: Dismiss' },
-                    style: 'danger',
-                    action_id: 'dismiss_blog_topic',
-                    value: topic.id,
-                  },
-                ],
-              },
-            ],
-          })
+        const result = await sendMessage({
+          channel,
+          text: message,
+          blocks: [
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: message },
+            },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: ':white_check_mark: Approve' },
+                  style: 'primary',
+                  action_id: 'approve_blog_topic',
+                  value: topic.id,
+                },
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: ':no_entry_sign: Dismiss' },
+                  style: 'danger',
+                  action_id: 'dismiss_blog_topic',
+                  value: topic.id,
+                },
+              ],
+            },
+          ],
+        })
 
-          if (result) {
-            await supabase
-              .from('blog_topic_queue')
-              .update({ status: 'notified', slack_message_ts: result })
-              .eq('id', topic.id)
-            process.stdout.write(`Blog RSS Monitor: Notified "${topic.source_title}" (score: ${topic.buzz_score})\n`)
-          } else {
-            process.stdout.write(`Blog RSS Monitor: sendMessage returned falsy for "${topic.source_title}"\n`)
-          }
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : 'unknown'
-          process.stdout.write(`Blog RSS Monitor: Slack notification error: ${msg}\n`)
+        if (result) {
+          await supabase
+            .from('blog_topic_queue')
+            .update({ status: 'notified', slack_message_ts: result })
+            .eq('id', topic.id)
+          process.stdout.write(`Blog RSS Monitor: Notified "${topic.source_title}" (score: ${topic.buzz_score})\n`)
+        } else {
+          process.stdout.write(`Blog RSS Monitor: sendMessage returned falsy for "${topic.source_title}"\n`)
         }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'unknown'
+        process.stdout.write(`Blog RSS Monitor: Slack notification error: ${msg}\n`)
       }
     }
   }
 
   // X auto-post trigger: 高スコアの公式記事にはX投稿ドラフトも自動生成
-  if (totalNew > 0) {
+  {
     const { data: xCandidates } = await supabase
       .from('blog_topic_queue')
       .select('*')
