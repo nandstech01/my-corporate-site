@@ -1,61 +1,82 @@
 /**
  * 智的RAG最適化システム
  * Mike King理論準拠レリバンスエンジニアリング統合
- * 
+ *
  * @description
  * RAGデータの内容を智的分析し、最適な検索クエリとカテゴリを自動生成
  * 既存システムに影響を与えない独立実装
- * 
+ *
  * @author 株式会社エヌアンドエス
- * @version 1.0.0
+ * @version 2.0.0 - 本格実装
  */
 
-// スタブ実装でエラー回避
-export interface RAGContentAnalysis {
-  ragContent: any;
-  dataStatistics: any;
-  semanticAnalysis: any;
-  contentThemes: any;
-  qualityMetrics: any;
-  mikeKingCompliance: any;
-}
+// --- 型定義 re-export ---
+export type {
+  RAGContentAnalysis,
+  CoherenceCheckResult,
+  OptimalQuery,
+  OptimalCategory,
+  SemanticAnalysis,
+  TrendRAGContent,
+  YouTubeRAGContent,
+  FragmentRAGContent,
+  RAGAnalysisOptions,
+  QueryGenerationOptions,
+  CategorySelectionOptions,
+  CoherenceCheckOptions,
+  IntelligentRAGResponse,
+  IntelligentRAGError,
+  GPT5MiniConfig,
+  GPT5MiniUsageStats,
+  CategoryMapping,
+  ExistingSystemIntegration,
+  AnalysisDepth,
+  ProcessingStatus,
+  OptimizationLevel
+} from './types';
 
-export class RAGContentAnalyzer {
-  async analyzeRAGContent(): Promise<RAGContentAnalysis> {
-    console.log('🧠 RAG内容分析システム (スタブ実装)');
-    return {} as RAGContentAnalysis;
-  }
-}
+export {
+  isTrendRAGContent,
+  isYouTubeRAGContent,
+  isFragmentRAGContent,
+  isValidRAGContentAnalysis
+} from './types';
 
-export class OptimalQueryGenerator {
-  async generateOptimalQuery(): Promise<string> {
-    console.log('🔍 最適クエリ生成システム (スタブ実装)');
-    return 'AI技術の最新動向と活用方法';
-  }
-}
+// --- 設定 re-export ---
+export {
+  INTELLIGENT_RAG_CONFIG,
+  GPT5_MINI_CONFIG,
+  CATEGORY_MAPPINGS,
+  PROMPT_TEMPLATES,
+  ERROR_MESSAGES,
+  DEFAULT_VALUES
+} from './config';
 
-export class CategorySelector {
-  async selectOptimalCategory(): Promise<string> {
-    console.log('📂 カテゴリ選択システム (スタブ実装)');
-    return 'ai-agents';
-  }
-}
+// --- 実装クラス re-export ---
+export { RAGContentAnalyzer } from './rag-content-analyzer';
+export { OptimalQueryGenerator } from './optimal-query-generator';
+export { CategorySelector } from './category-selector';
+export { SemanticCoherenceChecker } from './semantic-coherence-checker';
 
-export class SemanticCoherenceChecker {
-  async checkCoherence(): Promise<any> {
-    console.log('✅ セマンティック整合性チェック (スタブ実装)');
-    return { score: 0.8, isCoherent: true };
-  }
-}
+// --- ユーティリティ re-export ---
+export {
+  analyzeRAGContent,
+  generateOptimalQuery,
+  selectOptimalCategory,
+  checkSemanticCoherence,
+  generateIntelligentBlogParams
+} from './utils';
 
-export const INTELLIGENT_RAG_CONFIG = {
-  version: '1.0.0',
-  openaiConfig: { model: 'gpt-5-mini' }
-};
+// --- 実装クラスインポート（統合クラス用） ---
+import { RAGContentAnalyzer } from './rag-content-analyzer';
+import { OptimalQueryGenerator } from './optimal-query-generator';
+import { CategorySelector } from './category-selector';
+import { SemanticCoherenceChecker } from './semantic-coherence-checker';
+import type { RAGContentAnalysis } from './types';
 
 /**
  * 智的RAG最適化統合クラス
- * 全機能を統合した使いやすいインターフェース
+ * 全コンポーネントを組み合わせた使いやすいインターフェース
  */
 export class IntelligentRAGOptimizationSystem {
   private analyzer: RAGContentAnalyzer;
@@ -64,10 +85,6 @@ export class IntelligentRAGOptimizationSystem {
   private coherenceChecker: SemanticCoherenceChecker;
 
   constructor() {
-    // GPT-5 mini使用でコスト最適化
-    console.log('🧠 智的RAG最適化システム初期化中...');
-    console.log('⚡ GPT-5 mini採用: 85%コスト削減 + 高精度');
-    
     this.analyzer = new RAGContentAnalyzer();
     this.queryGenerator = new OptimalQueryGenerator();
     this.categorySelector = new CategorySelector();
@@ -96,37 +113,33 @@ export class IntelligentRAGOptimizationSystem {
     recommendations: string[];
     costSavings: string;
   }> {
-    
-    console.log('🎯 智的RAG最適化開始...');
-    
     try {
       // 1. RAGデータ内容分析（GPT-5 mini使用）
-      console.log('📊 RAGデータ分析中...');
-      const analysis = await this.analyzer.analyzeRAGContent();
+      const analysis = await this.analyzer.analyzeRAGContent({
+        includeTrend: options.analyzeTrendRAG,
+        includeYouTube: options.analyzeYouTubeRAG,
+        includeFragment: options.analyzeFragmentRAG
+      });
 
       // 2. 最適クエリ生成
-      console.log('🔍 最適クエリ生成中...');
-      const optimalQuery = await this.queryGenerator.generateOptimalQuery();
+      const optimalQuery = await this.queryGenerator.generateOptimalQuery(analysis);
 
       // 3. 最適カテゴリ選択
-      console.log('📂 最適カテゴリ選択中...');
-      const optimalCategory = await this.categorySelector.selectOptimalCategory();
+      const optimalCategory = await this.categorySelector.selectOptimalCategory(analysis);
 
       // 4. 整合性チェック（オプション）
       let coherenceScore = 1.0;
       const recommendations: string[] = [];
-      
-      if (options.requireCoherence) {
-        console.log('✅ セマンティック整合性チェック中...');
-        const coherenceResult = await this.coherenceChecker.checkCoherence();
-        coherenceScore = coherenceResult.score;
-        recommendations.push(...(coherenceResult.recommendations || []));
-      }
 
-      console.log('🎉 智的RAG最適化完了');
-      console.log(`📈 最適クエリ: "${optimalQuery}"`);
-      console.log(`📂 最適カテゴリ: "${optimalCategory}"`);
-      console.log(`⭐ 整合性スコア: ${(coherenceScore * 100).toFixed(1)}%`);
+      if (options.requireCoherence) {
+        const coherenceResult = await this.coherenceChecker.checkCoherence({
+          query: optimalQuery,
+          category: optimalCategory,
+          ragAnalysis: analysis
+        });
+        coherenceScore = coherenceResult.score;
+        recommendations.push(...coherenceResult.recommendations);
+      }
 
       return {
         success: true,
@@ -137,13 +150,19 @@ export class IntelligentRAGOptimizationSystem {
         recommendations,
         costSavings: 'GPT-5 mini使用により85%コスト削減達成'
       };
-
     } catch (error) {
-      console.error('❌ 智的RAG最適化エラー:', error);
-      
+      const emptyAnalysis: RAGContentAnalysis = {
+        ragContent: { trend: [], youtube: [], fragment: [] },
+        dataStatistics: { totalItems: 0, trendCount: 0, youtubeCount: 0, fragmentCount: 0, averageContentLength: 0, keywordDiversity: 0 },
+        semanticAnalysis: { mainTopics: [], keywordClusters: [], industryCategories: [], technicalLevel: 5, confidenceScore: 0, languageComplexity: 5, topicalCoherence: 0 },
+        contentThemes: { primaryThemes: [], secondaryThemes: [], emergingTopics: [], technicalConcepts: [] },
+        qualityMetrics: { contentRichness: 0, topicalCoverage: 0, informationDensity: 0, credibilityScore: 0 },
+        mikeKingCompliance: { relevanceEngineeringScore: 0, entityCoverage: 0, fragmentOptimization: 0, structuredDataReadiness: 0 }
+      };
+
       return {
         success: false,
-        analysis: {} as RAGContentAnalysis,
+        analysis: emptyAnalysis,
         optimalQuery: '',
         optimalCategory: '',
         coherenceScore: 0,
@@ -152,81 +171,37 @@ export class IntelligentRAGOptimizationSystem {
       };
     }
   }
-
-  /**
-   * システム準備完了チェック
-   */
-  async checkSystemReadiness(): Promise<{
-    isReady: boolean;
-    checks: Record<string, boolean>;
-    recommendations: string[];
-  }> {
-    const checks = {
-      openaiConnection: await this.testOpenAIConnection(),
-      databaseConnection: await this.testDatabaseConnection(),
-      ragDataAvailable: await this.checkRAGDataAvailability(),
-      existingSystemIntegrity: await this.verifyExistingSystemIntegrity()
-    };
-
-    const isReady = Object.values(checks).every(check => check);
-    const recommendations: string[] = [];
-
-    if (!checks.openaiConnection) {
-      recommendations.push('OpenAI API接続を確認してください');
-    }
-    if (!checks.databaseConnection) {
-      recommendations.push('データベース接続を確認してください');
-    }
-    if (!checks.ragDataAvailable) {
-      recommendations.push('RAGデータの取得を確認してください');
-    }
-    if (!checks.existingSystemIntegrity) {
-      recommendations.push('既存システムの整合性をチェックしてください');
-    }
-
-    return { isReady, checks, recommendations };
-  }
-
-  // プライベートヘルパーメソッド
-  private async testOpenAIConnection(): Promise<boolean> {
-    try {
-      // 軽量テスト用のAPIコール
-      return true; // 実装予定
-    } catch {
-      return false;
-    }
-  }
-
-  private async testDatabaseConnection(): Promise<boolean> {
-    try {
-      // Supabase接続テスト
-      return true; // 実装予定
-    } catch {
-      return false;
-    }
-  }
-
-  private async checkRAGDataAvailability(): Promise<boolean> {
-    try {
-      // RAGデータ存在確認
-      return true; // 実装予定
-    } catch {
-      return false;
-    }
-  }
-
-  private async verifyExistingSystemIntegrity(): Promise<boolean> {
-    try {
-      // 既存システム影響チェック
-      return true; // 実装予定
-    } catch {
-      return false;
-    }
-  }
 }
 
-// デフォルトインスタンス（シングルトン）
-export const intelligentRAGSystem = new IntelligentRAGOptimizationSystem();
+// --- 遅延初期化シングルトン ---
+let _intelligentRAGSystem: IntelligentRAGOptimizationSystem | null = null;
+
+export function getIntelligentRAGSystem(): IntelligentRAGOptimizationSystem {
+  if (!_intelligentRAGSystem) {
+    _intelligentRAGSystem = new IntelligentRAGOptimizationSystem();
+  }
+  return _intelligentRAGSystem;
+}
+
+/**
+ * 後方互換シングルトン（遅延初期化）
+ * @deprecated getIntelligentRAGSystem() を使用してください
+ */
+export const intelligentRAGSystem: IntelligentRAGOptimizationSystem =
+  new Proxy({} as IntelligentRAGOptimizationSystem, {
+    get(_target, prop, receiver) {
+      return Reflect.get(getIntelligentRAGSystem(), prop, receiver);
+    },
+    has(_target, prop) {
+      return Reflect.has(getIntelligentRAGSystem(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(getIntelligentRAGSystem());
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      return Reflect.getOwnPropertyDescriptor(getIntelligentRAGSystem(), prop);
+    }
+  });
 
 /**
  * 便利関数: 智的RAG最適化の簡易実行
@@ -237,5 +212,5 @@ export async function optimizeRAGBlogGeneration(options?: {
   analyzeFragmentRAG?: boolean;
   requireCoherence?: boolean;
 }) {
-  return await intelligentRAGSystem.generateOptimalBlogParameters(options);
-} 
+  return await getIntelligentRAGSystem().generateOptimalBlogParameters(options);
+}
