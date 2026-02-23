@@ -20,6 +20,7 @@ const footerLinks = [
   {
     title: 'お問い合わせ',
     links: [
+      { label: 'TEL: 0120-407-638', href: 'tel:0120407638' },
       { label: 'メール: contact@nands.tech', href: 'mailto:contact@nands.tech' },
     ],
   },

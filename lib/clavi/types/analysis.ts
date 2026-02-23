@@ -66,6 +66,9 @@ export interface HeadingInfo {
 
   /** ID属性 */
   id: string | null;
+
+  /** 見出し配下のコンテンツ（50-150語） */
+  content?: string;
 }
 
 /**
@@ -122,6 +125,20 @@ export interface AnalysisData {
     /** 警告メッセージ */
     warnings: string[];
   };
+
+  // Phase 4.2-4.3 追加フィールド（オプショナル）
+
+  /** トピック一貫性スコア */
+  topic_consistency_score?: any;
+
+  /** 改善提案 */
+  improvement_proposals?: any;
+
+  /** セマンティック分析サマリー */
+  semantic_summary?: any;
+
+  /** 内部リンク推奨 */
+  link_recommendations?: any;
 }
 
 // ========================================

@@ -7,11 +7,13 @@
  * 4. 高パフォーマンス投稿の特徴を slack_bot_memory に保存
  */
 
+import { createClient } from '@supabase/supabase-js'
 import {
   fetchLinkedInPostMetrics,
   isLinkedInAnalyticsConfigured,
   type LinkedInPostMetrics,
 } from '@/lib/linkedin-api/analytics'
+import { notifyLearningEvent } from '../../ai-judge/slack-notifier'
 import {
   getRecentLinkedInPostIds,
   updateLinkedInPostEngagement,
@@ -44,6 +46,25 @@ function identifyHighPerformers(
     const engagement =
       r.metrics.reactions + r.metrics.comments + r.metrics.reshares
     return engagement > avgEngagement * 1.5
+  })
+}
+
+function identifyLowPerformers(
+  results: readonly PostResult[],
+): readonly PostResult[] {
+  if (results.length === 0) return []
+
+  const avgEngagement =
+    results.reduce(
+      (sum, r) =>
+        sum + r.metrics.reactions + r.metrics.comments + r.metrics.reshares,
+      0,
+    ) / results.length
+
+  return results.filter((r) => {
+    const engagement =
+      r.metrics.reactions + r.metrics.comments + r.metrics.reshares
+    return engagement < avgEngagement * 0.5
   })
 }
 
@@ -93,6 +114,11 @@ export async function runLinkedInEngagementLearner(): Promise<void> {
     }
   }
 
+  const skippedCount = recentPosts.length - results.length
+  if (skippedCount > 0) {
+    process.stdout.write(`LinkedIn Engagement Learner: ${skippedCount} post(s) skipped (invalid ID or no metrics)\n`)
+  }
+
   if (results.length === 0) {
     process.stdout.write(
       'LinkedIn Engagement Learner: no metrics retrieved\n',
@@ -135,7 +161,95 @@ export async function runLinkedInEngagementLearner(): Promise<void> {
     )
   }
 
+  // Negative learning: identify low performers
+  const lowPerformers = identifyLowPerformers(results)
+
+  for (const lp of lowPerformers) {
+    await saveMemory({
+      slackUserId: userId,
+      memoryType: 'feedback',
+      content: `Low performing LinkedIn post (${lp.metrics.reactions} reactions, ${lp.metrics.comments} comments, ${lp.metrics.reshares} reshares, ${lp.metrics.impressions} impressions). Text preview: "${lp.postText.slice(0, 80)}...". Length: ${lp.postText.length} chars. Avoid similar patterns.`,
+      context: {
+        linkedinPostId: lp.linkedinPostId,
+        metrics: lp.metrics,
+        platform: 'linkedin',
+        sentiment: 'negative',
+      },
+      importance: 0.7,
+    })
+  }
+
+  // Update ai_judge_decisions actual engagement for prediction tracking
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseKey) throw new Error('Supabase env vars missing')
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    for (const r of results) {
+      await supabase
+        .from('ai_judge_decisions')
+        .update({
+          actual_engagement: {
+            reactions: r.metrics.reactions,
+            comments: r.metrics.comments,
+            reshares: r.metrics.reshares,
+            impressions: r.metrics.impressions,
+          },
+          engagement_fetched_at: new Date().toISOString(),
+        })
+        .eq('post_id', r.linkedinPostId)
+        .eq('platform', 'linkedin')
+    }
+  } catch { /* best-effort */ }
+
+  // Record learning pipeline events
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseKey) throw new Error('Supabase env vars missing')
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    for (const hp of highPerformers) {
+      await supabase.from('learning_pipeline_events').insert({
+        event_type: 'high_performer',
+        platform: 'linkedin',
+        post_id: hp.linkedinPostId,
+        data: {
+          metrics: hp.metrics,
+          textPreview: hp.postText.slice(0, 100),
+        },
+      })
+    }
+    for (const lp of lowPerformers) {
+      await supabase.from('learning_pipeline_events').insert({
+        event_type: 'low_performer',
+        platform: 'linkedin',
+        post_id: lp.linkedinPostId,
+        data: {
+          metrics: lp.metrics,
+          textPreview: lp.postText.slice(0, 100),
+        },
+      })
+    }
+  } catch { /* best-effort */ }
+
+  // Notify #general about learning results
+  if (highPerformers.length > 0 || lowPerformers.length > 0) {
+    try {
+      await notifyLearningEvent({
+        eventType: highPerformers.length > 0 ? 'high_performer' : 'low_performer',
+        summary: `LinkedIn学習完了: ${results.length}件分析、${highPerformers.length}件高パフォーマンス、${lowPerformers.length}件低パフォーマンス`,
+        details: {
+          totalAnalyzed: results.length,
+          highPerformers: highPerformers.length,
+          lowPerformers: lowPerformers.length,
+        },
+      })
+    } catch { /* best-effort */ }
+  }
+
   process.stdout.write(
-    `LinkedIn Engagement Learner: ${results.length} updated, ${highPerformers.length} high performers saved\n`,
+    `LinkedIn Engagement Learner: ${results.length} updated, ${highPerformers.length} high performers, ${lowPerformers.length} low performers saved\n`,
   )
 }

@@ -16,6 +16,7 @@ import { createClient } from '@supabase/supabase-js'
 import {
   patternTemplates,
 } from './pattern-templates'
+import { selectPatternByBandit } from '../learning/pattern-bandit'
 import { TagGenerator } from './tag-generator'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
 import { getTwitterWeightedLength } from '../x-api/client'
@@ -208,10 +209,21 @@ JSONのみ出力してください:
 // ノード2: selectPattern（純粋関数、LLM不要）
 // ============================================================
 
-function selectPattern(state: GraphStateType): Partial<GraphStateType> {
-  const recommendedId = state.analysis?.recommendedPatternId ?? 'practitioner_take'
-  const matched = patternTemplates.find((p) => p.id === recommendedId)
-  const selectedId = matched ? recommendedId : 'practitioner_take'
+async function selectPattern(state: GraphStateType): Promise<Partial<GraphStateType>> {
+  // Try bandit pattern selection first
+  let selectedId: string
+  try {
+    const allPatternIds = patternTemplates.map((p) => p.id)
+    const banditChoice = await selectPatternByBandit(allPatternIds, 'x')
+    const matched = patternTemplates.find((p) => p.id === banditChoice)
+    selectedId = matched ? banditChoice : (state.analysis?.recommendedPatternId ?? 'practitioner_take')
+    process.stdout.write(`X pattern selected by bandit: ${selectedId}\n`)
+  } catch {
+    // Fallback to LLM-recommended pattern
+    const recommendedId = state.analysis?.recommendedPatternId ?? 'practitioner_take'
+    const matched = patternTemplates.find((p) => p.id === recommendedId)
+    selectedId = matched ? recommendedId : 'practitioner_take'
+  }
 
   // TagGeneratorでハッシュタグ生成（0-1個）
   const tagGenerator = new TagGenerator()

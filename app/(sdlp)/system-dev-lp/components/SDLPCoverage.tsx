@@ -20,6 +20,7 @@ const services = [
     description:
       'プロ品質のホームページをリーズナブルに。レスポンシブ対応、お問い合わせフォーム標準装備。',
     price: '10万円〜',
+    marketPrice: '30〜50万円',
     duration: '最短1週間',
     features: ['レスポンシブ対応', 'お問い合わせフォーム', 'CMS搭載', 'スマホ最適化'],
     demoUrl: '#',
@@ -36,6 +37,7 @@ const services = [
     description:
       'AIチャットボットを標準実装。訪問者の質問に24時間自動対応し、問い合わせ数を大幅アップ。',
     price: '30万円〜',
+    marketPrice: '80〜150万円',
     duration: '最短2週間',
     features: ['AIチャットボット', 'CMS搭載', 'レスポンシブ対応', 'AI自動応答'],
     highlightFeature: 'AIチャットボット',
@@ -53,6 +55,7 @@ const services = [
     description:
       'AIマッチングで求職者と企業を最適につなぐ求人プラットフォーム。応募管理・企業ダッシュボード完備。',
     price: '80万円〜',
+    marketPrice: '200〜400万円',
     duration: '約2ヶ月',
     features: ['AIマッチング', '応募管理', '企業ダッシュボード', 'レスポンシブ対応'],
     demoUrl: 'https://careerbridge-jp.vercel.app/',
@@ -70,6 +73,7 @@ const services = [
     description:
       'サブスクリプション管理、ユーザー分析、課金システムを一括構築。スケーラブルなSaaS基盤をAIで強化。',
     price: '150万円〜',
+    marketPrice: '500〜1000万円',
     duration: '約3ヶ月',
     features: ['サブスク管理', 'AI分析', '課金システム', 'マルチテナント'],
     demoUrl: 'https://nands.tech/clavi',
@@ -254,6 +258,9 @@ export default function SDLPCoverage() {
                       <span className="text-xs font-medium tracking-wider text-sdlp-text-secondary">
                         費用目安
                       </span>
+                      <div className="text-xs text-sdlp-text-secondary/60 line-through mb-0.5">
+                        通常相場: {service.marketPrice}
+                      </div>
                       {service.featured ? (
                         <div className="text-3xl font-extrabold bg-gradient-to-r from-sdlp-primary to-sdlp-accent bg-clip-text text-transparent">
                           {service.price}
@@ -263,6 +270,9 @@ export default function SDLPCoverage() {
                           {service.price}
                         </div>
                       )}
+                      <div className="text-xs text-green-600 font-medium mt-1">
+                        IT導入補助金適用で最大50%OFF
+                      </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-medium tracking-wider text-sdlp-text-secondary">

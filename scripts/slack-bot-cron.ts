@@ -18,6 +18,12 @@ import { runBlogRSSMonitor } from '../lib/blog-generation/rss-blog-monitor'
 import { runInstagramEngagementLearner } from '../lib/slack-bot/proactive/instagram-engagement-learner'
 import { findUnstoriedBlogs } from '../lib/instagram-story-generation/trigger'
 import { runXAutoPost } from '../lib/slack-bot/proactive/x-auto-post'
+import { runCalibrator } from '../lib/ai-judge/calibrator'
+import { runBuzzCollector } from '../lib/buzz-db/buzz-collector'
+import { checkModelDrift } from '../lib/learning/drift-detector'
+import { runSafetyEventScanner } from '../lib/safety/pre-generation-guard'
+import { runCrossPlatformLearner } from '../lib/learning/cross-platform-learner'
+import { runEmailSequences } from '../lib/lead-pipeline/email-sequence-runner'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -59,6 +65,32 @@ type JobName =
   | 'linkedin-model-retrainer'
   | 'blog-rss-monitor'
   | 'x-auto-post'
+  | 'ai-judge-calibrator'
+  | 'buzz-collector'
+  | 'ai-judge-drift-monitor'
+  | 'safety-event-scanner'
+  | 'cross-platform-learner'
+  | 'lead-email-sequences'
+
+const SCHEDULE_TO_JOB: Record<string, JobName> = {
+  '0 0 * * *': 'daily-suggestion',
+  '0 23,1,5,7,9,11,13 * * *': 'linkedin-auto-post',
+  '0 1 * * 1': 'weekly-report',
+  '0 21,5,13 * * *': 'linkedin-source-collector',
+  '0 14 * * *': 'trending-collector',
+  '0 15 * * *': 'linkedin-engagement-learner',
+  '0 16 * * *': 'engagement-learner',
+  '0 18 * * *': 'linkedin-model-retrainer',
+  '30 15 * * *': 'instagram-engagement-learner',
+  '0 3 * * *': 'instagram-story-auto-check',
+  '0 4,10,20 * * *': 'blog-rss-monitor',
+  '0 2,6,12 * * *': 'x-auto-post',
+  '0 17 * * *': 'ai-judge-calibrator',
+  '0 22 * * *': 'buzz-collector',
+  '0 19 * * 0': 'ai-judge-drift-monitor',
+  '30 3,9,15,21 * * *': 'safety-event-scanner',
+  '30 0,6,12,18 * * *': 'lead-email-sequences',
+}
 
 function detectJob(): JobName {
   const explicit = process.env.CRON_JOB
@@ -74,9 +106,26 @@ function detectJob(): JobName {
     explicit === 'linkedin-auto-post' ||
     explicit === 'linkedin-model-retrainer' ||
     explicit === 'blog-rss-monitor' ||
-    explicit === 'x-auto-post'
+    explicit === 'x-auto-post' ||
+    explicit === 'ai-judge-calibrator' ||
+    explicit === 'buzz-collector' ||
+    explicit === 'ai-judge-drift-monitor' ||
+    explicit === 'safety-event-scanner' ||
+    explicit === 'cross-platform-learner' ||
+    explicit === 'lead-email-sequences'
   ) {
     return explicit
+  }
+
+  // CRON_SCHEDULE から判定（GitHub Actions scheduled trigger）
+  const schedule = process.env.CRON_SCHEDULE
+  if (schedule) {
+    const mapped = SCHEDULE_TO_JOB[schedule]
+    if (mapped) {
+      process.stdout.write(`detectJob: resolved '${mapped}' from CRON_SCHEDULE='${schedule}'\n`)
+      return mapped
+    }
+    process.stdout.write(`detectJob: unknown CRON_SCHEDULE='${schedule}', falling back to time-based\n`)
   }
 
   // Auto-detect based on current time (UTC)
@@ -100,7 +149,7 @@ function detectJob(): JobName {
   }
 
   // JST 8-22 every 2h = UTC 23,1,3,5,7,9,11,13 → LinkedIn auto-post
-  const linkedinAutoPostHours = [23, 1, 3, 7, 9, 11]
+  const linkedinAutoPostHours = [23, 1, 7, 9, 11]
   if (linkedinAutoPostHours.includes(utcHour)) {
     return 'linkedin-auto-post'
   }
@@ -145,6 +194,21 @@ function detectJob(): JobName {
     return 'x-auto-post'
   }
 
+  // JST 02:00 = UTC 17:00 → AI Judge calibrator
+  if (utcHour === 17) {
+    return 'ai-judge-calibrator'
+  }
+
+  // JST 04:00 Sunday = UTC 19:00 Sunday → drift monitor
+  if (utcHour === 19 && dayOfWeek === 0) {
+    return 'ai-judge-drift-monitor'
+  }
+
+  // JST 07:00 = UTC 22:00 → buzz collector
+  if (utcHour === 22) {
+    return 'buzz-collector'
+  }
+
   // JST 13,19,5 = UTC 4,10,20 → Blog RSS monitor
   // Note: shifted from UTC 2,8 to UTC 4,10 to avoid GitHub Actions cron collision
   if (utcHour === 4 || utcHour === 10 || utcHour === 20) {
@@ -171,6 +235,17 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'linkedin-model-retrainer': runLinkedInModelRetrainer,
   'blog-rss-monitor': runBlogRSSMonitor,
   'x-auto-post': runXAutoPost,
+  'ai-judge-calibrator': runCalibrator,
+  'buzz-collector': async () => { await runBuzzCollector() },
+  'ai-judge-drift-monitor': async () => {
+    const drift = await checkModelDrift('linkedin')
+    process.stdout.write(`Drift check: drifted=${drift.drifted}, shouldRetrain=${drift.shouldRetrain}, rollingMAE=${drift.rollingMae}\n`)
+    // Weekly cross-platform learning (runs with drift monitor on Sundays)
+    await runCrossPlatformLearner()
+  },
+  'safety-event-scanner': runSafetyEventScanner,
+  'cross-platform-learner': runCrossPlatformLearner,
+  'lead-email-sequences': runEmailSequences,
 }
 
 function createTracedCronJob(jobName: JobName) {

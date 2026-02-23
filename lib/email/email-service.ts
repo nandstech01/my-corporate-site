@@ -16,6 +16,14 @@ interface PartnerEmailData {
   loginUrl: string;
 }
 
+interface ProposalEmailParams {
+  readonly email: string;
+  readonly proposalHtml: string;
+  readonly leadTier: 'hot' | 'warm' | 'cold';
+  readonly serviceType: string;
+  readonly calendlyUrl?: string;
+}
+
 class EmailService {
   private transporter?: nodemailer.Transporter;
   private resend?: Resend;
@@ -295,6 +303,116 @@ URL: https://nands.tech
     }
   }
 
+  // 提案書メールテンプレート
+  private generateProposalEmail(params: ProposalEmailParams): EmailTemplate {
+    const subjectMap: Record<string, string> = {
+      hot: '【NANDS】AI開発提案書のご確認・無料相談のご案内',
+      warm: '【NANDS】AI開発提案書・詳細資料のお届け',
+      cold: '【NANDS】開発事例集のご案内',
+    };
+    const subject = subjectMap[params.leadTier];
+
+    const calendlySection = params.leadTier === 'hot' && params.calendlyUrl
+      ? `
+              <div style="text-align: center; margin: 30px 0;">
+                <h3>無料相談のご予約</h3>
+                <p>専門エンジニアが貴社の課題に合わせたご提案をいたします。</p>
+                <a href="${params.calendlyUrl}" class="btn" style="background: #059669;">無料相談を予約する</a>
+              </div>`
+      : '';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px; }
+            .proposal { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin: 20px 0; }
+            .btn { display: inline-block; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+            .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>AI開発提案書</h1>
+              <p>お問い合わせいただきありがとうございます</p>
+            </div>
+            <div class="content">
+              <p>この度は、NANDSのシステム開発サービスにご関心をお寄せいただき、誠にありがとうございます。</p>
+              <p>ご入力いただいた内容をもとに、以下の提案書を作成いたしました。</p>
+
+              <div class="proposal">
+                ${params.proposalHtml}
+              </div>
+              ${calendlySection}
+              <div class="footer">
+                <p>株式会社エヌアンドエス (NANDS)<br>
+                Email: contact@nands.tech<br>
+                URL: https://nands.tech</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const calendlyText = params.leadTier === 'hot' && params.calendlyUrl
+      ? `\n無料相談のご予約: ${params.calendlyUrl}\n`
+      : '';
+
+    const text = `${subject}
+
+この度は、NANDSのシステム開発サービスにご関心をお寄せいただき、誠にありがとうございます。
+ご入力いただいた内容をもとに提案書を作成いたしました。
+詳細はHTML版メールをご確認ください。
+${calendlyText}
+株式会社エヌアンドエス (NANDS)
+Email: contact@nands.tech
+URL: https://nands.tech`;
+
+    return { subject, html, text };
+  }
+
+  // 提案書メール送信
+  async sendProposalEmail(params: ProposalEmailParams): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      const emailData = this.generateProposalEmail(params);
+
+      if (this.resend) {
+        const response = await this.resend.emails.send({
+          from: 'NANDS System Dev <noreply@nands.tech>',
+          to: [params.email],
+          subject: emailData.subject,
+          html: emailData.html,
+          text: emailData.text,
+        });
+        return { success: true, messageId: response.data?.id };
+      } else if (this.transporter) {
+        const info = await this.transporter.sendMail({
+          from: '"NANDS System Dev" <noreply@nands.tech>',
+          to: params.email,
+          subject: emailData.subject,
+          text: emailData.text,
+          html: emailData.html,
+        });
+        return { success: true, messageId: info.messageId };
+      } else {
+        throw new Error('No email provider configured');
+      }
+    } catch (error) {
+      console.error('Proposal email send failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
   // 却下メール送信
   async sendRejectionEmail(data: PartnerEmailData, reason?: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
@@ -326,4 +444,11 @@ URL: https://nands.tech
 }
 
 // シングルトンインスタンス
-export const emailService = new EmailService(); 
+export const emailService = new EmailService();
+
+// 提案書メール送信（スタンドアロン関数）
+export async function sendProposalEmailStandalone(
+  params: ProposalEmailParams
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  return emailService.sendProposalEmail(params);
+}

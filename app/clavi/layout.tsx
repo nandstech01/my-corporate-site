@@ -2,10 +2,139 @@
 
 import { createClient } from '@/lib/supabase/browser';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClaviHeader from '@/components/clavi/ClaviHeader';
 import ClaviSidebar from '@/components/clavi/ClaviSidebar';
 import { ClaviThemeContext } from './context';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  showDetails: boolean;
+}
+
+class ClaviErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null, showDetails: false };
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    return { hasError: true, error };
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null, showDetails: false });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '50vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem',
+        }}>
+          <div style={{
+            maxWidth: '480px',
+            width: '100%',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'rgba(239, 68, 68, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+              fontSize: '24px',
+            }}>
+              !
+            </div>
+            <h2 style={{
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#F8FAFC',
+              marginBottom: '0.5rem',
+            }}>
+              問題が発生しました
+            </h2>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#90c1cb',
+              marginBottom: '1.5rem',
+            }}>
+              予期しないエラーが発生しました。再度お試しください。
+            </p>
+            <button
+              onClick={this.handleReset}
+              style={{
+                padding: '0.5rem 1.5rem',
+                borderRadius: '0.5rem',
+                background: '#0891B2',
+                color: '#FFFFFF',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                marginBottom: '1rem',
+              }}
+            >
+              再試行
+            </button>
+            {this.state.error && (
+              <div>
+                <button
+                  onClick={() => this.setState({ showDetails: !this.state.showDetails })}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    color: '#6a8b94',
+                    display: 'block',
+                    margin: '0 auto',
+                  }}
+                >
+                  {this.state.showDetails ? '詳細を隠す' : '詳細を表示'}
+                </button>
+                {this.state.showDetails && (
+                  <pre style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: 'rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    fontSize: '0.7rem',
+                    color: '#EF4444',
+                    textAlign: 'left',
+                    overflow: 'auto',
+                    maxHeight: '200px',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                  }}>
+                    {this.state.error.message}
+                    {this.state.error.stack && `\n\n${this.state.error.stack}`}
+                  </pre>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 type Theme = 'light' | 'dark';
 
@@ -101,7 +230,9 @@ export default function AsoLayout({
   if (isPublicRoute(pathname)) {
     return (
       <ClaviThemeContext.Provider value={{ theme, toggleTheme }}>
-        {children}
+        <ClaviErrorBoundary>
+          {children}
+        </ClaviErrorBoundary>
       </ClaviThemeContext.Provider>
     );
   }
@@ -114,7 +245,9 @@ export default function AsoLayout({
           className="min-h-screen"
           style={{ background: isDark ? '#101f22' : '#f3f5f8' }}
         >
-          {children}
+          <ClaviErrorBoundary>
+            {children}
+          </ClaviErrorBoundary>
         </div>
       </ClaviThemeContext.Provider>
     );
@@ -169,7 +302,9 @@ export default function AsoLayout({
             isSidebarOpen={isSidebarOpen}
           />
           <div className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth">
-            {children}
+            <ClaviErrorBoundary>
+              {children}
+            </ClaviErrorBoundary>
           </div>
         </main>
       </div>

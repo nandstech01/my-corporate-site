@@ -1,12 +1,18 @@
 import type { Metadata } from 'next'
+
+export const revalidate = 3600
+
 import SDLPHeader from './components/SDLPHeader'
 import SDLPHero from './components/SDLPHero'
 import SDLPValueProp from './components/SDLPValueProp'
 import SDLPDeliverables from './components/SDLPDeliverables'
 import SDLPCta from './components/SDLPCta'
 import SDLPCoverage from './components/SDLPCoverage'
+import SDLPTrust from './components/SDLPTrust'
+import SDLPSubsidy from './components/SDLPSubsidy'
 import SDLPAbout from './components/SDLPAbout'
 import SDLPFooter from './components/SDLPFooter'
+import SDLPStickyCTA from './components/SDLPStickyCTA'
 
 export const metadata: Metadata = {
   title: 'システム開発 | 株式会社エヌアンドエス',
@@ -76,6 +82,46 @@ export default function SystemDevLPPage() {
           text: 'はい、見積もりは完全無料です。オンラインシミュレーションで概算をすぐに確認でき、詳細見積もりも無料でお作りします。',
         },
       },
+      {
+        '@type': 'Question',
+        name: 'IT導入補助金は使えますか？',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'はい、IT導入補助金の対象となるサービスです。最大50%（上限450万円）の補助を受けられます。補助金申請のサポートも行っております。',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '保守・運用サポートはありますか？',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'はい、納品後の保守・運用サポートも承っております。月額プランでの継続的なサポートや、スポットでの改修対応も可能です。',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'セキュリティ対策はどうなっていますか？',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'SSL/TLS暗号化、SQLインジェクション対策、XSS対策など、OWASP Top 10に準拠したセキュリティ対策を標準で実装しています。',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '支払い方法は？',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: '銀行振込（分割払い対応）、クレジットカード払いに対応しています。着手金50%・納品時50%の分割払いが標準です。',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '他社との違いは何ですか？',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'AI技術を全サービスに標準搭載している点と、少数精鋭チームによる圧倒的コストパフォーマンスが特徴です。大手SIerの約30-70%のコストで同等以上の品質を実現します。',
+        },
+      },
     ],
   }
 
@@ -88,11 +134,14 @@ export default function SystemDevLPPage() {
         <SDLPDeliverables />
         <SDLPCta />
         <SDLPCoverage />
+        <SDLPSubsidy />
+        <SDLPTrust />
         <SDLPCta variant="gradient" />
         <SDLPAbout />
         <SDLPCta />
       </main>
       <SDLPFooter />
+      <SDLPStickyCTA />
 
       {/* Structured Data */}
       <script

@@ -82,6 +82,6 @@ export const config = {
      * - public assets
      * - api/slack (Slack webhook endpoints - no auth needed)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/slack/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/slack/|api/v1/|api/sns-pilot/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

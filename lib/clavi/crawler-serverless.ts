@@ -96,7 +96,7 @@ export async function crawlUrlServerless(url: string, options?: CrawlOptions): P
           publishedTime: $('meta[property="article:published_time"]').attr('content') || null,
           modifiedTime: $('meta[property="article:modified_time"]').attr('content') || null,
         },
-        headings: headings.map(h => ({ ...h, path: [], children: [] })),
+        headings: headings.map(h => ({ ...h, content: h.content, path: [], children: [] })),
         links: links.map(l => ({ ...l, isNofollow: l.rel?.includes('nofollow') || false })),
         images: images.map(i => ({ ...i, title: null, loading: null })),
         plainText,
@@ -205,10 +205,10 @@ function extractMetadataFromCheerio($: cheerio.CheerioAPI, url: string) {
 }
 
 /**
- * Extract headings from Cheerio document
+ * Extract headings from Cheerio document with paragraph content
  */
 function extractHeadingsFromCheerio($: cheerio.CheerioAPI) {
-  const headings: Array<{ level: number; text: string; id: string | null }> = [];
+  const headings: Array<{ level: number; text: string; id: string | null; content: string }> = [];
 
   $('h1, h2, h3, h4, h5, h6').each((_, element) => {
     const $el = $(element);
@@ -218,7 +218,38 @@ function extractHeadingsFromCheerio($: cheerio.CheerioAPI) {
     const id = $el.attr('id') || null;
 
     if (text) {
-      headings.push({ level, text, id });
+      // Collect text from sibling elements until the next heading of same or higher level
+      const contentParts: string[] = [];
+      let sibling = $el.next();
+
+      while (sibling.length > 0) {
+        const siblingTag = (sibling.prop('tagName') || '').toLowerCase();
+
+        // Stop at next heading of same or higher level
+        if (/^h[1-6]$/.test(siblingTag)) {
+          const siblingLevel = parseInt(siblingTag.charAt(1), 10);
+          if (siblingLevel <= level) {
+            break;
+          }
+        }
+
+        // Collect text from non-heading elements
+        if (!/^h[1-6]$/.test(siblingTag)) {
+          const siblingText = sibling.text().trim();
+          if (siblingText) {
+            contentParts.push(siblingText);
+          }
+        }
+
+        sibling = sibling.next();
+      }
+
+      // Join and trim to 50-150 words
+      const fullContent = contentParts.join(' ').replace(/\s+/g, ' ').trim();
+      const words = fullContent.split(/\s+/).filter(w => w.length > 0);
+      const trimmedContent = words.slice(0, 150).join(' ');
+
+      headings.push({ level, text, id, content: trimmedContent });
     }
   });
 

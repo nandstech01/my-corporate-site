@@ -143,6 +143,9 @@ export interface HeadingStructure {
   /** ID属性 */
   id: string | null;
 
+  /** 見出し配下のコンテンツ（50-150語） */
+  content?: string;
+
   /** 階層（親見出しからのパス） */
   path: string[];
 

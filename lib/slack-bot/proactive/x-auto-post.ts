@@ -19,6 +19,8 @@ import { createPendingAction, getRecentXPostTexts } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateXPost } from '../../x-post-generation/post-graph'
 import { fetchMediaForPost } from '../../x-api/media'
+import { isAiJudgeEnabled } from '../../ai-judge/config'
+import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 
 // ============================================================
@@ -196,6 +198,20 @@ export async function runXAutoPost(): Promise<void> {
           topic: 'tech trends',
         })
 
+        // AI Judge 自動投稿モード
+        if (isAiJudgeEnabled()) {
+          const result = await autoResolvePost({
+            platform: 'x',
+            text: postResult.finalPost,
+            patternUsed: postResult.patternUsed,
+            tags: postResult.tags,
+          })
+          process.stdout.write(
+            `X auto-post (trending, AI Judge): ${result.success ? 'posted' : 'rejected'} - ${result.verdict.reasoning}\n`,
+          )
+          return
+        }
+
         const action = await createPendingAction({
           slackChannelId: channel,
           slackUserId: userId,
@@ -313,8 +329,26 @@ export async function runXAutoPost(): Promise<void> {
     process.stdout.write('X auto-post: Media fetch failed, proceeding with text only\n')
   }
 
-  // 7. createPendingAction + Slack 承認フロー
+  // 7. AI Judge 自動投稿 or Slack 承認フロー
   try {
+    // AI Judge 自動投稿モード
+    if (isAiJudgeEnabled()) {
+      const result = await autoResolvePost({
+        platform: 'x',
+        text: postResult.finalPost,
+        sourceUrl: topCandidate.sourceUrl,
+        sourceTitle: topCandidate.title,
+        patternUsed: postResult.patternUsed,
+        tags: postResult.tags,
+        mediaIds,
+      })
+      process.stdout.write(
+        `X auto-post (AI Judge): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+      )
+      return
+    }
+
+    // レガシー: Slack 承認フロー
     const action = await createPendingAction({
       slackChannelId: channel,
       slackUserId: userId,
@@ -451,7 +485,24 @@ export async function triggerXPostFromSource(
     // テキストのみで続行
   }
 
-  // pending action 作成
+  // AI Judge 自動投稿モード
+  if (isAiJudgeEnabled()) {
+    const result = await autoResolvePost({
+      platform: 'x',
+      text: postResult.finalPost,
+      sourceUrl: params.sourceUrl,
+      sourceTitle: params.title,
+      patternUsed: postResult.patternUsed,
+      tags: postResult.tags,
+      mediaIds,
+    })
+    process.stdout.write(
+      `X auto-post trigger (AI Judge): "${params.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+    )
+    return result.success
+  }
+
+  // レガシー: Slack 承認フロー
   const action = await createPendingAction({
     slackChannelId: channel,
     slackUserId: userId,

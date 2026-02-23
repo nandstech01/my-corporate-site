@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, Shield } from 'lucide-react'
 import { fadeInUp, staggerContainer, DURATION, EASE } from '@/lib/motion'
@@ -13,6 +13,12 @@ interface EmailGateProps {
 export default function EmailGate({ onSubmit, onSkip }: EmailGateProps) {
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showSkip, setShowSkip] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSkip(true), 3000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
@@ -61,9 +67,16 @@ export default function EmailGate({ onSubmit, onSkip }: EmailGateProps) {
 
         <motion.p
           variants={fadeInUp}
-          className="text-sm text-sdlp-text-secondary mb-6"
+          className="text-sm text-sdlp-text-secondary mb-2"
         >
           メールアドレスをご入力いただくと、完全な開発提案書とAIチャット相談をご利用いただけます。
+        </motion.p>
+
+        <motion.p
+          variants={fadeInUp}
+          className="text-xs font-medium text-sdlp-primary mb-6"
+        >
+          提案書のPDFダウンロード + AI相談がご利用可能に
         </motion.p>
 
         <motion.div variants={fadeInUp}>
@@ -99,7 +112,7 @@ export default function EmailGate({ onSubmit, onSkip }: EmailGateProps) {
               </motion.span>
             ) : (
               <>
-                提案書の全文を見る
+                無料で提案書を受け取る
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -110,7 +123,8 @@ export default function EmailGate({ onSubmit, onSkip }: EmailGateProps) {
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm text-sdlp-text-secondary hover:text-sdlp-text transition-colors"
+            className="text-sm text-sdlp-text-secondary hover:text-sdlp-text transition-opacity duration-500"
+            style={{ opacity: showSkip ? 1 : 0, pointerEvents: showSkip ? 'auto' : 'none' }}
           >
             メールアドレスなしで結果を見る
           </button>

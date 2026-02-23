@@ -54,6 +54,27 @@ export default function StepProgressBar({ currentStep, totalSteps }: StepProgres
           )
         })}
       </div>
+
+      {/* Encouragement message */}
+      {currentStep === totalSteps ? (
+        <motion.p
+          className="text-center text-sm font-medium text-sdlp-primary mt-2"
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          最後の質問です！
+        </motion.p>
+      ) : currentStep >= totalSteps - 2 ? (
+        <motion.p
+          className="text-center text-sm font-medium text-sdlp-primary mt-2"
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          あと{totalSteps - currentStep}問！
+        </motion.p>
+      ) : null}
     </div>
   )
 }

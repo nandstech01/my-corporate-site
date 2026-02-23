@@ -1,8 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useClaviTheme } from '@/app/clavi/context'
+import { Loader2, AlertCircle, Copy, Download, Check } from 'lucide-react'
+
+interface Analysis {
+  id: string
+  url: string
+  company_name: string | null
+  ai_structure_score: number | null
+  status: string
+  created_at: string
+}
+
+interface GeneratedArticle {
+  title: string
+  content: string
+  metaDescription: string
+  suggestedTags: string[]
+  wordCount: number
+  analysisId: string
+  sourceUrl: string
+}
 
 export default function BlogGeneratorPage() {
   const { theme } = useClaviTheme()
@@ -11,6 +31,15 @@ export default function BlogGeneratorPage() {
   const [selectedTone, setSelectedTone] = useState('professional')
   const [selectedDirection, setSelectedDirection] = useState('guide')
   const [wordCount, setWordCount] = useState(3000)
+
+  const [analyses, setAnalyses] = useState<Analysis[]>([])
+  const [selectedAnalysisId, setSelectedAnalysisId] = useState('')
+  const [analysesLoading, setAnalysesLoading] = useState(true)
+
+  const [generating, setGenerating] = useState(false)
+  const [article, setArticle] = useState<GeneratedArticle | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const tones = [
     { id: 'professional', label: 'Professional' },
@@ -23,6 +52,142 @@ export default function BlogGeneratorPage() {
     { id: 'guide', label: 'ガイド記事' },
     { id: 'casestudy', label: 'ケーススタディ' },
   ]
+
+  // Fetch analyses list on mount
+  useEffect(() => {
+    const fetchAnalyses = async () => {
+      try {
+        const res = await fetch('/api/clavi/analyses?status=completed&limit=100')
+        if (!res.ok) throw new Error('Failed to fetch analyses')
+        const data = await res.json()
+        setAnalyses(data.analyses || [])
+        if (data.analyses?.length > 0) {
+          setSelectedAnalysisId(data.analyses[0].id)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load analyses')
+      } finally {
+        setAnalysesLoading(false)
+      }
+    }
+    fetchAnalyses()
+  }, [])
+
+  const handleGenerate = useCallback(async () => {
+    if (!selectedAnalysisId) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/clavi/blog/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          analysisId: selectedAnalysisId,
+          tone: selectedTone,
+          direction: selectedDirection,
+          wordCount,
+        }),
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Failed to generate article')
+      }
+      const data: GeneratedArticle = await res.json()
+      setArticle(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate article')
+    } finally {
+      setGenerating(false)
+    }
+  }, [selectedAnalysisId, selectedTone, selectedDirection, wordCount])
+
+  const handleCopy = useCallback(async () => {
+    if (!article) return
+    const text = `# ${article.title}\n\n${article.metaDescription}\n\n${article.content}`
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [article])
+
+  const handleDownload = useCallback(() => {
+    if (!article) return
+    const text = `# ${article.title}\n\n${article.metaDescription}\n\n${article.content}`
+    const blob = new Blob([text], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${article.title || 'blog-article'}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [article])
+
+  // Simple markdown to JSX renderer for preview
+  const renderMarkdown = (content: string) => {
+    const lines = content.split('\n')
+    const elements: JSX.Element[] = []
+    let listItems: string[] = []
+
+    const flushList = () => {
+      if (listItems.length > 0) {
+        elements.push(
+          <ul key={`list-${elements.length}`} className="list-disc list-inside space-y-1 text-xs my-2" style={{ color: isDark ? '#90c1cb' : '#64748B' }}>
+            {listItems.map((item, j) => <li key={j}>{item}</li>)}
+          </ul>
+        )
+        listItems = []
+      }
+    }
+
+    lines.forEach((line, i) => {
+      const trimmed = line.trim()
+
+      if (trimmed.startsWith('### ')) {
+        flushList()
+        elements.push(
+          <h3 key={i} className="text-sm font-semibold mt-4 mb-1" style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>
+            {trimmed.replace('### ', '')}
+          </h3>
+        )
+      } else if (trimmed.startsWith('## ')) {
+        flushList()
+        elements.push(
+          <h2 key={i} className="text-base font-bold mt-6 mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
+            {trimmed.replace('## ', '')}
+          </h2>
+        )
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        listItems.push(trimmed.replace(/^[-*]\s/, ''))
+      } else if (trimmed.startsWith('> ')) {
+        flushList()
+        elements.push(
+          <blockquote
+            key={i}
+            className="border-l-2 pl-4 my-4 text-xs italic"
+            style={{
+              borderColor: '#06B6D4',
+              color: isDark ? '#67E8F9' : '#0E7490',
+            }}
+          >
+            {trimmed.replace('> ', '')}
+          </blockquote>
+        )
+      } else if (trimmed === '') {
+        flushList()
+      } else {
+        flushList()
+        elements.push(
+          <p key={i} className="my-2">
+            {trimmed}
+          </p>
+        )
+      }
+    })
+    flushList()
+
+    return elements
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
@@ -38,7 +203,7 @@ export default function BlogGeneratorPage() {
             </p>
           </div>
 
-          {/* Source Analysis */}
+          {/* Source Analysis Selector */}
           <div
             className="p-5 rounded-xl"
             style={{
@@ -53,29 +218,42 @@ export default function BlogGeneratorPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: isDark ? '#90c1cb' : '#64748B' }}>
-                  分析対象 URL
+                  分析データを選択
                 </label>
-                <input
-                  type="text"
-                  placeholder="https://example.com/source-article"
+                <select
+                  value={selectedAnalysisId}
+                  onChange={(e) => setSelectedAnalysisId(e.target.value)}
+                  disabled={analysesLoading}
                   className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all"
                   style={{
                     background: isDark ? '#102023' : '#F8FAFC',
                     border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
                     color: isDark ? '#E2E8F0' : '#334155',
                   }}
-                  readOnly
-                />
+                >
+                  {analysesLoading ? (
+                    <option>読み込み中...</option>
+                  ) : analyses.length === 0 ? (
+                    <option value="">分析データなし</option>
+                  ) : (
+                    analyses.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.url} {a.ai_structure_score ? `(${a.ai_structure_score}点)` : ''}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
-              <button
-                className="w-full py-2 px-4 rounded-lg text-xs font-medium transition-colors"
-                style={{
-                  background: isDark ? '#224249' : '#F1F5F9',
-                  color: isDark ? '#90c1cb' : '#64748B',
-                }}
-              >
-                URLを分析する
-              </button>
+              {selectedAnalysisId && (
+                <div className="text-[10px] px-2 py-1.5 rounded"
+                  style={{
+                    background: isDark ? 'rgba(6,182,212,0.1)' : '#ECFEFF',
+                    color: isDark ? '#67E8F9' : '#0E7490',
+                  }}
+                >
+                  選択中の分析データを元に記事を生成します
+                </div>
+              )}
             </div>
           </div>
 
@@ -188,11 +366,37 @@ export default function BlogGeneratorPage() {
 
             {/* Generate Button */}
             <div className="mt-6 pt-5" style={{ borderTop: `1px solid ${isDark ? '#224249' : '#E2E8F0'}` }}>
-              <button className="w-full py-2.5 px-4 rounded-xl text-sm font-bold text-white bg-[#06B6D4] hover:bg-[#0891B2] transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
-                ✦ 記事を生成する
+              <button
+                onClick={handleGenerate}
+                disabled={generating || !selectedAnalysisId}
+                className="w-full py-2.5 px-4 rounded-xl text-sm font-bold text-white bg-[#06B6D4] hover:bg-[#0891B2] transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    生成中...
+                  </>
+                ) : (
+                  '記事を生成する'
+                )}
               </button>
             </div>
           </div>
+
+          {/* Error State */}
+          {error && (
+            <div
+              className="p-3 rounded-xl flex items-center gap-2 text-xs"
+              style={{
+                background: isDark ? 'rgba(239,68,68,0.1)' : '#FEF2F2',
+                border: `1px solid ${isDark ? 'rgba(239,68,68,0.3)' : '#FECACA'}`,
+                color: isDark ? '#FCA5A5' : '#DC2626',
+              }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Right Panel - Preview */}
@@ -204,26 +408,30 @@ export default function BlogGeneratorPage() {
               プレビュー
             </h2>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium"
-                style={{
-                  background: isDark ? 'rgba(16,185,129,0.15)' : '#ECFDF5',
-                  color: isDark ? '#6EE7B7' : '#065F46',
-                }}
-              >
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                </span>
-                JSON-LD 構造化データ付与済
-              </span>
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium"
-                style={{
-                  background: isDark ? 'rgba(6,182,212,0.15)' : '#ECFEFF',
-                  color: isDark ? '#67E8F9' : '#0E7490',
-                }}
-              >
-                SEOスコア: 92/100
-              </span>
+              {article && (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium"
+                    style={{
+                      background: isDark ? 'rgba(16,185,129,0.15)' : '#ECFDF5',
+                      color: isDark ? '#6EE7B7' : '#065F46',
+                    }}
+                  >
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    生成完了
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium"
+                    style={{
+                      background: isDark ? 'rgba(6,182,212,0.15)' : '#ECFEFF',
+                      color: isDark ? '#67E8F9' : '#0E7490',
+                    }}
+                  >
+                    {article.wordCount.toLocaleString()}文字
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -236,87 +444,70 @@ export default function BlogGeneratorPage() {
             }}
           >
             <div className="flex-grow p-6 overflow-y-auto">
-              {/* Draft Label */}
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#06B6D4] mb-2">
-                Generated Draft
-              </div>
+              {generating ? (
+                <div className="flex flex-col items-center justify-center h-full gap-4">
+                  <Loader2 className="w-10 h-10 animate-spin text-[#06B6D4]" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+                      記事を生成しています...
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                      AIが分析データを元に記事を作成中です。しばらくお待ちください。
+                    </p>
+                  </div>
+                </div>
+              ) : article ? (
+                <>
+                  {/* Draft Label */}
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#06B6D4] mb-2">
+                    Generated Draft
+                  </div>
 
-              {/* Article Title */}
-              <h1 className="text-xl font-bold mb-3 leading-tight" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
-                2024年のデジタルトランスフォーメーション成功の鍵：AI統合ガイド
-              </h1>
+                  {/* Article Title */}
+                  <h1 className="text-xl font-bold mb-3 leading-tight" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
+                    {article.title}
+                  </h1>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {['#DX', '#ArtificialIntelligence', '#BusinessGrowth'].map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] px-2 py-0.5 rounded"
-                    style={{
-                      background: isDark ? '#224249' : '#F1F5F9',
-                      color: isDark ? '#90c1cb' : '#64748B',
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+                  {/* Tags */}
+                  {article.suggestedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {article.suggestedTags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[10px] px-2 py-0.5 rounded"
+                          style={{
+                            background: isDark ? '#224249' : '#F1F5F9',
+                            color: isDark ? '#90c1cb' : '#64748B',
+                          }}
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-              {/* Meta Description */}
-              <p className="text-xs italic mb-5" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
-                Meta Description: 2024年における企業のDX推進にはAIの統合が不可欠です。本ガイドでは、経営層が知っておくべき導入戦略と成功事例を徹底解説します。
-              </p>
+                  {/* Meta Description */}
+                  {article.metaDescription && (
+                    <p className="text-xs italic mb-5" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                      Meta Description: {article.metaDescription}
+                    </p>
+                  )}
 
-              {/* Article Body (Sample) */}
-              <div className="space-y-4 text-sm leading-relaxed" style={{ color: isDark ? '#CBD5E1' : '#475569' }}>
-                <p>
-                  近年、デジタルトランスフォーメーション（DX）は単なるトレンドを超え、企業の生存戦略そのものとなりました。特に生成AIの台頭により、ビジネスプロセスは劇的な変化を遂げています。
-                </p>
-
-                <h2 className="text-base font-bold mt-6 mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
-                  1. なぜ今、AI統合が急務なのか
-                </h2>
-                <p>
-                  市場の変化スピードは加速しており、従来の手法では対応しきれない課題が増加しています。AIを業務フローの中核に据えることで、意思決定の迅速化とコスト削減を同時に実現することが可能です。
-                </p>
-                <ul className="list-disc list-inside space-y-1 text-xs" style={{ color: isDark ? '#90c1cb' : '#64748B' }}>
-                  <li>データドリブンな意思決定の実現</li>
-                  <li>反復業務の自動化による生産性向上</li>
-                  <li>顧客体験（CX）のパーソナライズ化</li>
-                </ul>
-
-                <h2 className="text-base font-bold mt-6 mb-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
-                  2. 導入における主要な課題と解決策
-                </h2>
-                <p>
-                  多くの企業が導入に失敗する原因は、「目的の不明確さ」と「社内リテラシーの不足」にあります。技術ありきではなく、解決すべきビジネス課題から逆算するアプローチが必要です。
-                </p>
-
-                <blockquote
-                  className="border-l-2 pl-4 my-4 text-xs italic"
-                  style={{
-                    borderColor: '#06B6D4',
-                    color: isDark ? '#67E8F9' : '#0E7490',
-                  }}
-                >
-                  &ldquo;AIは魔法の杖ではありません。それを使いこなす人間のビジョンこそが、真の変革を生み出します。&rdquo;
-                </blockquote>
-
-                <h3 className="text-sm font-semibold mt-4 mb-1" style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>
-                  2-1. 人材育成の重要性
-                </h3>
-                <p>
-                  外部ベンダーに丸投げするのではなく、社内でAIを活用できる人材を育成することが、持続的な成長への近道です。リスキリングプログラムの導入を検討しましょう。
-                </p>
-              </div>
-
-              {/* Fade overlay */}
-              <div
-                className="h-16 -mt-16 relative pointer-events-none"
-                style={{
-                  background: `linear-gradient(to bottom, transparent, ${isDark ? '#182f34' : '#FFFFFF'})`,
-                }}
-              />
+                  {/* Article Body */}
+                  <div className="space-y-1 text-sm leading-relaxed" style={{ color: isDark ? '#CBD5E1' : '#475569' }}>
+                    {renderMarkdown(article.content)}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <div className="text-4xl opacity-20">
+                    ✦
+                  </div>
+                  <p className="text-sm font-medium" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                    分析データを選択して「記事を生成する」をクリックしてください
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Action Bar */}
@@ -329,15 +520,9 @@ export default function BlogGeneratorPage() {
             >
               <div className="flex items-center gap-2">
                 <button
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                  style={{
-                    color: isDark ? '#90c1cb' : '#64748B',
-                  }}
-                >
-                  修正を依頼
-                </button>
-                <button
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  onClick={handleGenerate}
+                  disabled={generating || !selectedAnalysisId}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
                   style={{
                     color: isDark ? '#90c1cb' : '#64748B',
                   }}
@@ -347,17 +532,30 @@ export default function BlogGeneratorPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  onClick={handleCopy}
+                  disabled={!article}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
                   style={{
                     background: isDark ? '#224249' : '#FFFFFF',
                     border: `1px solid ${isDark ? '#2d5359' : '#E2E8F0'}`,
                     color: isDark ? '#E2E8F0' : '#334155',
                   }}
                 >
-                  コピー
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? 'コピー済み' : 'コピー'}
                 </button>
-                <button className="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-[#06B6D4] hover:bg-[#0891B2] transition-colors">
-                  WordPressへ投稿
+                <button
+                  onClick={handleDownload}
+                  disabled={!article}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  style={{
+                    background: isDark ? '#224249' : '#FFFFFF',
+                    border: `1px solid ${isDark ? '#2d5359' : '#E2E8F0'}`,
+                    color: isDark ? '#E2E8F0' : '#334155',
+                  }}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  ダウンロード
                 </button>
               </div>
             </div>

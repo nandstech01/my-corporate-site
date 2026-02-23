@@ -10,6 +10,8 @@ import { z } from 'zod'
 import { ChatOpenAI } from '@langchain/openai'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { linkedInTemplates, findTemplateForSourceType } from './linkedin-templates'
+import { selectPatternByBandit } from '../learning/pattern-bandit'
+import { getBuzzInsights } from '../buzz-db/pattern-extractor'
 import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
@@ -118,12 +120,26 @@ function createModel() {
 // ノード1: analyzeSource
 // ============================================================
 
-function analyzeSource(state: GraphStateType): Partial<GraphStateType> {
+async function analyzeSource(state: GraphStateType): Promise<Partial<GraphStateType>> {
   const template = findTemplateForSourceType(state.sourceType)
   const tags = generateLinkedInTags(state.sourceData)
 
+  // Try bandit pattern selection
+  let selectedTemplateId = template.id
+  try {
+    const allTemplateIds = linkedInTemplates.map((t) => t.id)
+    const banditChoice = await selectPatternByBandit(allTemplateIds, 'linkedin')
+    const matched = linkedInTemplates.find((t) => t.id === banditChoice)
+    if (matched) {
+      selectedTemplateId = banditChoice
+      process.stdout.write(`LinkedIn template selected by bandit: ${selectedTemplateId}\n`)
+    }
+  } catch {
+    // Fallback to source-type based selection
+  }
+
   return {
-    selectedTemplateId: template.id,
+    selectedTemplateId,
     generatedTags: [...tags.all],
   }
 }
@@ -229,6 +245,17 @@ async function generateCandidates(
     process.stdout.write(`LinkedIn learnings fetch skipped: ${message}\n`)
   }
 
+  // Buzz insights injection
+  let buzzInsightHint = ''
+  try {
+    const buzzInsights = await getBuzzInsights('linkedin', 7)
+    if (buzzInsights) {
+      buzzInsightHint = `\n\n最近のバズ投稿パターン分析:\n${buzzInsights.summary}\nトップフック: ${buzzInsights.topHookTypes.slice(0, 3).map((h: { type: string }) => h.type).join(', ')}\nトップ構造: ${buzzInsights.topStructures.slice(0, 3).map((s: { type: string }) => s.type).join(', ')}\nこれらの成功パターンを参考にしてください。`
+    }
+  } catch {
+    // Best-effort
+  }
+
   const response = await model.invoke([
     {
       role: 'system' as const,
@@ -241,7 +268,7 @@ ${templateInfo}
 元ソースタイプ: ${state.sourceType}
 元ソースURL: ${state.sourceUrl}
 ${state.sourceAuthor ? `元ソース著者: ${state.sourceAuthor}` : ''}
-${japanAngleHint}${learningsHint}${ragHint}
+${japanAngleHint}${learningsHint}${buzzInsightHint}${ragHint}
 
 ハッシュタグ候補: ${state.generatedTags.join(' ')}
 

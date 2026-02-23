@@ -24,6 +24,11 @@ import { CLAVIFragmentVectorizer } from '@/lib/clavi/fragment-vectorizer';
 import { CLAVISchemaMerger } from '@/lib/clavi/schema-merger';
 import { CLAVISchemaGenerator } from '@/lib/clavi/schema-generator';
 import { CLAVIEntityExtractor } from '@/lib/clavi/entity-extractor';
+import { TopicConsistencyScorer } from '@/lib/clavi/topic-consistency-scorer';
+import { ContentImprovementAdvisor } from '@/lib/clavi/content-improvement-advisor';
+import { SemanticAnalyzer } from '@/lib/clavi/semantic-analyzer';
+import { InternalLinkOptimizer } from '@/lib/clavi/internal-link-optimizer';
+import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 import type { AnalysisData, HasPartSchema } from '@/lib/clavi/types/analysis';
 import type { TenantSettings } from '@/lib/clavi/types/tenant-settings';
 import * as crypto from 'crypto';
@@ -280,6 +285,7 @@ export async function POST(request: Request) {
         level: h.level,
         text: h.text,
         id: h.id,
+        content: h.content || '',
       })),
       links: crawlResult.links.slice(0, 100), // 最大100件
       images: crawlResult.images.slice(0, 50), // 最大50件
@@ -437,20 +443,138 @@ export async function POST(request: Request) {
     }
 
     // 10. Phase 4.2: Fragment ベクトル化（eng-backend実装）
+    const fragmentTexts = analysis_data.fragment_ids?.map((fragmentId, index) => ({
+      fragment_id: fragmentId,
+      title: crawlResult.headings[index]?.text || 'Untitled',
+      content: crawlResult.headings[index]?.content || crawlResult.headings[index]?.text || '',
+    })) || [];
+
     try {
       const vectorizer = new CLAVIFragmentVectorizer();
-      const vectorResult = await vectorizer.vectorizeFragments({
+      await vectorizer.vectorizeFragments({
         analysis_id: newAnalysis.id,
         tenant_id: tenant_id,
-        fragments: analysis_data.fragment_ids?.map((fragmentId, index) => ({
-          fragment_id: fragmentId,
-          title: crawlResult.headings[index]?.text || 'Untitled',
-          content: crawlResult.headings[index]?.text || '', // 50-150語パッセージ（見出しテキストを使用）
-        })) || [],
+        fragments: fragmentTexts,
       });
     } catch (vectorError) {
       // ベクトル化失敗でも分析結果は返す（ログのみ）
       console.error('[CLAVI] Fragment vectorization failed (non-blocking):', vectorError);
+    }
+
+    // 10.1. Generate embeddings for pipeline analysis (Topic Consistency, Semantic, etc.)
+    let fragmentEmbeddings: number[][] = [];
+    const pipelineFragmentIds = analysis_data.fragment_ids || [];
+
+    if (fragmentTexts.length > 0) {
+      try {
+        const embeddingsClient = new OpenAIEmbeddings();
+        const texts = fragmentTexts.map(f => f.content || f.title);
+        fragmentEmbeddings = await embeddingsClient.embedBatch(texts);
+      } catch (embError) {
+        console.error('[CLAVI] Embedding generation for pipeline failed (non-blocking):', embError);
+      }
+    }
+
+    // 10.2. Topic Consistency Scorer
+    if (fragmentEmbeddings.length > 0 && pipelineFragmentIds.length > 0) {
+      try {
+        const topicScorer = new TopicConsistencyScorer();
+        const topicResult = topicScorer.calculateTopicConsistency({
+          embeddings: fragmentEmbeddings,
+          fragmentIds: pipelineFragmentIds,
+        });
+        analysis_data.topic_consistency_score = topicResult;
+      } catch (topicError) {
+        console.error('[CLAVI] Topic consistency scoring failed (non-blocking):', topicError);
+      }
+    }
+
+    // 10.3. Content Improvement Advisor
+    if (analysis_data.topic_consistency_score && fragmentTexts.length > 0) {
+      try {
+        const advisor = new ContentImprovementAdvisor();
+        const fragmentAnalyses = fragmentTexts.map((f, i) => ({
+          fragment_id: f.fragment_id,
+          title: f.title,
+          content: f.content,
+          similarity_to_centroid: analysis_data.topic_consistency_score.deviations[i]?.similarityToCentroid ?? 0,
+        }));
+        const improvementReport = advisor.generateImprovementProposals(fragmentAnalyses);
+        analysis_data.improvement_proposals = improvementReport;
+      } catch (adviceError) {
+        console.error('[CLAVI] Content improvement advice failed (non-blocking):', adviceError);
+      }
+    }
+
+    // 10.4. Semantic Analyzer
+    if (fragmentEmbeddings.length > 0 && pipelineFragmentIds.length > 0) {
+      try {
+        const semanticAnalyzer = new SemanticAnalyzer();
+        const similarityMatrix = semanticAnalyzer.buildSimilarityMatrix({
+          embeddings: fragmentEmbeddings,
+          fragmentIds: pipelineFragmentIds,
+        });
+        const stats = semanticAnalyzer.getSimilarityStatistics(similarityMatrix.matrix);
+        const mostSimilar = semanticAnalyzer.getMostSimilarPairs({ matrix: similarityMatrix, topK: 5 });
+        const leastSimilar = semanticAnalyzer.getLeastSimilarPairs({ matrix: similarityMatrix, topK: 5 });
+
+        analysis_data.semantic_summary = {
+          statistics: stats,
+          mostSimilarPairs: mostSimilar,
+          leastSimilarPairs: leastSimilar,
+        };
+      } catch (semanticError) {
+        console.error('[CLAVI] Semantic analysis failed (non-blocking):', semanticError);
+      }
+    }
+
+    // 10.5. Recalculate AI structure score with pipeline results & update DB
+    if (analysis_data.topic_consistency_score || analysis_data.improvement_proposals || analysis_data.semantic_summary) {
+      try {
+        const updatedScore = calculateAiStructureScore(crawlResult, {
+          topicConsistency: analysis_data.topic_consistency_score,
+          semanticSummary: analysis_data.semantic_summary,
+        });
+
+        await supabase
+          .from('clavi_client_analyses')
+          .update({ analysis_data, ai_structure_score: updatedScore })
+          .eq('id', newAnalysis.id)
+          .eq('tenant_id', tenant_id);
+      } catch (updateError) {
+        console.error('[CLAVI] Analysis data update failed (non-blocking):', updateError);
+      }
+    }
+
+    // 10.6. Internal Link Optimizer (requires data already saved to DB)
+    try {
+      const linkOptimizer = new InternalLinkOptimizer();
+      const linkMatrix = await linkOptimizer.buildInternalLinkMatrix({
+        tenant_id,
+        analysis_id: newAnalysis.id,
+        top_k: 5,
+      });
+
+      // Convert Map to serializable object
+      const linkRecommendations: Record<string, any> = {};
+      linkMatrix.matrix.forEach((value, key) => {
+        linkRecommendations[key] = value;
+      });
+
+      analysis_data.link_recommendations = {
+        recommendations: linkRecommendations,
+        totalFragments: linkMatrix.totalFragments,
+        report: linkOptimizer.generateOptimizationReport(linkMatrix.matrix),
+      };
+
+      // Update DB with link recommendations
+      await supabase
+        .from('clavi_client_analyses')
+        .update({ analysis_data })
+        .eq('id', newAnalysis.id)
+        .eq('tenant_id', tenant_id);
+    } catch (linkError) {
+      console.error('[CLAVI] Internal link optimization failed (non-blocking):', linkError);
     }
 
     const processingTime = Date.now() - startTime;
@@ -611,9 +735,16 @@ function extractCompanyName(crawlResult: any): string | null {
  * AI構造化スコアを計算
  *
  * @param crawlResult - クロール結果
+ * @param options - Optional pipeline analysis results
  * @returns スコア（0-100）
  */
-function calculateAiStructureScore(crawlResult: any): number {
+function calculateAiStructureScore(
+  crawlResult: any,
+  options?: {
+    topicConsistency?: { score: number };
+    semanticSummary?: { statistics: { mean: number } };
+  }
+): number {
   let score = 0;
 
   // メタデータの充実度（最大30点）
@@ -648,6 +779,16 @@ function calculateAiStructureScore(crawlResult: any): number {
   // エンティティ（最大10点）
   if (crawlResult.entities.length >= 5) score += 5;
   if (crawlResult.entities.length >= 10) score += 5;
+
+  // Topic Consistency bonus (5-10 points)
+  if (options?.topicConsistency && options.topicConsistency.score > 70) {
+    score += options.topicConsistency.score >= 85 ? 10 : 5;
+  }
+
+  // Semantic Coherence bonus (5 points)
+  if (options?.semanticSummary && options.semanticSummary.statistics.mean > 0.6) {
+    score += 5;
+  }
 
   return Math.min(score, 100);
 }

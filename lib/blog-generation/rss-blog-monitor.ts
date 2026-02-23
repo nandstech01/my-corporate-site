@@ -297,5 +297,37 @@ export async function runBlogRSSMonitor(): Promise<void> {
     }
   }
 
+  // Blog auto-generation: evaluate high-buzz topics with AI Judge
+  try {
+    const { data: judgeCandidates } = await supabase
+      .from('blog_topic_queue')
+      .select('*')
+      .gte('buzz_score', 45)
+      .is('judge_action', null)
+      .in('status', ['new', 'notified'])
+      .order('buzz_score', { ascending: false })
+      .limit(3)
+
+    if (judgeCandidates && judgeCandidates.length > 0) {
+      process.stdout.write(`Blog RSS Monitor: ${judgeCandidates.length} topic(s) for AI Judge evaluation\n`)
+
+      const { evaluateAndAutoApproveBlog } = await import('../ai-judge/blog-judge')
+
+      for (const topic of judgeCandidates) {
+        try {
+          const approved = await evaluateAndAutoApproveBlog(topic)
+          process.stdout.write(
+            `Blog RSS Monitor: AI Judge ${approved ? 'approved' : 'declined'} "${topic.source_title}" (buzz: ${topic.buzz_score})\n`,
+          )
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : 'unknown'
+          process.stdout.write(`Blog RSS Monitor: AI Judge error for "${topic.source_title}": ${msg}\n`)
+        }
+      }
+    }
+  } catch {
+    // Best-effort: blog auto-generation failure should not break RSS monitor
+  }
+
   process.stdout.write('Blog RSS Monitor: Complete\n')
 }

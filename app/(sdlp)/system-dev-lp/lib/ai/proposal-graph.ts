@@ -62,11 +62,29 @@ function createModel() {
       model: 'claude-sonnet-4-5-20250929',
       temperature: 0.3,
       apiKey: process.env.ANTHROPIC_API_KEY,
+      maxRetries: 2,
     })
   }
   return new ChatOpenAI({
     modelName: 'gpt-5.2',
     apiKey: process.env.OPENAI_API_KEY,
+    maxRetries: 2,
+  })
+}
+
+function createLightModel() {
+  if (process.env.ANTHROPIC_API_KEY) {
+    return new ChatAnthropic({
+      model: 'claude-haiku-4-5-20251001',
+      temperature: 0.2,
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      maxRetries: 2,
+    })
+  }
+  return new ChatOpenAI({
+    modelName: 'gpt-4o-mini',
+    apiKey: process.env.OPENAI_API_KEY,
+    maxRetries: 2,
   })
 }
 
@@ -83,7 +101,7 @@ async function analyzeRequirements(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
   const config = getServiceConfig(state.serviceType)
-  const model = createModel()
+  const model = createLightModel()
 
   const response = await model.invoke([
     { role: 'system' as const, content: config.prompts.requirementsAnalysis },

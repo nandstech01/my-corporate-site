@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FileText, FileCheck, Download } from 'lucide-react'
+import { FileText, FileCheck } from 'lucide-react'
 
 const deliverables = [
   {
@@ -96,13 +96,6 @@ export default function SDLPDeliverables() {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="flex items-center gap-2 text-sm font-medium text-sdlp-primary hover:text-sdlp-primary-hover transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                サンプルを見る
-              </button>
             </motion.div>
           ))}
         </div>

@@ -9,7 +9,9 @@
  * 3. 高パフォーマンス投稿の特徴を slack_bot_memory に保存
  */
 
+import { createClient } from '@supabase/supabase-js'
 import { getTwitterClient, isTwitterConfigured } from '@/lib/x-api/client'
+import { notifyLearningEvent } from '../../ai-judge/slack-notifier'
 import {
   getRecentTweetIds,
   updatePostEngagement,
@@ -76,6 +78,33 @@ function identifyHighPerformers(
   })
 }
 
+function identifyLowPerformers(
+  results: readonly {
+    tweetId: string
+    postText: string
+    metrics: TweetMetrics
+  }[],
+): readonly {
+  tweetId: string
+  postText: string
+  metrics: TweetMetrics
+}[] {
+  if (results.length === 0) return []
+
+  const avgEngagement =
+    results.reduce(
+      (sum, r) =>
+        sum + r.metrics.likes + r.metrics.retweets + r.metrics.replies,
+      0,
+    ) / results.length
+
+  return results.filter((r) => {
+    const engagement =
+      r.metrics.likes + r.metrics.retweets + r.metrics.replies
+    return engagement < avgEngagement * 0.5
+  })
+}
+
 async function runXEngagementLearner(): Promise<void> {
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
   if (!userId) {
@@ -138,6 +167,94 @@ async function runXEngagementLearner(): Promise<void> {
       importance,
     })
   }
+
+  // Negative learning: identify low performers
+  const lowPerformers = identifyLowPerformers(results)
+
+  for (const lp of lowPerformers) {
+    await saveMemory({
+      slackUserId: userId,
+      memoryType: 'feedback',
+      content: `Low performing X post (${lp.metrics.likes} likes, ${lp.metrics.retweets} RT, ${lp.metrics.impressions} imp). Text preview: "${lp.postText.slice(0, 80)}...". Length: ${lp.postText.length} chars. Avoid similar patterns.`,
+      context: {
+        tweetId: lp.tweetId,
+        metrics: lp.metrics,
+        platform: 'x',
+        sentiment: 'negative',
+      },
+      importance: 0.7,
+    })
+  }
+
+  // Update ai_judge_decisions actual engagement for prediction tracking
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseKey) throw new Error('Supabase env vars missing')
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    for (const r of results) {
+      await supabase
+        .from('ai_judge_decisions')
+        .update({
+          actual_engagement: {
+            likes: r.metrics.likes,
+            retweets: r.metrics.retweets,
+            replies: r.metrics.replies,
+            impressions: r.metrics.impressions,
+          },
+          engagement_fetched_at: new Date().toISOString(),
+        })
+        .eq('post_id', r.tweetId)
+        .eq('platform', 'x')
+    }
+  } catch { /* best-effort */ }
+
+  // Record learning pipeline events
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseKey) throw new Error('Supabase env vars missing')
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    for (const hp of highPerformers) {
+      await supabase.from('learning_pipeline_events').insert({
+        event_type: 'high_performer',
+        platform: 'x',
+        post_id: hp.tweetId,
+        data: {
+          metrics: hp.metrics,
+          textPreview: hp.postText.slice(0, 100),
+        },
+      })
+    }
+    for (const lp of lowPerformers) {
+      await supabase.from('learning_pipeline_events').insert({
+        event_type: 'low_performer',
+        platform: 'x',
+        post_id: lp.tweetId,
+        data: {
+          metrics: lp.metrics,
+          textPreview: lp.postText.slice(0, 100),
+        },
+      })
+    }
+  } catch { /* best-effort */ }
+
+  // Notify #general about learning results
+  if (highPerformers.length > 0 || lowPerformers.length > 0) {
+    try {
+      await notifyLearningEvent({
+        eventType: highPerformers.length > 0 ? 'high_performer' : 'low_performer',
+        summary: `X学習完了: ${results.length}件分析、${highPerformers.length}件高パフォーマンス、${lowPerformers.length}件低パフォーマンス`,
+        details: {
+          totalAnalyzed: results.length,
+          highPerformers: highPerformers.length,
+          lowPerformers: lowPerformers.length,
+        },
+      })
+    } catch { /* best-effort */ }
+  }
 }
 
 export async function runEngagementLearner(): Promise<void> {
@@ -153,5 +270,14 @@ export async function runEngagementLearner(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     process.stdout.write(`LinkedIn engagement learner failed: ${message}\n`)
+  }
+
+  // L4: Post-publish anomaly monitoring
+  try {
+    const { runPostPublishMonitor } = await import('../../safety/post-publish-monitor')
+    await runPostPublishMonitor('x')
+    await runPostPublishMonitor('linkedin')
+  } catch {
+    // Best-effort: L4 failure should not break engagement learner
   }
 }

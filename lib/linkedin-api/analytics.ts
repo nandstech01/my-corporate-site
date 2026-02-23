@@ -56,24 +56,37 @@ async function fetchSingleMetric(
     })
 
     if (response.status === 403) {
+      const body = await response.text().catch(() => '(unreadable)')
       process.stdout.write(
-        `LinkedIn Analytics: 403 for ${queryType} — r_member_postAnalytics scope may be missing\n`,
+        `LinkedIn Analytics: 403 for ${queryType} — r_member_postAnalytics scope may be missing\n  response: ${body.slice(0, 500)}\n`,
       )
       return 0
     }
 
     if (!response.ok) {
+      const body = await response.text().catch(() => '(unreadable)')
       process.stdout.write(
-        `LinkedIn Analytics: ${response.status} for ${queryType}\n`,
+        `LinkedIn Analytics: ${response.status} for ${queryType}\n  response: ${body.slice(0, 500)}\n`,
       )
       return 0
     }
 
     const data = await response.json()
     const elements = data?.elements ?? []
-    if (elements.length === 0) return 0
+    if (elements.length === 0) {
+      process.stdout.write(
+        `LinkedIn Analytics: empty elements for ${queryType} (${shareUrn})\n  full response: ${JSON.stringify(data).slice(0, 500)}\n`,
+      )
+      return 0
+    }
 
-    return elements[0]?.totalCount ?? elements[0]?.total ?? 0
+    const value = elements[0]?.totalCount ?? elements[0]?.total ?? 0
+    if (value === 0) {
+      process.stdout.write(
+        `LinkedIn Analytics: value=0 for ${queryType}, element keys: ${Object.keys(elements[0]).join(', ')}\n`,
+      )
+    }
+    return value
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     process.stdout.write(
@@ -90,6 +103,12 @@ export async function fetchLinkedInPostMetrics(
 ): Promise<LinkedInPostMetrics | null> {
   if (!isLinkedInAnalyticsConfigured()) return null
 
+  // li_1708531200000 のようなフォールバックIDをスキップ
+  if (!postId || !/^\d+$/.test(postId)) {
+    process.stdout.write(`LinkedIn Analytics: skipping invalid post ID '${postId}'\n`)
+    return null
+  }
+
   const accessToken = process.env.LINKEDIN_ACCESS_TOKEN!
   const shareUrn = `urn:li:share:${postId}`
 
@@ -99,6 +118,10 @@ export async function fetchLinkedInPostMetrics(
     fetchSingleMetric(shareUrn, 'RESHARE', accessToken),
     fetchSingleMetric(shareUrn, 'IMPRESSION', accessToken),
   ])
+
+  if (reactions === 0 && comments === 0 && reshares === 0 && impressions === 0) {
+    process.stdout.write(`LinkedIn Analytics WARNING: all metrics 0 for ${shareUrn}\n`)
+  }
 
   return { reactions, comments, reshares, impressions }
 }

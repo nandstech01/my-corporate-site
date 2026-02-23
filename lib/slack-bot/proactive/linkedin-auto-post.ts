@@ -14,6 +14,8 @@ import { createPendingAction, getRecentlyPostedSourceUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateLinkedInPost } from '../../linkedin-post-generation/linkedin-graph'
 import { linkedInTemplates } from '../../linkedin-post-generation/linkedin-templates'
+import { isAiJudgeEnabled } from '../../ai-judge/config'
+import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 import { getLinkedInLearnings } from './linkedin-learnings'
 
@@ -202,7 +204,7 @@ export async function runLinkedInAutoPost(): Promise<void> {
     ),
   )
 
-  // 4. 生成成功した投稿ごとに承認ブロック付きで Slack 送信
+  // 4. 生成成功した投稿ごとに AI Judge 自動投稿 or 承認ブロック付きで Slack 送信
   let sentCount = 0
 
   for (let i = 0; i < postResults.length; i++) {
@@ -218,7 +220,26 @@ export async function runLinkedInAutoPost(): Promise<void> {
     const post = result.value
 
     try {
-      // pending action を作成
+      // AI Judge 自動投稿モード
+      if (isAiJudgeEnabled()) {
+        const aiResult = await autoResolvePost({
+          platform: 'linkedin',
+          text: post.finalPost,
+          sourceUrl: candidate.sourceUrl,
+          sourceTitle: candidate.title,
+          patternUsed: post.patternUsed,
+          tags: [...post.tags],
+        })
+        if (aiResult.success) {
+          sentCount++
+        }
+        process.stdout.write(
+          `LinkedIn auto-post (AI Judge): candidate ${i + 1} "${candidate.title}" → ${aiResult.success ? 'posted' : 'rejected'}\n`,
+        )
+        continue
+      }
+
+      // レガシー: pending action + Slack 承認フロー
       const action = await createPendingAction({
         slackChannelId: channel,
         slackUserId: userId,
@@ -314,7 +335,7 @@ export async function runLinkedInAutoPost(): Promise<void> {
     })
   } else {
     process.stdout.write(
-      `LinkedIn auto-post: ${sentCount} approval requests sent\n`,
+      `LinkedIn auto-post: ${sentCount} ${isAiJudgeEnabled() ? 'auto-posts' : 'approval requests'} sent\n`,
     )
   }
 }

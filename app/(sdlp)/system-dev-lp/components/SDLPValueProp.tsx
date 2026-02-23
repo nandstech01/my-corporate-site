@@ -8,7 +8,7 @@ import { SdlpValuePropPlayer } from '@/components/sdlp/SdlpValuePropPlayer'
 const badges = [
   { icon: Award, label: '開発実績500件以上', color: 'text-sdlp-primary' },
   { icon: Clock, label: 'AI活用で最短1ヶ月納品', color: 'text-sdlp-accent' },
-  { icon: Shield, label: 'AI品質保証付き', color: 'text-green-500' },
+  { icon: Shield, label: '納品後1ヶ月無料修正保証', color: 'text-green-500' },
 ]
 
 const fadeInUp = {

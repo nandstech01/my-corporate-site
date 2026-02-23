@@ -29,4 +29,9 @@ export interface MlTrainResult {
   readonly rmse: number
   readonly skipped: boolean
   readonly reason?: string
+  // Phase 2: Forward validation metrics
+  readonly validationMae?: number
+  readonly validationRmse?: number
+  readonly validationSize?: number
+  readonly holdoutDays?: number
 }

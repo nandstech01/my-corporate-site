@@ -8,6 +8,13 @@ import type { Block, KnownBlock } from '@slack/types'
 type SlackBlock = Block | KnownBlock
 
 // ============================================================
+// Channel constants
+// ============================================================
+
+export const SLACK_GENERAL_CHANNEL_ID =
+  process.env.SLACK_GENERAL_CHANNEL_ID || process.env.SLACK_DEFAULT_CHANNEL || ''
+
+// ============================================================
 // Client
 // ============================================================
 

@@ -211,6 +211,8 @@ export async function recallMemories(params: {
 }): Promise<readonly SlackBotMemory[]> {
   const supabase = getSupabase()
   const limit = params.limit ?? 10
+  // Fetch extra to allow re-ranking
+  const fetchLimit = Math.min(limit * 3, 50)
 
   let query = supabase
     .from('slack_bot_memory')
@@ -218,7 +220,7 @@ export async function recallMemories(params: {
     .eq('slack_user_id', params.slackUserId)
     .order('importance', { ascending: false })
     .order('last_accessed_at', { ascending: false })
-    .limit(limit)
+    .limit(fetchLimit)
 
   if (params.memoryType) {
     query = query.eq('memory_type', params.memoryType)
@@ -234,9 +236,34 @@ export async function recallMemories(params: {
     throw new Error(`Failed to recall memories: ${error.message}`)
   }
 
+  const memories = (data ?? []) as SlackBotMemory[]
+
+  // Weighted re-ranking: importance * 0.4 + validation_score * 0.3 + recency * 0.3
+  const now = Date.now()
+  const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+  const scored = memories.map((m) => {
+    const importance = m.importance ?? 0.5
+    const validationScore = (m as any).validation_score ?? 0
+    const lastAccessed = m.last_accessed_at
+      ? new Date(m.last_accessed_at).getTime()
+      : new Date(m.created_at).getTime()
+    const age = now - lastAccessed
+    const recencyBonus = Math.max(0, 1 - age / maxAge)
+
+    const weightedScore =
+      importance * 0.4 + validationScore * 0.3 + recencyBonus * 0.3
+    return { memory: m, weightedScore }
+  })
+
+  const ranked = [...scored]
+    .sort((a, b) => b.weightedScore - a.weightedScore)
+    .slice(0, limit)
+    .map((s) => s.memory)
+
   // Update last_accessed_at for returned memories
-  if (data && data.length > 0) {
-    const ids = data.map((m) => m.id)
+  if (ranked.length > 0) {
+    const ids = ranked.map((m) => m.id)
     await supabase
       .from('slack_bot_memory')
       .update({
@@ -245,7 +272,7 @@ export async function recallMemories(params: {
       .in('id', ids)
   }
 
-  return (data ?? []) as readonly SlackBotMemory[]
+  return ranked as readonly SlackBotMemory[]
 }
 
 // ============================================================

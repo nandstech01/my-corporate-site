@@ -9,6 +9,11 @@ import ScoreBar from '@/components/clavi/ScoreBar';
 import JsonViewer from '@/components/clavi/JsonViewer';
 import { createClient } from '@/lib/supabase/browser';
 import { useClaviTheme } from '@/app/clavi/context';
+import ImprovementProposals from './ImprovementProposals';
+import TopicConsistency from './TopicConsistency';
+import LinkRecommendations from './LinkRecommendations';
+import JsonLdDeploy from './JsonLdDeploy';
+import WordPressGuide from './WordPressGuide';
 
 interface AnalysisDetail {
   id: string;
@@ -519,6 +524,44 @@ export default function AnalysisDetailPage() {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {/* 改善提案 */}
+      {analysis.status === 'completed' && (
+        <ImprovementProposals
+          data={analysis.analysis_data?.improvement_proposals}
+          isDark={isDark}
+        />
+      )}
+
+      {/* トピック一貫性 */}
+      {analysis.status === 'completed' && (
+        <TopicConsistency
+          data={analysis.analysis_data?.topic_consistency_score}
+          isDark={isDark}
+        />
+      )}
+
+      {/* 内部リンク推奨 */}
+      {analysis.status === 'completed' && (
+        <LinkRecommendations
+          data={analysis.analysis_data?.link_recommendations}
+          isDark={isDark}
+        />
+      )}
+
+      {/* JSON-LD デプロイ */}
+      {analysis.status === 'completed' && (
+        <JsonLdDeploy
+          structuredData={analysis.analysis_data?.structured_data || analysis.structured_data}
+          mergeReport={analysis.analysis_data?.merge_report}
+          isDark={isDark}
+        />
+      )}
+
+      {/* WordPress プラグインガイド */}
+      {analysis.status === 'completed' && (
+        <WordPressGuide isDark={isDark} />
       )}
 
       {/* 生データ（開発用） */}

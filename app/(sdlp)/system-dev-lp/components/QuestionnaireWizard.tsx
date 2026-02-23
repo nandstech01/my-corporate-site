@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, SkipForward, Mail, Mic, MicOff } from 'lucide-react'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
@@ -11,13 +11,28 @@ import CheckboxGroup from './CheckboxGroup'
 import ProposalLoading from './ProposalLoading'
 import ProposalTeaser from './ProposalTeaser'
 import EmailGate from './EmailGate'
-import ProposalFull from './ProposalFull'
-import ProposalChat from './ProposalChat'
+import dynamic from 'next/dynamic'
+
+const ProposalFull = dynamic(() => import('./ProposalFull'), {
+  loading: () => <div className="animate-pulse bg-sdlp-border rounded-2xl h-96 w-full max-w-2xl mx-auto" />,
+})
+const ProposalChat = dynamic(() => import('./ProposalChat'), {
+  loading: () => <div className="animate-pulse bg-sdlp-border rounded-2xl h-96 w-full max-w-2xl mx-auto" />,
+})
 import { SERVICE_CONFIGS } from '@/lib/services/config'
 import { calculateEstimate, formatPrice } from '../lib/estimateCalculator'
 import type { ServiceType } from '@/lib/services/types'
 import type { EstimateResult } from '../lib/types'
 import type { ProposalResult } from '../lib/ai/types'
+import {
+  trackQuestionnaireStart,
+  trackStepComplete,
+  trackStepSkip,
+  trackProposalGenerated,
+  trackEmailSubmitted,
+  trackEmailSkipped,
+  trackChatStarted,
+} from '../lib/analytics'
 
 interface QuestionnaireWizardProps {
   serviceType?: ServiceType
@@ -73,6 +88,19 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
 
   const { isListening, isSupported, transcript, startListening, stopListening } =
     useSpeechRecognition(handleVoiceResult)
+
+  // Track questionnaire start and capture UTM params on mount
+  useEffect(() => {
+    trackQuestionnaireStart(serviceType)
+
+    const params = new URLSearchParams(window.location.search)
+    const utmSource = params.get('utm_source')
+    const utmMedium = params.get('utm_medium')
+    const utmCampaign = params.get('utm_campaign')
+    if (utmSource) sessionStorage.setItem('sdlp_utm_source', utmSource)
+    if (utmMedium) sessionStorage.setItem('sdlp_utm_medium', utmMedium)
+    if (utmCampaign) sessionStorage.setItem('sdlp_utm_campaign', utmCampaign)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getFieldValue = useCallback(
     (field: string): unknown => {
@@ -141,6 +169,7 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
         const data = await response.json()
 
         if (data.success && data.proposal) {
+          trackProposalGenerated(serviceType, data.generationTimeMs ?? 0, data.proposal?.complexityTier ?? 'M')
           setProposal(data.proposal)
           setPhase('teaser')
         } else {
@@ -154,12 +183,13 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
   )
 
   const handleNext = useCallback(() => {
+    trackStepComplete(currentStep, step?.field ?? '', serviceType)
     if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1)
     } else {
       startProposalGeneration(answers)
     }
-  }, [currentStep, totalSteps, answers, startProposalGeneration])
+  }, [currentStep, totalSteps, answers, startProposalGeneration, step, serviceType])
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
@@ -169,15 +199,22 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
 
   const handleSkip = useCallback(() => {
     if (step?.skippable) {
+      trackStepSkip(currentStep, step?.field ?? '')
       handleNext()
     }
-  }, [step, handleNext])
+  }, [step, handleNext, currentStep])
 
   const handleEmailSubmit = useCallback(
     async (email: string) => {
+      trackEmailSubmitted(serviceType, proposal?.leadScoring?.tier)
       const updatedAnswers = { ...answers, email }
       setAnswers(updatedAnswers)
       setSubmitting(true)
+
+      const utmSource = sessionStorage.getItem('sdlp_utm_source')
+      const utmMedium = sessionStorage.getItem('sdlp_utm_medium')
+      const utmCampaign = sessionStorage.getItem('sdlp_utm_campaign')
+
       try {
         await fetch('/api/system-dev-lead', {
           method: 'POST',
@@ -190,6 +227,9 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
             estimatedDuration: estimate?.estimatedDuration,
             leadScore: proposal?.leadScoring?.score,
             leadTier: proposal?.leadScoring?.tier,
+            ...(utmSource && { utmSource }),
+            ...(utmMedium && { utmMedium }),
+            ...(utmCampaign && { utmCampaign }),
           }),
         })
       } catch {
@@ -203,16 +243,18 @@ export default function QuestionnaireWizard({ serviceType = 'custom-dev' }: Ques
   )
 
   const handleEmailSkip = useCallback(() => {
+    trackEmailSkipped(serviceType)
     setPhase('proposal')
-  }, [])
+  }, [serviceType])
 
   const handleUnlockTeaser = useCallback(() => {
     setPhase('email')
   }, [])
 
   const handleStartChat = useCallback(() => {
+    trackChatStarted(serviceType)
     setPhase('chat')
-  }, [])
+  }, [serviceType])
 
   const handleBackToProposal = useCallback(() => {
     setPhase('proposal')

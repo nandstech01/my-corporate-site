@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
-  title: 'AI搭載システム開発 | 株式会社エヌアンドエス',
+  title: 'AI搭載システム開発・ホームページ制作 | 費用70%OFF | 株式会社エヌアンドエス',
   description:
-    'AI実装の業務システム開発を圧倒的コスパで。ChatGPT連携・AIチャットボット・データ分析自動化など、要件定義から納品まで一貫対応。無料シミュレーションで今すぐ概算見積もりを確認できます。',
+    'ホームページ10万円〜、AI搭載システム80万円〜。無料AIシミュレーションで概算費用を即確認。500件以上の開発実績。IT導入補助金対応で最大50%補助。要件定義から納品まで一貫対応。',
   openGraph: {
-    title: 'AI搭載システム開発 | 株式会社エヌアンドエス',
+    title: 'AI搭載システム開発・ホームページ制作 | 費用70%OFF | 株式会社エヌアンドエス',
     description:
-      'AI実装の業務システム開発を圧倒的コスパで。ChatGPT連携からRAG構築まで一貫対応。',
+      'ホームページ10万円〜、AI搭載システム80万円〜。無料AIシミュレーションで概算費用を即確認。500件以上の開発実績。',
     url: 'https://nands.tech/system-dev-lp',
     siteName: '株式会社エヌアンドエス',
     locale: 'ja_JP',
@@ -16,9 +17,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI搭載システム開発 | 株式会社エヌアンドエス',
+    title: 'AI搭載システム開発・ホームページ制作 | 費用70%OFF | 株式会社エヌアンドエス',
     description:
-      'AI実装の業務システム開発を圧倒的コスパで。無料シミュレーションで今すぐAI込みの概算見積もりを確認。',
+      'ホームページ10万円〜、AI搭載システム80万円〜。無料AIシミュレーションで概算費用を即確認。IT導入補助金対応で最大50%補助。',
   },
   robots: {
     index: true,
@@ -44,6 +45,17 @@ export default function SDLPLayout({ children }: { children: ReactNode }) {
         }}
       />
       {children}
+
+      {/* Meta Pixel */}
+      <Script id="meta-pixel" strategy="afterInteractive">
+        {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','XXXXXXXXXXXXXXXXX');fbq('track','PageView');`}
+      </Script>
+
+      {/* Google Ads Remarketing */}
+      <Script src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXXXX" strategy="afterInteractive" />
+      <Script id="google-ads" strategy="afterInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','AW-XXXXXXXXXXX');`}
+      </Script>
     </>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useClaviTheme } from '@/app/clavi/context'
 import {
@@ -10,7 +10,48 @@ import {
   Clock,
   ChevronDown,
   Zap,
+  Copy,
+  Check,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react'
+
+interface Analysis {
+  id: string
+  url: string
+  company_name: string | null
+  ai_structure_score: number | null
+  status: string
+  created_at: string
+}
+
+interface SnsDraft {
+  x: string
+  linkedin: string
+}
+
+function generateDrafts(analysis: Analysis): SnsDraft {
+  const name = analysis.company_name || new URL(analysis.url).hostname
+  const score = analysis.ai_structure_score ?? 0
+  const shortUrl = analysis.url.length > 40 ? analysis.url.slice(0, 37) + '...' : analysis.url
+
+  const xDraft =
+    score >= 70
+      ? `${name}のAI構造スコアは${score}/100。AI検索時代の準備は万全です。 #CLAVI #AI検索最適化`
+      : `${name}のAI構造スコアは${score}/100。改善の余地あり。CLAVIで最適化を始めましょう。 #CLAVI #SEO`
+
+  const linkedinDraft =
+    `【AI検索最適化レポート】\n\n` +
+    `${name} (${shortUrl}) のAI構造スコア分析が完了しました。\n\n` +
+    `スコア: ${score}/100\n` +
+    (score >= 70
+      ? `高いスコアを記録しています。ChatGPT、Gemini、Perplexityなどのai検索エンジンに対して優れた構造を持っています。\n\n`
+      : `改善の余地があります。JSON-LD構造化データの追加やセマンティックマークアップの最適化で、AIクローラーからの認識度を高められます。\n\n`) +
+    `CLAVIは、従来のSEOだけでなくAI検索エンジン向けのコンテンツ最適化をサポートするSaaSです。\n\n` +
+    `#AI検索最適化 #CLAVI #SEO #構造化データ`
+
+  return { x: xDraft, linkedin: linkedinDraft }
+}
 
 const platforms = [
   {
@@ -89,6 +130,49 @@ export default function SnsPage() {
   const [scheduleAll, setScheduleAll] = useState(true)
   const [autoPost, setAutoPost] = useState(false)
 
+  const [analyses, setAnalyses] = useState<Analysis[]>([])
+  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null)
+  const [drafts, setDrafts] = useState<SnsDraft | null>(null)
+  const [loadingAnalyses, setLoadingAnalyses] = useState(true)
+  const [analysesError, setAnalysesError] = useState<string | null>(null)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [showSelector, setShowSelector] = useState(false)
+
+  const fetchAnalyses = useCallback(async () => {
+    setAnalysesError(null)
+    try {
+      const res = await fetch('/api/clavi/analyses?status=completed&limit=50')
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      setAnalyses(data.analyses || [])
+    } catch {
+      setAnalysesError('分析データの取得に失敗しました。')
+    } finally {
+      setLoadingAnalyses(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchAnalyses()
+  }, [fetchAnalyses])
+
+  const handleSelectAnalysis = (analysis: Analysis) => {
+    setSelectedAnalysis(analysis)
+    setDrafts(generateDrafts(analysis))
+    setShowSelector(false)
+    setCopiedField(null)
+  }
+
+  const handleCopy = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedField(field)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch {
+      // Clipboard failed silently
+    }
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col overflow-y-auto">
       {/* Header */}
@@ -123,23 +207,85 @@ export default function SnsPage() {
               border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
             }}
           >
-            <div
-              className="flex-1 flex items-center gap-3 px-4 py-2 rounded-lg"
-              style={{
-                background: isDark ? '#102023' : '#F8FAFC',
-                border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
-              }}
-            >
-              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
-                Source
-              </span>
-              <div className="h-4 w-px" style={{ background: isDark ? '#224249' : '#E2E8F0' }} />
-              <span className="text-xs font-medium flex-1" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
-                AI Trends in 2026: The Generative Shift
-              </span>
-              <ChevronDown className="w-4 h-4" style={{ color: isDark ? '#56737a' : '#94A3B8' }} />
+            <div className="relative flex-1">
+              <button
+                onClick={() => setShowSelector(!showSelector)}
+                className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left"
+                style={{
+                  background: isDark ? '#102023' : '#F8FAFC',
+                  border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+                }}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                  Source
+                </span>
+                <div className="h-4 w-px" style={{ background: isDark ? '#224249' : '#E2E8F0' }} />
+                <span className="text-xs font-medium flex-1 truncate" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+                  {loadingAnalyses ? (
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      読み込み中...
+                    </span>
+                  ) : selectedAnalysis ? (
+                    selectedAnalysis.company_name || selectedAnalysis.url
+                  ) : (
+                    '分析を選択してください'
+                  )}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showSelector ? 'rotate-180' : ''}`} style={{ color: isDark ? '#56737a' : '#94A3B8' }} />
+              </button>
+
+              {showSelector && (
+                <div
+                  className="absolute top-full left-0 right-0 mt-1 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto"
+                  style={{
+                    background: isDark ? '#182f34' : '#FFFFFF',
+                    border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+                  }}
+                >
+                  {analysesError ? (
+                    <div className="px-4 py-3 text-xs flex items-center gap-2" style={{ color: '#EF4444' }}>
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {analysesError}
+                    </div>
+                  ) : analyses.length === 0 ? (
+                    <div className="px-4 py-3 text-xs" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                      完了した分析がありません
+                    </div>
+                  ) : (
+                    analyses.map((a) => (
+                      <button
+                        key={a.id}
+                        onClick={() => handleSelectAnalysis(a)}
+                        className="w-full text-left px-4 py-2.5 hover:opacity-80 transition-opacity"
+                        style={{
+                          borderBottom: `1px solid ${isDark ? '#224249' : '#F1F5F9'}`,
+                          background: selectedAnalysis?.id === a.id ? (isDark ? '#102023' : '#F1F5F9') : 'transparent',
+                        }}
+                      >
+                        <div className="text-xs font-medium truncate" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+                          {a.company_name || a.url}
+                        </div>
+                        <div className="text-[10px] mt-0.5 flex items-center gap-2" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+                          <span>スコア: {a.ai_structure_score ?? '-'}</span>
+                          <span>{new Date(a.created_at).toLocaleDateString('ja-JP')}</span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
-            <button className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#06B6D4] hover:bg-[#0891B2] transition-colors shadow-lg shadow-cyan-500/20 whitespace-nowrap">
+            <button
+              onClick={() => {
+                if (selectedAnalysis) {
+                  setDrafts(generateDrafts(selectedAnalysis))
+                  setCopiedField(null)
+                }
+              }}
+              disabled={!selectedAnalysis}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#06B6D4] hover:bg-[#0891B2] transition-colors shadow-lg shadow-cyan-500/20 whitespace-nowrap disabled:opacity-40"
+            >
               <Sparkles className="w-4 h-4" />
               全て再生成
             </button>
@@ -187,6 +333,132 @@ export default function SnsPage() {
           </div>
         </div>
       </div>
+
+      {/* Generated Drafts from analysis */}
+      {drafts && selectedAnalysis && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6 flex-shrink-0">
+          {/* X Draft */}
+          <div
+            className="rounded-xl p-5"
+            style={{
+              background: isDark ? '#182f34' : '#FFFFFF',
+              border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+              borderTop: '3px solid #6B7280',
+            }}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-base">𝕏</span>
+                <span className="text-sm font-bold" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+                  X (Twitter)
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                style={{
+                  background: drafts.x.length <= 280
+                    ? (isDark ? 'rgba(16,185,129,0.1)' : '#ECFDF5')
+                    : (isDark ? 'rgba(239,68,68,0.1)' : '#FEF2F2'),
+                  color: drafts.x.length <= 280 ? '#10B981' : '#EF4444',
+                }}
+              >
+                {drafts.x.length}/280
+              </span>
+            </div>
+            <div
+              className="rounded-lg p-3 text-sm mb-3 whitespace-pre-wrap"
+              style={{
+                background: isDark ? '#102023' : '#F8FAFC',
+                border: `1px solid ${isDark ? '#1e3a3f' : '#E2E8F0'}`,
+                color: isDark ? '#E2E8F0' : '#334155',
+              }}
+            >
+              {drafts.x}
+            </div>
+            <button
+              onClick={() => handleCopy(drafts.x, 'x')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: isDark ? '#102023' : '#F8FAFC',
+                border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+                color: isDark ? '#E2E8F0' : '#334155',
+              }}
+            >
+              {copiedField === 'x' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedField === 'x' ? 'コピーしました' : 'コピー'}
+            </button>
+          </div>
+
+          {/* LinkedIn Draft */}
+          <div
+            className="rounded-xl p-5"
+            style={{
+              background: isDark ? '#182f34' : '#FFFFFF',
+              border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+              borderTop: '3px solid #0077B5',
+            }}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-base">💼</span>
+                <span className="text-sm font-bold" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+                  LinkedIn
+                </span>
+              </div>
+              <span
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                style={{
+                  background: isDark ? 'rgba(16,185,129,0.1)' : '#ECFDF5',
+                  color: '#10B981',
+                }}
+              >
+                Ready
+              </span>
+            </div>
+            <div
+              className="rounded-lg p-3 text-sm mb-3 whitespace-pre-wrap max-h-40 overflow-y-auto"
+              style={{
+                background: isDark ? '#102023' : '#F8FAFC',
+                border: `1px solid ${isDark ? '#1e3a3f' : '#E2E8F0'}`,
+                color: isDark ? '#E2E8F0' : '#334155',
+              }}
+            >
+              {drafts.linkedin}
+            </div>
+            <button
+              onClick={() => handleCopy(drafts.linkedin, 'linkedin')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: isDark ? '#102023' : '#F8FAFC',
+                border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+                color: isDark ? '#E2E8F0' : '#334155',
+              }}
+            >
+              {copiedField === 'linkedin' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedField === 'linkedin' ? 'コピーしました' : 'コピー'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state when no analysis selected */}
+      {!selectedAnalysis && !loadingAnalyses && (
+        <div
+          className="rounded-xl p-8 text-center mb-6 flex-shrink-0"
+          style={{
+            background: isDark ? '#182f34' : '#FFFFFF',
+            border: `1px solid ${isDark ? '#224249' : '#E2E8F0'}`,
+          }}
+        >
+          <Sparkles className="w-8 h-8 mx-auto mb-3" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }} />
+          <p className="text-sm font-medium mb-1" style={{ color: isDark ? '#E2E8F0' : '#334155' }}>
+            分析を選択してSNS投稿を生成
+          </p>
+          <p className="text-xs" style={{ color: isDark ? '#6a8b94' : '#94A3B8' }}>
+            上のソースセレクターから完了した分析を選択すると、X/LinkedIn向けの投稿ドラフトが自動生成されます。
+          </p>
+        </div>
+      )}
 
       {/* Main: Visual Flow + Automation */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 flex-shrink-0">
@@ -483,7 +755,7 @@ export default function SnsPage() {
         </div>
       </div>
 
-      {/* Generated Drafts */}
+      {/* Generated Drafts (static cards) */}
       <div className="flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: isDark ? '#F8FAFC' : '#0F172A' }}>
