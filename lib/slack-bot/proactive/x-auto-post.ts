@@ -18,7 +18,10 @@ import { createClient } from '@supabase/supabase-js'
 import { createPendingAction, getRecentXPostTexts } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateXPost } from '../../x-post-generation/post-graph'
+import { generateQuoteTweet } from '../../x-quote-generation/quote-graph'
 import { fetchMediaForPost } from '../../x-api/media'
+import { retweetPost } from '../../x-api/client'
+import { savePostAnalytics } from '../memory'
 import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
@@ -147,6 +150,145 @@ function deduplicateCandidates(
 }
 
 // ============================================================
+// Quote RT Opportunity
+// ============================================================
+
+async function tryQuoteRTOpportunity(): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return false
+
+  const supabase = createClient(url, key)
+
+  // Find top pending opportunity
+  const { data: opportunity } = await supabase
+    .from('x_quote_opportunities')
+    .select('*')
+    .eq('status', 'pending')
+    .order('opportunity_score', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!opportunity) return false
+
+  // Mark as generating
+  await supabase
+    .from('x_quote_opportunities')
+    .update({ status: 'generating' })
+    .eq('id', opportunity.id)
+
+  try {
+    // Generate quote tweet
+    const quoteResult = await generateQuoteTweet({
+      originalTweetId: opportunity.original_tweet_id,
+      originalText: opportunity.original_text,
+      originalAuthor: opportunity.original_author_username,
+    })
+
+    // Post via AI Judge
+    const result = await autoResolvePost({
+      platform: 'x',
+      text: quoteResult.quoteText,
+      quoteTweetId: opportunity.original_tweet_id,
+      patternUsed: `quote_${quoteResult.opinionTemplateUsed}`,
+    })
+
+    if (result.success) {
+      await supabase
+        .from('x_quote_opportunities')
+        .update({
+          status: 'posted',
+          generated_quote_text: quoteResult.quoteText,
+          quote_tweet_id: result.postId,
+          posted_at: new Date().toISOString(),
+        })
+        .eq('id', opportunity.id)
+      return true
+    }
+
+    await supabase
+      .from('x_quote_opportunities')
+      .update({
+        status: 'skipped',
+        generated_quote_text: quoteResult.quoteText,
+        skip_reason: result.error ?? 'AI Judge rejected',
+      })
+      .eq('id', opportunity.id)
+    return false
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error'
+    await supabase
+      .from('x_quote_opportunities')
+      .update({ status: 'skipped', skip_reason: msg })
+      .eq('id', opportunity.id)
+    return false
+  }
+}
+
+// ============================================================
+// Repost (Retweet) Opportunity
+// ============================================================
+
+const REPOST_SCORE_THRESHOLD = 0.7
+
+async function tryRepostOpportunity(): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return false
+
+  const supabase = createClient(url, key)
+
+  // Find high-scoring pending opportunity for repost
+  const { data: opportunity } = await supabase
+    .from('x_quote_opportunities')
+    .select('*')
+    .eq('status', 'pending')
+    .gte('opportunity_score', REPOST_SCORE_THRESHOLD)
+    .order('opportunity_score', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!opportunity) return false
+
+  try {
+    const result = await retweetPost(opportunity.original_tweet_id)
+
+    if (result.success) {
+      await supabase
+        .from('x_quote_opportunities')
+        .update({
+          status: 'retweeted',
+          posted_at: new Date().toISOString(),
+        })
+        .eq('id', opportunity.id)
+
+      // Save analytics
+      try {
+        await savePostAnalytics({
+          tweetId: opportunity.original_tweet_id,
+          tweetUrl: result.tweetUrl,
+          postText: `[RT] ${opportunity.original_text.slice(0, 200)}`,
+          postType: 'repost',
+        })
+      } catch {
+        // Best-effort
+      }
+
+      process.stdout.write(
+        `X auto-post: Retweeted @${opportunity.original_author_username} (score: ${opportunity.opportunity_score.toFixed(2)})\n`,
+      )
+      return true
+    }
+
+    return false
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`X auto-post: Repost failed: ${msg}\n`)
+    return false
+  }
+}
+
+// ============================================================
 // メイン
 // ============================================================
 
@@ -164,6 +306,76 @@ export async function runXAutoPost(): Promise<void> {
 
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
+
+  // 1.5. Check for repost/quote RT opportunities
+  // Distribution: 10% repost, 25% quote RT, 10% thread (AI Judge), 55% original
+  const roll = Math.random()
+
+  if (roll < 0.10) {
+    // Try repost (retweet) for very high engagement posts
+    try {
+      const reposted = await tryRepostOpportunity()
+      if (reposted) {
+        process.stdout.write('X auto-post: Repost completed successfully\n')
+        return
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(`X auto-post: Repost attempt failed: ${msg}\n`)
+    }
+  } else if (roll < 0.35 && isAiJudgeEnabled()) {
+    // Try quote RT
+    try {
+      const quoted = await tryQuoteRTOpportunity()
+      if (quoted) {
+        process.stdout.write('X auto-post: Quote RT posted successfully\n')
+        return
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(`X auto-post: Quote RT attempt failed: ${msg}\n`)
+    }
+  } else if (roll < 0.45 && isAiJudgeEnabled()) {
+    // Try thread generation (10% probability)
+    try {
+      const threadMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
+      if (threadMemories.length > 0) {
+        const threadCandidates = extractCandidatesFromMemories(threadMemories)
+        if (threadCandidates.length > 0) {
+          const topCandidate = threadCandidates[0]
+          const postResult = await generateXPost({
+            mode: 'thread',
+            content: topCandidate.sourceBody,
+            topic: topCandidate.title,
+          })
+          const segments = postResult.finalPost
+            .split('\n===\n')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+          if (segments.length >= 2) {
+            const result = await autoResolvePost({
+              platform: 'x',
+              text: segments[0],
+              threadSegments: segments,
+              sourceUrl: topCandidate.sourceUrl,
+              sourceTitle: topCandidate.title,
+              patternUsed: postResult.patternUsed,
+              tags: postResult.tags,
+            })
+            process.stdout.write(
+              `X auto-post (thread): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+            )
+            return
+          }
+          process.stdout.write(`X auto-post: Thread had only ${segments.length} segment(s), falling through to original\n`)
+        }
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(`X auto-post: Thread attempt failed: ${msg}\n`)
+    }
+    // Falls through to original post if thread generation fails
+  }
 
   // 2. linkedin_sources メモリを取得 (LinkedIn collector が収集済みのソースを共有)
   let memories = await recallSourceMemories(userId, 'linkedin_sources', 5)

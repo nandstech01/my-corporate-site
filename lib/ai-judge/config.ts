@@ -20,6 +20,9 @@ export const AI_JUDGE_MAX_TOKENS = 1024
 /** 閾値以上のconfidenceで自動承認 */
 export const DEFAULT_CONFIDENCE_THRESHOLD = 0.75
 
+/** 引用RT用の厳格な信頼度閾値 */
+export const QUOTE_TWEET_CONFIDENCE_THRESHOLD = 0.80
+
 /** AI関連トピックの最低関連度 */
 export const TOPIC_RELEVANCE_THRESHOLD = 0.5
 
@@ -48,7 +51,7 @@ export function getCharLimits(platform: Platform): { readonly min: number; reado
 // ============================================================
 
 const DAILY_POST_LIMITS: Record<Platform, number> = {
-  x: 6,
+  x: 8,
   linkedin: 4,
   instagram: 2,
 }

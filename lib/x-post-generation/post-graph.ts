@@ -22,6 +22,16 @@ import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
 import { getTwitterWeightedLength } from '../x-api/client'
 
 // ============================================================
+// LangChain usage_metadata type helper
+// ============================================================
+
+interface LangChainUsageMetadata {
+  readonly input_tokens: number
+  readonly output_tokens: number
+  readonly total_tokens: number
+}
+
+// ============================================================
 // 型定義
 // ============================================================
 
@@ -43,7 +53,7 @@ export interface CandidateScore {
 }
 
 export interface PostGraphInput {
-  mode: 'article' | 'research'
+  mode: 'article' | 'research' | 'thread'
   content: string
   title?: string
   slug?: string
@@ -67,7 +77,7 @@ export interface PostGraphOutput {
 
 const PostGraphState = Annotation.Root({
   // 入力
-  mode: Annotation<'article' | 'research'>,
+  mode: Annotation<'article' | 'research' | 'thread'>,
   content: Annotation<string>,
   title: Annotation<string | null>({
     reducer: (_prev, next) => next,
@@ -195,8 +205,8 @@ JSONのみ出力してください:
 
   const analysis: ContentAnalysis = ContentAnalysisSchema.parse(
     JSON.parse(jsonMatch[0]),
-  )
-  const usage = response.usage_metadata
+  ) as ContentAnalysis
+  const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
   return {
     analysis,
@@ -286,10 +296,13 @@ async function generateCandidates(
   const model = createModel()
 
   const isArticle = state.mode === 'article'
+  const isThread = state.mode === 'thread'
 
   const charConstraint = isArticle
     ? '1000-2000文字の長文投稿'
-    : '日本語120文字以内の投稿（X APIはCJK文字を2カウント換算。280カウント上限のため日本語は実質140文字が限界。余裕を持って120文字以内で）'
+    : isThread
+      ? '3セグメントのスレッド（各セグメント日本語120文字以内）'
+      : '日本語120文字以内の投稿（X APIはCJK文字を2カウント換算。280カウント上限のため日本語は実質140文字が限界。余裕を持って120文字以内で）'
 
   const modeInstructions = isArticle
     ? `- 記事の内容を実務家視点で語る長文投稿を作成
@@ -297,7 +310,16 @@ async function generateCandidates(
 - 構成: 自分の経験から入る → 記事のポイントを実務家視点で解説 → 問いかけで締める
 - ハッシュタグ0-1個
 - ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
-    : `- 日本語120文字以内厳守（X APIはCJK=2カウント。280カウント上限のため日本語テキストは120文字以内で書け）
+    : isThread
+      ? `- 3セグメントのスレッドを作成
+- 各セグメントは日本語120文字以内（CJK=2カウント、280カウント上限）
+- セグメント区切りは「===」を使用
+- 1st: フック（注意を引く最重要の一言）
+- 2nd: 本論（核心情報・分析）
+- 3rd: CTA（問いかけ or アクション促進）
+- URLは入れるな
+- ハッシュタグは3rdセグメントにのみ0-1個`
+      : `- 日本語120文字以内厳守（X APIはCJK=2カウント。280カウント上限のため日本語テキストは120文字以内で書け）
 - URLは入れるな
 - [URL]や{url}プレースホルダー禁止`
 
@@ -343,7 +365,7 @@ ${bestPractices}
     .map((c) => c.trim())
     .filter((c) => c.length > 0)
 
-  const usage = response.usage_metadata
+  const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
   return {
     candidates,
@@ -414,10 +436,11 @@ JSON配列のみ出力:
       originality: 5,
       total: 25,
     }))
+    const fallbackUsage = response.usage_metadata as LangChainUsageMetadata | undefined
     return {
       scores: fallbackScores,
-      promptTokens: response.usage_metadata?.input_tokens ?? 0,
-      completionTokens: response.usage_metadata?.output_tokens ?? 0,
+      promptTokens: fallbackUsage?.input_tokens ?? 0,
+      completionTokens: fallbackUsage?.output_tokens ?? 0,
     }
   }
 
@@ -435,8 +458,8 @@ JSON配列のみ出力:
 
   const scores: CandidateScore[] = CandidateScoreSchema.parse(
     JSON.parse(jsonMatch[0]),
-  )
-  const usage = response.usage_metadata
+  ) as CandidateScore[]
+  const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
   return {
     scores,
@@ -473,8 +496,22 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
       ? `${bestCandidate}\n\n${tag}`
       : bestCandidate
 
-  // 文字数最終チェック（researchモードのみ、Twitter加重カウント使用）
+  // Thread mode: validate each segment independently
   const WEIGHTED_LIMIT = 280
+  if (state.mode === 'thread') {
+    const segments = withTag.split('===').map((s) => s.trim()).filter((s) => s.length > 0)
+    const validatedSegments = segments.map((segment) => {
+      if (getTwitterWeightedLength(segment) <= WEIGHTED_LIMIT) return segment
+      let truncated = segment
+      while (getTwitterWeightedLength(truncated) > WEIGHTED_LIMIT - 3 && truncated.length > 0) {
+        truncated = truncated.slice(0, -1)
+      }
+      return truncated + '...'
+    })
+    return { finalPost: validatedSegments.join('\n===\n') }
+  }
+
+  // 文字数最終チェック（researchモードのみ、Twitter加重カウント使用）
   if (state.mode === 'research' && getTwitterWeightedLength(withTag) > WEIGHTED_LIMIT) {
     // タグなし版が制限内ならタグを除去
     if (getTwitterWeightedLength(bestCandidate) <= WEIGHTED_LIMIT) {

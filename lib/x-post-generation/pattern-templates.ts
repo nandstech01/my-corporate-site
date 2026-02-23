@@ -97,6 +97,48 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['trend', 'company'],
     features: ['シグナル分析', '予測', '賭け'],
     generateDiagram: false
+  },
+  {
+    id: 'quote_opinion',
+    name: '引用RT意見',
+    description: '公式アカウントの投稿に対する実務家の独自意見',
+    template: `{practitioner_reaction}
+
+{unique_insight}
+
+{open_discussion}`,
+    category: 'quote',
+    dataSources: ['x_post'],
+    features: ['引用RT', '独自意見', '議論喚起'],
+    generateDiagram: false
+  },
+  {
+    id: 'thread_deep_dive',
+    name: '長文スレッド',
+    description: 'トピックを深掘りする3-5セグメントのスレッド',
+    template: `{hook_first_segment}
+===
+{core_analysis}
+===
+{cta_question}`,
+    category: 'thread',
+    dataSources: ['trend', 'company'],
+    features: ['スレッド', '深掘り', '長文分析'],
+    generateDiagram: false
+  },
+  {
+    id: 'conversation_reply',
+    name: '会話返信',
+    description: '自投稿への返信に対する会話深度構築',
+    template: `{acknowledgement}
+
+{additional_context}
+
+{follow_up_question}`,
+    category: 'conversation',
+    dataSources: ['x_post'],
+    features: ['会話', '返信', '深度構築'],
+    generateDiagram: false
   }
 ];
 

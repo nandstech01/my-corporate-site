@@ -11,7 +11,8 @@ import { isKillSwitchActive } from './emergency'
 import { judgePost } from './judge'
 import { notifyPostPublished, notifyPostRejected } from './slack-notifier'
 import type { AutoResolveResult, JudgeVerdict, Platform, PostCandidate } from './types'
-import { postTweet, replyToTweet } from '../x-api/client'
+import { postTweet, replyToTweet, quoteTweet, postThread } from '../x-api/client'
+import { QUOTE_TWEET_CONFIDENCE_THRESHOLD, getDailyPostLimit } from './config'
 import { postToLinkedIn } from '../linkedin-api/client'
 import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
 import { savePostAnalytics, saveLinkedInPostAnalytics } from '../slack-bot/memory'
@@ -99,22 +100,42 @@ async function postToX(post: PostCandidate): Promise<{
   readonly postUrl?: string
   readonly error?: string
 }> {
-  const result = await postTweet(post.text, {
-    mediaIds: post.mediaIds ? [...post.mediaIds] : undefined,
-  })
+  let result
+
+  // Branch: Quote Tweet
+  if (post.quoteTweetId) {
+    result = await quoteTweet(post.text, post.quoteTweetId)
+  }
+  // Branch: Thread
+  else if (post.threadSegments && post.threadSegments.length > 0) {
+    result = await postThread(post.threadSegments)
+  }
+  // Default: Regular tweet
+  else {
+    result = await postTweet(post.text, {
+      mediaIds: post.mediaIds ? [...post.mediaIds] : undefined,
+    })
+  }
 
   if (!result.success) {
     return { error: result.error }
   }
 
-  // Reply with source URL if available
-  if (post.sourceUrl && result.tweetId) {
+  // Reply with source URL if available (not for quote tweets which already reference source)
+  if (post.sourceUrl && result.tweetId && !post.quoteTweetId) {
     try {
       await replyToTweet(post.sourceUrl, result.tweetId)
     } catch {
       // Best-effort: reply failure should not block the main post
     }
   }
+
+  // Determine post type for analytics
+  const postType: 'original' | 'quote' | 'thread' | 'reply' | 'repost' = post.quoteTweetId
+    ? 'quote'
+    : post.threadSegments
+      ? 'thread'
+      : 'original'
 
   // Save analytics
   try {
@@ -124,6 +145,8 @@ async function postToX(post: PostCandidate): Promise<{
       postText: post.text,
       patternUsed: post.patternUsed,
       tags: post.tags ? [...post.tags] : undefined,
+      postType,
+      quotedTweetId: post.quoteTweetId,
     })
   } catch {
     // Best-effort: analytics failure should not block
@@ -264,11 +287,32 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
     }
   }
 
-  // 5. Get calibrated threshold
+  // 5. Get calibrated threshold (quote tweets use stricter threshold)
   let dynamicThreshold: number
   try {
     const todayPostCount = await getTodayPostCount(post.platform)
+
+    // Check daily post limit
+    const dailyLimit = getDailyPostLimit(post.platform)
+    if (todayPostCount >= dailyLimit) {
+      return {
+        success: false,
+        error: `Daily post limit reached (${todayPostCount}/${dailyLimit})`,
+        verdict: {
+          ...DEFAULT_REJECT_VERDICT,
+          reasoning: `日次投稿上限到達 (${todayPostCount}/${dailyLimit})`,
+          safetyFlags: ['daily_limit_reached'],
+        },
+        platform: post.platform,
+      }
+    }
+
     dynamicThreshold = await getCalibratedThreshold(post.platform, todayPostCount)
+
+    // Quote tweets require higher confidence (0.80 minimum)
+    if (post.quoteTweetId) {
+      dynamicThreshold = Math.max(dynamicThreshold, QUOTE_TWEET_CONFIDENCE_THRESHOLD)
+    }
   } catch (error) {
     return {
       success: false,

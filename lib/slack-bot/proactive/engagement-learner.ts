@@ -10,7 +10,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { getTwitterClient, isTwitterConfigured } from '@/lib/x-api/client'
+import { getTwitterClient, isTwitterConfigured } from '../../x-api/client'
+import { scrapeTweetMetrics } from '../../x-playwright/scrapers/tweet-scraper'
+import { closePlaywright, notifyApiFallback } from '../../x-playwright'
 import { notifyLearningEvent } from '../../ai-judge/slack-notifier'
 import {
   getRecentTweetIds,
@@ -18,6 +20,7 @@ import {
   saveMemory,
 } from '../memory'
 import { runLinkedInEngagementLearner } from './linkedin-engagement-learner'
+import { recordPatternOutcome } from '../../learning/pattern-bandit'
 
 interface TweetMetrics {
   readonly likes: number
@@ -29,6 +32,33 @@ interface TweetMetrics {
 async function fetchTweetMetrics(
   tweetId: string,
 ): Promise<TweetMetrics | null> {
+  // Playwright first
+  try {
+    const scraped = await scrapeTweetMetrics(tweetId)
+    if (scraped.metrics) {
+      return {
+        likes: scraped.metrics.likes,
+        retweets: scraped.metrics.retweets,
+        replies: scraped.metrics.replies,
+        impressions: 0, // Not available via Playwright
+      }
+    }
+    // Playwright returned no metrics — fall through
+    notifyApiFallback({
+      consumer: 'engagement-learner',
+      reason: scraped.error ?? 'No metrics from Playwright',
+      detail: `tweet ${tweetId}`,
+    }).catch(() => {})
+  } catch {
+    // Fall through to API
+    notifyApiFallback({
+      consumer: 'engagement-learner',
+      reason: 'Playwright exception',
+      detail: `tweet ${tweetId}`,
+    }).catch(() => {})
+  }
+
+  // API fallback
   if (!isTwitterConfigured()) return null
 
   try {
@@ -137,6 +167,25 @@ async function runXEngagementLearner(): Promise<void> {
     }
   }
 
+  // Record pattern outcomes for Thompson Sampling bandit learning
+  try {
+    const avgEngagement = results.length > 0
+      ? results.reduce(
+          (sum, r) => sum + r.metrics.likes + r.metrics.retweets + r.metrics.replies,
+          0,
+        ) / results.length
+      : 0
+
+    for (const r of results) {
+      const tweet = recentTweets.find((t) => t.tweet_id === r.tweetId)
+      if (tweet?.pattern_used) {
+        const totalEngagement = r.metrics.likes + r.metrics.retweets + r.metrics.replies
+        const isSuccess = totalEngagement > avgEngagement * 0.8
+        await recordPatternOutcome(tweet.pattern_used, 'x', isSuccess, totalEngagement)
+      }
+    }
+  } catch { /* best-effort: bandit learning failure should not break engagement learner */ }
+
   // Identify high performers and save learnings
   const highPerformers = identifyHighPerformers(results)
 
@@ -241,6 +290,53 @@ async function runXEngagementLearner(): Promise<void> {
     }
   } catch { /* best-effort */ }
 
+  // Analyze performance by post type (quote/thread/reply/original)
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (supabaseUrl && supabaseKey) {
+      const supabase = createClient(supabaseUrl, supabaseKey)
+      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+
+      const { data: typedPosts } = await supabase
+        .from('x_post_analytics')
+        .select('post_type, likes, retweets, replies')
+        .gte('posted_at', twoDaysAgo)
+
+      if (typedPosts && typedPosts.length > 0) {
+        const typeStats: Record<string, { count: number; totalEng: number }> = {}
+        for (const post of typedPosts) {
+          const pType = (post.post_type as string) ?? 'original'
+          if (!typeStats[pType]) {
+            typeStats[pType] = { count: 0, totalEng: 0 }
+          }
+          typeStats[pType].count++
+          typeStats[pType].totalEng +=
+            ((post.likes as number) ?? 0) +
+            ((post.retweets as number) ?? 0) +
+            ((post.replies as number) ?? 0)
+        }
+
+        const typeReport = Object.entries(typeStats)
+          .map(([type, stats]) => `${type}: ${stats.count}件, avg engagement ${(stats.totalEng / stats.count).toFixed(1)}`)
+          .join('; ')
+
+        process.stdout.write(`X engagement by type: ${typeReport}\n`)
+
+        // Save type-level learnings
+        if (userId) {
+          await saveMemory({
+            slackUserId: userId,
+            memoryType: 'fact',
+            content: `X post type performance (48h): ${typeReport}`,
+            context: { source: 'engagement_learner', typeStats, platform: 'x' },
+            importance: 0.7,
+          })
+        }
+      }
+    }
+  } catch { /* best-effort */ }
+
   // Notify #general about learning results
   if (highPerformers.length > 0 || lowPerformers.length > 0) {
     try {
@@ -255,6 +351,9 @@ async function runXEngagementLearner(): Promise<void> {
       })
     } catch { /* best-effort */ }
   }
+
+  // Close Playwright browser (saves updated cookies to Supabase)
+  await closePlaywright()
 }
 
 export async function runEngagementLearner(): Promise<void> {

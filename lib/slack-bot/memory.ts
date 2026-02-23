@@ -475,6 +475,10 @@ export async function savePostAnalytics(params: {
   readonly postMode?: XPostAnalytics['post_mode']
   readonly patternUsed?: string
   readonly tags?: string[]
+  readonly postType?: 'original' | 'quote' | 'thread' | 'reply' | 'repost'
+  readonly quotedTweetId?: string
+  readonly threadPosition?: number
+  readonly threadRootId?: string
 }): Promise<XPostAnalytics> {
   const supabase = getSupabase()
 
@@ -488,6 +492,10 @@ export async function savePostAnalytics(params: {
       pattern_used: params.patternUsed ?? null,
       posted_at: new Date().toISOString(),
       tags: params.tags ?? null,
+      post_type: params.postType ?? 'original',
+      quoted_tweet_id: params.quotedTweetId ?? null,
+      thread_position: params.threadPosition ?? null,
+      thread_root_id: params.threadRootId ?? null,
     })
     .select()
     .single()
@@ -559,20 +567,20 @@ export async function updatePostEngagement(
 
 export async function getRecentTweetIds(
   hours: number = 24,
-): Promise<readonly { tweet_id: string; post_text: string }[]> {
+): Promise<readonly { tweet_id: string; post_text: string; pattern_used: string | null }[]> {
   const supabase = getSupabase()
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
     .from('x_post_analytics')
-    .select('tweet_id, post_text')
+    .select('tweet_id, post_text, pattern_used')
     .gte('posted_at', since)
 
   if (error) {
     throw new Error(`Failed to get recent tweet IDs: ${error.message}`)
   }
 
-  return (data ?? []) as readonly { tweet_id: string; post_text: string }[]
+  return (data ?? []) as readonly { tweet_id: string; post_text: string; pattern_used: string | null }[]
 }
 
 // ============================================================

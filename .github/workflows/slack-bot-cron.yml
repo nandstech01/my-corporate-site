@@ -19,6 +19,9 @@ on:
     - cron: '0 22 * * *'     # JST 07:00 buzz collector
     - cron: '30 3,9,15,21 * * *'  # JST 12:30,18:30,0:30,6:30 safety event scanner (6h)
     - cron: '30 0,6,12,18 * * *'  # Every 6 hours for email sequences
+    - cron: '*/30 0-14 * * *'   # JST 9-23時 30分毎 X account monitor
+    - cron: '0 3,8,11 * * *'    # JST 12,17,20時 X conversation builder
+    - cron: '0 20 * * *'        # JST 翌5時 X growth tracker
   workflow_dispatch:
     inputs:
       job:
@@ -44,6 +47,9 @@ on:
           - safety-event-scanner
           - cross-platform-learner
           - lead-email-sequences
+          - x-account-monitor
+          - x-conversation-builder
+          - x-growth-tracker
 
 jobs:
   run:
@@ -56,6 +62,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      - name: Install Playwright Chromium (for X scraping)
+        run: npx playwright install chromium --with-deps
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -83,6 +91,8 @@ jobs:
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          X_PLAYWRIGHT_SESSION: ${{ secrets.X_PLAYWRIGHT_SESSION }}
+          X_USERNAME: ${{ secrets.X_USERNAME }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}

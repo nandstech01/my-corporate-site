@@ -24,6 +24,9 @@ import { checkModelDrift } from '../lib/learning/drift-detector'
 import { runSafetyEventScanner } from '../lib/safety/pre-generation-guard'
 import { runCrossPlatformLearner } from '../lib/learning/cross-platform-learner'
 import { runEmailSequences } from '../lib/lead-pipeline/email-sequence-runner'
+import { runAccountMonitor } from '../lib/x-account-monitor/monitor'
+import { runConversationBuilder } from '../lib/x-conversation/conversation-builder'
+import { runGrowthTracker } from '../lib/x-growth/growth-tracker'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -71,6 +74,9 @@ type JobName =
   | 'safety-event-scanner'
   | 'cross-platform-learner'
   | 'lead-email-sequences'
+  | 'x-account-monitor'
+  | 'x-conversation-builder'
+  | 'x-growth-tracker'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -90,6 +96,9 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 19 * * 0': 'ai-judge-drift-monitor',
   '30 3,9,15,21 * * *': 'safety-event-scanner',
   '30 0,6,12,18 * * *': 'lead-email-sequences',
+  '*/30 0-14 * * *': 'x-account-monitor',
+  '0 3,8,11 * * *': 'x-conversation-builder',
+  '0 20 * * *': 'x-growth-tracker',
 }
 
 function detectJob(): JobName {
@@ -112,7 +121,10 @@ function detectJob(): JobName {
     explicit === 'ai-judge-drift-monitor' ||
     explicit === 'safety-event-scanner' ||
     explicit === 'cross-platform-learner' ||
-    explicit === 'lead-email-sequences'
+    explicit === 'lead-email-sequences' ||
+    explicit === 'x-account-monitor' ||
+    explicit === 'x-conversation-builder' ||
+    explicit === 'x-growth-tracker'
   ) {
     return explicit
   }
@@ -215,6 +227,12 @@ function detectJob(): JobName {
     return 'blog-rss-monitor'
   }
 
+  // JST 05:00 = UTC 20:00 → X growth tracker
+  if (utcHour === 20 && dayOfWeek !== -1) {
+    // Only if not already matched to blog-rss-monitor
+    // This is handled by CRON_SCHEDULE mapping, so only reaches here as fallback
+  }
+
   // Fallback: 明示的な CRON_JOB が指定されていない場合で
   // どの時間帯にもマッチしない場合はエラーにする（重複投稿防止）
   throw new Error(
@@ -246,6 +264,9 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'safety-event-scanner': runSafetyEventScanner,
   'cross-platform-learner': runCrossPlatformLearner,
   'lead-email-sequences': runEmailSequences,
+  'x-account-monitor': runAccountMonitor,
+  'x-conversation-builder': runConversationBuilder,
+  'x-growth-tracker': runGrowthTracker,
 }
 
 function createTracedCronJob(jobName: JobName) {
