@@ -4,6 +4,7 @@ import { SDLP_SCENE_COLORS } from '../../types/constants';
 
 interface CodeTypewriterProps {
   startFrame: number;
+  isDark?: boolean;
 }
 
 const CODE_LINES = [
@@ -32,7 +33,7 @@ const CODE_LINES = [
 
 const CHARS_PER_FRAME = 1.2;
 
-export const CodeTypewriter: React.FC<CodeTypewriterProps> = ({ startFrame }) => {
+export const CodeTypewriter: React.FC<CodeTypewriterProps> = ({ startFrame, isDark = true }) => {
   const frame = useCurrentFrame();
   const localFrame = frame - startFrame;
 
@@ -57,7 +58,21 @@ export const CodeTypewriter: React.FC<CodeTypewriterProps> = ({ startFrame }) =>
     charsShown += segment.text.length;
   }
 
-  const showCursor = localFrame % 30 < 20;
+  const cursorOpacity = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(localFrame * 0.2));
+
+  // Build visible text and split into lines for highlighting
+  const visibleText = visibleSegments.map((s) => s.text).join('');
+  const lineCount = visibleText.split('\n').length;
+
+  // Build line-aware rendering: group segments by line
+  const lines: Array<Array<{ text: string; color: string }>> = [[]];
+  for (const seg of visibleSegments) {
+    const parts = seg.text.split('\n');
+    parts.forEach((part, pi) => {
+      if (pi > 0) lines.push([]);
+      if (part) lines[lines.length - 1].push({ text: part, color: seg.color });
+    });
+  }
 
   return (
     <div
@@ -74,9 +89,9 @@ export const CodeTypewriter: React.FC<CodeTypewriterProps> = ({ startFrame }) =>
     >
       <div
         style={{
-          background: 'rgba(15, 23, 42, 0.8)',
+          background: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.95)',
           borderRadius: 12,
-          border: '1px solid rgba(51, 65, 85, 0.5)',
+          border: isDark ? '1px solid rgba(51, 65, 85, 0.5)' : '1px solid rgba(226, 232, 240, 0.8)',
           padding: '16px 20px',
           minWidth: 280,
         }}
@@ -88,23 +103,38 @@ export const CodeTypewriter: React.FC<CodeTypewriterProps> = ({ startFrame }) =>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
         </div>
 
-        {visibleSegments.map((seg, i) => (
-          <span key={i} style={{ color: seg.color }}>
-            {seg.text}
-          </span>
-        ))}
-        {showCursor && (
-          <span
-            style={{
-              display: 'inline-block',
-              width: 2,
-              height: 18,
-              background: SDLP_SCENE_COLORS.glow.cyan,
-              verticalAlign: 'middle',
-              marginLeft: 1,
-            }}
-          />
-        )}
+        {lines.map((lineSegs, lineIdx) => {
+          const isCurrentLine = lineIdx === lineCount - 1;
+          return (
+            <div
+              key={lineIdx}
+              style={{
+                background: isCurrentLine ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+                margin: '0 -20px',
+                padding: '0 20px',
+              }}
+            >
+              {lineSegs.map((seg, i) => (
+                <span key={i} style={{ color: seg.color }}>
+                  {seg.text}
+                </span>
+              ))}
+              {isCurrentLine && (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 2,
+                    height: 18,
+                    background: SDLP_SCENE_COLORS.glow.cyan,
+                    opacity: cursorOpacity,
+                    verticalAlign: 'middle',
+                    marginLeft: 1,
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

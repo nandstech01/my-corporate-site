@@ -92,6 +92,16 @@ const HERO_SLIDES: HeroSlide[] = [
     id: 'slide-4',
     image: '', // YouTubeショート用
     alt: 'SNS自動化動画コレクション'
+  },
+  {
+    id: 'slide-sdlp',
+    image: '',
+    alt: 'AI搭載システム開発 - 費用最大70%OFF'
+  },
+  {
+    id: 'slide-clavi',
+    image: '',
+    alt: 'CLAVI - AI検索最適化'
   }
 ]
 
@@ -1183,18 +1193,228 @@ export default function HeroImageSlider({ slides = HERO_SLIDES }: HeroImageSlide
                       </motion.div>
                     </div>
                   </div>
+                ) : index === 4 ? (
+                  /* 5枚目：AI搭載システム開発（System Dev LP） */
+                  <div
+                    className="relative z-20 w-full h-full"
+                    style={{
+                      background: theme === 'dark'
+                        ? 'linear-gradient(135deg, #0A1628 0%, #0F172A 50%, #1E293B 100%)'
+                        : 'linear-gradient(135deg, #F0F4FF 0%, #F8FAFC 50%, #FFFFFF 100%)'
+                    }}
+                  >
+                    {/* Decorative grid */}
+                    <div className="absolute inset-0" style={{
+                      opacity: theme === 'dark' ? 0.03 : 0.04,
+                      backgroundImage: theme === 'dark'
+                        ? 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)'
+                        : 'radial-gradient(circle, rgba(30,58,138,0.5) 1px, transparent 1px)',
+                      backgroundSize: '30px 30px'
+                    }} />
+
+                    {/* Mobile layout */}
+                    <div className="lg:hidden flex flex-col justify-between h-full px-6 py-8">
+                      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center">
+                        <p className="text-sm mb-2" style={{ color: theme === 'dark' ? 'rgba(6, 182, 212, 0.8)' : '#0891B2' }}>AI-Powered Development</p>
+                        <h3 className="text-3xl font-black leading-tight mb-2" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r" style={{ backgroundImage: theme === 'dark' ? 'linear-gradient(135deg, #06B6D4, #ffffff, #06B6D4)' : 'linear-gradient(135deg, #0369A1, #0891B2, #06B6D4)' }}>
+                            AI搭載システム開発
+                          </span>
+                        </h3>
+                        <p className="text-lg font-bold" style={{ color: theme === 'dark' ? '#ffffff' : '#1E293B' }}>費用最大<span style={{ color: theme === 'dark' ? '#06B6D4' : '#0891B2' }}>70%OFF</span></p>
+                        <p className="text-sm mt-1" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.6)' : '#64748B' }}>IT導入補助金対応</p>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-wrap justify-center gap-2">
+                        {['無料AIシミュレーション', '要件定義〜納品一貫', 'IT補助金対応'].map((badge) => (
+                          <span key={badge} className="px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: theme === 'dark' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(8, 145, 178, 0.08)', color: theme === 'dark' ? '#06B6D4' : '#0891B2', border: theme === 'dark' ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(8, 145, 178, 0.2)' }}>
+                            {badge}
+                          </span>
+                        ))}
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="flex flex-col gap-3">
+                        <Link href="/system-dev-lp" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 active:scale-95" style={{ background: 'linear-gradient(135deg, #0891b2, #06B6D4)', color: '#ffffff', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)' }}>
+                          無料シミュレーション
+                          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </Link>
+                      </motion.div>
+                    </div>
+
+                    {/* PC layout */}
+                    <div className="hidden lg:flex items-center justify-between h-full px-10">
+                      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="text-left w-1/2 pr-8">
+                        <p className="text-sm mb-3" style={{ color: theme === 'dark' ? 'rgba(6, 182, 212, 0.8)' : '#0891B2' }}>AI-Powered Development</p>
+                        <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-4" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r" style={{ backgroundImage: theme === 'dark' ? 'linear-gradient(135deg, #06B6D4, #ffffff, #06B6D4)' : 'linear-gradient(135deg, #0369A1, #0891B2, #06B6D4)' }}>AI搭載システム開発</span>
+                          <span className="block mt-2 text-xl sm:text-2xl md:text-3xl" style={{ color: theme === 'dark' ? '#ffffff' : '#1E293B' }}>費用最大<span style={{ color: theme === 'dark' ? '#06B6D4' : '#0891B2' }}>70%OFF</span></span>
+                        </h3>
+                        <p className="text-base mb-6" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>IT導入補助金対応・要件定義から納品まで一貫サポート</p>
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="flex flex-row gap-3">
+                          <Link href="/system-dev-lp" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(135deg, #0891b2, #06B6D4)', color: '#ffffff', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)' }}>
+                            無料シミュレーション
+                            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          </Link>
+                        </motion.div>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="w-1/2 flex flex-col items-center justify-center">
+                        <div className="flex flex-wrap justify-center gap-3 mb-6">
+                          {['無料AIシミュレーション', '要件定義〜納品一貫', 'IT補助金対応', '最新AI技術活用'].map((badge) => (
+                            <span key={badge} className="px-4 py-2 rounded-full text-sm font-medium" style={{ background: theme === 'dark' ? 'rgba(6, 182, 212, 0.12)' : 'rgba(8, 145, 178, 0.08)', color: theme === 'dark' ? '#06B6D4' : '#0891B2', border: theme === 'dark' ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(8, 145, 178, 0.2)' }}>
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Architecture visual */}
+                        <div className="flex items-center gap-3">
+                          {[
+                            { label: '要件定義', color: '#2563EB' },
+                            { label: '設計', color: '#06B6D4' },
+                            { label: '開発', color: '#a855f7' },
+                            { label: 'テスト', color: '#10B981' },
+                            { label: '納品', color: '#F59E0B' },
+                          ].map((step, i) => (
+                            <div key={step.label} className="flex items-center gap-3">
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, delay: i * 0.1 }}
+                                className="flex flex-col items-center"
+                              >
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-1" style={{ background: `${step.color}20`, border: `1px solid ${step.color}50` }}>
+                                  <div className="w-3 h-3 rounded-full" style={{ background: step.color }} />
+                                </div>
+                                <span className="text-[10px] font-medium" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>{step.label}</span>
+                              </motion.div>
+                              {i < 4 && <svg className="w-4 h-4 mt-[-12px]" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(148,163,184,0.5)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+                ) : index === 5 ? (
+                  /* 6枚目：CLAVI - AI検索最適化 */
+                  <div
+                    className="relative z-20 w-full h-full"
+                    style={{
+                      background: theme === 'dark'
+                        ? 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #0F172A 100%)'
+                        : 'linear-gradient(135deg, #F0F4FF 0%, #EFF6FF 50%, #FFFFFF 100%)'
+                    }}
+                  >
+                    {/* Decorative blur orbs */}
+                    <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ opacity: theme === 'dark' ? 0.2 : 0.1, background: 'radial-gradient(circle, #2563EB, transparent)', filter: 'blur(60px)' }} />
+                    <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full" style={{ opacity: theme === 'dark' ? 0.15 : 0.08, background: 'radial-gradient(circle, #06B6D4, transparent)', filter: 'blur(40px)' }} />
+
+                    {/* Mobile layout */}
+                    <div className="lg:hidden flex flex-col justify-between h-full px-6 py-8 relative z-10">
+                      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ background: theme === 'dark' ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.08)', color: theme === 'dark' ? '#93C5FD' : '#2563EB', border: theme === 'dark' ? '1px solid rgba(37, 99, 235, 0.4)' : '1px solid rgba(37, 99, 235, 0.2)' }}>
+                          Schema.org 16.0 対応
+                        </div>
+                        <p className="text-sm mb-2" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>AIに見つかるための</p>
+                        <h3 className="text-4xl font-black leading-tight mb-1" style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1E293B' }}>
+                          CLAVI
+                        </h3>
+                        <p className="text-lg font-semibold" style={{ color: theme === 'dark' ? '#93C5FD' : '#2563EB' }}>AI検索最適化</p>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex justify-center gap-6">
+                        {[
+                          { name: 'ChatGPT', color: '#10a37f' },
+                          { name: 'Gemini', color: '#4285f4' },
+                          { name: 'Perplexity', color: '#20B2AA' },
+                        ].map((ai, i) => (
+                          <motion.div
+                            key={ai.name}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 + i * 0.1 }}
+                            className="flex flex-col items-center"
+                          >
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-1" style={{ background: `${ai.color}20`, border: `1px solid ${ai.color}40` }}>
+                              <div className="w-4 h-4 rounded-full" style={{ background: ai.color }} />
+                            </div>
+                            <span className="text-[10px] font-medium" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>{ai.name}</span>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="flex flex-col gap-3">
+                        <Link href="/clavi" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 active:scale-95" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)', color: '#ffffff', boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)' }}>
+                          今すぐ無料分析
+                          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </Link>
+                        <p className="text-center text-xs" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#94A3B8' }}>14日間無料トライアル</p>
+                      </motion.div>
+                    </div>
+
+                    {/* PC layout */}
+                    <div className="hidden lg:flex items-center justify-between h-full px-10 relative z-10">
+                      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="text-left w-1/2 pr-8">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-4" style={{ background: theme === 'dark' ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.08)', color: theme === 'dark' ? '#93C5FD' : '#2563EB', border: theme === 'dark' ? '1px solid rgba(37, 99, 235, 0.4)' : '1px solid rgba(37, 99, 235, 0.2)' }}>
+                          Schema.org 16.0 対応
+                        </div>
+                        <p className="text-sm mb-3" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>AIに見つかるための鍵</p>
+                        <h3 className="text-5xl font-black leading-tight mb-2" style={{ fontFamily: "'Noto Sans JP', sans-serif", color: theme === 'dark' ? '#ffffff' : '#1E293B' }}>
+                          CLAVI
+                        </h3>
+                        <p className="text-xl font-semibold mb-6" style={{ color: theme === 'dark' ? '#93C5FD' : '#2563EB' }}>AI検索最適化プラットフォーム</p>
+                        <p className="text-base mb-8" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>ChatGPT・Gemini・Perplexityに<br />あなたのサイトが引用される</p>
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="flex flex-row gap-3">
+                          <Link href="/clavi" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-bold text-base transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(135deg, #1E3A8A, #2563EB)', color: '#ffffff', boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)' }}>
+                            今すぐ無料分析
+                            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          </Link>
+                        </motion.div>
+                        <p className="text-xs mt-3" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#94A3B8' }}>14日間無料トライアル</p>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="w-1/2 flex flex-col items-center justify-center">
+                        {/* AI Search Engines visual */}
+                        <div className="flex flex-wrap justify-center gap-4 mb-6">
+                          {[
+                            { name: 'ChatGPT', color: '#10a37f' },
+                            { name: 'Gemini', color: '#4285f4' },
+                            { name: 'Perplexity', color: '#20B2AA' },
+                            { name: 'Claude', color: '#cc785c' },
+                            { name: 'DeepSeek', color: '#6366f1' },
+                          ].map((ai, i) => (
+                            <motion.div
+                              key={ai.name}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.2 + i * 0.08 }}
+                              className="flex flex-col items-center"
+                            >
+                              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-2" style={{ background: `${ai.color}20`, border: `1px solid ${ai.color}40`, boxShadow: `0 4px 15px ${ai.color}15` }}>
+                                <div className="w-5 h-5 rounded-full" style={{ background: ai.color }} />
+                              </div>
+                              <span className="text-xs font-medium" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.7)' : '#64748B' }}>{ai.name}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                        <p className="text-center text-sm" style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.6)' : '#64748B' }}>
+                          主要AI検索エンジンに最適化<br />
+                          <span className="font-semibold" style={{ color: theme === 'dark' ? '#93C5FD' : '#2563EB' }}>引用率を最大化</span>
+                        </p>
+                      </motion.div>
+                    </div>
+                  </div>
                 ) : (
                   /* プレースホルダー */
                   <div className="text-center">
-                    <div 
+                    <div
                       className="text-6xl mb-4"
                       style={{ opacity: 0.3 }}
                     >
                       🖼️
                     </div>
-                    <p 
+                    <p
                       className="text-lg font-mono"
-                      style={{ 
+                      style={{
                         color: theme === 'dark' ? '#6b7280' : '#9ca3af'
                       }}
                     >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { interpolate, useCurrentFrame } from 'remotion';
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 
 interface ArchitectureNodeProps {
   label: string;
@@ -8,6 +8,7 @@ interface ArchitectureNodeProps {
   y: number;
   enterFrame: number;
   icon: 'frontend' | 'api' | 'database' | 'auth';
+  isDark?: boolean;
 }
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -46,8 +47,10 @@ export const ArchitectureNode: React.FC<ArchitectureNodeProps> = ({
   y,
   enterFrame,
   icon,
+  isDark = true,
 }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - enterFrame;
 
   if (localFrame < 0) return null;
@@ -57,9 +60,10 @@ export const ArchitectureNode: React.FC<ArchitectureNodeProps> = ({
     extrapolateRight: 'clamp',
   });
 
-  const scale = interpolate(localFrame, [0, 15], [0.5, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+  const scale = spring({
+    frame: localFrame,
+    fps,
+    config: { damping: 12, stiffness: 120, mass: 0.8 },
   });
 
   const glowPulse = interpolate(
@@ -97,8 +101,8 @@ export const ArchitectureNode: React.FC<ArchitectureNodeProps> = ({
           width: 110,
           padding: '14px 12px',
           borderRadius: 14,
-          background: 'rgba(15, 23, 42, 0.9)',
-          border: `1.5px solid ${color}40`,
+          background: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+          border: `1.5px solid ${isDark ? `${color}40` : `${color}30`}`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -126,7 +130,7 @@ export const ArchitectureNode: React.FC<ArchitectureNodeProps> = ({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: '#E2E8F0',
+            color: isDark ? '#E2E8F0' : '#1E293B',
             fontFamily: 'Inter, system-ui, sans-serif',
             textAlign: 'center',
           }}

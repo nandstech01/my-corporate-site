@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react'
 import ServiceTabs from './ServiceTabs'
 import { SERVICE_CONFIGS } from '@/lib/services/config'
 import type { ServiceType } from '@/lib/services/types'
+import { useSdlpTheme } from '../context'
 
 const SdlpHeroPlayer = dynamic(
   () => import('@/components/sdlp/SdlpHeroPlayer').then((m) => m.SdlpHeroPlayer),
@@ -28,97 +29,100 @@ const fadeInUp = {
   }),
 }
 
-const SERVICE_HEADLINES: Record<ServiceType, { title: React.ReactNode; description: string; badges: string[] }> = {
-  homepage: {
-    title: (
-      <>
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          集客力
-        </span>
-        のあるHPを
-        <br />
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          70%OFF
-        </span>
-        で制作。
-      </>
-    ),
-    description: 'AI活用で高品質なホームページを短納期・低コストで制作。SEO対策、レスポンシブ対応、CMS搭載が標準。',
-    badges: ['SEO対策込み', 'スマホ対応', 'CMS搭載'],
-  },
-  efficiency: {
-    title: (
-      <>
-        業務の
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          ムダ
-        </span>
-        を削減。
-        <br />
-        AI×
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          自動化
-        </span>
-        で生産性UP。
-      </>
-    ),
-    description: 'Excel管理や手作業から脱却。AI×ワークフロー自動化で月間数十時間の工数を削減。',
-    badges: ['工数50%削減', '既存ツール連携', 'データ一元化'],
-  },
-  'custom-dev': {
-    title: (
-      <>
-        費用
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          70%OFF
-        </span>
-        、納期
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          3倍速
-        </span>
-        。
-        <br />
-        AI開発の新常識。
-      </>
-    ),
-    description: 'AI×少数精鋭で中間マージンを完全排除。ChatGPT連携・業務自動化・AIチャットボットを標準搭載。設計から納品まで一気通貫。',
-    badges: ['AI実装が標準搭載', '追加費用なし', '見積もり即日無料'],
-  },
-  'ai-integration': {
-    title: (
-      <>
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          AI
-        </span>
-        で業務を革新。
-        <br />
-        導入から運用まで
-        <span className="bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent">
-          伴走
-        </span>
-        。
-      </>
-    ),
-    description: 'ChatGPT・Claude等の最新AIを業務に導入。チャットボット構築、文書自動化、データ分析をPoCから本番まで支援。',
-    badges: ['PoC対応', 'カスタムAI構築', 'ROI最大化'],
-  },
+// Dark: cyan-white-cyan gradient, Light: blue-cyan gradient (visible on both backgrounds)
+const DARK_GRAD = 'bg-gradient-to-r from-cyan-400 via-white to-cyan-300 bg-clip-text text-transparent'
+const LIGHT_GRAD = 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent'
+
+const getServiceHeadlines = (isDark: boolean): Record<ServiceType, { title: React.ReactNode; description: string; badges: string[] }> => {
+  const grad = isDark ? DARK_GRAD : LIGHT_GRAD
+  return {
+    homepage: {
+      title: (
+        <>
+          <span className={grad}>集客力</span>
+          のあるHPを
+          <br />
+          <span className={grad}>70%OFF</span>
+          で制作。
+        </>
+      ),
+      description: 'AI活用で高品質なホームページを短納期・低コストで制作。SEO対策、レスポンシブ対応、CMS搭載が標準。',
+      badges: ['SEO対策込み', 'スマホ対応', 'CMS搭載'],
+    },
+    efficiency: {
+      title: (
+        <>
+          業務の
+          <span className={grad}>ムダ</span>
+          を削減。
+          <br />
+          AI×
+          <span className={grad}>自動化</span>
+          で生産性UP。
+        </>
+      ),
+      description: 'Excel管理や手作業から脱却。AI×ワークフロー自動化で月間数十時間の工数を削減。',
+      badges: ['工数50%削減', '既存ツール連携', 'データ一元化'],
+    },
+    'custom-dev': {
+      title: (
+        <>
+          費用
+          <span className={grad}>70%OFF</span>
+          、納期
+          <span className={grad}>3倍速</span>
+          。
+          <br />
+          AI開発の新常識。
+        </>
+      ),
+      description: 'AI×少数精鋭で中間マージンを完全排除。ChatGPT連携・業務自動化・AIチャットボットを標準搭載。設計から納品まで一気通貫。',
+      badges: ['AI実装が標準搭載', '追加費用なし', '見積もり即日無料'],
+    },
+    'ai-integration': {
+      title: (
+        <>
+          <span className={grad}>AI</span>
+          で業務を革新。
+          <br />
+          導入から運用まで
+          <span className={grad}>伴走</span>
+          。
+        </>
+      ),
+      description: 'ChatGPT・Claude等の最新AIを業務に導入。チャットボット構築、文書自動化、データ分析をPoCから本番まで支援。',
+      badges: ['PoC対応', 'カスタムAI構築', 'ROI最大化'],
+    },
+  }
 }
 
 export default function SDLPHero() {
   const [serviceType, setServiceType] = useState<ServiceType>('custom-dev')
-  const headline = SERVICE_HEADLINES[serviceType]
+  const { theme } = useSdlpTheme()
+  const isDark = theme === 'dark'
+  const headline = getServiceHeadlines(isDark)[serviceType]
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-16">
-      {/* Dark ocean gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0A1628] via-[#0F172A] to-[#1E293B]" />
+      {/* Background gradient */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${
+          isDark
+            ? 'from-[#0A1628] via-[#0F172A] to-[#1E293B]'
+            : 'from-[#F0F4FF] via-[#F8FAFC] to-white'
+        }`}
+      />
       {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:24px_24px]" />
+      <div
+        className={`absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,${
+          isDark ? 'white' : '#1E293B'
+        }_1px,transparent_1px)] bg-[length:24px_24px] ${isDark ? 'opacity-[0.03]' : 'opacity-[0.04]'}`}
+      />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Text content */}
-          <div className="text-white">
+          <div className={isDark ? 'text-white' : 'text-[#1E293B]'}>
             {/* Service type tabs */}
             <motion.div
               initial="hidden"
@@ -145,7 +149,9 @@ export default function SDLPHero() {
 
             {/* Mobile-only: Remotion Player below heading */}
             <motion.div
-              className="lg:hidden mb-8 rounded-2xl overflow-hidden border border-white/10"
+              className={`lg:hidden mb-8 rounded-2xl overflow-hidden border ${
+                isDark ? 'border-white/10' : 'border-slate-200'
+              }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
@@ -155,7 +161,7 @@ export default function SDLPHero() {
 
             <motion.p
               key={`desc-${serviceType}`}
-              className="text-lg text-white/70 mb-8 max-w-lg"
+              className={`text-lg mb-8 max-w-lg ${isDark ? 'text-white/70' : 'text-slate-600'}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
@@ -174,7 +180,11 @@ export default function SDLPHero() {
               {headline.badges.map((badge) => (
                 <span
                   key={badge}
-                  className="rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-white/90 border border-white/10"
+                  className={`rounded-full backdrop-blur-sm px-4 py-1.5 text-sm font-medium border ${
+                    isDark
+                      ? 'bg-white/10 text-white/90 border-white/10'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}
                 >
                   {badge}
                 </span>
@@ -211,8 +221,12 @@ export default function SDLPHero() {
         </div>
       </div>
 
-      {/* Bottom gradient transition: dark → white */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-white" />
+      {/* Bottom gradient transition */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent ${
+          isDark ? 'to-[#0A1628]' : 'to-white'
+        }`}
+      />
     </section>
   )
 }

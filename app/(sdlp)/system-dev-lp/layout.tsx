@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Script from 'next/script'
+import SdlpThemeProvider from './components/SdlpThemeProvider'
 
 export const metadata: Metadata = {
   title: 'AI搭載システム開発・ホームページ制作 | 費用70%OFF | 株式会社エヌアンドエス',
@@ -44,7 +45,9 @@ export default function SDLPLayout({ children }: { children: ReactNode }) {
           `,
         }}
       />
-      {children}
+      <SdlpThemeProvider>
+        {children}
+      </SdlpThemeProvider>
 
       {/* Meta Pixel */}
       <Script id="meta-pixel" strategy="afterInteractive">

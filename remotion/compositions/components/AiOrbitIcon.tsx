@@ -52,6 +52,9 @@ export const AiOrbitIcon: React.FC<AiOrbitIconProps> = ({
   const x = Math.cos(angleRad) * orbitRadius * entranceProgress;
   const y = Math.sin(angleRad) * orbitRadius * entranceProgress * 0.5; // Elliptical orbit
 
+  // Micro breathing oscillation
+  const breathingOffset = Math.sin(frame * 0.05) * 3;
+
   // Get AI-specific styles
   const aiStyles = getAiStyles(aiType);
 
@@ -64,7 +67,7 @@ export const AiOrbitIcon: React.FC<AiOrbitIconProps> = ({
         position: 'absolute',
         top: '50%',
         left: '50%',
-        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y + breathingOffset}px))`,
         opacity: opacity * fadeOut,
         zIndex: y > 0 ? 10 : 5, // Depth sorting based on Y position
       }}

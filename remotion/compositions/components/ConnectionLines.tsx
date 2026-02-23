@@ -62,6 +62,13 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ isDark }) => {
           <stop offset="50%" stopColor={COLORS.primary} stopOpacity={pulseOpacity} />
           <stop offset="100%" stopColor={COLORS.secondary} stopOpacity="0" />
         </linearGradient>
+        <filter id="lineGlow">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
 
       {lines.map((line, index) => {
@@ -87,11 +94,12 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ isDark }) => {
             x2={endX}
             y2={endY}
             stroke={lineColor}
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeOpacity={individualPulse}
             strokeDasharray="8,4"
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
+            filter="url(#lineGlow)"
           />
         );
       })}

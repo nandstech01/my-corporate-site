@@ -109,11 +109,16 @@ export const SDLP_SCENE_COLORS = {
     dark: '#0A1628',
     mid: '#0F172A',
     card: '#1E293B',
+    light: '#F8FAFC',
+    lightMid: '#F0F4FF',
+    lightCard: '#FFFFFF',
   },
   text: {
     primary: '#E2E8F0',
     secondary: '#94A3B8',
     muted: '#64748B',
+    lightPrimary: '#1E293B',
+    lightSecondary: '#64748B',
   },
   glow: {
     cyan: '#06B6D4',

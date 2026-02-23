@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { ClaviHeroProps, SCENE_COLORS } from '../types/constants';
 import { GradientBg } from './components/GradientBg';
 import { ClaviLogo } from './components/ClaviLogo';
@@ -40,8 +40,14 @@ const AiOrbitScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
     extrapolateRight: 'clamp',
   });
 
+  // Zoom-out during transition
+  const scale = interpolate(frame, [150, 180], [1, 0.95], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
   return (
-    <div style={{ opacity }}>
+    <div style={{ opacity, transform: `scale(${scale})` }}>
       {/* Connection lines (rendered before icons for layering) */}
       <ConnectionLines isDark={isDark} />
 
@@ -82,6 +88,12 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
     extrapolateRight: 'clamp',
   });
 
+  // Zoom-in entrance
+  const enterScale = interpolate(frame, [180, 210], [1.05, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
   // Fade out at end for seamless loop
   const fadeOut = interpolate(frame, [330, 360], [1, 0], {
     extrapolateLeft: 'clamp',
@@ -92,7 +104,7 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
   const distance = 200;
 
   return (
-    <div style={{ opacity: opacity * fadeOut }}>
+    <div style={{ opacity: opacity * fadeOut, transform: `scale(${enterScale})` }}>
       {/* SNS Icons in 4 directions */}
       <SnsOrbitIcon
         isDark={isDark}
@@ -128,7 +140,7 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
       />
 
       {/* Flow particles from center to each SNS */}
-      {[0, 1, 2].map((wave) => (
+      {[0, 1, 2, 3, 4].map((wave) => (
         <SnsFlowParticle
           key={`youtube-${wave}`}
           isDark={isDark}
@@ -137,10 +149,10 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
           targetAngle={-45}
           distance={distance - 32}
           color={SCENE_COLORS.sns.youtube}
-          delay={wave * 15}
+          delay={wave * 10}
         />
       ))}
-      {[0, 1, 2].map((wave) => (
+      {[0, 1, 2, 3, 4].map((wave) => (
         <SnsFlowParticle
           key={`linkedin-${wave}`}
           isDark={isDark}
@@ -149,10 +161,10 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
           targetAngle={45}
           distance={distance - 32}
           color={SCENE_COLORS.sns.linkedin}
-          delay={wave * 15 + 5}
+          delay={wave * 10 + 5}
         />
       ))}
-      {[0, 1, 2].map((wave) => (
+      {[0, 1, 2, 3, 4].map((wave) => (
         <SnsFlowParticle
           key={`x-${wave}`}
           isDark={isDark}
@@ -161,10 +173,10 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
           targetAngle={135}
           distance={distance - 32}
           color="#000000"
-          delay={wave * 15 + 10}
+          delay={wave * 10 + 10}
         />
       ))}
-      {[0, 1, 2].map((wave) => (
+      {[0, 1, 2, 3, 4].map((wave) => (
         <SnsFlowParticle
           key={`instagram-${wave}`}
           isDark={isDark}
@@ -173,7 +185,7 @@ const SnsFlowScene: React.FC<{ isDark: boolean; frame: number }> = ({ isDark, fr
           targetAngle={-135}
           distance={distance - 32}
           color={SCENE_COLORS.sns.instagram}
-          delay={wave * 15 + 15}
+          delay={wave * 10 + 15}
         />
       ))}
     </div>
@@ -234,6 +246,7 @@ const SnsOrbitIcon: React.FC<SnsOrbitIconProps> = ({
   distance,
 }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const config = SNS_CONFIG[platform];
 
   const localFrame = frame - startFrame;
@@ -246,10 +259,11 @@ const SnsOrbitIcon: React.FC<SnsOrbitIconProps> = ({
   const x = Math.cos(angleRad) * distance;
   const y = Math.sin(angleRad) * distance;
 
-  // Entrance animation
-  const entranceScale = interpolate(localFrame, [0, 20], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+  // Spring bounce entrance
+  const entranceScale = spring({
+    frame: localFrame,
+    fps,
+    config: { damping: 12, stiffness: 100, mass: 0.8 },
   });
 
   // Active pulse
@@ -277,6 +291,10 @@ const SnsOrbitIcon: React.FC<SnsOrbitIconProps> = ({
   const bgColor = isDark ? '#1E293B' : '#FFFFFF';
   const borderColor = isActive ? config.color : isDark ? '#334155' : '#E2E8F0';
 
+  // Two-layer glow
+  const glowHex = Math.round(glowIntensity * 100).toString(16).padStart(2, '0');
+  const outerGlowHex = Math.round(glowIntensity * 50).toString(16).padStart(2, '0');
+
   return (
     <div
       style={{
@@ -298,7 +316,7 @@ const SnsOrbitIcon: React.FC<SnsOrbitIconProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: isActive
-            ? `0 0 ${20 + glowIntensity * 30}px ${config.color}${Math.round(glowIntensity * 100).toString(16).padStart(2, '0')}`
+            ? `0 0 ${15 + glowIntensity * 20}px ${config.color}${glowHex}, 0 0 ${40 + glowIntensity * 40}px ${config.color}${outerGlowHex}`
             : isDark
               ? '0 8px 24px rgba(0, 0, 0, 0.4)'
               : '0 8px 24px rgba(0, 0, 0, 0.1)',

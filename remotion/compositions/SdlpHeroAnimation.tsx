@@ -32,19 +32,19 @@ export const SdlpHeroAnimation: React.FC<SdlpHeroProps> = ({ isDark }) => {
   return (
     <AbsoluteFill>
       {/* Background */}
-      <SdlpBackground frame={frame} />
+      <SdlpBackground frame={frame} isDark={isDark} />
 
       {/* Phase A: Code Architecture Scene */}
-      <ArchitectureScene frame={frame} />
+      <ArchitectureScene frame={frame} isDark={isDark} />
 
       {/* Phase B: Pipeline Flow Scene */}
-      <PipelineScene frame={frame} />
+      <PipelineScene frame={frame} isDark={isDark} />
     </AbsoluteFill>
   );
 };
 
 // Background with animated gradient orbs
-const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
+const SdlpBackground: React.FC<{ frame: number; isDark: boolean }> = ({ frame, isDark }) => {
   const rotation = interpolate(frame, [0, 360], [0, 360], {
     extrapolateRight: 'extend',
   });
@@ -52,7 +52,7 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: SDLP_SCENE_COLORS.bg.dark,
+        backgroundColor: isDark ? SDLP_SCENE_COLORS.bg.dark : SDLP_SCENE_COLORS.bg.light,
         overflow: 'hidden',
       }}
     >
@@ -61,10 +61,15 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(37, 99, 235, 0.05) 1px, transparent 1px)
-          `,
+          backgroundImage: isDark
+            ? `
+              linear-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(37, 99, 235, 0.05) 1px, transparent 1px)
+            `
+            : `
+              linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px)
+            `,
           backgroundSize: '40px 40px',
         }}
       />
@@ -89,7 +94,7 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
             width: 250,
             height: 250,
             borderRadius: '50%',
-            background: 'rgba(37, 99, 235, 0.12)',
+            background: isDark ? 'rgba(37, 99, 235, 0.12)' : 'rgba(37, 99, 235, 0.06)',
             filter: 'blur(60px)',
           }}
         />
@@ -101,7 +106,7 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
             width: 200,
             height: 200,
             borderRadius: '50%',
-            background: 'rgba(6, 182, 212, 0.1)',
+            background: isDark ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.05)',
             filter: 'blur(60px)',
           }}
         />
@@ -113,7 +118,7 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
             width: 180,
             height: 180,
             borderRadius: '50%',
-            background: 'rgba(168, 85, 247, 0.08)',
+            background: isDark ? 'rgba(168, 85, 247, 0.08)' : 'rgba(168, 85, 247, 0.04)',
             filter: 'blur(50px)',
           }}
         />
@@ -123,7 +128,7 @@ const SdlpBackground: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // Phase A: Architecture Scene (frames 0-180)
-const ArchitectureScene: React.FC<{ frame: number }> = ({ frame }) => {
+const ArchitectureScene: React.FC<{ frame: number; isDark: boolean }> = ({ frame, isDark }) => {
   const opacity = interpolate(frame, [150, 180], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -132,7 +137,7 @@ const ArchitectureScene: React.FC<{ frame: number }> = ({ frame }) => {
   return (
     <div style={{ opacity }}>
       {/* Code typewriter on left */}
-      <CodeTypewriter startFrame={5} />
+      <CodeTypewriter startFrame={5} isDark={isDark} />
 
       {/* Architecture nodes on right */}
       {ARCHITECTURE_NODES.map((node, i) => (
@@ -144,17 +149,18 @@ const ArchitectureScene: React.FC<{ frame: number }> = ({ frame }) => {
           x={node.x}
           y={node.y}
           enterFrame={40 + i * 18}
+          isDark={isDark}
         />
       ))}
 
       {/* Connection lines between nodes */}
-      <ConnectionParticles frame={frame} />
+      <ConnectionParticles frame={frame} isDark={isDark} />
     </div>
   );
 };
 
 // Animated connection particles between architecture nodes
-const ConnectionParticles: React.FC<{ frame: number }> = ({ frame }) => {
+const ConnectionParticles: React.FC<{ frame: number; isDark: boolean }> = ({ frame, isDark }) => {
   const connections = [
     { from: ARCHITECTURE_NODES[0], to: ARCHITECTURE_NODES[1], startFrame: 100 },
     { from: ARCHITECTURE_NODES[1], to: ARCHITECTURE_NODES[2], startFrame: 110 },
@@ -173,6 +179,7 @@ const ConnectionParticles: React.FC<{ frame: number }> = ({ frame }) => {
           toY={conn.to.y}
           color={SDLP_SCENE_COLORS.glow.cyan}
           startFrame={conn.startFrame}
+          isDark={isDark}
         />
       ))}
     </>
@@ -187,6 +194,7 @@ interface ConnectionLineProps {
   toY: number;
   color: string;
   startFrame: number;
+  isDark?: boolean;
 }
 
 const ConnectionLine: React.FC<ConnectionLineProps> = ({
@@ -196,16 +204,18 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
   toY,
   color,
   startFrame,
+  isDark = true,
 }) => {
   const frame = useCurrentFrame();
   const localFrame = frame - startFrame;
 
   if (localFrame < 0) return null;
 
-  const lineOpacity = interpolate(localFrame, [0, 10], [0, 0.3], {
+  const baseLineOpacity = interpolate(localFrame, [0, 10], [0, isDark ? 0.3 : 0.4], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
+  const lineOpacity = baseLineOpacity * (0.7 + 0.3 * Math.sin(localFrame * 0.1));
 
   // Looping particle along line
   const cycleLength = 60;
@@ -221,13 +231,11 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
     [0, 1, 1, 0],
   );
 
-  // Line angle for SVG
-  const angle = Math.atan2(toY - fromY, toX - fromX);
-  const length = Math.sqrt((toX - fromX) ** 2 + (toY - fromY) ** 2);
+  const gradientId = `line-grad-${fromX}-${fromY}-${toX}-${toY}`;
 
   return (
     <>
-      {/* Static line */}
+      {/* Static line with gradient */}
       <svg
         style={{
           position: 'absolute',
@@ -238,15 +246,20 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
           pointerEvents: 'none',
         }}
       >
+        <defs>
+          <linearGradient id={gradientId} x1={fromX} y1={fromY} x2={toX} y2={toY} gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor={SDLP_SCENE_COLORS.glow.blue} />
+            <stop offset="100%" stopColor={SDLP_SCENE_COLORS.glow.cyan} />
+          </linearGradient>
+        </defs>
         <line
           x1={fromX}
           y1={fromY}
           x2={toX}
           y2={toY}
-          stroke={color}
+          stroke={`url(#${gradientId})`}
           strokeWidth={1}
           opacity={lineOpacity}
-          strokeDasharray="4 4"
         />
       </svg>
 
@@ -256,13 +269,13 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
           position: 'absolute',
           left: particleX,
           top: particleY,
-          width: 6,
-          height: 6,
+          width: 8,
+          height: 8,
           borderRadius: '50%',
           background: color,
           transform: 'translate(-50%, -50%)',
           opacity: particleOpacity * lineOpacity * 3,
-          boxShadow: `0 0 8px ${color}`,
+          boxShadow: `0 0 12px ${color}, 0 0 24px ${color}80`,
         }}
       />
     </>
@@ -270,7 +283,7 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({
 };
 
 // Phase B: Pipeline Scene (frames 180-360)
-const PipelineScene: React.FC<{ frame: number }> = ({ frame }) => {
+const PipelineScene: React.FC<{ frame: number; isDark: boolean }> = ({ frame, isDark }) => {
   const fadeIn = interpolate(frame, [180, 210], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -288,7 +301,7 @@ const PipelineScene: React.FC<{ frame: number }> = ({ frame }) => {
   return (
     <div style={{ opacity: fadeIn * fadeOut }}>
       {/* Title */}
-      <PipelineTitle frame={frame} />
+      <PipelineTitle frame={frame} isDark={isDark} />
 
       {/* Connecting line between stages */}
       <svg
@@ -306,7 +319,7 @@ const PipelineScene: React.FC<{ frame: number }> = ({ frame }) => {
           y1={centerY}
           x2={startX + (PIPELINE_STAGES.length - 1) * stageSpacing}
           y2={centerY}
-          stroke="rgba(51, 65, 85, 0.3)"
+          stroke={isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(148, 163, 184, 0.3)'}
           strokeWidth={2}
           strokeDasharray="6 4"
         />
@@ -322,6 +335,7 @@ const PipelineScene: React.FC<{ frame: number }> = ({ frame }) => {
           y={centerY}
           activateFrame={210 + i * 20}
           index={i}
+          isDark={isDark}
         />
       ))}
 
@@ -332,7 +346,7 @@ const PipelineScene: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // Pipeline title
-const PipelineTitle: React.FC<{ frame: number }> = ({ frame }) => {
+const PipelineTitle: React.FC<{ frame: number; isDark: boolean }> = ({ frame, isDark }) => {
   const opacity = interpolate(frame, [190, 210], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -358,7 +372,7 @@ const PipelineTitle: React.FC<{ frame: number }> = ({ frame }) => {
         style={{
           fontSize: 18,
           fontWeight: 700,
-          color: SDLP_SCENE_COLORS.text.primary,
+          color: isDark ? SDLP_SCENE_COLORS.text.primary : SDLP_SCENE_COLORS.text.lightPrimary,
           fontFamily: 'Inter, system-ui, sans-serif',
           letterSpacing: 2,
         }}
@@ -374,6 +388,7 @@ const PipelineTitle: React.FC<{ frame: number }> = ({ frame }) => {
           borderRadius: 1,
           marginLeft: 'auto',
           marginRight: 'auto',
+          boxShadow: `0 0 8px ${SDLP_SCENE_COLORS.glow.cyan}40, 0 0 16px ${SDLP_SCENE_COLORS.glow.blue}20`,
         }}
       />
     </div>
@@ -396,8 +411,8 @@ const PipelineFlowParticles: React.FC<{
 
   return (
     <>
-      {[0, 1, 2].map((wave) => {
-        const waveFrame = localFrame - wave * 25;
+      {[0, 1, 2, 3, 4].map((wave) => {
+        const waveFrame = localFrame - wave * 18;
         if (waveFrame < 0) return null;
 
         const cycleLength = 90;
@@ -405,6 +420,7 @@ const PipelineFlowParticles: React.FC<{
         const progress = interpolate(cycleFrame, [0, cycleLength], [0, 1]);
         const eased = 1 - Math.pow(1 - progress, 2);
 
+        const particleSize = [8, 7, 6, 7, 8][wave];
         const particleX = startX + eased * totalWidth;
         const particleY = centerY - 55;
 
@@ -421,8 +437,8 @@ const PipelineFlowParticles: React.FC<{
                 position: 'absolute',
                 left: particleX,
                 top: particleY,
-                width: 8,
-                height: 8,
+                width: particleSize,
+                height: particleSize,
                 borderRadius: '50%',
                 background: SDLP_SCENE_COLORS.glow.cyan,
                 transform: 'translate(-50%, -50%)',
@@ -431,7 +447,7 @@ const PipelineFlowParticles: React.FC<{
               }}
             />
             {/* Trail */}
-            {[0.08, 0.16].map((delay, j) => {
+            {[0.08, 0.16, 0.24].map((delay, j) => {
               const trailProgress = Math.max(0, eased - delay);
               const trailX = startX + trailProgress * totalWidth;
               return (

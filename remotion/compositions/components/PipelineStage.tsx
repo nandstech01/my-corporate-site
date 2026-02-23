@@ -8,6 +8,7 @@ interface PipelineStageProps {
   y: number;
   activateFrame: number;
   index: number;
+  isDark?: boolean;
 }
 
 export const PipelineStage: React.FC<PipelineStageProps> = ({
@@ -17,6 +18,7 @@ export const PipelineStage: React.FC<PipelineStageProps> = ({
   y,
   activateFrame,
   index,
+  isDark = true,
 }) => {
   const frame = useCurrentFrame();
   const localFrame = frame - activateFrame;
@@ -71,6 +73,46 @@ export const PipelineStage: React.FC<PipelineStageProps> = ({
         />
       )}
 
+      {/* Ripple rings */}
+      {isActive && localFrame < 40 && (
+        <div style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}>
+          {[0, 1].map((ring) => {
+            const ringFrame = localFrame - ring * 10;
+            if (ringFrame < 0) return null;
+            const rippleScale = interpolate(ringFrame, [0, 30], [0.8, 1.5], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            });
+            const rippleOpacity = interpolate(ringFrame, [0, 30], [0.4, 0], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            });
+            return (
+              <div
+                key={ring}
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  width: 120,
+                  height: 80,
+                  borderRadius: 16,
+                  border: `2px solid ${color}`,
+                  transform: `translate(-50%, -50%) scale(${rippleScale})`,
+                  opacity: rippleOpacity,
+                  pointerEvents: 'none' as const,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
       {/* Stage card */}
       <div
         style={{
@@ -78,8 +120,18 @@ export const PipelineStage: React.FC<PipelineStageProps> = ({
           width: 120,
           padding: '12px 10px',
           borderRadius: 12,
-          background: isActive ? `${color}15` : 'rgba(15, 23, 42, 0.6)',
-          border: `1.5px solid ${isActive ? `${color}60` : 'rgba(51, 65, 85, 0.4)'}`,
+          background: isActive
+            ? `${color}15`
+            : isDark
+              ? 'rgba(15, 23, 42, 0.6)'
+              : 'rgba(255, 255, 255, 0.7)',
+          border: `1.5px solid ${
+            isActive
+              ? `${color}60`
+              : isDark
+                ? 'rgba(51, 65, 85, 0.4)'
+                : 'rgba(226, 232, 240, 0.8)'
+          }`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -126,7 +178,9 @@ export const PipelineStage: React.FC<PipelineStageProps> = ({
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: isActive ? '#E2E8F0' : '#64748B',
+            color: isActive
+              ? (isDark ? '#E2E8F0' : '#1E293B')
+              : (isDark ? '#64748B' : '#94A3B8'),
             fontFamily: 'Inter, system-ui, sans-serif',
             textAlign: 'center',
           }}

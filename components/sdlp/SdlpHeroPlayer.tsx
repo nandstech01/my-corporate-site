@@ -3,12 +3,17 @@
 import { Player } from '@remotion/player';
 import { SdlpHeroAnimation } from '@/remotion/compositions/SdlpHeroAnimation';
 import { SDLP_HERO_CONFIG } from '@/remotion/types/constants';
+import { useSdlpTheme } from '@/app/(sdlp)/system-dev-lp/context';
 
 export function SdlpHeroPlayer() {
+  const { theme } = useSdlpTheme();
+  const isDark = theme === 'dark';
+
   return (
     <Player
+      key={theme}
       component={SdlpHeroAnimation}
-      inputProps={{ isDark: true }}
+      inputProps={{ isDark }}
       durationInFrames={SDLP_HERO_CONFIG.DURATION}
       fps={SDLP_HERO_CONFIG.FPS}
       compositionWidth={SDLP_HERO_CONFIG.WIDTH}
