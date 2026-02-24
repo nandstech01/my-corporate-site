@@ -50,7 +50,13 @@ async function getPostContext(platform: Platform): Promise<PostContext> {
     const supabase = getSupabase()
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-    const table = platform === 'linkedin' ? 'linkedin_post_analytics' : 'x_post_analytics'
+    const tableMap: Record<Platform, string> = {
+      x: 'x_post_analytics',
+      linkedin: 'linkedin_post_analytics',
+      instagram: 'instagram_post_analytics',
+      threads: 'threads_post_analytics',
+    }
+    const table = tableMap[platform]
 
     const { data, error } = await supabase
       .from(table)
@@ -152,6 +158,8 @@ function buildSystemPrompt(platform: Platform, context: PostContext): string {
       '- プロフェッショナルなトーン\n- 3000文字以内\n- インサイトや学びを含める\n- CTAを含めるとエンゲージメント向上',
     instagram:
       '- ビジュアルコンテンツとの一貫性\n- 2200文字以内\n- ハッシュタグは5-10個推奨\n- ストーリー性のある構成',
+    threads:
+      '- 会話型・カジュアルなトーン\n- 500文字以内\n- 問いかけや意見でスレッドを誘発\n- ハッシュタグは1-2個推奨',
   }
 
   const contextLines: string[] = []
@@ -271,7 +279,7 @@ async function logDecision(
 ): Promise<void> {
   try {
     const supabase = getSupabase()
-    await supabase.from('ai_judge_decisions').insert({
+    const { error } = await supabase.from('ai_judge_decisions').insert({
       pending_action_id: post.pendingActionId ?? null,
       platform: post.platform,
       post_text: post.text,
@@ -285,8 +293,13 @@ async function logDecision(
       model_used: AI_JUDGE_MODEL,
       latency_ms: latencyMs,
     })
-  } catch {
-    // Best-effort logging: do not block verdict on DB failure
+    if (error) {
+      process.stderr.write(`[AI Judge] logDecision error: ${error.message}\n`)
+    }
+  } catch (err) {
+    process.stderr.write(
+      `[AI Judge] logDecision exception: ${err instanceof Error ? err.message : String(err)}\n`,
+    )
   }
 }
 

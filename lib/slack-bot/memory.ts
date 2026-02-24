@@ -745,3 +745,112 @@ export async function updateLinkedInPostEngagement(
     throw new Error(`Failed to update LinkedIn engagement: ${error.message}`)
   }
 }
+
+// ============================================================
+// Threads Post Analytics
+// ============================================================
+
+export async function saveThreadsPostAnalytics(params: {
+  readonly threadsMediaId: string
+  readonly postUrl?: string
+  readonly postText: string
+  readonly sourceUrl?: string
+  readonly patternUsed?: string
+  readonly tags?: string[]
+}): Promise<void> {
+  const supabase = getSupabase()
+
+  const { error } = await supabase
+    .from('threads_post_analytics')
+    .insert({
+      threads_media_id: params.threadsMediaId,
+      post_url: params.postUrl ?? null,
+      post_text: params.postText,
+      source_url: params.sourceUrl ?? null,
+      pattern_used: params.patternUsed ?? null,
+      posted_at: new Date().toISOString(),
+      tags: params.tags ?? null,
+    })
+
+  if (error) {
+    throw new Error(`Failed to save Threads post analytics: ${error.message}`)
+  }
+}
+
+export async function getRecentThreadsPostIds(
+  hours: number = 48,
+): Promise<readonly { threads_media_id: string; post_text: string }[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('threads_post_analytics')
+    .select('threads_media_id, post_text')
+    .gte('posted_at', since)
+
+  if (error) {
+    throw new Error(`Failed to get recent Threads post IDs: ${error.message}`)
+  }
+
+  return (data ?? []) as readonly { threads_media_id: string; post_text: string }[]
+}
+
+export async function getThreadsPostAnalytics(params: {
+  readonly days?: number
+  readonly limit?: number
+}): Promise<readonly import('./types').ThreadsPostAnalytics[]> {
+  const supabase = getSupabase()
+  const days = params.days ?? 7
+  const limit = params.limit ?? 50
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('threads_post_analytics')
+    .select('*')
+    .gte('posted_at', since)
+    .order('posted_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    throw new Error(`Failed to get Threads post analytics: ${error.message}`)
+  }
+
+  return (data ?? []) as readonly import('./types').ThreadsPostAnalytics[]
+}
+
+export async function updateThreadsPostEngagement(
+  threadsMediaId: string,
+  engagement: {
+    readonly likes: number
+    readonly replies: number
+    readonly reposts: number
+    readonly quotes: number
+    readonly views: number
+  },
+): Promise<void> {
+  const supabase = getSupabase()
+
+  const totalEngagement =
+    engagement.likes + engagement.replies + engagement.reposts + engagement.quotes
+  const engagementRate =
+    engagement.views > 0
+      ? totalEngagement / engagement.views
+      : 0
+
+  const { error } = await supabase
+    .from('threads_post_analytics')
+    .update({
+      likes: engagement.likes,
+      replies: engagement.replies,
+      reposts: engagement.reposts,
+      quotes: engagement.quotes,
+      views: engagement.views,
+      engagement_rate: engagementRate,
+      fetched_at: new Date().toISOString(),
+    })
+    .eq('threads_media_id', threadsMediaId)
+
+  if (error) {
+    throw new Error(`Failed to update Threads engagement: ${error.message}`)
+  }
+}

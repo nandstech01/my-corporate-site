@@ -44,7 +44,7 @@ export interface NgWord {
 // Platform Types
 // ============================================================
 
-export type Platform = 'x' | 'linkedin' | 'instagram'
+export type Platform = 'x' | 'linkedin' | 'instagram' | 'threads'
 
 export interface PostCandidate {
   readonly platform: Platform

@@ -14,8 +14,9 @@ import type { AutoResolveResult, JudgeVerdict, Platform, PostCandidate } from '.
 import { postTweet, replyToTweet, quoteTweet, postThread } from '../x-api/client'
 import { QUOTE_TWEET_CONFIDENCE_THRESHOLD, getDailyPostLimit } from './config'
 import { postToLinkedIn } from '../linkedin-api/client'
+import { postToThreads } from '../threads-api/client'
 import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
-import { savePostAnalytics, saveLinkedInPostAnalytics } from '../slack-bot/memory'
+import { savePostAnalytics, saveLinkedInPostAnalytics, saveThreadsPostAnalytics } from '../slack-bot/memory'
 
 // ============================================================
 // Supabase Client
@@ -209,6 +210,34 @@ async function postToLinkedInPlatform(post: PostCandidate): Promise<{
   return { postId: result.postId, postUrl: result.postUrl }
 }
 
+async function postToThreadsPlatform(post: PostCandidate): Promise<{
+  readonly postId?: string
+  readonly postUrl?: string
+  readonly error?: string
+}> {
+  const result = await postToThreads({ text: post.text })
+
+  if (!result.success) {
+    return { error: result.error }
+  }
+
+  // Save analytics (best-effort)
+  try {
+    await saveThreadsPostAnalytics({
+      threadsMediaId: result.mediaId ?? '',
+      postUrl: result.permalinkUrl,
+      postText: post.text,
+      sourceUrl: post.sourceUrl,
+      patternUsed: post.patternUsed,
+      tags: post.tags ? [...post.tags] : undefined,
+    })
+  } catch {
+    // Best-effort: analytics failure should not block
+  }
+
+  return { postId: result.mediaId, postUrl: result.permalinkUrl }
+}
+
 // ============================================================
 // Main: Auto-Resolve Post
 // ============================================================
@@ -376,6 +405,8 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
       postResult = await postToX(post)
     } else if (post.platform === 'linkedin') {
       postResult = await postToLinkedInPlatform(post)
+    } else if (post.platform === 'threads') {
+      postResult = await postToThreadsPlatform(post)
     } else {
       return {
         success: false,

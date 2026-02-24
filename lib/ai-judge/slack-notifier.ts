@@ -29,6 +29,7 @@ const PLATFORM_DISPLAY: Record<Platform, string> = {
   x: 'X',
   linkedin: 'LinkedIn',
   instagram: 'Instagram',
+  threads: 'Threads',
 }
 
 // ============================================================

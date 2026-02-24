@@ -90,7 +90,7 @@ function identifyCrossPatternCandidates(
     patternMap.set(stat.pattern_id, [...existing, stat])
   }
 
-  const platforms: readonly Platform[] = ['x', 'linkedin']
+  const platforms: readonly Platform[] = ['x', 'linkedin', 'threads']
 
   for (const [patternId, stats] of Array.from(patternMap.entries())) {
     for (const sourcePlatform of platforms) {

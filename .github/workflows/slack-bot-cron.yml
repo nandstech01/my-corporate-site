@@ -22,6 +22,8 @@ on:
     - cron: '*/30 0-14 * * *'   # JST 9-23時 30分毎 X account monitor
     - cron: '0 3,8,11 * * *'    # JST 12,17,20時 X conversation builder
     - cron: '0 20 * * *'        # JST 翌5時 X growth tracker
+    - cron: '30 23,7 * * *'    # JST 8:30, 16:30 Threads auto-post
+    - cron: '30 16 * * *'     # JST 01:30 Threads engagement learner
   workflow_dispatch:
     inputs:
       job:
@@ -50,6 +52,8 @@ on:
           - x-account-monitor
           - x-conversation-builder
           - x-growth-tracker
+          - threads-auto-post
+          - threads-engagement-learner
 
 jobs:
   run:
@@ -106,5 +110,9 @@ jobs:
           INSTAGRAM_POSTING_ENABLED: ${{ secrets.INSTAGRAM_POSTING_ENABLED }}
           LANGCHAIN_TRACING_V2: 'true'
           LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_TOKEN_EXPIRES_AT: ${{ secrets.THREADS_TOKEN_EXPIRES_AT }}
+          THREADS_POSTING_ENABLED: ${{ secrets.THREADS_POSTING_ENABLED }}
           LANGCHAIN_PROJECT: nands-sns-pipeline
 

@@ -10,7 +10,7 @@ import type { Platform } from './types'
 // モデル設定
 // ============================================================
 
-export const AI_JUDGE_MODEL = 'claude-sonnet-4-6-20250514'
+export const AI_JUDGE_MODEL = 'claude-sonnet-4-20250514'
 export const AI_JUDGE_MAX_TOKENS = 1024
 
 // ============================================================
@@ -40,6 +40,7 @@ const PLATFORM_CHAR_LIMITS: Record<Platform, { readonly min: number; readonly ma
   x: { min: 10, max: 280 },
   linkedin: { min: 50, max: 3000 },
   instagram: { min: 10, max: 2200 },
+  threads: { min: 10, max: 500 },
 }
 
 export function getCharLimits(platform: Platform): { readonly min: number; readonly max: number } {
@@ -54,6 +55,7 @@ const DAILY_POST_LIMITS: Record<Platform, number> = {
   x: 8,
   linkedin: 4,
   instagram: 2,
+  threads: 2,
 }
 
 export function getDailyPostLimit(platform: Platform): number {
@@ -78,6 +80,7 @@ export function getDynamicThreshold(
     x: 0,
     linkedin: 0.02, // LinkedInはよりフォーマルなため少し厳しく
     instagram: 0.01,
+    threads: 0,
   }
 
   return Math.min(base + postCountPenalty + platformAdjustment[platform], 0.95)

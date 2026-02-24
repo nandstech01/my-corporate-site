@@ -218,3 +218,25 @@ export interface InstagramPostAnalytics {
   readonly hashtags: string[] | null
   readonly utm_campaign: string | null
 }
+
+// ============================================================
+// Threads 型
+// ============================================================
+
+export interface ThreadsPostAnalytics {
+  readonly id: string
+  readonly threads_media_id: string
+  readonly post_url: string | null
+  readonly post_text: string
+  readonly source_url: string | null
+  readonly pattern_used: string | null
+  readonly posted_at: string
+  readonly likes: number
+  readonly replies: number
+  readonly reposts: number
+  readonly quotes: number
+  readonly views: number
+  readonly engagement_rate: number
+  readonly fetched_at: string
+  readonly tags: string[] | null
+}

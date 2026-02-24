@@ -27,6 +27,8 @@ import { runEmailSequences } from '../lib/lead-pipeline/email-sequence-runner'
 import { runAccountMonitor } from '../lib/x-account-monitor/monitor'
 import { runConversationBuilder } from '../lib/x-conversation/conversation-builder'
 import { runGrowthTracker } from '../lib/x-growth/growth-tracker'
+import { runThreadsAutoPost } from '../lib/slack-bot/proactive/threads-auto-post'
+import { runThreadsEngagementLearner } from '../lib/slack-bot/proactive/threads-engagement-learner'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -77,6 +79,8 @@ type JobName =
   | 'x-account-monitor'
   | 'x-conversation-builder'
   | 'x-growth-tracker'
+  | 'threads-auto-post'
+  | 'threads-engagement-learner'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -99,6 +103,8 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '*/30 0-14 * * *': 'x-account-monitor',
   '0 3,8,11 * * *': 'x-conversation-builder',
   '0 20 * * *': 'x-growth-tracker',
+  '30 23,7 * * *': 'threads-auto-post',
+  '30 16 * * *': 'threads-engagement-learner',
 }
 
 function detectJob(): JobName {
@@ -124,7 +130,9 @@ function detectJob(): JobName {
     explicit === 'lead-email-sequences' ||
     explicit === 'x-account-monitor' ||
     explicit === 'x-conversation-builder' ||
-    explicit === 'x-growth-tracker'
+    explicit === 'x-growth-tracker' ||
+    explicit === 'threads-auto-post' ||
+    explicit === 'threads-engagement-learner'
   ) {
     return explicit
   }
@@ -267,6 +275,8 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'x-account-monitor': runAccountMonitor,
   'x-conversation-builder': runConversationBuilder,
   'x-growth-tracker': runGrowthTracker,
+  'threads-auto-post': runThreadsAutoPost,
+  'threads-engagement-learner': runThreadsEngagementLearner,
 }
 
 function createTracedCronJob(jobName: JobName) {

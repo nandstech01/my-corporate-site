@@ -88,6 +88,7 @@ export async function getCalibratedThreshold(
     x: 0,
     linkedin: 0.02,
     instagram: 0.01,
+    threads: 0,
   }
 
   const baseThreshold = base + postCountPenalty + platformAdjustment[platform]
