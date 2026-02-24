@@ -338,7 +338,11 @@ export async function runSafetyChecks(post: PostCandidate): Promise<SafetyCheckR
 
   const ngWordResult = checkNgWords(post.text, ngWords)
   const characterCountValid = checkCharacterCount(post.text, post.platform)
-  const topicScore = checkTopicRelevance(post.text)
+  // 投稿本文 + ソースタイトルを合わせて関連度判定（カジュアル文体対策）
+  const relevanceText = post.sourceTitle
+    ? `${post.text} ${post.sourceTitle}`
+    : post.text
+  const topicScore = checkTopicRelevance(relevanceText)
   const topicRelevant = topicScore >= TOPIC_RELEVANCE_THRESHOLD
 
   // Aggregate flags from all checks
