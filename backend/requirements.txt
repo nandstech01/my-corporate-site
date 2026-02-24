@@ -1,6 +1,6 @@
 # Django & DRF
-Django==5.0.6
-djangorestframework==3.15.1
+Django==5.0.6  # TODO: EOL - migrate to 5.2.x (separate task, requires deprecation review)
+djangorestframework==3.15.2
 django-cors-headers==4.3.1
 
 # Database
@@ -8,8 +8,6 @@ psycopg2-binary==2.9.9
 
 # Vector & Embeddings
 openai==1.30.1
-langchain==0.2.1
-langchain-openai==0.1.7
 
 # httpx互換性修正（openai SDKとの互換性のため）
 httpx==0.27.2
@@ -18,9 +16,9 @@ httpx==0.27.2
 python-dotenv==1.0.1
 
 # Utilities
-requests==2.31.0
+requests==2.32.3
 
 # Phase 4: MLflow統合
-mlflow==2.16.2
+mlflow==2.17.0
 numpy==1.24.3  # MLflowの依存関係
 

@@ -448,10 +448,10 @@ const FAQSection: React.FC = () => {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .faq-swiper .swiper-button-next:after,
-        .faq-swiper .swiper-button-prev:after {
-          font-size: 20px;
-          font-weight: bold;
+        .faq-swiper .swiper-button-next svg,
+        .faq-swiper .swiper-button-prev svg {
+          width: 20px;
+          height: 20px;
         }
 
         .faq-swiper .swiper-pagination-bullet {
