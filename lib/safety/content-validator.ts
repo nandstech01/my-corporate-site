@@ -43,12 +43,31 @@ const NEGATIVE_MARKERS = [
 
 // Broader tech markers for Threads (more casual, wider tech topics)
 const THREADS_EXTRA_MARKERS = [
+  // English: core tech
   'programming', 'software', 'coding', 'open source', 'GitHub',
   'developer', 'web', 'frontend', 'backend', 'startup',
-  'プログラミング', 'ソフトウェア', '開発者', 'オープンソース', 'スタートアップ',
-  'MIT', 'CS', 'terminal', 'CLI', 'IDE',
   'Linux', 'Docker', 'Kubernetes', 'cloud', 'DevOps',
   'database', 'security', 'network', 'algorithm',
+  'MIT', 'CS', 'terminal', 'CLI', 'IDE',
+  // English: languages & tools
+  'Python', 'JavaScript', 'TypeScript', 'Rust', 'Go ',
+  'React', 'Node', 'shell', 'bash', 'vim',
+  'git', 'debug', 'testing', 'deploy', 'CI/CD',
+  // English: broader tech
+  'performance', 'workflow', 'automation', 'architecture',
+  'engineering', 'tutorial', 'course', 'curriculum',
+  // Japanese: core tech
+  'プログラミング', 'ソフトウェア', '開発者', 'オープンソース', 'スタートアップ',
+  // Japanese: CS education & practical skills
+  'コンピュータサイエンス', 'コマンドライン', 'バージョン管理',
+  'シェル', 'デバッグ', 'テスト', 'コード', 'リポジトリ',
+  'アーキテクチャ', 'パフォーマンス', '効率化', 'ワークフロー',
+  // Japanese: education & learning
+  '実務', 'スキル', '教材', '学習', '講義', '講座', 'カリキュラム',
+  // Japanese: broader tech terms
+  'ツール', 'サーバー', 'クラウド', 'インフラ', 'セキュリティ',
+  'アルゴリズム', 'フレームワーク', 'ライブラリ', 'ブラウザ',
+  'アプリ', 'サービス', 'プラットフォーム', 'オートメーション',
 ]
 
 // ============================================================
