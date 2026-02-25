@@ -13,6 +13,7 @@ import { createClient } from '@supabase/supabase-js'
 import { AI_JUDGE_MAX_TOKENS, AI_JUDGE_MODEL, TOPIC_RELEVANCE_THRESHOLD } from './config'
 import { runSafetyChecks } from './safety-checks'
 import type { JudgeVerdict, Platform, PostCandidate } from './types'
+import { recallMemories } from '../slack-bot/memory'
 
 // ============================================================
 // Supabase Client
@@ -148,12 +149,43 @@ const SUBMIT_VERDICT_TOOL: Anthropic.Messages.Tool = {
 }
 
 // ============================================================
+// High Performer Learnings (学習ループ閉鎖)
+// ============================================================
+
+async function getHighPerformerSummary(platform: Platform): Promise<string | null> {
+  try {
+    const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+    if (!userId) return null
+
+    const memories = await recallMemories({
+      slackUserId: userId,
+      query: `${platform} high performing post`,
+      memoryType: 'fact',
+      limit: 5,
+    })
+
+    const platformMemories = memories.filter((m) => {
+      const ctx = m.context as Record<string, unknown> | undefined
+      return ctx?.platform === platform
+    })
+
+    if (platformMemories.length === 0) return null
+
+    return platformMemories
+      .map((m) => `- ${m.content.slice(0, 150)}`)
+      .join('\n')
+  } catch {
+    return null
+  }
+}
+
+// ============================================================
 // System Prompt Builder
 // ============================================================
 
-function buildSystemPrompt(platform: Platform, context: PostContext): string {
+function buildSystemPrompt(platform: Platform, context: PostContext, learnings?: string | null): string {
   const platformGuidelines: Record<Platform, string> = {
-    x: '- 280文字以内\n- ハッシュタグは2-3個推奨\n- 議論を促すフックがあると良い\n- リンクは短縮URLを推奨',
+    x: '- 標準280文字 / Premium最大25,000文字\n- ハッシュタグは0-1個推奨\n- 議論を促すフックがあると良い\n- リンクは短縮URLを推奨',
     linkedin:
       '- プロフェッショナルなトーン\n- 3000文字以内\n- インサイトや学びを含める\n- CTAを含めるとエンゲージメント向上',
     instagram:
@@ -176,6 +208,11 @@ function buildSystemPrompt(platform: Platform, context: PostContext): string {
 
   if (context.recentPostCount > 0) {
     contextLines.push(`直近30日間の投稿数: ${context.recentPostCount}件`)
+  }
+
+  // 高パフォーマンス投稿の特徴を注入（学習ループ閉鎖）
+  if (learnings) {
+    contextLines.push(`過去の高パフォーマンス投稿の特徴:\n${learnings}`)
   }
 
   const contextSection =
@@ -327,12 +364,15 @@ export async function judgePost(post: PostCandidate): Promise<JudgeVerdict> {
     return verdict
   }
 
-  // 3. Fetch context data (best-effort)
-  const context = await getPostContext(post.platform)
+  // 3. Fetch context data + learnings (best-effort)
+  const [context, learnings] = await Promise.all([
+    getPostContext(post.platform),
+    getHighPerformerSummary(post.platform).catch(() => null),
+  ])
 
   // 4. Call Claude API
   const anthropic = getAnthropic()
-  const systemPrompt = buildSystemPrompt(post.platform, context)
+  const systemPrompt = buildSystemPrompt(post.platform, context, learnings)
   const userPrompt = buildUserPrompt(post, safetyResult.flags)
 
   const response = await anthropic.messages.create({

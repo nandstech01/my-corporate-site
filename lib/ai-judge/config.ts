@@ -37,7 +37,7 @@ export const AUTO_STOP_DURATION_MS = 12 * 60 * 60 * 1000
 // ============================================================
 
 const PLATFORM_CHAR_LIMITS: Record<Platform, { readonly min: number; readonly max: number }> = {
-  x: { min: 10, max: 280 },
+  x: { min: 10, max: 25000 },  // X Premium (25,000文字)
   linkedin: { min: 50, max: 3000 },
   instagram: { min: 10, max: 2200 },
   threads: { min: 10, max: 500 },

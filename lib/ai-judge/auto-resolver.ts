@@ -17,6 +17,7 @@ import { postToLinkedIn } from '../linkedin-api/client'
 import { postToThreads } from '../threads-api/client'
 import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
 import { savePostAnalytics, saveLinkedInPostAnalytics, saveThreadsPostAnalytics } from '../slack-bot/memory'
+import { revisePost } from '../content-critique/critique-engine'
 
 // ============================================================
 // Supabase Client
@@ -376,31 +377,111 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
     }
   }
 
-  // 6b. Edit -> treat as reject in Phase 1
+  // 6b. Edit -> attempt revision via critique engine, then re-Judge
   if (verdict.decision === 'edit') {
-    const editReasoning = verdict.editSuggestion
-      ? `${verdict.reasoning} | 編集提案: ${verdict.editSuggestion}`
-      : verdict.reasoning
-
     try {
-      await notifyPostRejected({
-        platform: post.platform,
-        postText: post.text,
-        verdict: { ...verdict, reasoning: editReasoning },
-      })
-    } catch {
-      // Best-effort
-    }
+      const editWeaknesses = verdict.editSuggestion
+        ? [verdict.editSuggestion]
+        : [verdict.reasoning]
 
-    return {
-      success: false,
-      error: 'Edit suggested by AI Judge (treated as reject in Phase 1)',
-      verdict,
-      platform: post.platform,
+      const revised = await revisePost({
+        originalText: post.text,
+        critique: {
+          passed: false,
+          overallScore: 0,
+          dimensions: {
+            hookStrength: 5,
+            voiceAuthenticity: 5,
+            engagementTrigger: 5,
+            platformFit: 5,
+            factualGrounding: 5,
+          },
+          strengths: [],
+          weaknesses: editWeaknesses,
+        },
+        platform: post.platform,
+        mode: 'short',
+      })
+
+      process.stdout.write(
+        `[AI Judge] Edit decision: attempting revision (${revised.length} chars)\n`,
+      )
+
+      // 改訂版を再Judge
+      const revisedPost: PostCandidate = { ...post, text: revised }
+      const revisedVerdict = await judgePost(revisedPost)
+
+      if (
+        revisedVerdict.decision === 'approve' &&
+        revisedVerdict.confidence >= dynamicThreshold
+      ) {
+        // 改訂版が承認された → 改訂版で投稿を続行
+        process.stdout.write(
+          `[AI Judge] Revised post approved (confidence=${revisedVerdict.confidence.toFixed(2)})\n`,
+        )
+        // Fall through to posting logic below with updated post and verdict
+        // Recursion-free: directly call the posting section
+        return autoResolveApprovedPost(revisedPost, revisedVerdict)
+      }
+
+      // 改訂版も不承認
+      try {
+        await notifyPostRejected({
+          platform: post.platform,
+          postText: revised,
+          verdict: revisedVerdict,
+        })
+      } catch {
+        // Best-effort
+      }
+
+      return {
+        success: false,
+        error: 'Revised post also rejected by AI Judge',
+        verdict: revisedVerdict,
+        platform: post.platform,
+      }
+    } catch (reviseError) {
+      // revisePost failure → fall back to reject
+      const editReasoning = verdict.editSuggestion
+        ? `${verdict.reasoning} | 編集提案: ${verdict.editSuggestion}`
+        : verdict.reasoning
+
+      process.stderr.write(
+        `[AI Judge] Edit revision failed: ${reviseError instanceof Error ? reviseError.message : String(reviseError)}\n`,
+      )
+
+      try {
+        await notifyPostRejected({
+          platform: post.platform,
+          postText: post.text,
+          verdict: { ...verdict, reasoning: editReasoning },
+        })
+      } catch {
+        // Best-effort
+      }
+
+      return {
+        success: false,
+        error: 'Edit revision failed, treated as reject',
+        verdict,
+        platform: post.platform,
+      }
     }
   }
 
   // 6c. Approve and above threshold -> post
+  return autoResolveApprovedPost(post, verdict)
+}
+
+// ============================================================
+// Approved Post Execution (shared by approve and edit→revise paths)
+// ============================================================
+
+async function autoResolveApprovedPost(
+  post: PostCandidate,
+  verdict: JudgeVerdict,
+): Promise<AutoResolveResult> {
   try {
     let postResult: { readonly postId?: string; readonly postUrl?: string; readonly error?: string }
 
