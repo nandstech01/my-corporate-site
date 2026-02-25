@@ -69,6 +69,8 @@ export interface PostGraphOutput {
   allCandidates: string[]
   promptTokens: number
   completionTokens: number
+  readonly articleTitle?: string
+  readonly articleKeyPoints?: readonly string[]
 }
 
 // ============================================================
@@ -120,6 +122,14 @@ const PostGraphState = Annotation.Root({
 
   // 出力
   finalPost: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  articleTitle: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  articleKeyPoints: Annotation<string[] | null>({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
@@ -299,17 +309,23 @@ async function generateCandidates(
   const isThread = state.mode === 'thread'
 
   const charConstraint = isArticle
-    ? '1000-2000文字の長文投稿'
+    ? '1500-3000文字の長文投稿'
     : isThread
       ? '3セグメントのスレッド（各セグメント日本語120文字以内）'
       : '日本語120文字以内の投稿（X APIはCJK文字を2カウント換算。280カウント上限のため日本語は実質140文字が限界。余裕を持って120文字以内で）'
 
   const modeInstructions = isArticle
-    ? `- 記事の内容を実務家視点で語る長文投稿を作成
+    ? `- バズるX長文投稿（1500-3000文字）を作成せよ
 - URLは本文に含めないこと（リプライで自動投稿される）
-- 構成: 自分の経験から入る → 記事のポイントを実務家視点で解説 → 問いかけで締める
+- 構成（この順番を厳守）:
+  1行目: 好奇心を刺激するフックタイトル（例:「〇〇が話題になってるので解説していく」「〇〇、中身が有益すぎたので共有する」）
+  本文: 番号付きセクション（3-6個）で記事のポイントを実務家視点で解説
+  各セクションに自分の経験・意見を織り交ぜる
+  「やりがちなミス」「よくある誤解」セクションを1つ入れる（実務あるある）
+  締め: なぜこれが刺さるのか/重要なのかの分析 → 議論を呼ぶ問いかけ
+- 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「〜なんだよね」）
 - ハッシュタグ0-1個
-- ※長文投稿なので280文字制限は適用しない。1000-2000文字で書くこと。`
+- ※長文投稿なので280文字制限は適用しない。1500-3000文字で書くこと。`
     : isThread
       ? `- 3セグメントのスレッドを作成
 - 各セグメントは日本語120文字以内（CJK=2カウント、280カウント上限）
@@ -392,7 +408,7 @@ async function scoreCandidates(
     .join('\n\n')
 
   const isArticle = state.mode === 'article'
-  const targetLength = isArticle ? '1000-2000文字' : '日本語120文字以内（280加重カウント以内）'
+  const targetLength = isArticle ? '1500-3000文字' : '日本語120文字以内（280加重カウント以内）'
 
   const response = await model.invoke([
     {
@@ -525,6 +541,21 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
     return { finalPost: truncated + '...' }
   }
 
+  // Article mode: extract title and key points
+  if (state.mode === 'article') {
+    const lines = withTag.split('\n').filter((l) => l.trim().length > 0)
+    const articleTitle = lines[0]?.trim() ?? null
+    const numberedLines = lines.filter((l) => /^\d+[\.\)、]\s*/.test(l.trim()))
+    const articleKeyPoints = numberedLines
+      .slice(0, 3)
+      .map((l) => l.trim().replace(/^\d+[\.\)、]\s*/, ''))
+    return {
+      finalPost: withTag,
+      articleTitle,
+      articleKeyPoints: articleKeyPoints.length > 0 ? articleKeyPoints : null,
+    }
+  }
+
   return { finalPost: withTag }
 }
 
@@ -617,5 +648,7 @@ export async function generateXPost(
     allCandidates: result.candidates,
     promptTokens: result.promptTokens,
     completionTokens: result.completionTokens,
+    ...(result.articleTitle ? { articleTitle: result.articleTitle } : {}),
+    ...(result.articleKeyPoints ? { articleKeyPoints: result.articleKeyPoints } : {}),
   }
 }

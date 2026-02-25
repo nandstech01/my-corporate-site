@@ -24,6 +24,8 @@ import { retweetPost } from '../../x-api/client'
 import { savePostAnalytics } from '../memory'
 import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
+import { uploadMediaToX } from '../../x-api/media'
+import { generateArticleThumbnail } from '../../x-article/thumbnail-generator'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 
 // ============================================================
@@ -388,17 +390,37 @@ export async function runXAutoPost(): Promise<void> {
             content: topCandidate.sourceBody,
             topic: topCandidate.title,
           })
+
+          // Generate thumbnail (best-effort)
+          let thumbnailMediaId: string | undefined
+          try {
+            const thumbnail = await generateArticleThumbnail({
+              title: postResult.articleTitle ?? topCandidate.title,
+              keyPoints: postResult.articleKeyPoints,
+            })
+            if (thumbnail) {
+              const mediaId = await uploadMediaToX(thumbnail.imageBuffer, 'image/png')
+              if (mediaId) {
+                thumbnailMediaId = mediaId
+                process.stdout.write(`X auto-post (article): thumbnail uploaded (${thumbnail.imageUrl})\n`)
+              }
+            }
+          } catch {
+            // Best-effort: thumbnail failure should not block posting
+          }
+
           const result = await autoResolvePost({
             platform: 'x',
             text: postResult.finalPost,
             longForm: true,
+            mediaIds: thumbnailMediaId ? [thumbnailMediaId] : undefined,
             sourceUrl: topCandidate.sourceUrl,
             sourceTitle: topCandidate.title,
             patternUsed: postResult.patternUsed,
             tags: postResult.tags,
           })
           process.stdout.write(
-            `X auto-post (article): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+            `X auto-post (article): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${thumbnailMediaId ? ' (with thumbnail)' : ''}\n`,
           )
           return
         }
