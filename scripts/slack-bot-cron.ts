@@ -100,10 +100,10 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 19 * * 0': 'ai-judge-drift-monitor',
   '30 3,9,15,21 * * *': 'safety-event-scanner',
   '30 0,6,12,18 * * *': 'lead-email-sequences',
-  '*/30 0-14 * * *': 'x-account-monitor',
+  '15 0-14 * * *': 'x-account-monitor',
   '0 3,8,11 * * *': 'x-conversation-builder',
   '0 20 * * *': 'x-growth-tracker',
-  '30 23,7 * * *': 'threads-auto-post',
+  '30 23,4,10 * * *': 'threads-auto-post',
   '30 16 * * *': 'threads-engagement-learner',
 }
 

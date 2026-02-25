@@ -19,10 +19,10 @@ on:
     - cron: '0 22 * * *'     # JST 07:00 buzz collector
     - cron: '30 3,9,15,21 * * *'  # JST 12:30,18:30,0:30,6:30 safety event scanner (6h)
     - cron: '30 0,6,12,18 * * *'  # Every 6 hours for email sequences
-    - cron: '*/30 0-14 * * *'   # JST 9-23時 30分毎 X account monitor
+    - cron: '15 0-14 * * *'      # JST 9-23時 毎時15分 X account monitor
     - cron: '0 3,8,11 * * *'    # JST 12,17,20時 X conversation builder
     - cron: '0 20 * * *'        # JST 翌5時 X growth tracker
-    - cron: '30 23,7 * * *'    # JST 8:30, 16:30 Threads auto-post
+    - cron: '30 23,4,10 * * *'    # JST 8:30, 13:00, 19:00 Threads auto-post (3x/day)
     - cron: '30 16 * * *'     # JST 01:30 Threads engagement learner
   workflow_dispatch:
     inputs:

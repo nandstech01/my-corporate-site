@@ -128,6 +128,20 @@ export async function getThreadsLearnings(
     )
   }
 
+  // Pattern diversity detection
+  if (patternStats.length > 0) {
+    const totalPosts = patternStats.reduce((sum, p) => sum + p.count, 0)
+    const dominantPattern = patternStats[0]
+    if (totalPosts >= 5 && dominantPattern.count / totalPosts > 0.5) {
+      summaryParts.push(
+        `パターン偏り注意: "${dominantPattern.pattern}" が${Math.round((dominantPattern.count / totalPosts) * 100)}%を占めています。他パターンも試してください。`,
+      )
+    }
+    summaryParts.push(
+      `パターン多様性: ${patternStats.length}種類使用中 (全${totalPosts}件)`,
+    )
+  }
+
   return {
     highPerformerSummary: summaryParts.join('\n\n'),
     topPatterns,

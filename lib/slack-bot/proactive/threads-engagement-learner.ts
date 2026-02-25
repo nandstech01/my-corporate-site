@@ -34,7 +34,8 @@ interface PostResult {
 }
 
 function computeEngagement(metrics: ThreadsPostMetrics): number {
-  return metrics.likes + metrics.replies + metrics.reposts + metrics.quotes
+  // Threads = conversation platform: replies weighted 2x
+  return metrics.likes + metrics.replies * 2 + metrics.reposts + metrics.quotes
 }
 
 function identifyHighPerformers(

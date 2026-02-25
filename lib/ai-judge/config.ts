@@ -55,7 +55,7 @@ const DAILY_POST_LIMITS: Record<Platform, number> = {
   x: 8,
   linkedin: 4,
   instagram: 2,
-  threads: 2,
+  threads: 3,
 }
 
 export function getDailyPostLimit(platform: Platform): number {

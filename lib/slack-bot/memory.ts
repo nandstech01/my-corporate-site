@@ -475,7 +475,7 @@ export async function savePostAnalytics(params: {
   readonly postMode?: XPostAnalytics['post_mode']
   readonly patternUsed?: string
   readonly tags?: string[]
-  readonly postType?: 'original' | 'quote' | 'thread' | 'reply' | 'repost'
+  readonly postType?: 'original' | 'quote' | 'thread' | 'reply' | 'repost' | 'article'
   readonly quotedTweetId?: string
   readonly threadPosition?: number
   readonly threadRootId?: string
@@ -757,6 +757,10 @@ export async function saveThreadsPostAnalytics(params: {
   readonly sourceUrl?: string
   readonly patternUsed?: string
   readonly tags?: string[]
+  readonly scores?: unknown
+  readonly hookUsed?: string
+  readonly sourceType?: string
+  readonly candidateCount?: number
 }): Promise<void> {
   const supabase = getSupabase()
 
@@ -770,6 +774,10 @@ export async function saveThreadsPostAnalytics(params: {
       pattern_used: params.patternUsed ?? null,
       posted_at: new Date().toISOString(),
       tags: params.tags ?? null,
+      scores: params.scores ?? null,
+      hook_used: params.hookUsed ?? null,
+      source_type: params.sourceType ?? null,
+      candidate_count: params.candidateCount ?? 0,
     })
 
   if (error) {

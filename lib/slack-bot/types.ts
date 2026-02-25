@@ -239,4 +239,8 @@ export interface ThreadsPostAnalytics {
   readonly engagement_rate: number
   readonly fetched_at: string
   readonly tags: string[] | null
+  readonly scores: unknown | null
+  readonly hook_used: string | null
+  readonly source_type: string | null
+  readonly candidate_count: number
 }

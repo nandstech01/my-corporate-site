@@ -1,102 +1,71 @@
 /**
- * Threads 自動投稿生成ジョブ
+ * Threads 自動投稿生成ジョブ v2
  *
- * GitHub Actions cron (JST 8:30, 16:30) で実行。
+ * GitHub Actions cron (JST 8:30, 13:00, 19:00) で実行。
  *
  * 1. ランダム遅延 (0~10分, スパム回避)
- * 2. slack_bot_memory から linkedin_sources メモリを recall (共有ソース)
- * 3. フォールバック: trending_topics メモリ
- * 4. 候補抽出 + 重複排除 (直近7日)
- * 5. トップ1件を選定
- * 6. generateThreadsPost() で会話型投稿生成
- * 7. autoResolvePost({ platform: 'threads', ... }) で AI Judge 自動投稿
- * 8. Slack通知 (結果)
+ * 2. collectThreadsSources() でトレンド/バズ/RSS/LinkedIn横断ソース収集
+ * 3. rankThreadsSources() で会話ポテンシャル重視のランキング
+ * 4. 配信ロール抽選 (70% テキスト / 15% 画像付き / 10% トレンドコメンタリー / 5% データ)
+ * 5. generateThreadsPost() で5段階LangGraphパイプライン投稿生成
+ * 6. autoResolvePost() で AI Judge 自動投稿
+ * 7. Slack通知 (スコア、パターン、フック情報含むリッチメタデータ)
  */
 
-import { createClient } from '@supabase/supabase-js'
 import { getRecentlyPostedSourceUrls } from '../memory'
 import { sendMessage } from '../slack-client'
 import { generateThreadsPost } from '../../threads-post-generation/threads-graph'
+import type { ThreadsGraphOutput } from '../../threads-post-generation/threads-graph'
 import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
-import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
+import { collectThreadsSources } from '../../threads-post-generation/threads-source-collector'
+import type { ThreadsSourceCandidate } from '../../threads-post-generation/threads-source-collector'
+import { rankThreadsSources } from '../../threads-post-generation/threads-source-ranker'
 
 // ============================================================
-// ソースメモリ取得 (LinkedIn/Trending と共有)
+// 配信ロール (Delivery Role)
 // ============================================================
 
-async function recallSourceMemories(
-  slackUserId: string,
-  limit: number,
-): Promise<readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
-  }
+type DeliveryRole = 'text' | 'image' | 'trend_commentary' | 'data_story'
 
-  const supabase = createClient(url, key)
+const DELIVERY_WEIGHTS: readonly { readonly role: DeliveryRole; readonly weight: number }[] = [
+  { role: 'text', weight: 0.70 },
+  { role: 'image', weight: 0.15 },
+  { role: 'trend_commentary', weight: 0.10 },
+  { role: 'data_story', weight: 0.05 },
+] as const
 
-  const { data, error } = await supabase
-    .from('slack_bot_memory')
-    .select('*')
-    .eq('slack_user_id', slackUserId)
-    .eq('context->>source', 'linkedin_sources')
-    .order('created_at', { ascending: false })
-    .limit(limit)
+function selectDeliveryRole(): DeliveryRole {
+  const rand = Math.random()
+  let cumulative = 0
 
-  if (error) {
-    throw new Error(`Failed to recall source memories: ${error.message}`)
-  }
-
-  return (data ?? []) as readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]
-}
-
-async function recallTrendingTopics(
-  slackUserId: string,
-): Promise<readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return []
-
-  const supabase = createClient(url, key)
-  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-
-  const { data } = await supabase
-    .from('slack_bot_memory')
-    .select('*')
-    .eq('slack_user_id', slackUserId)
-    .eq('memory_type', 'fact')
-    .contains('context', { source: 'trending_topics' })
-    .gte('created_at', twoDaysAgo)
-    .order('created_at', { ascending: false })
-    .limit(3)
-
-  return (data ?? []) as readonly { readonly content: string; readonly context: Record<string, unknown> | null }[]
-}
-
-// ============================================================
-// 候補抽出
-// ============================================================
-
-interface MemoryContext {
-  readonly source?: string
-  readonly candidates?: readonly LinkedInTopicCandidate[]
-}
-
-function extractCandidatesFromMemories(
-  memories: readonly { readonly content: string; readonly context: Record<string, unknown> | null }[],
-): readonly LinkedInTopicCandidate[] {
-  const allCandidates: LinkedInTopicCandidate[] = []
-
-  for (const memory of memories) {
-    const ctx = memory.context as MemoryContext | null
-    if (ctx?.candidates && Array.isArray(ctx.candidates)) {
-      allCandidates.push(...ctx.candidates)
+  for (const { role, weight } of DELIVERY_WEIGHTS) {
+    cumulative += weight
+    if (rand < cumulative) {
+      return role
     }
   }
 
-  return allCandidates
+  return 'text'
+}
+
+// ============================================================
+// トレンドコンテキスト構築
+// ============================================================
+
+function buildTrendingContext(
+  sources: readonly ThreadsSourceCandidate[],
+): string {
+  const trendingSources = sources.filter(
+    (s) => s.sourceType === 'trending' || s.sourceType === 'buzz',
+  )
+
+  if (trendingSources.length === 0) return ''
+
+  return trendingSources
+    .slice(0, 3)
+    .map((s) => `- ${s.title}`)
+    .join('\n')
 }
 
 // ============================================================
@@ -113,110 +82,141 @@ export async function runThreadsAutoPost(): Promise<void> {
     )
   }
 
-  // 1. ランダム遅延 (0~10分, スパム回避; SKIP_DELAY=true で省略)
-  const delayMs = process.env.SKIP_DELAY === 'true' ? 0 : Math.floor(Math.random() * 10 * 60 * 1000)
-  process.stdout.write(`Threads auto-post: waiting ${Math.round(delayMs / 1000)}s random delay...\n`)
+  // 1. ランダム遅延
+  const delayMs =
+    process.env.SKIP_DELAY === 'true'
+      ? 0
+      : Math.floor(Math.random() * 10 * 60 * 1000)
+  process.stdout.write(
+    `Threads auto-post v2: waiting ${Math.round(delayMs / 1000)}s random delay...\n`,
+  )
   await new Promise((resolve) => setTimeout(resolve, delayMs))
 
-  // 2. linkedin_sources メモリから候補取得
-  let memories = await recallSourceMemories(userId, 5)
+  // 2. ソース収集 (トレンド/バズ/RSS/LinkedIn横断)
+  const allSources = await collectThreadsSources()
 
-  // 3. フォールバック: trending_topics
-  if (memories.length === 0) {
-    const trendingMemories = await recallTrendingTopics(userId)
-    if (trendingMemories.length === 0) {
-      await sendMessage({
-        channel,
-        text: ':thread: Threads: No source data available. Run the source collector first.',
-      })
-      return
-    }
-
-    // trending_topics はフリーテキストなので直接投稿生成へ
-    const trendingContent = trendingMemories.map((m) => m.content).join('\n\n')
-    await generateAndPostFromContent(channel, trendingContent, 'AI/テックトレンド')
-    return
-  }
-
-  // 4. 候補抽出 + 重複排除
-  const allCandidates = extractCandidatesFromMemories(memories)
-
-  if (allCandidates.length === 0) {
+  if (allSources.length === 0) {
     await sendMessage({
       channel,
-      text: ':thread: Threads: Source data found but no structured candidates.',
+      text: ':thread: Threads v2: No source data available across all collectors.',
     })
     return
   }
 
-  let candidates: readonly LinkedInTopicCandidate[] = allCandidates
+  // 3. ランキング (重複排除 + 会話ポテンシャル重視)
+  let recentUrlSet: ReadonlySet<string> = new Set()
   try {
     const recentUrls = await getRecentlyPostedSourceUrls(7)
-    const recentUrlSet = new Set(recentUrls)
-    const deduped = allCandidates.filter(
-      (c) => !recentUrlSet.has(c.sourceUrl),
-    )
-    if (deduped.length < allCandidates.length) {
-      process.stdout.write(
-        `Threads source dedup: ${allCandidates.length - deduped.length} duplicate(s) removed\n`,
-      )
-    }
-    candidates = deduped.length > 0 ? deduped : allCandidates
+    recentUrlSet = new Set(recentUrls)
   } catch {
-    // Dedup failure should not block the pipeline
+    // Dedup failure should not block
   }
 
-  // 5. トップ1件を選定
-  const topCandidate = candidates[0]
-  process.stdout.write(`Threads: generating post for "${topCandidate.title}"\n`)
+  const rankedSources = rankThreadsSources(allSources, recentUrlSet)
+
+  if (rankedSources.length === 0) {
+    await sendMessage({
+      channel,
+      text: ':thread: Threads v2: All sources filtered (duplicates or low relevance).',
+    })
+    return
+  }
+
+  // 4. 配信ロール抽選
+  const deliveryRole = selectDeliveryRole()
+  process.stdout.write(`Threads delivery role: ${deliveryRole}\n`)
+
+  // Select source based on delivery role preference
+  const topSource = selectSourceForRole(rankedSources, deliveryRole)
+  process.stdout.write(
+    `Threads: generating post for "${topSource.title}" (source: ${topSource.sourceType})\n`,
+  )
+
+  // 5. トレンドコンテキスト構築
+  const trendingContext = buildTrendingContext(allSources)
 
   // 6. 投稿生成 + AI Judge 自動投稿
-  await generateAndPostFromContent(
-    channel,
-    topCandidate.sourceBody,
-    topCandidate.title,
-    topCandidate.sourceUrl,
-  )
+  await generateAndPost(channel, topSource, trendingContext, deliveryRole)
 }
 
-async function generateAndPostFromContent(
+// ============================================================
+// ソース選択 (配信ロールに応じた選好)
+// ============================================================
+
+function selectSourceForRole(
+  sources: readonly ThreadsSourceCandidate[],
+  role: DeliveryRole,
+): ThreadsSourceCandidate {
+  if (sources.length === 0) {
+    throw new Error('No sources available for selection')
+  }
+
+  // trend_commentary prefers trending/buzz sources
+  if (role === 'trend_commentary') {
+    const trending = sources.find(
+      (s) => s.sourceType === 'trending' || s.sourceType === 'buzz',
+    )
+    if (trending) return trending
+  }
+
+  // data_story prefers buzz sources (often contain data)
+  if (role === 'data_story') {
+    const buzz = sources.find((s) => s.sourceType === 'buzz')
+    if (buzz) return buzz
+  }
+
+  // Default: top ranked source
+  return sources[0]
+}
+
+// ============================================================
+// 投稿生成 + 投稿
+// ============================================================
+
+async function generateAndPost(
   channel: string,
-  content: string,
-  topic: string,
-  sourceUrl?: string,
+  source: ThreadsSourceCandidate,
+  trendingContext: string,
+  deliveryRole: DeliveryRole,
 ): Promise<void> {
   try {
     const post = await generateThreadsPost({
-      content,
-      topic,
-      sourceUrl,
+      content: source.body,
+      topic: source.title,
+      sourceUrl: source.url ?? undefined,
+      trendingContext: trendingContext || undefined,
     })
 
     if (isAiJudgeEnabled()) {
       const aiResult = await autoResolvePost({
         platform: 'threads',
         text: post.finalPost,
-        sourceUrl,
-        sourceTitle: topic,
+        sourceUrl: source.url ?? undefined,
+        sourceTitle: source.title,
         patternUsed: post.patternUsed,
         tags: [...post.tags],
       })
 
-      process.stdout.write(
-        `Threads auto-post (AI Judge): "${topic}" → ${aiResult.success ? 'posted' : 'rejected'}` +
-          `${aiResult.error ? ` (${aiResult.error})` : ''}` +
-          `${aiResult.verdict ? ` [decision=${aiResult.verdict.decision}, confidence=${aiResult.verdict.confidence}]` : ''}\n`,
+      // Rich metadata logging
+      const metadataLog = formatRichMetadata(post, source, deliveryRole)
+      process.stdout.write(metadataLog)
+
+      // Rich Slack notification
+      const slackNotification = formatSlackNotification(
+        post,
+        source,
+        deliveryRole,
+        aiResult.success,
+        aiResult.verdict?.decision,
+        aiResult.verdict?.confidence,
+        aiResult.error,
       )
+      await sendMessage({ channel, text: slackNotification })
     } else {
-      // AI Judge 無効時: プレビューのみ Slack 送信
+      // AI Judge disabled: preview only
       await sendMessage({
         channel,
-        text: [
-          ':thread: *Threads投稿プレビュー*',
-          `> ${post.finalPost.slice(0, 300)}${post.finalPost.length > 300 ? '...' : ''}`,
-          `トピック: ${topic}`,
-          'AI Judge無効のため手動投稿が必要です。',
-        ].join('\n'),
+        text: formatPreviewNotification(post, source, deliveryRole),
       })
     }
   } catch (error) {
@@ -224,7 +224,101 @@ async function generateAndPostFromContent(
     process.stdout.write(`Threads post generation failed: ${message}\n`)
     await sendMessage({
       channel,
-      text: `:thread: Threads: Post generation failed — ${message}`,
+      text: `:thread: Threads v2: Post generation failed — ${message}`,
     })
   }
+}
+
+// ============================================================
+// リッチメタデータフォーマット
+// ============================================================
+
+function formatRichMetadata(
+  post: ThreadsGraphOutput,
+  source: ThreadsSourceCandidate,
+  deliveryRole: DeliveryRole,
+): string {
+  const scoresSummary = post.scores
+    ? post.scores
+        .map(
+          (s) =>
+            `  候補${s.index + 1}: narrative=${s.narrativeDepth} accuracy=${s.accuracy} conv=${s.conversationPotential} length=${s.lengthFit} hook=${s.hookStrength} total=${s.total}`,
+        )
+        .join('\n')
+    : '  (no scores)'
+
+  return [
+    `Threads v2 pipeline complete:`,
+    `  pattern: ${post.patternUsed}`,
+    `  hook: ${post.hookUsed ?? 'none'}`,
+    `  source: ${source.sourceType} (${source.title.slice(0, 50)})`,
+    `  delivery: ${deliveryRole}`,
+    `  length: ${post.finalPost.length} chars`,
+    `  tags: ${post.tags.join(', ') || 'none'}`,
+    `  scores:`,
+    scoresSummary,
+    '',
+  ].join('\n')
+}
+
+function formatSlackNotification(
+  post: ThreadsGraphOutput,
+  source: ThreadsSourceCandidate,
+  deliveryRole: DeliveryRole,
+  posted: boolean,
+  decision?: string,
+  confidence?: number,
+  error?: string,
+): string {
+  const statusIcon = posted ? ':white_check_mark:' : ':x:'
+  const preview =
+    post.finalPost.length > 300
+      ? post.finalPost.slice(0, 300) + '...'
+      : post.finalPost
+
+  const lines = [
+    `:thread: *Threads v2 Auto-Post*`,
+    `${statusIcon} ${posted ? 'Posted' : 'Rejected'}${error ? ` (${error})` : ''}`,
+    `> ${preview}`,
+    '',
+    `*Pattern:* ${post.patternUsed}${post.hookUsed ? ` | *Hook:* ${post.hookUsed}` : ''}`,
+    `*Source:* ${source.sourceType} | *Role:* ${deliveryRole}`,
+    `*Length:* ${post.finalPost.length} chars | *Tags:* ${post.tags.join(', ') || 'none'}`,
+  ]
+
+  if (decision && confidence !== undefined) {
+    lines.push(
+      `*AI Judge:* ${decision} (confidence: ${(confidence * 100).toFixed(0)}%)`,
+    )
+  }
+
+  if (post.scores && post.scores.length > 0) {
+    const bestScore = [...post.scores].sort((a, b) => b.total - a.total)[0]
+    lines.push(
+      `*Best Score:* ${bestScore.total}/50 (narrative=${bestScore.narrativeDepth} conv=${bestScore.conversationPotential} hook=${bestScore.hookStrength})`,
+    )
+  }
+
+  return lines.join('\n')
+}
+
+function formatPreviewNotification(
+  post: ThreadsGraphOutput,
+  source: ThreadsSourceCandidate,
+  deliveryRole: DeliveryRole,
+): string {
+  const preview =
+    post.finalPost.length > 300
+      ? post.finalPost.slice(0, 300) + '...'
+      : post.finalPost
+
+  return [
+    ':thread: *Threads v2 投稿プレビュー*',
+    `> ${preview}`,
+    '',
+    `*Pattern:* ${post.patternUsed}${post.hookUsed ? ` | *Hook:* ${post.hookUsed}` : ''}`,
+    `*Source:* ${source.sourceType} (${source.title.slice(0, 60)}) | *Role:* ${deliveryRole}`,
+    `*Length:* ${post.finalPost.length} chars`,
+    'AI Judge無効のため手動投稿が必要です。',
+  ].join('\n')
 }
