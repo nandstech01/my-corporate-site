@@ -380,6 +380,20 @@ export async function runEngagementLearner(): Promise<void> {
     process.stdout.write(`LinkedIn engagement learner failed: ${message}\n`)
   }
 
+  // A/B experiment auto-evaluation
+  try {
+    const { autoEvaluateAll } = await import('../../learning/experiment-tracker')
+    const experimentResults = await autoEvaluateAll()
+    const significant = experimentResults.filter((r) => r.isSignificant)
+    if (significant.length > 0) {
+      process.stdout.write(
+        `A/B experiments: ${significant.length} reached significance out of ${experimentResults.length} evaluated\n`,
+      )
+    }
+  } catch {
+    // Best-effort: experiment evaluation failure should not break engagement learner
+  }
+
   // L4: Post-publish anomaly monitoring
   try {
     const { runPostPublishMonitor } = await import('../../safety/post-publish-monitor')

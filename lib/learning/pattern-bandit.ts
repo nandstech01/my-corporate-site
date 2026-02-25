@@ -23,6 +23,7 @@ export interface PatternStats {
   readonly totalUses: number
   readonly avgEngagement: number
   readonly lastUsedAt: string | null
+  readonly crossPlatformSource: string | null
 }
 
 interface PatternPerformanceRow {
@@ -35,6 +36,7 @@ interface PatternPerformanceRow {
   readonly avg_engagement: number
   readonly last_used_at: string | null
   readonly updated_at: string | null
+  readonly cross_platform_source: string | null
 }
 
 // ============================================================
@@ -153,6 +155,7 @@ async function fetchPatternPerformance(
     totalUses: row.total_uses,
     avgEngagement: row.avg_engagement,
     lastUsedAt: row.last_used_at,
+    crossPlatformSource: row.cross_platform_source,
   }))
 }
 
@@ -205,6 +208,14 @@ export async function selectPatternByBandit(
         bestPattern = patternId
       }
     })
+
+    // Log if the selected pattern is a cross-platform transfer
+    const selectedStats = statsMap.get(bestPattern)
+    if (selectedStats?.crossPlatformSource) {
+      process.stdout.write(
+        `Pattern Bandit: Selected cross-platform pattern ${bestPattern} (from ${selectedStats.crossPlatformSource})\n`,
+      )
+    }
 
     return bestPattern
   } catch {
@@ -324,6 +335,19 @@ export async function recordPatternOutcome(
       if (insertError) {
         throw new Error(`Failed to insert pattern performance: ${insertError.message}`)
       }
+    }
+
+    // A/B experiment tracking: if pattern is in an active experiment, record outcome
+    try {
+      const { getExperimentPatternMap, recordExperimentOutcome } =
+        await import('./experiment-tracker')
+      const expMap = await getExperimentPatternMap(platform)
+      const mapping = expMap.get(patternId)
+      if (mapping) {
+        await recordExperimentOutcome(mapping.experimentId, mapping.variantId, engagement, success)
+      }
+    } catch {
+      // Best-effort: experiment tracking failure should not break pattern recording
     }
   } catch (error) {
     throw new Error(

@@ -6,7 +6,9 @@ on:
     - cron: '0 23,7 * * *'  # JST 8,16 LinkedIn auto-post (2x/day)
     - cron: '0 1 * * 1'      # JST 10:00 Monday weekly report
     - cron: '0 21,5,13 * * *' # JST 6,14,22 LinkedIn source collector (1日3回)
-    - cron: '0 14 * * *'     # JST 23:00 trending collector
+    - cron: '0 2 * * *'      # JST 11:00 trending collector (3x/day)
+    - cron: '0 7 * * *'      # JST 16:00 trending collector (3x/day)
+    - cron: '0 14 * * *'     # JST 23:00 trending collector (3x/day)
     - cron: '0 15 * * *'     # JST 00:00 LinkedIn engagement learner
     - cron: '0 16 * * *'     # JST 01:00 X engagement learner
     - cron: '0 18 * * *'     # JST 03:00 LinkedIn ML model retrainer

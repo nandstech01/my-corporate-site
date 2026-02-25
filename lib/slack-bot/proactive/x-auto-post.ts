@@ -26,6 +26,8 @@ import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import { uploadMediaToX } from '../../x-api/media'
 import { generateArticleThumbnail } from '../../x-article/thumbnail-generator'
+import { watchTrends } from '../../trending/trend-watcher'
+import type { TrendingOpportunity } from '../../trending/priority-queue'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 
 // ============================================================
@@ -479,6 +481,69 @@ async function tryViralQuoteArticle(): Promise<boolean> {
 }
 
 // ============================================================
+// Trending Reactive Post
+// ============================================================
+
+const TRENDING_SCORE_THRESHOLD = 0.7
+
+async function tryTrendingReactive(): Promise<boolean> {
+  try {
+    const opportunities = await watchTrends()
+    if (opportunities.length === 0) return false
+
+    const top = opportunities[0]
+    if (top.score < TRENDING_SCORE_THRESHOLD) {
+      process.stdout.write(
+        `X auto-post: Top trend score ${top.score.toFixed(2)} below threshold ${TRENDING_SCORE_THRESHOLD}\n`,
+      )
+      return false
+    }
+
+    if (top.urgency !== 'breaking' && top.urgency !== 'trending') {
+      return false
+    }
+
+    process.stdout.write(
+      `X auto-post: Trending reactive — ${top.urgency} opportunity (score=${top.score.toFixed(2)}): "${top.topic.slice(0, 80)}..."\n`,
+    )
+
+    return await generateTrendingPost(top)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`X auto-post: Trending check failed: ${msg}\n`)
+    return false
+  }
+}
+
+async function generateTrendingPost(
+  opportunity: TrendingOpportunity,
+): Promise<boolean> {
+  const postResult = await generateXPost({
+    mode: 'research',
+    content: opportunity.topic,
+    topic: opportunity.topic.slice(0, 100),
+  })
+
+  if (!isAiJudgeEnabled()) {
+    process.stdout.write('X auto-post (trending_reactive): AI Judge disabled, skipping\n')
+    return false
+  }
+
+  const result = await autoResolvePost({
+    platform: 'x',
+    text: postResult.finalPost,
+    patternUsed: postResult.patternUsed,
+    tags: [...postResult.tags, 'trending_reactive', opportunity.urgency],
+  })
+
+  process.stdout.write(
+    `X auto-post (trending_reactive): ${result.success ? 'posted' : 'rejected'} — urgency=${opportunity.urgency}, source=${opportunity.source}\n`,
+  )
+
+  return result.success
+}
+
+// ============================================================
 // メイン
 // ============================================================
 
@@ -515,7 +580,14 @@ async function runXAutoPostInner(): Promise<void> {
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
 
-  // 1.5. Adaptive content distribution based on engagement data
+  // 1.5. Check for high-priority trending opportunities before content distribution
+  const trendingResult = await tryTrendingReactive()
+  if (trendingResult) {
+    process.stdout.write('X auto-post: Trending reactive post completed\n')
+    return
+  }
+
+  // 2. Adaptive content distribution based on engagement data
   let weights: Record<string, number>
   try {
     weights = await getAdaptiveContentDistribution()

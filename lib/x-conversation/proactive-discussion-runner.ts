@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { findRelevantDiscussions } from './discussion-finder'
+import { getAuthorBoostMap } from './author-quality-tracker'
 import { generateProactiveReply } from './proactive-reply-graph'
 import { replyToTweet } from '../x-api/client'
 import { autoResolvePost } from '../ai-judge/auto-resolver'
@@ -107,7 +108,10 @@ export async function runProactiveDiscussion(): Promise<void> {
     return
   }
 
-  // 3. Track authors we've replied to in this run (count, not just presence)
+  // 3. Pre-fetch author boost map (single query for all candidates)
+  const boostMap = await getAuthorBoostMap()
+
+  // 4. Track authors we've replied to in this run (count, not just presence)
   const repliedAuthorsThisRun = new Map<string, number>()
   let repliesPosted = 0
 
@@ -158,7 +162,10 @@ export async function runProactiveDiscussion(): Promise<void> {
       const replyResult = await replyToTweet(result.finalReply, candidate.tweetId)
 
       if (replyResult.success && replyResult.tweetId) {
-        // 7. Record in DB
+        // 7. Record in DB with author tier (uses pre-fetched boost map)
+        const authorBoost = boostMap.get(candidate.authorUsername) ?? 0
+        const authorTier = authorBoost >= 0.3 ? 'top' : authorBoost >= 0.15 ? 'average' : 'unknown'
+
         const supabase = getSupabase()
         await supabase.from('x_conversation_threads').insert({
           root_tweet_id: candidate.tweetId,
@@ -171,7 +178,7 @@ export async function runProactiveDiscussion(): Promise<void> {
           depth_level: 1,
           posted_at: new Date().toISOString(),
           strategy_used: 'proactive',
-          pipeline_scores: result.score,
+          pipeline_scores: { ...result.score, authorTier },
         })
 
         repliedAuthorsThisRun.set(candidate.authorUsername, inMemoryCount + 1)

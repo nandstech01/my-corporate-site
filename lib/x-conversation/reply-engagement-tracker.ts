@@ -11,6 +11,7 @@ import { notifyApiFallback } from '../x-playwright'
 import { getTwitterClient, isTwitterConfigured } from '../x-api/client'
 import { recordPatternOutcome } from '../learning/pattern-bandit'
 import { notifyLearningEvent } from '../ai-judge/slack-notifier'
+import { updateAuthorProfiles } from './author-quality-tracker'
 
 // ============================================================
 // Types
@@ -195,6 +196,9 @@ export async function trackReplyEngagement(): Promise<void> {
       },
     })
   } catch { /* best-effort */ }
+
+  // 7. Update author quality profiles (log stats)
+  await updateAuthorProfiles()
 
   process.stdout.write(
     `Reply Engagement Tracker: Complete. ${totalTracked} tracked, ${strategiesRecorded} strategies recorded\n`

@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { getAuthorBoostMap } from './author-quality-tracker'
 
 // ============================================================
 // Types
@@ -164,8 +165,18 @@ export async function findRelevantDiscussions(): Promise<readonly DiscussionCand
     return engagementSignal * c.relevanceScore
   }
 
-  return unique
-    .sort((a, b) => computeCompositeScore(b) - computeCompositeScore(a))
+  // Apply author quality boost to composite scores (single query for all authors)
+  const boostMap = await getAuthorBoostMap()
+  const scoredCandidates = unique.map((candidate) => {
+    const compositeScore = computeCompositeScore(candidate)
+    const authorBoost = boostMap.get(candidate.authorUsername) ?? 0
+    const finalScore = compositeScore * (1 + authorBoost)
+    return { candidate, finalScore }
+  })
+
+  return scoredCandidates
+    .sort((a, b) => b.finalScore - a.finalScore)
+    .map(s => s.candidate)
     .slice(0, MAX_CANDIDATES)
 }
 
