@@ -345,6 +345,7 @@ async function generateCandidates(
   締め: 哲学的テイクアウェイ
 - 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「〜なんだよね」「ぶっちゃけ」）
 - ハッシュタグ0-1個
+- Markdown記号（#, ##, **, ---, ___）は使うな。プレーンテキストで書け。見出しは改行と番号で表現しろ
 - ※長文投稿なので280文字制限は適用しない。3000-8000文字で書くこと。`
     : isThread
       ? `- 3セグメントのスレッドを作成
@@ -590,9 +591,10 @@ async function finalScore(
   // Knockout: 高い方を採用
   if (revisedCritique.overallScore > state.critiqueResult.overallScore) {
     // 改訂版の勝ち → finalPostに設定
-    // Article mode: タイトル・キーポイントも抽出
+    // Article mode: Markdown除去 + タイトル・キーポイント抽出
     if (state.mode === 'article') {
-      const lines = state.revisedCandidate.split('\n').filter((l) => l.trim().length > 0)
+      const cleaned = stripMarkdown(state.revisedCandidate)
+      const lines = cleaned.split('\n').filter((l) => l.trim().length > 0)
       const articleTitle = lines[0]?.trim() ?? null
       const numberedLines = lines.filter((l) => /^\d+[\.\)、]\s*/.test(l.trim()))
       const keyPoints = numberedLines
@@ -600,7 +602,7 @@ async function finalScore(
         .map((l) => l.trim().replace(/^\d+[\.\)、]\s*/, ''))
       return {
         critiqueResult: revisedCritique,
-        finalPost: state.revisedCandidate,
+        finalPost: cleaned,
         articleTitle,
         articleKeyPoints: keyPoints.length > 0 ? keyPoints : null,
       }
@@ -613,6 +615,25 @@ async function finalScore(
 
   // 原文の勝ち → revisedCandidateをクリア
   return { revisedCandidate: null }
+}
+
+// ============================================================
+// ヘルパー: 記事テキストからMarkdown記号を除去
+// ============================================================
+
+function stripMarkdown(text: string): string {
+  return text
+    // 見出し記号: # ## ### など（行頭）
+    .replace(/^#{1,6}\s+/gm, '')
+    // 太字: **text** → text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    // 斜体: *text* → text
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '$1')
+    // 水平線: --- のみの行を空行に
+    .replace(/^-{3,}$/gm, '')
+    // 連続空行を1つに
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 // ============================================================
@@ -677,16 +698,17 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
     return { finalPost: truncated + '...' }
   }
 
-  // Article mode: extract title and key points
+  // Article mode: Markdown除去 + タイトル・キーポイント抽出
   if (state.mode === 'article') {
-    const lines = withTag.split('\n').filter((l) => l.trim().length > 0)
+    const cleaned = stripMarkdown(withTag)
+    const lines = cleaned.split('\n').filter((l) => l.trim().length > 0)
     const articleTitle = lines[0]?.trim() ?? null
     const numberedLines = lines.filter((l) => /^\d+[\.\)、]\s*/.test(l.trim()))
     const articleKeyPoints = numberedLines
       .slice(0, 3)
       .map((l) => l.trim().replace(/^\d+[\.\)、]\s*/, ''))
     return {
-      finalPost: withTag,
+      finalPost: cleaned,
       articleTitle,
       articleKeyPoints: articleKeyPoints.length > 0 ? articleKeyPoints : null,
     }
