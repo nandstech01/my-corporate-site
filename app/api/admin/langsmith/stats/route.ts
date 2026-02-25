@@ -4,6 +4,7 @@ import { Client } from 'langsmith'
 export const dynamic = 'force-dynamic'
 
 const PROJECT_NAME = process.env.LANGCHAIN_PROJECT ?? 'nands-sns-pipeline'
+const PROJECT_ID = process.env.LANGCHAIN_PROJECT_ID
 
 interface ToolUsageStat {
   readonly name: string
@@ -81,7 +82,7 @@ export async function GET(request: Request) {
     let totalErrors = 0
 
     for await (const run of client.listRuns({
-      projectName: PROJECT_NAME,
+      ...(PROJECT_ID ? { projectId: PROJECT_ID } : { projectName: PROJECT_NAME }),
       filter: `gte(start_time, "${startTime.toISOString()}")`,
       limit: 100,
     })) {
@@ -179,6 +180,20 @@ export async function GET(request: Request) {
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch stats'
+    if (message.includes('not found')) {
+      console.warn('[langsmith/stats] Project not found, returning empty data')
+      return NextResponse.json({
+        success: true,
+        data: {
+          toolUsage: [],
+          dailyTokens: [],
+          platformLatency: [],
+          successRate: 0,
+          totalRuns: 0,
+          totalErrors: 0,
+        },
+      })
+    }
     const stack = error instanceof Error ? error.stack : String(error)
     console.error('[langsmith/stats] ERROR:', message)
     console.error('[langsmith/stats] STACK:', stack)

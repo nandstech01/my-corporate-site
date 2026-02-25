@@ -4,6 +4,7 @@ import { Client } from 'langsmith'
 export const dynamic = 'force-dynamic'
 
 const PROJECT_NAME = process.env.LANGCHAIN_PROJECT ?? 'nands-sns-pipeline'
+const PROJECT_ID = process.env.LANGCHAIN_PROJECT_ID
 
 interface TraceRecord {
   readonly id: string
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
     const traces: TraceRecord[] = []
 
     for await (const run of client.listRuns({
-      projectName: PROJECT_NAME,
+      ...(PROJECT_ID ? { projectId: PROJECT_ID } : { projectName: PROJECT_NAME }),
       filter: `gte(start_time, "${startTime.toISOString()}")`,
       limit,
     })) {
@@ -100,6 +101,14 @@ export async function GET(request: Request) {
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch traces'
+    if (message.includes('not found')) {
+      console.warn('[langsmith/traces] Project not found, returning empty data')
+      return NextResponse.json({
+        success: true,
+        data: [],
+        meta: { total: 0, limit, days },
+      })
+    }
     const stack = error instanceof Error ? error.stack : String(error)
     console.error('[langsmith/traces] ERROR:', message)
     console.error('[langsmith/traces] STACK:', stack)
