@@ -136,7 +136,7 @@ export async function createPendingAction(params: {
 export async function resolvePendingAction(
   actionId: string,
   status: 'approved' | 'rejected',
-  resolvedBy?: string,
+  _resolvedBy?: string,
 ): Promise<SlackPendingAction> {
   const supabase = getSupabase()
 
@@ -145,7 +145,6 @@ export async function resolvePendingAction(
     .update({
       status,
       resolved_at: new Date().toISOString(),
-      ...(resolvedBy ? { resolved_by: resolvedBy } : {}),
     })
     .eq('id', actionId)
     .eq('status', 'pending')
