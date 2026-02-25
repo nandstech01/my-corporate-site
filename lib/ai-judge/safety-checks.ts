@@ -185,6 +185,12 @@ const AI_KEYWORDS_EN: readonly string[] = [
   'model evaluation', 'benchmark',
   'tokenizer', 'attention mechanism',
   'vector database', 'semantic search',
+  // AI products & capabilities
+  'text to speech', 'speech to text', 'voice ai',
+  'realtime api', 'function calling', 'tool use',
+  'code generation', 'code completion',
+  'multimodal', 'multi-modal', 'reasoning model',
+  'agentic workflow', 'ai coding',
 ]
 
 const AI_KEYWORDS_SHORT: readonly string[] = [
@@ -193,6 +199,13 @@ const AI_KEYWORDS_SHORT: readonly string[] = [
   'chatgpt', 'midjourney', 'stable diffusion',
   'langchain', 'llamaindex',
   'hugging face', 'huggingface',
+  // AI product names
+  'whisper', 'dall-e', 'dalle', 'sora',
+  'llama', 'mistral', 'grok', 'perplexity',
+  'cursor', 'copilot', 'devin', 'windsurf',
+  'o1', 'o3', 'o4',
+  // Speech/media AI
+  'stt', 'tts', 'asr',
 ]
 
 const AI_KEYWORDS_JA: readonly string[] = [
@@ -208,6 +221,11 @@ const AI_KEYWORDS_JA: readonly string[] = [
   'ベクトルデータベース', 'セマンティック検索',
   'ハルシネーション', 'アライメント',
   '推論', '学習データ',
+  // Additional AI terms
+  '音声認識', '音声合成', 'テキスト生成',
+  'コード生成', '画像生成', '動画生成',
+  'マルチモーダル', 'ベンチマーク',
+  'モデル比較', 'モデル選定',
 ]
 
 export function checkTopicRelevance(text: string): number {
@@ -243,7 +261,8 @@ export function checkTopicRelevance(text: string): number {
   if (matchedCount === 0) return 0
 
   // Score based on keyword density and category variety
-  const densityScore = Math.min(matchedCount / 3, 1.0)
+  // 2 hits = max score (single AI product mention is sufficient)
+  const densityScore = Math.min(matchedCount / 2, 1.0)
   const varietyBonus = Math.min((uniqueCategories.size - 1) * 0.15, 0.3)
 
   return Math.min(densityScore + varietyBonus, 1.0)
