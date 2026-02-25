@@ -8,7 +8,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getUserTimeline, resolveUserId } from '../x-api/client'
 import { scrapeUserTimeline, scrapeUserId } from '../x-playwright/scrapers/profile-scraper'
-import { closePlaywright, notifyApiFallback } from '../x-playwright'
+import { closePlaywright, bufferApiFallback, flushApiFallbackNotifications } from '../x-playwright'
 import { rankOpportunity } from './opportunity-ranker'
 import type { MonitoredAccountRow } from './types'
 
@@ -121,11 +121,11 @@ async function processAccount(
       }))
   } else {
     // API fallback — notify
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'x-account-monitor',
       reason: scraped.error ?? 'No tweets from Playwright',
       detail: `@${account.username}`,
-    }).catch(() => {})
+    })
 
     const timeline = await getUserTimeline(account.x_user_id, {
       sinceId: account.last_checked_tweet_id ?? undefined,
@@ -307,6 +307,9 @@ export async function runAccountMonitor(): Promise<void> {
 
   // Close Playwright browser (saves updated cookies to Supabase)
   await closePlaywright()
+
+  // Flush batched API fallback notifications as single summary
+  await flushApiFallbackNotifications()
 
   process.stdout.write(
     `X Account Monitor: Complete. ${totalInserted} new opportunities from ${accounts.length} accounts\n`,

@@ -20,7 +20,7 @@ import {
   replyToTweet,
 } from '../x-api/client'
 import { scrapeProfile, scrapeUserTimeline } from '../x-playwright/scrapers/profile-scraper'
-import { closePlaywright, notifyApiFallback } from '../x-playwright'
+import { closePlaywright, bufferApiFallback, flushApiFallbackNotifications } from '../x-playwright'
 import { autoResolvePost } from '../ai-judge/auto-resolver'
 import { isAiJudgeEnabled } from '../ai-judge/config'
 import { addSelfReply } from './thread-composer'
@@ -273,10 +273,10 @@ export async function runConversationBuilder(): Promise<void> {
     }))
   } else {
     // API fallback — notify
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'conversation-builder',
       reason: scrapedTimeline.error ?? 'No tweets from Playwright',
-    }).catch(() => {})
+    })
 
     const timeline = await getUserTimeline(myUserId, { maxResults: 20 })
     if (timeline.error || timeline.tweets.length === 0) {
@@ -451,6 +451,9 @@ export async function runConversationBuilder(): Promise<void> {
 
   // Close Playwright browser (saves updated cookies to Supabase)
   await closePlaywright()
+
+  // Flush batched API fallback notifications as single summary
+  await flushApiFallbackNotifications()
 
   process.stdout.write(
     `Conversation Builder: Complete. ${repliesPosted} replies, ${selfThreadsPosted} self-threads\n`,

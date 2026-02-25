@@ -29,7 +29,8 @@ export async function getPlaywrightContext(): Promise<PlaywrightContext | null> 
 
   const cookies = await loadSessionCookies()
   if (!cookies) {
-    process.stdout.write('Playwright: no session cookies available\n')
+    process.stdout.write('Playwright: no session cookies available — disabling for this run\n')
+    _sessionInvalid = true
     return null
   }
 

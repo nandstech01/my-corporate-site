@@ -42,7 +42,7 @@ export async function notifySessionExpired(params: {
 }
 
 /**
- * API fallback発動をSlack通知
+ * API fallback発動をSlack通知（即時送信 — レガシー互換）
  */
 export async function notifyApiFallback(params: {
   readonly consumer: string
@@ -67,6 +67,89 @@ export async function notifyApiFallback(params: {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     process.stdout.write(`Playwright notifier: failed to send API fallback notification: ${msg}\n`)
+  }
+}
+
+// ============================================================
+// Batched API fallback notifications
+// ============================================================
+
+interface FallbackEntry {
+  readonly consumer: string
+  readonly reason: string
+  readonly detail?: string
+  readonly timestamp: string
+}
+
+const _fallbackBuffer: FallbackEntry[] = []
+
+/**
+ * API fallback発動をバッファに蓄積（即時送信しない）。
+ * cronラン末尾で flushApiFallbackNotifications() を呼び出してサマリー1通にまとめる。
+ */
+export function bufferApiFallback(params: {
+  readonly consumer: string
+  readonly reason: string
+  readonly detail?: string
+}): void {
+  _fallbackBuffer.push({
+    ...params,
+    timestamp: new Date().toISOString(),
+  })
+}
+
+/**
+ * バッファに蓄積されたAPI fallback通知をサマリー1通にまとめてSlack送信。
+ * バッファが空の場合は何もしない。送信後バッファをクリアする。
+ */
+export async function flushApiFallbackNotifications(): Promise<void> {
+  if (_fallbackBuffer.length === 0) return
+
+  const channel = getGeneralChannel()
+  if (!channel) {
+    _fallbackBuffer.length = 0
+    return
+  }
+
+  // Group by consumer
+  const byConsumer: Record<string, FallbackEntry[]> = {}
+  for (const entry of _fallbackBuffer) {
+    const existing = byConsumer[entry.consumer]
+    if (existing) {
+      existing.push(entry)
+    } else {
+      byConsumer[entry.consumer] = [entry]
+    }
+  }
+
+  const lines = [
+    `:arrows_counterclockwise: *X Playwright → API fallback サマリー* (${_fallbackBuffer.length}件)`,
+    '',
+  ]
+
+  for (const [consumer, entries] of Object.entries(byConsumer)) {
+    lines.push(`*${consumer}:* ${entries.length}件`)
+    const reason = entries[0].reason
+    lines.push(`  理由: ${reason}`)
+    if (entries.length <= 3) {
+      for (const e of entries) {
+        if (e.detail) lines.push(`  • ${e.detail}`)
+      }
+    } else {
+      for (const e of entries.slice(0, 2)) {
+        if (e.detail) lines.push(`  • ${e.detail}`)
+      }
+      lines.push(`  • ...他 ${entries.length - 2}件`)
+    }
+  }
+
+  _fallbackBuffer.length = 0
+
+  try {
+    await sendMessage({ channel, text: lines.join('\n') })
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error)
+    process.stdout.write(`Playwright notifier: failed to send batched fallback notification: ${msg}\n`)
   }
 }
 

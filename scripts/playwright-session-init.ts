@@ -1,42 +1,43 @@
 /**
  * Playwright Session Init
  *
- * ローカルでXにログインし、cookieをエクスポートするスクリプト。
+ * 既存のChromeプロファイルを使ってX.comのcookieをエクスポートするスクリプト。
  * 出力されたcookieをGitHub Secretsに X_PLAYWRIGHT_SESSION として設定する。
  *
  * Usage:
  *   npx tsx scripts/playwright-session-init.ts
  *
- * 1. Chromiumが起動してX.comのログインページを開く
- * 2. ユーザーが手動でログインする
- * 3. ログイン完了後にEnterを押す
- * 4. cookieがJSON形式でstdoutに出力される
+ * 1. 既存Chromeプロファイルでブラウザが起動（ログイン済み状態）
+ * 2. x.comに自動アクセスしてcookieを取得
+ * 3. cookieがJSON形式でstdoutに出力される + Supabaseに保存
  */
 
 import { chromium } from 'playwright'
 import * as readline from 'readline'
+import * as path from 'path'
+import * as os from 'os'
 
 async function main() {
   process.stdout.write('Starting Playwright Session Init...\n\n')
 
-  const browser = await chromium.launch({
-    headless: false, // ユーザーが手動ログインするので headful
-  })
-
-  const context = await browser.newContext({
-    userAgent:
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  // 一時プロファイルで実際のChromeバイナリを使う
+  // channel: 'chrome' でシステムChromeを利用（Google OAuthブロック回避）
+  const tmpProfileDir = path.join(os.tmpdir(), 'playwright-session-init')
+  const context = await chromium.launchPersistentContext(tmpProfileDir, {
+    headless: false,
+    channel: 'chrome',
     viewport: { width: 1280, height: 720 },
-    locale: 'ja-JP',
-    timezoneId: 'Asia/Tokyo',
+    args: [
+      '--disable-blink-features=AutomationControlled',
+    ],
   })
 
-  const page = await context.newPage()
-  await page.goto('https://x.com/login')
+  const page = context.pages()[0] ?? await context.newPage()
+  await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 30_000 })
 
-  process.stdout.write('Browser opened at https://x.com/login\n')
-  process.stdout.write('Please log in manually in the browser window.\n')
-  process.stdout.write('After login is complete, press Enter here to export cookies.\n\n')
+  process.stdout.write('Browser opened at https://x.com/home (using existing Chrome profile)\n')
+  process.stdout.write('If you are logged in, press Enter to export cookies.\n')
+  process.stdout.write('If not logged in, log in manually then press Enter.\n\n')
 
   // Wait for user to press Enter
   const rl = readline.createInterface({
@@ -45,7 +46,7 @@ async function main() {
   })
 
   await new Promise<void>((resolve) => {
-    rl.question('Press Enter after login is complete...', () => {
+    rl.question('Press Enter to export cookies...', () => {
       rl.close()
       resolve()
     })
@@ -84,7 +85,7 @@ async function main() {
     }
   }
 
-  await browser.close()
+  await context.close()
 }
 
 main().catch((error) => {

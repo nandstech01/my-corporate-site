@@ -8,7 +8,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { scrapeTweetMetrics } from '../../x-playwright/scrapers/tweet-scraper'
-import { closePlaywright, notifyApiFallback } from '../../x-playwright'
+import { closePlaywright, bufferApiFallback, flushApiFallbackNotifications } from '../../x-playwright'
 
 interface PostRow {
   readonly id: string
@@ -68,11 +68,11 @@ export async function collectXEngagement(): Promise<void> {
         const scraped = await scrapeTweetMetrics(post.tweet_id)
 
         if (!scraped.metrics) {
-          notifyApiFallback({
+          bufferApiFallback({
             consumer: 'x-engagement-collector',
             reason: scraped.error ?? 'No metrics from Playwright',
             detail: `tweet ${post.tweet_id}`,
-          }).catch(() => {})
+          })
           failed++
           process.stdout.write(`  [SKIP] ${post.tweet_id}: ${scraped.error ?? 'no metrics'}\n`)
           continue
@@ -116,6 +116,7 @@ export async function collectXEngagement(): Promise<void> {
     }
   } finally {
     await closePlaywright()
+    await flushApiFallbackNotifications()
   }
 
   process.stdout.write(

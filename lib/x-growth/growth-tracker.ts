@@ -8,7 +8,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getMyProfile } from '../x-api/client'
 import { scrapeProfile } from '../x-playwright/scrapers/profile-scraper'
-import { closePlaywright, notifyApiFallback } from '../x-playwright'
+import { closePlaywright, bufferApiFallback, flushApiFallbackNotifications } from '../x-playwright'
 import { sendMessage } from '../slack-bot/slack-client'
 
 // ============================================================
@@ -264,10 +264,10 @@ export async function runGrowthTracker(): Promise<void> {
 
   // API fallback
   if (!profileData) {
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'growth-tracker',
       reason: scraped.error ?? 'Playwright returned no profile data',
-    }).catch(() => {})
+    })
 
     const profile = await getMyProfile()
     if (profile.error || !profile.followersCount) {
@@ -315,6 +315,9 @@ export async function runGrowthTracker(): Promise<void> {
 
   // Close Playwright browser (saves updated cookies to Supabase)
   await closePlaywright()
+
+  // Flush batched API fallback notifications as single summary
+  await flushApiFallbackNotifications()
 
   process.stdout.write('Growth Tracker: Complete\n')
 }

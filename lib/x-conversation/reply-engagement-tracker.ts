@@ -7,7 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { scrapeTweetMetrics } from '../x-playwright/scrapers/tweet-scraper'
-import { notifyApiFallback } from '../x-playwright'
+import { bufferApiFallback } from '../x-playwright'
 import { getTwitterClient, isTwitterConfigured } from '../x-api/client'
 import { recordPatternOutcome } from '../learning/pattern-bandit'
 import { notifyLearningEvent } from '../ai-judge/slack-notifier'
@@ -65,17 +65,17 @@ async function fetchReplyMetrics(tweetId: string): Promise<ReplyMetrics | null> 
         impressions: 0,
       }
     }
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'reply-engagement-tracker',
       reason: scraped.error ?? 'No metrics from Playwright',
       detail: `reply tweet ${tweetId}`,
-    }).catch(() => {})
+    })
   } catch {
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'reply-engagement-tracker',
       reason: 'Playwright exception',
       detail: `reply tweet ${tweetId}`,
-    }).catch(() => {})
+    })
   }
 
   // API fallback

@@ -12,7 +12,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getTwitterClient, isTwitterConfigured } from '../../x-api/client'
 import { scrapeTweetMetrics } from '../../x-playwright/scrapers/tweet-scraper'
-import { closePlaywright, notifyApiFallback } from '../../x-playwright'
+import { closePlaywright, bufferApiFallback, flushApiFallbackNotifications } from '../../x-playwright'
 import { notifyLearningEvent } from '../../ai-judge/slack-notifier'
 import {
   getRecentTweetIds,
@@ -45,18 +45,18 @@ async function fetchTweetMetrics(
       }
     }
     // Playwright returned no metrics — fall through
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'engagement-learner',
       reason: scraped.error ?? 'No metrics from Playwright',
       detail: `tweet ${tweetId}`,
-    }).catch(() => {})
+    })
   } catch {
     // Fall through to API
-    notifyApiFallback({
+    bufferApiFallback({
       consumer: 'engagement-learner',
       reason: 'Playwright exception',
       detail: `tweet ${tweetId}`,
-    }).catch(() => {})
+    })
   }
 
   // API fallback
@@ -355,6 +355,9 @@ async function runXEngagementLearner(): Promise<void> {
 
   // Close Playwright browser (saves updated cookies to Supabase)
   await closePlaywright()
+
+  // Flush batched API fallback notifications as single summary
+  await flushApiFallbackNotifications()
 }
 
 export async function runEngagementLearner(): Promise<void> {

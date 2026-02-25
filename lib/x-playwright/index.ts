@@ -21,6 +21,8 @@ export {
   notifySessionExpired,
   notifyApiFallback,
   notifyErrorPage,
+  bufferApiFallback,
+  flushApiFallbackNotifications,
 } from './notifier'
 export type {
   ScrapedTweet,
