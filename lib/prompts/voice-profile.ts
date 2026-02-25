@@ -52,7 +52,21 @@ export const VOICE_PROFILE = {
  *
  * @param mode - 'short' = 短文投稿用、'article' = 長文記事用
  */
-export function formatVoiceProfileForPrompt(mode: 'short' | 'article'): string {
+export function formatVoiceProfileForPrompt(mode: 'short' | 'article' | 'linkedin'): string {
+  if (mode === 'linkedin') {
+    return `## ブランドボイス（LinkedIn）
+- プロフェッショナルだが堅すぎない語り口
+- 署名表現: 「正直すごいなと」「控えめに言って」「ぶっちゃけ」は使ってOK
+- 「〜ですw」「以上w」等のカジュアルすぎる表現はLinkedInでは避ける
+
+## NG表現（AI感が出るため禁止）
+${VOICE_PROFILE.aiSmellPatterns.map((p) => `- 「${p}」`).join('\n')}
+
+## 構造的注意
+- AI感のある均一な段落構成を避ける
+- 個人的な体験・感情を必ず含める`
+  }
+
   const examples =
     mode === 'article'
       ? VOICE_PROFILE.fewShotExamplesArticle

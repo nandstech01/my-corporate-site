@@ -14,6 +14,7 @@ import { selectPatternByBandit } from '../learning/pattern-bandit'
 import { getBuzzInsights } from '../buzz-db/pattern-extractor'
 import { generateLinkedInTags } from './linkedin-tag-generator'
 import { LINKEDIN_BUZZ_RULES } from '../prompts/sns/linkedin-buzz'
+import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 import { predictEngagement, getInsights } from '../linkedin-ml-bridge/ml-client'
 import { searchMultipleRAGs } from '../rag/multi-rag-search'
@@ -256,12 +257,16 @@ async function generateCandidates(
     // Best-effort
   }
 
+  const voiceProfile = formatVoiceProfileForPrompt('linkedin')
+
   const response = await model.invoke([
     {
       role: 'system' as const,
       content: `あなたはLinkedInバズ投稿の専門家です。以下のルールに従い、LinkedIn投稿を3候補作成してください。
 
 ${LINKEDIN_BUZZ_RULES}
+
+${voiceProfile}
 
 ${templateInfo}
 

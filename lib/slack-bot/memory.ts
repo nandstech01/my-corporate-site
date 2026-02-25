@@ -19,7 +19,11 @@ import type {
 // Supabase Client
 // ============================================================
 
+let cachedSupabase: SupabaseClient | null = null
+
 function getSupabase(): SupabaseClient {
+  if (cachedSupabase) return cachedSupabase
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -27,7 +31,8 @@ function getSupabase(): SupabaseClient {
     throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
   }
 
-  return createClient(url, key)
+  cachedSupabase = createClient(url, key)
+  return cachedSupabase
 }
 
 // ============================================================
@@ -131,6 +136,7 @@ export async function createPendingAction(params: {
 export async function resolvePendingAction(
   actionId: string,
   status: 'approved' | 'rejected',
+  resolvedBy?: string,
 ): Promise<SlackPendingAction> {
   const supabase = getSupabase()
 
@@ -139,6 +145,7 @@ export async function resolvePendingAction(
     .update({
       status,
       resolved_at: new Date().toISOString(),
+      ...(resolvedBy ? { resolved_by: resolvedBy } : {}),
     })
     .eq('id', actionId)
     .eq('status', 'pending')

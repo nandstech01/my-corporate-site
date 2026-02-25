@@ -73,6 +73,24 @@ function buildTrendingContext(
 // ============================================================
 
 export async function runThreadsAutoPost(): Promise<void> {
+  try {
+    await runThreadsAutoPostInner()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`Threads auto-post critical failure: ${message}\n`)
+    try {
+      const channel = process.env.SLACK_DEFAULT_CHANNEL
+      if (channel) {
+        await sendMessage({
+          channel,
+          text: `:rotating_light: Threads自動投稿でクリティカルエラー: ${message}`,
+        })
+      }
+    } catch { /* Slack通知自体の失敗は無視 */ }
+  }
+}
+
+async function runThreadsAutoPostInner(): Promise<void> {
   const channel = process.env.SLACK_DEFAULT_CHANNEL
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
 

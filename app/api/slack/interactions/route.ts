@@ -57,7 +57,8 @@ function verifySlackSignature(
 async function handleApprovePost(
   actionId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  userId: string,
 ): Promise<void> {
   const action = await getPendingAction(actionId)
   if (!action || action.status !== 'pending') {
@@ -69,7 +70,16 @@ async function handleApprovePost(
     return
   }
 
-  const resolved = await resolvePendingAction(actionId, 'approved')
+  if (action.slack_user_id !== userId) {
+    await sendMessage({
+      channel,
+      text: ':warning: このアクションの承認権限がありません',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved', userId)
   const payload = resolved.payload as {
     text: string
     longForm?: boolean
@@ -124,7 +134,8 @@ async function handleApprovePost(
 async function handleRejectPost(
   actionId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  userId: string,
 ): Promise<void> {
   const action = await getPendingAction(actionId)
   if (!action || action.status !== 'pending') {
@@ -136,7 +147,16 @@ async function handleRejectPost(
     return
   }
 
-  await resolvePendingAction(actionId, 'rejected')
+  if (action.slack_user_id !== userId) {
+    await sendMessage({
+      channel,
+      text: ':warning: このアクションの承認権限がありません',
+      threadTs,
+    })
+    return
+  }
+
+  await resolvePendingAction(actionId, 'rejected', userId)
 
   await sendMessage({
     channel,
@@ -148,7 +168,8 @@ async function handleRejectPost(
 async function handleApproveBlog(
   actionId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  userId: string,
 ): Promise<void> {
   const action = await getPendingAction(actionId)
   if (!action || action.status !== 'pending') {
@@ -160,7 +181,16 @@ async function handleApproveBlog(
     return
   }
 
-  await resolvePendingAction(actionId, 'approved')
+  if (action.slack_user_id !== userId) {
+    await sendMessage({
+      channel,
+      text: ':warning: このアクションの承認権限がありません',
+      threadTs,
+    })
+    return
+  }
+
+  await resolvePendingAction(actionId, 'approved', userId)
 
   const payload = action.payload as { title: string; outline: string }
 
@@ -222,10 +252,12 @@ async function handleApproveBlog(
 // Blog Topic Queue アクション処理
 // ============================================================
 
+// Blog topics are workspace-wide (not per-user); no ownership check required
 async function handleApproveBlogTopic(
   topicId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  _userId: string,
 ): Promise<void> {
   const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(
@@ -318,10 +350,12 @@ async function handleApproveBlogTopic(
   }
 }
 
+// Blog topics are workspace-wide (not per-user); no ownership check required
 async function handleDismissBlogTopic(
   topicId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  _userId: string,
 ): Promise<void> {
   const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(
@@ -348,7 +382,8 @@ async function handleDismissBlogTopic(
 async function handleApproveLinkedIn(
   actionId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  userId: string,
 ): Promise<void> {
   const action = await getPendingAction(actionId)
   if (!action || action.status !== 'pending') {
@@ -360,7 +395,16 @@ async function handleApproveLinkedIn(
     return
   }
 
-  const resolved = await resolvePendingAction(actionId, 'approved')
+  if (action.slack_user_id !== userId) {
+    await sendMessage({
+      channel,
+      text: ':warning: このアクションの承認権限がありません',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved', userId)
   const payload = resolved.payload as {
     text: string
     sourceType?: string
@@ -429,7 +473,8 @@ async function handleApproveLinkedIn(
 async function handleApproveInstagramStory(
   actionId: string,
   channel: string,
-  threadTs?: string,
+  threadTs: string | undefined,
+  userId: string,
 ): Promise<void> {
   const action = await getPendingAction(actionId)
   if (!action || action.status !== 'pending') {
@@ -441,7 +486,16 @@ async function handleApproveInstagramStory(
     return
   }
 
-  const resolved = await resolvePendingAction(actionId, 'approved')
+  if (action.slack_user_id !== userId) {
+    await sendMessage({
+      channel,
+      text: ':warning: このアクションの承認権限がありません',
+      threadTs,
+    })
+    return
+  }
+
+  const resolved = await resolvePendingAction(actionId, 'approved', userId)
   const payload = resolved.payload as {
     storyQueueId: string
     blogSlug: string
@@ -563,25 +617,27 @@ export async function POST(request: NextRequest) {
   const threadTs = payload.message?.thread_ts ?? payload.message?.ts
 
   // Process action
+  const userId = payload.user.id
+
   try {
     switch (action.action_id) {
       case 'approve_post':
-        await handleApprovePost(action.value, channel, threadTs)
+        await handleApprovePost(action.value, channel, threadTs, userId)
         break
       case 'reject_post':
-        await handleRejectPost(action.value, channel, threadTs)
+        await handleRejectPost(action.value, channel, threadTs, userId)
         break
       case 'approve_blog':
-        await handleApproveBlog(action.value, channel, threadTs)
+        await handleApproveBlog(action.value, channel, threadTs, userId)
         break
       case 'reject_blog':
-        await handleRejectPost(action.value, channel, threadTs)
+        await handleRejectPost(action.value, channel, threadTs, userId)
         break
       case 'approve_linkedin':
-        await handleApproveLinkedIn(action.value, channel, threadTs)
+        await handleApproveLinkedIn(action.value, channel, threadTs, userId)
         break
       case 'reject_linkedin':
-        await handleRejectPost(action.value, channel, threadTs)
+        await handleRejectPost(action.value, channel, threadTs, userId)
         break
       case 'edit_action': {
         const editResult = await markPendingActionForEdit(action.value)
@@ -601,16 +657,16 @@ export async function POST(request: NextRequest) {
         break
       }
       case 'approve_blog_topic':
-        await handleApproveBlogTopic(action.value, channel, threadTs)
+        await handleApproveBlogTopic(action.value, channel, threadTs, userId)
         break
       case 'dismiss_blog_topic':
-        await handleDismissBlogTopic(action.value, channel, threadTs)
+        await handleDismissBlogTopic(action.value, channel, threadTs, userId)
         break
       case 'approve_instagram_story':
-        await handleApproveInstagramStory(action.value, channel, threadTs)
+        await handleApproveInstagramStory(action.value, channel, threadTs, userId)
         break
       case 'reject_instagram_story':
-        await handleRejectPost(action.value, channel, threadTs)
+        await handleRejectPost(action.value, channel, threadTs, userId)
         break
       default:
         break

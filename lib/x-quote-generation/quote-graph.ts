@@ -15,6 +15,7 @@ import { createClient } from '@supabase/supabase-js'
 import { selectOpinionTemplate } from './opinion-templates'
 import { getTwitterWeightedLength } from '../x-api/client'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
+import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
 
 // ============================================================
 // LangChain usage_metadata type helper
@@ -246,12 +247,16 @@ ${highPerformerSection}
 async function generateCandidates(state: GraphState): Promise<Partial<GraphState>> {
   const model = createModel()
 
+  const voiceProfile = formatVoiceProfileForPrompt('short')
+
   const response = await model.invoke([
     {
       role: 'system' as const,
       content: `あなたは@nands_tech。以下の意見を元に引用RT本文を3候補作成。
 
 ${X_TWITTER_RULES}
+
+${voiceProfile}
 
 ## 引用RT固有ルール
 - 日本語120文字以内厳守（CJK=2カウント、280カウント上限）

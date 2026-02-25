@@ -297,6 +297,24 @@ async function tryRepostOpportunity(): Promise<boolean> {
 const PREVIEW_CHAR_LIMIT = 500
 
 export async function runXAutoPost(): Promise<void> {
+  try {
+    await runXAutoPostInner()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`X auto-post critical failure: ${message}\n`)
+    try {
+      const channel = process.env.SLACK_DEFAULT_CHANNEL
+      if (channel) {
+        await sendMessage({
+          channel,
+          text: `:rotating_light: X自動投稿でクリティカルエラー: ${message}`,
+        })
+      }
+    } catch { /* Slack通知自体の失敗は無視 */ }
+  }
+}
+
+async function runXAutoPostInner(): Promise<void> {
   const channel = process.env.SLACK_DEFAULT_CHANNEL
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
 

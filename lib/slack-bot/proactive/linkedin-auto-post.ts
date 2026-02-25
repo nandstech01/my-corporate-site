@@ -119,6 +119,24 @@ const MAX_POSTS = 2
 const PREVIEW_CHAR_LIMIT = 800
 
 export async function runLinkedInAutoPost(): Promise<void> {
+  try {
+    await runLinkedInAutoPostInner()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`LinkedIn auto-post critical failure: ${message}\n`)
+    try {
+      const channel = process.env.SLACK_DEFAULT_CHANNEL
+      if (channel) {
+        await sendMessage({
+          channel,
+          text: `:rotating_light: LinkedIn自動投稿でクリティカルエラー: ${message}`,
+        })
+      }
+    } catch { /* Slack通知自体の失敗は無視 */ }
+  }
+}
+
+async function runLinkedInAutoPostInner(): Promise<void> {
   const channel = process.env.SLACK_DEFAULT_CHANNEL
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
 

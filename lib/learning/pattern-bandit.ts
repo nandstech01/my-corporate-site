@@ -34,6 +34,7 @@ interface PatternPerformanceRow {
   readonly total_uses: number
   readonly avg_engagement: number
   readonly last_used_at: string | null
+  readonly updated_at: string | null
 }
 
 // ============================================================
@@ -46,13 +47,18 @@ const PATTERN_LEARNED_THRESHOLD = 5
 // Supabase Client
 // ============================================================
 
+let cachedSupabase: ReturnType<typeof createClient> | null = null
+
 function getSupabase() {
+  if (cachedSupabase) return cachedSupabase
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
     throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
   }
-  return createClient(url, key)
+  cachedSupabase = createClient(url, key)
+  return cachedSupabase
 }
 
 // ============================================================
@@ -217,6 +223,7 @@ export async function recordPatternOutcome(
   platform: Platform,
   success: boolean,
   engagement: number,
+  _retryCount = 0,
 ): Promise<void> {
   const supabase = getSupabase()
 
@@ -243,7 +250,9 @@ export async function recordPatternOutcome(
       const newAvgEngagement =
         (current.avg_engagement * current.total_uses + engagement) / newTotalUses
 
-      const { error: updateError } = await supabase
+      // Optimistic locking: include updated_at condition to detect concurrent writes
+      // If updated_at is null (new record without DB default), skip locking for this update
+      let updateQuery = supabase
         .from('pattern_performance')
         .update({
           successes: newSuccesses,
@@ -256,8 +265,29 @@ export async function recordPatternOutcome(
         .eq('pattern_id', patternId)
         .eq('platform', platform)
 
+      if (current.updated_at) {
+        updateQuery = updateQuery.eq('updated_at', current.updated_at)
+      }
+
+      const { data: updateResult, error: updateError } = await updateQuery.select('id')
+
       if (updateError) {
         throw new Error(`Failed to update pattern performance: ${updateError.message}`)
+      }
+
+      // If no rows updated, a concurrent write occurred — retry with limit
+      if (!updateResult || updateResult.length === 0) {
+        if (_retryCount >= 2) {
+          process.stdout.write(
+            `Pattern bandit: giving up after 3 attempts for "${patternId}" on ${platform}\n`,
+          )
+          return
+        }
+        process.stdout.write(
+          `Pattern bandit: optimistic lock conflict for "${patternId}" on ${platform}, retrying (${_retryCount + 1}/3)\n`,
+        )
+        await recordPatternOutcome(patternId, platform, success, engagement, _retryCount + 1)
+        return
       }
 
       // Notify if pattern is learned (success + enough data)
