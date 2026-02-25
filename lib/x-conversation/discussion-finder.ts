@@ -45,7 +45,7 @@ function getSupabase() {
 // Constants
 // ============================================================
 
-const MIN_REPLIES_FOR_ACTIVE = 3
+const MIN_REPLIES_FOR_ACTIVE = 2
 const MAX_AGE_HOURS = 24
 const MAX_CANDIDATES = 10
 
@@ -73,7 +73,7 @@ export async function findRelevantDiscussions(): Promise<readonly DiscussionCand
     .gte('replies', MIN_REPLIES_FOR_ACTIVE)
     .neq('author_username', myUsername)
     .order('topic_relevance_score', { ascending: false })
-    .limit(20)
+    .limit(30)
 
   // 2. Query x_quote_opportunities for relevant discussions
   const { data: quoteOpps } = await supabase
@@ -83,7 +83,7 @@ export async function findRelevantDiscussions(): Promise<readonly DiscussionCand
     .gte('original_replies', MIN_REPLIES_FOR_ACTIVE)
     .neq('original_author_username', myUsername)
     .order('relevance_score', { ascending: false })
-    .limit(20)
+    .limit(30)
 
   // 3. Check which tweets we've already replied to
   const allTweetIds = [
@@ -151,7 +151,7 @@ export async function findRelevantDiscussions(): Promise<readonly DiscussionCand
     })
   }
 
-  // 5. Deduplicate and sort by relevance
+  // 5. Deduplicate and sort by composite score (engagement × relevance)
   const seen = new Set<string>()
   const unique = candidates.filter(c => {
     if (seen.has(c.tweetId)) return false
@@ -159,8 +159,13 @@ export async function findRelevantDiscussions(): Promise<readonly DiscussionCand
     return true
   })
 
+  const computeCompositeScore = (c: DiscussionCandidate): number => {
+    const engagementSignal = c.metrics.replies * 3 + c.metrics.likes * 0.5 + c.metrics.retweets * 2
+    return engagementSignal * c.relevanceScore
+  }
+
   return unique
-    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .sort((a, b) => computeCompositeScore(b) - computeCompositeScore(a))
     .slice(0, MAX_CANDIDATES)
 }
 

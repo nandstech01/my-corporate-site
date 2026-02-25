@@ -228,6 +228,109 @@ async function tryQuoteRTOpportunity(): Promise<boolean> {
 }
 
 // ============================================================
+// Adaptive Content Distribution
+// ============================================================
+
+const DEFAULT_WEIGHTS: Record<string, number> = {
+  repost: 0.10,
+  quote: 0.20,
+  viral_article: 0.10,
+  thread: 0.10,
+  article: 0.10,
+  original: 0.40,
+} as const
+
+const MIN_WEIGHT = 0.05
+const MIN_DATA_POINTS = 5
+const LOOKBACK_DAYS = 14
+
+async function getAdaptiveContentDistribution(): Promise<Record<string, number>> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return { ...DEFAULT_WEIGHTS }
+
+  const supabase = createClient(url, key)
+  const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('x_post_analytics')
+    .select('post_type, engagement_rate')
+    .gte('posted_at', since)
+    .not('post_type', 'is', null)
+
+  if (error || !data || data.length === 0) {
+    return { ...DEFAULT_WEIGHTS }
+  }
+
+  // Group by post_type, calculate average engagement_rate
+  const grouped: Record<string, { sum: number; count: number }> = {}
+  for (const row of data) {
+    const rawType = (row.post_type as string) ?? 'original'
+    const type = rawType === 'reply' ? 'original' : rawType
+    if (!grouped[type]) {
+      grouped[type] = { sum: 0, count: 0 }
+    }
+    grouped[type].sum += (row.engagement_rate as number) ?? 0
+    grouped[type].count += 1
+  }
+
+  // Build weights: use engagement data if enough data points, else default
+  const allTypes = Object.keys(DEFAULT_WEIGHTS)
+  const weights: Record<string, number> = {}
+
+  for (const type of allTypes) {
+    const group = grouped[type]
+    if (group && group.count >= MIN_DATA_POINTS) {
+      weights[type] = group.sum / group.count
+    } else {
+      weights[type] = DEFAULT_WEIGHTS[type]
+    }
+  }
+
+  // Normalize: convert to relative weights summing to 1.0
+  const totalEngagement = Object.values(weights).reduce((sum, w) => sum + w, 0)
+  if (totalEngagement <= 0) return { ...DEFAULT_WEIGHTS }
+
+  for (const type of allTypes) {
+    weights[type] = weights[type] / totalEngagement
+  }
+
+  // Enforce minimum weight per type for exploration
+  let deficit = 0
+  let surplus = 0
+  for (const type of allTypes) {
+    if (weights[type] < MIN_WEIGHT) {
+      deficit += MIN_WEIGHT - weights[type]
+      weights[type] = MIN_WEIGHT
+    } else {
+      surplus += weights[type] - MIN_WEIGHT
+    }
+  }
+
+  // Redistribute deficit proportionally from types above minimum
+  if (deficit > 0 && surplus > 0) {
+    for (const type of allTypes) {
+      if (weights[type] > MIN_WEIGHT) {
+        const aboveMin = weights[type] - MIN_WEIGHT
+        weights[type] = MIN_WEIGHT + aboveMin * (1 - deficit / surplus)
+      }
+    }
+  }
+
+  // Final normalization to exactly 1.0
+  const finalSum = Object.values(weights).reduce((sum, w) => sum + w, 0)
+  for (const type of allTypes) {
+    weights[type] = weights[type] / finalSum
+  }
+
+  process.stdout.write(
+    `X auto-post: Adaptive weights: ${allTypes.map((t) => `${t}=${(weights[t] * 100).toFixed(1)}%`).join(', ')}\n`,
+  )
+
+  return weights
+}
+
+// ============================================================
 // Repost (Retweet) Opportunity
 // ============================================================
 
@@ -412,11 +515,19 @@ async function runXAutoPostInner(): Promise<void> {
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
 
-  // 1.5. Check for repost/quote RT opportunities
-  // Distribution: 10% repost, 20% quote RT, 10% viral quote article, 10% thread, 10% article, 40% original
-  const roll = Math.random()
+  // 1.5. Adaptive content distribution based on engagement data
+  let weights: Record<string, number>
+  try {
+    weights = await getAdaptiveContentDistribution()
+  } catch {
+    weights = { ...DEFAULT_WEIGHTS }
+  }
 
-  if (roll < 0.10) {
+  const roll = Math.random()
+  let cumulative = 0
+
+  cumulative += weights.repost
+  if (roll < cumulative) {
     // Try repost (retweet) for very high engagement posts
     try {
       const reposted = await tryRepostOpportunity()
@@ -428,8 +539,11 @@ async function runXAutoPostInner(): Promise<void> {
       const msg = error instanceof Error ? error.message : 'Unknown error'
       process.stdout.write(`X auto-post: Repost attempt failed: ${msg}\n`)
     }
-  } else if (roll < 0.30 && isAiJudgeEnabled()) {
-    // Try quote RT (20%)
+  }
+
+  cumulative += weights.quote
+  if (roll >= cumulative - weights.quote && roll < cumulative && isAiJudgeEnabled()) {
+    // Try quote RT
     try {
       const quoted = await tryQuoteRTOpportunity()
       if (quoted) {
@@ -440,8 +554,11 @@ async function runXAutoPostInner(): Promise<void> {
       const msg = error instanceof Error ? error.message : 'Unknown error'
       process.stdout.write(`X auto-post: Quote RT attempt failed: ${msg}\n`)
     }
-  } else if (roll < 0.40 && isAiJudgeEnabled()) {
-    // Try viral quote article — 海外バズ投稿を引用RT + 長文記事 (10%)
+  }
+
+  cumulative += weights.viral_article
+  if (roll >= cumulative - weights.viral_article && roll < cumulative && isAiJudgeEnabled()) {
+    // Try viral quote article — 海外バズ投稿を引用RT + 長文記事
     try {
       const viralQuoted = await tryViralQuoteArticle()
       if (viralQuoted) {
@@ -453,8 +570,11 @@ async function runXAutoPostInner(): Promise<void> {
       process.stdout.write(`X auto-post: Viral quote article attempt failed: ${msg}\n`)
     }
     // Falls through to original post if no viral candidates
-  } else if (roll < 0.50 && isAiJudgeEnabled()) {
-    // Try thread generation (10%)
+  }
+
+  cumulative += weights.thread
+  if (roll >= cumulative - weights.thread && roll < cumulative && isAiJudgeEnabled()) {
+    // Try thread generation
     try {
       const threadMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (threadMemories.length > 0) {
@@ -493,8 +613,11 @@ async function runXAutoPostInner(): Promise<void> {
       process.stdout.write(`X auto-post: Thread attempt failed: ${msg}\n`)
     }
     // Falls through to original post if thread generation fails
-  } else if (roll < 0.60 && isAiJudgeEnabled()) {
-    // Try article (long-form) generation (10%)
+  }
+
+  cumulative += weights.article
+  if (roll >= cumulative - weights.article && roll < cumulative && isAiJudgeEnabled()) {
+    // Try article (long-form) generation
     try {
       const articleMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (articleMemories.length > 0) {

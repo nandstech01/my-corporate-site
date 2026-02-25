@@ -52,6 +52,7 @@ export interface CandidateScore {
   discussionPotential: number
   lengthFit: number
   originality: number
+  bookmarkPotential: number
   total: number
 }
 
@@ -444,18 +445,23 @@ async function scoreCandidates(
     {
       role: 'system' as const,
       content: `あなたはX投稿の品質評価者です。@nands_tech（AI実務家）の投稿として適切か評価してください。
-以下の候補を5基準で評価してください。各0-10点。
+以下の候補を6基準で評価してください。各0-10点。
 
 基準:
 1. practitionerVoice: 実務家の声として自然か（URLが本文内 → -5点、ニュース口調「〜を発表」→ 0点、元のニュース内容と無関係な架空体験 → 0点）
-2. accuracy: 情報の正確性
-3. discussionPotential: 議論を生む力（問いかけなし → 低スコア）
+2. accuracy: 情報の正確性（方向性が合っていれば高め。議論を呼ぶ主張はOK）
+3. discussionPotential: 議論を生む力（問いかけなし → 低スコア。反論・共感を誘う主張 → 高スコア）
 4. lengthFit: 文字数適合度（目標: ${targetLength}）
 5. originality: 独自の視点・切り口（ハッシュタグ2個以上 → -3点、煽り表現「ヤバい」「致命的」「🚨🔥」→ -5点）
+6. bookmarkPotential: ブックマークされやすいか（リスト形式、how-to、リファレンス、チートシート型 = 高スコア。雑感や一般論 = 低スコア）
+
+重み付きスコア計算:
+total = practitionerVoice*0.2 + accuracy*0.1 + discussionPotential*0.3 + lengthFit*0.1 + originality*0.15 + bookmarkPotential*0.15
+（totalは0-10のスケールで出力）
 
 JSON配列のみ出力:
 [
-  {"index":0,"practitionerVoice":8,"accuracy":9,"discussionPotential":7,"lengthFit":9,"originality":8,"total":41},
+  {"index":0,"practitionerVoice":8,"accuracy":9,"discussionPotential":7,"lengthFit":9,"originality":8,"bookmarkPotential":7,"total":7.75},
   ...
 ]`,
     },
@@ -480,7 +486,8 @@ JSON配列のみ出力:
       discussionPotential: 5,
       lengthFit: 5,
       originality: 5,
-      total: 25,
+      bookmarkPotential: 5,
+      total: 5,
     }))
     const fallbackUsage = response.usage_metadata as LangChainUsageMetadata | undefined
     return {
@@ -498,13 +505,30 @@ JSON配列のみ出力:
       discussionPotential: z.number().default(5),
       lengthFit: z.number().default(5),
       originality: z.number().default(5),
-      total: z.number().default(25),
+      bookmarkPotential: z.number().default(5),
+      total: z.number().default(5),
     }),
   )
 
-  const scores: CandidateScore[] = CandidateScoreSchema.parse(
-    JSON.parse(jsonMatch[0]),
-  ) as CandidateScore[]
+  const parsed = CandidateScoreSchema.parse(JSON.parse(jsonMatch[0]))
+
+  // Recalculate weighted total server-side to ensure correctness
+  const scores: CandidateScore[] = parsed.map((s) => ({
+    index: s.index,
+    practitionerVoice: s.practitionerVoice,
+    accuracy: s.accuracy,
+    discussionPotential: s.discussionPotential,
+    lengthFit: s.lengthFit,
+    originality: s.originality,
+    bookmarkPotential: s.bookmarkPotential,
+    total:
+      s.practitionerVoice * 0.2 +
+      s.accuracy * 0.1 +
+      s.discussionPotential * 0.3 +
+      s.lengthFit * 0.1 +
+      s.originality * 0.15 +
+      s.bookmarkPotential * 0.15,
+  }))
   const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
   return {

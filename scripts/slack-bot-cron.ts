@@ -30,6 +30,7 @@ import { runGrowthTracker } from '../lib/x-growth/growth-tracker'
 import { runThreadsAutoPost } from '../lib/slack-bot/proactive/threads-auto-post'
 import { runThreadsEngagementLearner } from '../lib/slack-bot/proactive/threads-engagement-learner'
 import { runProactiveDiscussion } from '../lib/x-conversation/proactive-discussion-runner'
+import { collectXEngagement } from '../lib/slack-bot/proactive/x-engagement-collector'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -83,6 +84,7 @@ type JobName =
   | 'threads-auto-post'
   | 'threads-engagement-learner'
   | 'x-proactive-discussion'
+  | 'x-engagement-collector'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -108,6 +110,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '30 23,4,10 * * *': 'threads-auto-post',
   '30 16 * * *': 'threads-engagement-learner',
   '30 0,3,5,7,9,11 * * *': 'x-proactive-discussion',
+  '0 22,10 * * *': 'x-engagement-collector',
 }
 
 function detectJob(): JobName {
@@ -136,7 +139,8 @@ function detectJob(): JobName {
     explicit === 'x-growth-tracker' ||
     explicit === 'threads-auto-post' ||
     explicit === 'threads-engagement-learner' ||
-    explicit === 'x-proactive-discussion'
+    explicit === 'x-proactive-discussion' ||
+    explicit === 'x-engagement-collector'
   ) {
     return explicit
   }
@@ -286,6 +290,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'threads-auto-post': runThreadsAutoPost,
   'threads-engagement-learner': runThreadsEngagementLearner,
   'x-proactive-discussion': runProactiveDiscussion,
+  'x-engagement-collector': collectXEngagement,
 }
 
 function createTracedCronJob(jobName: JobName) {

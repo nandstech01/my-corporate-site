@@ -181,6 +181,76 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['trend', 'company', 'x_post'],
     features: ['診断型', '専門性', 'ソフトCTA'],
     generateDiagram: false
+  },
+  {
+    id: 'raw_rant',
+    name: '本音吐露',
+    description: 'フラストレーションから本音を語り冷静に分析',
+    template: `{frustration}
+
+{honest_take}
+
+{calm_analysis}`,
+    category: 'opinion',
+    dataSources: ['reddit', 'news', 'release'],
+    features: ['感情的', '本音', '率直'],
+    generateDiagram: false
+  },
+  {
+    id: 'live_reaction',
+    name: 'リアルタイム反応',
+    description: '起きたことへの即座の反応と感想',
+    template: `{what_happened}
+
+{immediate_reaction}
+
+{takeaway}`,
+    category: 'reaction',
+    dataSources: ['reddit', 'news', 'release'],
+    features: ['速報性', '臨場感', 'リアルタイム'],
+    generateDiagram: false
+  },
+  {
+    id: 'correction_apology',
+    name: '訂正と学び',
+    description: '過去の間違いを認めて新しい理解を共有',
+    template: `{previous_claim}
+
+{why_wrong}
+
+{new_understanding}`,
+    category: 'experience',
+    dataSources: ['reddit', 'news', 'release'],
+    features: ['訂正', '成長', '信頼性'],
+    generateDiagram: false
+  },
+  {
+    id: 'rapid_hot_takes',
+    name: '連射ホットテイク',
+    description: '3-5個の大胆な短い意見を一気に投下',
+    template: `{take_1}
+{take_2}
+{take_3}
+{take_4}
+{take_5}`,
+    category: 'opinion',
+    dataSources: ['reddit', 'news', 'release'],
+    features: ['大胆', '連射', '挑発的'],
+    generateDiagram: false
+  },
+  {
+    id: 'internal_debate',
+    name: '内部討論',
+    description: '賛否両論を自分の中で戦わせて結論を出す',
+    template: `{pro_argument}
+
+{counter_argument}
+
+{my_conclusion}`,
+    category: 'analysis',
+    dataSources: ['reddit', 'news', 'release'],
+    features: ['内部対話', '両面', '独自結論'],
+    generateDiagram: false
   }
 ];
 

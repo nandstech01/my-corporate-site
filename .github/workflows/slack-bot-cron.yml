@@ -25,6 +25,7 @@ on:
     - cron: '30 23,4,10 * * *'    # JST 8:30, 13:00, 19:00 Threads auto-post (3x/day)
     - cron: '30 16 * * *'     # JST 01:30 Threads engagement learner
     - cron: '30 0,3,5,7,9,11 * * *'    # JST 9:30, 12:30, 14:30, 16:30, 18:30, 20:30 X proactive discussion
+    - cron: '0 22,10 * * *'           # JST 7:00, 19:00 X engagement collector
   workflow_dispatch:
     inputs:
       job:
@@ -56,6 +57,7 @@ on:
           - threads-auto-post
           - threads-engagement-learner
           - x-proactive-discussion
+          - x-engagement-collector
 
 jobs:
   run:
