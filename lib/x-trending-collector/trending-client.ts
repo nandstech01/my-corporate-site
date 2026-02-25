@@ -28,6 +28,8 @@ const SEARCH_QUERIES: readonly string[] = [
   'AI agent',
   'LLM',
   'Claude',
+  'Claude Code',
+  'AI coding',
   'RAG',
   'GPT',
 ]

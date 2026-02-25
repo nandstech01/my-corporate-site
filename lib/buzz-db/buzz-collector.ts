@@ -32,6 +32,7 @@ interface CollectedPost {
 
 interface CollectionSummary {
   readonly xPosts: number
+  readonly enViralPosts: number
   readonly webPosts: number
   readonly errors: readonly string[]
 }
@@ -120,6 +121,9 @@ function calculateRelevanceScore(text: string): number {
 const X_SEARCH_QUERY =
   '(AI OR LLM OR エージェント OR Claude OR GPT) lang:ja min_faves:50'
 
+const EN_VIRAL_SEARCH_QUERY =
+  '("Claude Code" OR "Cursor AI" OR "AI coding" OR "Copilot" OR "Windsurf" OR "Devin AI") lang:en min_faves:100 -is:retweet'
+
 async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
   if (!isTwitterConfigured()) {
     process.stdout.write(
@@ -179,6 +183,74 @@ async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
   } catch (error) {
     process.stdout.write(
       `[buzz-collector] X API error: ${error instanceof Error ? error.message : String(error)}\n`,
+    )
+    return []
+  }
+}
+
+// ============================================================
+// X API: Collect English viral posts (AI coding tools)
+// ============================================================
+
+async function collectEnglishViralPosts(): Promise<readonly CollectedPost[]> {
+  if (!isTwitterConfigured()) {
+    process.stdout.write(
+      '[buzz-collector] Twitter not configured, skipping English viral collection\n',
+    )
+    return []
+  }
+
+  try {
+    const client = getTwitterClient()
+
+    const result = await client.v2.search(EN_VIRAL_SEARCH_QUERY, {
+      max_results: 30,
+      'tweet.fields': ['created_at', 'public_metrics', 'author_id'],
+      'user.fields': ['username'],
+      expansions: ['author_id'],
+    })
+
+    const tweets: readonly TwitterSearchTweet[] =
+      (result.data?.data as unknown as TwitterSearchTweet[]) ?? []
+    const users: readonly TwitterSearchUser[] =
+      (result.includes?.users as unknown as TwitterSearchUser[]) ?? []
+
+    const userMap = new Map<string, string>()
+    users.forEach((u) => {
+      userMap.set(u.id, u.username)
+    })
+
+    return tweets.map((tweet): CollectedPost => {
+      const metrics = tweet.public_metrics
+      const likes = metrics?.like_count ?? 0
+      const retweets = metrics?.retweet_count ?? 0
+      const replies = metrics?.reply_count ?? 0
+      const impressions = metrics?.impression_count ?? 0
+
+      const engagementRate =
+        impressions > 0
+          ? (likes + retweets + replies) / impressions
+          : 0
+
+      return {
+        platform: 'x',
+        external_post_id: tweet.id,
+        author_handle: userMap.get(tweet.author_id ?? '') ?? null,
+        post_text: tweet.text,
+        language: 'en',
+        likes,
+        reposts: retweets,
+        replies,
+        impressions,
+        engagement_rate: engagementRate,
+        buzz_score: calculateBuzzScore(likes, retweets, replies),
+        relevance_score: calculateRelevanceScore(tweet.text),
+        post_date: tweet.created_at ?? null,
+      }
+    })
+  } catch (error) {
+    process.stdout.write(
+      `[buzz-collector] English viral collection error: ${error instanceof Error ? error.message : String(error)}\n`,
     )
     return []
   }
@@ -291,11 +363,16 @@ export async function runBuzzCollector(): Promise<CollectionSummary> {
 
   const errors: string[] = []
 
-  // Collect from X and Web in parallel
-  const [xPosts, webPosts] = await Promise.all([
+  // Collect from X (JP), X (EN viral), and Web in parallel
+  const [xPosts, enViralPosts, webPosts] = await Promise.all([
     collectXBuzzPosts().catch((err) => {
       const msg = err instanceof Error ? err.message : String(err)
       errors.push(`X: ${msg}`)
+      return [] as readonly CollectedPost[]
+    }),
+    collectEnglishViralPosts().catch((err) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      errors.push(`EN Viral: ${msg}`)
       return [] as readonly CollectedPost[]
     }),
     collectWebBuzzContent().catch((err) => {
@@ -307,26 +384,30 @@ export async function runBuzzCollector(): Promise<CollectionSummary> {
 
   // Save to DB
   const xSaved = await savePosts(xPosts)
+  const enViralSaved = await savePosts(enViralPosts)
   const webSaved = await savePosts(webPosts)
 
   const summary: CollectionSummary = {
     xPosts: xSaved,
+    enViralPosts: enViralSaved,
     webPosts: webSaved,
     errors,
   }
 
   process.stdout.write(
-    `[buzz-collector] Done: X=${xSaved}, Web=${webSaved}, errors=${errors.length}\n`,
+    `[buzz-collector] Done: X=${xSaved}, EN Viral=${enViralSaved}, Web=${webSaved}, errors=${errors.length}\n`,
   )
 
   // Notify via Slack
   try {
     await notifyLearningEvent({
       eventType: 'pattern_learned',
-      summary: `Buzz収集完了: X ${xSaved}件, Web ${webSaved}件${errors.length > 0 ? ` (エラー: ${errors.length}件)` : ''}`,
+      summary: `Buzz収集完了: X ${xSaved}件, EN Viral ${enViralSaved}件, Web ${webSaved}件${errors.length > 0 ? ` (エラー: ${errors.length}件)` : ''}`,
       details: {
         xCollected: xPosts.length,
         xSaved,
+        enViralCollected: enViralPosts.length,
+        enViralSaved,
         webCollected: webPosts.length,
         webSaved,
         errors,

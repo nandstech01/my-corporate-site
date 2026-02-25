@@ -291,6 +291,72 @@ async function tryRepostOpportunity(): Promise<boolean> {
 }
 
 // ============================================================
+// Viral Quote Article (海外バズ投稿を引用RT + 長文記事)
+// ============================================================
+
+async function tryViralQuoteArticle(): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return false
+
+  const supabase = createClient(url, key)
+
+  // Find high-engagement English tweets about AI coding tools (last 3 days)
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: viralPosts } = await supabase
+    .from('buzz_posts')
+    .select('*')
+    .eq('platform', 'x')
+    .eq('language', 'en')
+    .gte('buzz_score', 300)
+    .gte('post_date', threeDaysAgo)
+    .order('buzz_score', { ascending: false })
+    .limit(5)
+
+  if (!viralPosts || viralPosts.length === 0) return false
+
+  // Dedup: skip tweets we've already quoted
+  const recentTexts = await getRecentXPostTexts(7)
+
+  const candidate = viralPosts.find((post) => {
+    const tweetId = post.external_post_id as string | null
+    if (!tweetId) return false
+    return !recentTexts.some((text) => text.includes(tweetId))
+  })
+
+  if (!candidate || !candidate.external_post_id) return false
+
+  process.stdout.write(
+    `X auto-post: Generating viral quote article for @${candidate.author_handle}: "${(candidate.post_text as string).slice(0, 80)}..."\n`,
+  )
+
+  // Generate long-form article about this viral post
+  const postResult = await generateXPost({
+    mode: 'article',
+    content: candidate.post_text as string,
+    topic: `Viral AI coding post by @${candidate.author_handle}`,
+  })
+
+  // Post as quote tweet + long-form article
+  const result = await autoResolvePost({
+    platform: 'x',
+    text: postResult.finalPost,
+    quoteTweetId: candidate.external_post_id as string,
+    longForm: true,
+    sourceTitle: (candidate.post_text as string).slice(0, 100),
+    patternUsed: postResult.patternUsed,
+    tags: [...postResult.tags, 'viral_quote_article'],
+  })
+
+  process.stdout.write(
+    `X auto-post (viral quote article): @${candidate.author_handle} → ${result.success ? 'posted' : 'rejected'}\n`,
+  )
+
+  return result.success
+}
+
+// ============================================================
 // メイン
 // ============================================================
 
@@ -328,7 +394,7 @@ async function runXAutoPostInner(): Promise<void> {
   await randomDelay()
 
   // 1.5. Check for repost/quote RT opportunities
-  // Distribution: 10% repost, 25% quote RT, 10% thread, 10% article (long-form), 45% original
+  // Distribution: 10% repost, 20% quote RT, 10% viral quote article, 10% thread, 10% article, 40% original
   const roll = Math.random()
 
   if (roll < 0.10) {
@@ -343,8 +409,8 @@ async function runXAutoPostInner(): Promise<void> {
       const msg = error instanceof Error ? error.message : 'Unknown error'
       process.stdout.write(`X auto-post: Repost attempt failed: ${msg}\n`)
     }
-  } else if (roll < 0.35 && isAiJudgeEnabled()) {
-    // Try quote RT
+  } else if (roll < 0.30 && isAiJudgeEnabled()) {
+    // Try quote RT (20%)
     try {
       const quoted = await tryQuoteRTOpportunity()
       if (quoted) {
@@ -355,8 +421,21 @@ async function runXAutoPostInner(): Promise<void> {
       const msg = error instanceof Error ? error.message : 'Unknown error'
       process.stdout.write(`X auto-post: Quote RT attempt failed: ${msg}\n`)
     }
-  } else if (roll < 0.45 && isAiJudgeEnabled()) {
-    // Try thread generation (10% probability)
+  } else if (roll < 0.40 && isAiJudgeEnabled()) {
+    // Try viral quote article — 海外バズ投稿を引用RT + 長文記事 (10%)
+    try {
+      const viralQuoted = await tryViralQuoteArticle()
+      if (viralQuoted) {
+        process.stdout.write('X auto-post: Viral quote article posted successfully\n')
+        return
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(`X auto-post: Viral quote article attempt failed: ${msg}\n`)
+    }
+    // Falls through to original post if no viral candidates
+  } else if (roll < 0.50 && isAiJudgeEnabled()) {
+    // Try thread generation (10%)
     try {
       const threadMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (threadMemories.length > 0) {
@@ -395,8 +474,8 @@ async function runXAutoPostInner(): Promise<void> {
       process.stdout.write(`X auto-post: Thread attempt failed: ${msg}\n`)
     }
     // Falls through to original post if thread generation fails
-  } else if (roll < 0.55 && isAiJudgeEnabled()) {
-    // Try article (long-form) generation (10% probability)
+  } else if (roll < 0.60 && isAiJudgeEnabled()) {
+    // Try article (long-form) generation (10%)
     try {
       const articleMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (articleMemories.length > 0) {
