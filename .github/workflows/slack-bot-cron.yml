@@ -13,10 +13,10 @@ on:
     - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner
     - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check
     - cron: '0 4,10,20 * * *'  # JST 13,19,5 Blog RSS monitor (shifted from 2,8 to avoid cron collision)
-    - cron: '0 2,6,12 * * *'  # JST 11,15,21 X auto-post (1日3回)
+    - cron: '30 21,3,9 * * *'  # JST 6:30,12:30,18:30 X auto-post (1日3回)
     - cron: '0 17 * * *'     # JST 02:00 AI Judge calibrator
     - cron: '0 19 * * 0'     # JST 04:00 Sunday drift monitor
-    - cron: '0 22 * * *'     # JST 07:00 buzz collector
+    - cron: '0 21,3,9 * * *'  # JST 6:00,12:00,18:00 buzz collector (1日3回)
     - cron: '30 3,9,15,21 * * *'  # JST 12:30,18:30,0:30,6:30 safety event scanner (6h)
     - cron: '30 0,6,12,18 * * *'  # Every 6 hours for email sequences
     - cron: '15 0-14 * * *'      # JST 9-23時 毎時15分 X account monitor
@@ -24,7 +24,7 @@ on:
     - cron: '0 20 * * *'        # JST 翌5時 X growth tracker
     - cron: '30 23,4,10 * * *'    # JST 8:30, 13:00, 19:00 Threads auto-post (3x/day)
     - cron: '30 16 * * *'     # JST 01:30 Threads engagement learner
-    - cron: '30 2,7,10 * * *'    # JST 11:30, 16:30, 19:30 X proactive discussion
+    - cron: '30 0,3,5,7,9,11 * * *'    # JST 9:30, 12:30, 14:30, 16:30, 18:30, 20:30 X proactive discussion
   workflow_dispatch:
     inputs:
       job:

@@ -18,10 +18,10 @@ export const AI_JUDGE_MAX_TOKENS = 1024
 // ============================================================
 
 /** 閾値以上のconfidenceで自動承認 */
-export const DEFAULT_CONFIDENCE_THRESHOLD = 0.75
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.65
 
 /** 引用RT用の厳格な信頼度閾値 */
-export const QUOTE_TWEET_CONFIDENCE_THRESHOLD = 0.80
+export const QUOTE_TWEET_CONFIDENCE_THRESHOLD = 0.70
 
 /** AI関連トピックの最低関連度 */
 export const TOPIC_RELEVANCE_THRESHOLD = 0.5
@@ -72,18 +72,18 @@ export function getDynamicThreshold(
 ): number {
   const base = DEFAULT_CONFIDENCE_THRESHOLD
 
-  // 当日投稿数が多いほど保守的に（+0.03/post、最大+0.15）
-  const postCountPenalty = Math.min(todayPostCount * 0.03, 0.15)
+  // 当日投稿数が多いほど保守的に（+0.01/post、最大+0.15）
+  const postCountPenalty = Math.min(todayPostCount * 0.01, 0.15)
 
   // プラットフォーム別補正
   const platformAdjustment: Record<Platform, number> = {
     x: 0,
-    linkedin: 0.02, // LinkedInはよりフォーマルなため少し厳しく
+    linkedin: 0.01, // LinkedInはよりフォーマルなため少し厳しく
     instagram: 0.01,
     threads: 0,
   }
 
-  return Math.min(base + postCountPenalty + platformAdjustment[platform], 0.95)
+  return Math.min(base + postCountPenalty + platformAdjustment[platform], 0.85)
 }
 
 // ============================================================

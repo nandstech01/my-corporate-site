@@ -17,10 +17,10 @@ const ROLLING_WINDOW_DAYS = 7
 const MIN_SAMPLES_FOR_CALIBRATION = 5
 const MAE_GOOD_THRESHOLD = 0.15
 const MAE_POOR_THRESHOLD = 0.30
-const MAE_GOOD_ADJUSTMENT = -0.03
-const MAE_POOR_ADJUSTMENT = 0.05
+const MAE_GOOD_ADJUSTMENT = -0.05
+const MAE_POOR_ADJUSTMENT = 0.02
 const THRESHOLD_MIN = 0.60
-const THRESHOLD_MAX = 0.95
+const THRESHOLD_MAX = 0.85
 
 // ============================================================
 // Supabase Client
@@ -82,11 +82,11 @@ export async function getCalibratedThreshold(
 ): Promise<number> {
   // 1. Base threshold (same logic as getDynamicThreshold)
   const base = DEFAULT_CONFIDENCE_THRESHOLD
-  const postCountPenalty = Math.min(todayPostCount * 0.03, 0.15)
+  const postCountPenalty = Math.min(todayPostCount * 0.01, 0.15)
 
   const platformAdjustment: Record<Platform, number> = {
     x: 0,
-    linkedin: 0.02,
+    linkedin: 0.01,
     instagram: 0.01,
     threads: 0,
   }

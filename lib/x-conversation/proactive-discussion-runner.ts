@@ -2,7 +2,7 @@
  * Proactive Discussion Runner
  *
  * 他人の会話に価値ある返信で参加する。
- * 1日最大3件、同一著者1日1回まで。
+ * 1日最大15件、同一著者1日3回・週7回まで。
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -17,8 +17,9 @@ import { closePlaywright } from '../x-playwright'
 // Constants
 // ============================================================
 
-const MAX_DAILY_PROACTIVE_REPLIES = 3
-const MAX_REPLIES_PER_AUTHOR_PER_DAY = 1
+const MAX_DAILY_PROACTIVE_REPLIES = 15
+const MAX_REPLIES_PER_AUTHOR_PER_DAY = 3
+const MAX_REPLIES_PER_AUTHOR_PER_WEEK = 7
 
 // ============================================================
 // Supabase
@@ -64,6 +65,21 @@ async function getAuthorReplyCountToday(authorUsername: string): Promise<number>
   return count ?? 0
 }
 
+async function getAuthorReplyCountThisWeek(authorUsername: string): Promise<number> {
+  const supabase = getSupabase()
+  const weekAgo = new Date()
+  weekAgo.setUTCDate(weekAgo.getUTCDate() - 7)
+
+  const { count } = await supabase
+    .from('x_conversation_threads')
+    .select('id', { count: 'exact', head: true })
+    .eq('reply_type', 'proactive_discussion')
+    .eq('root_author_username', authorUsername)
+    .gte('posted_at', weekAgo.toISOString())
+
+  return count ?? 0
+}
+
 // ============================================================
 // Main entry point
 // ============================================================
@@ -91,24 +107,25 @@ export async function runProactiveDiscussion(): Promise<void> {
     return
   }
 
-  // 3. Track authors we've replied to today
-  const repliedAuthorsToday = new Set<string>()
+  // 3. Track authors we've replied to in this run (count, not just presence)
+  const repliedAuthorsThisRun = new Map<string, number>()
   let repliesPosted = 0
 
   for (const candidate of candidates) {
     if (repliesPosted >= remaining) break
 
-    // Author limit check (in-memory for this run)
-    if (repliedAuthorsToday.has(candidate.authorUsername)) {
-      process.stdout.write(`Proactive Discussion: Skipping ${candidate.authorUsername} (already replied today)\n`)
+    const inMemoryCount = repliedAuthorsThisRun.get(candidate.authorUsername) ?? 0
+
+    // Author limit check (DB for previous runs today + in-memory for this run)
+    const authorCount = await getAuthorReplyCountToday(candidate.authorUsername)
+    if (authorCount + inMemoryCount >= MAX_REPLIES_PER_AUTHOR_PER_DAY) {
+      process.stdout.write(`Proactive Discussion: Skipping ${candidate.authorUsername} (daily author limit: ${authorCount + inMemoryCount}/${MAX_REPLIES_PER_AUTHOR_PER_DAY})\n`)
       continue
     }
 
-    // Author limit check (DB for previous runs today)
-    const authorCount = await getAuthorReplyCountToday(candidate.authorUsername)
-    if (authorCount >= MAX_REPLIES_PER_AUTHOR_PER_DAY) {
-      process.stdout.write(`Proactive Discussion: Skipping ${candidate.authorUsername} (DB: already replied today)\n`)
-      repliedAuthorsToday.add(candidate.authorUsername)
+    const authorWeeklyCount = await getAuthorReplyCountThisWeek(candidate.authorUsername)
+    if (authorWeeklyCount + inMemoryCount >= MAX_REPLIES_PER_AUTHOR_PER_WEEK) {
+      process.stdout.write(`Proactive Discussion: Skipping ${candidate.authorUsername} (weekly author limit: ${authorWeeklyCount + inMemoryCount}/${MAX_REPLIES_PER_AUTHOR_PER_WEEK})\n`)
       continue
     }
 
@@ -157,7 +174,7 @@ export async function runProactiveDiscussion(): Promise<void> {
           pipeline_scores: result.score,
         })
 
-        repliedAuthorsToday.add(candidate.authorUsername)
+        repliedAuthorsThisRun.set(candidate.authorUsername, inMemoryCount + 1)
         repliesPosted++
 
         process.stdout.write(

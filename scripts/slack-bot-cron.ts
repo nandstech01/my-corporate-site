@@ -96,9 +96,9 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '30 15 * * *': 'instagram-engagement-learner',
   '0 3 * * *': 'instagram-story-auto-check',
   '0 4,10,20 * * *': 'blog-rss-monitor',
-  '0 2,6,12 * * *': 'x-auto-post',
+  '30 21,3,9 * * *': 'x-auto-post',
   '0 17 * * *': 'ai-judge-calibrator',
-  '0 22 * * *': 'buzz-collector',
+  '0 21,3,9 * * *': 'buzz-collector',
   '0 19 * * 0': 'ai-judge-drift-monitor',
   '30 3,9,15,21 * * *': 'safety-event-scanner',
   '30 0,6,12,18 * * *': 'lead-email-sequences',
@@ -107,7 +107,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 20 * * *': 'x-growth-tracker',
   '30 23,4,10 * * *': 'threads-auto-post',
   '30 16 * * *': 'threads-engagement-learner',
-  '30 2,7,10 * * *': 'x-proactive-discussion',
+  '30 0,3,5,7,9,11 * * *': 'x-proactive-discussion',
 }
 
 function detectJob(): JobName {
@@ -155,6 +155,7 @@ function detectJob(): JobName {
   // Auto-detect based on current time (UTC)
   const now = new Date()
   const utcHour = now.getUTCHours()
+  const utcMinute = now.getUTCMinutes()
   const dayOfWeek = now.getUTCDay()
 
   // JST 9:00 = UTC 0:00 → daily suggestion
@@ -167,8 +168,9 @@ function detectJob(): JobName {
     return 'weekly-report'
   }
 
-  // JST 6,14,22 = UTC 21,5,13 → LinkedIn source collector (1日3回)
-  if (utcHour === 21 || (utcHour === 5 && dayOfWeek !== 1)) {
+  // JST 14,22 = UTC 5,13 → LinkedIn source collector (fallback for non-shared hours)
+  // Note: UTC 21 is shared with buzz-collector and x-auto-post; resolved via CRON_SCHEDULE
+  if ((utcHour === 5 && dayOfWeek !== 1) || utcHour === 13) {
     return 'linkedin-source-collector'
   }
 
@@ -204,17 +206,18 @@ function detectJob(): JobName {
   }
 
   // JST 12:00 = UTC 03:00 → Instagram story auto-check
-  if (utcHour === 3) {
-    return 'instagram-story-auto-check'
-  }
+  // Note: UTC 3 is shared with buzz-collector (:00) and x-auto-post (:30)
+  // Primary resolution via CRON_SCHEDULE; this fallback is deprioritized
+  // instagram-story-auto-check resolved via explicit CRON_JOB or CRON_SCHEDULE
 
   // JST 03:00 = UTC 18:00 → LinkedIn ML model retrainer
   if (utcHour === 18) {
     return 'linkedin-model-retrainer'
   }
 
-  // JST 11,15,21 = UTC 2,6,12 → X auto-post (1日3回)
-  if (utcHour === 2 || utcHour === 6 || utcHour === 12) {
+  // JST 6:30,12:30,18:30 = UTC 21:30,3:30,9:30 → X auto-post (1日3回)
+  // Primary resolution via CRON_SCHEDULE; fallback uses minute >= 30 to disambiguate
+  if ((utcHour === 21 || utcHour === 3 || utcHour === 9) && utcMinute >= 30) {
     return 'x-auto-post'
   }
 
@@ -228,8 +231,9 @@ function detectJob(): JobName {
     return 'ai-judge-drift-monitor'
   }
 
-  // JST 07:00 = UTC 22:00 → buzz collector
-  if (utcHour === 22) {
+  // JST 6:00,12:00,18:00 = UTC 21:00,3:00,9:00 → buzz collector (1日3回)
+  // Primary resolution via CRON_SCHEDULE; fallback uses minute < 30 to disambiguate from x-auto-post
+  if ((utcHour === 21 || utcHour === 3 || utcHour === 9) && utcMinute < 30) {
     return 'buzz-collector'
   }
 
