@@ -349,6 +349,25 @@ async function tryViralQuoteArticle(): Promise<boolean> {
     tags: [...postResult.tags, 'viral_quote_article'],
   })
 
+  // Fallback: if quote tweet fails (403 = quoting restricted), post as regular long-form article
+  if (!result.success && result.error?.includes('403')) {
+    process.stdout.write(
+      `X auto-post (viral quote article): Quote tweet 403, falling back to regular article\n`,
+    )
+    const fallbackResult = await autoResolvePost({
+      platform: 'x',
+      text: postResult.finalPost,
+      longForm: true,
+      sourceTitle: (candidate.post_text as string).slice(0, 100),
+      patternUsed: postResult.patternUsed,
+      tags: [...postResult.tags, 'viral_quote_article', 'quote_fallback'],
+    })
+    process.stdout.write(
+      `X auto-post (viral quote article fallback): @${candidate.author_handle} → ${fallbackResult.success ? 'posted' : 'rejected'}\n`,
+    )
+    return fallbackResult.success
+  }
+
   process.stdout.write(
     `X auto-post (viral quote article): @${candidate.author_handle} → ${result.success ? 'posted' : 'rejected'}\n`,
   )

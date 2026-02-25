@@ -94,6 +94,20 @@ async function markDecisionAsPosted(params: {
 }
 
 // ============================================================
+// Markdown Stripping (X投稿からMarkdown記号を除去)
+// ============================================================
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, '')           // heading markers
+    .replace(/\*\*(.+?)\*\*/g, '$1')        // bold **text**
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '$1') // italic *text*
+    .replace(/^-{3,}$/gm, '')               // horizontal rules ---
+    .replace(/\n{3,}/g, '\n\n')             // collapse blank lines
+    .trim()
+}
+
+// ============================================================
 // Platform-Specific Posting
 // ============================================================
 
@@ -102,19 +116,25 @@ async function postToX(post: PostCandidate): Promise<{
   readonly postUrl?: string
   readonly error?: string
 }> {
+  // Strip Markdown from all text before posting to X
+  const cleanText = stripMarkdown(post.text)
+  const cleanSegments = post.threadSegments
+    ? post.threadSegments.map(stripMarkdown)
+    : undefined
+
   let result
 
   // Branch: Quote Tweet
   if (post.quoteTweetId) {
-    result = await quoteTweet(post.text, post.quoteTweetId)
+    result = await quoteTweet(cleanText, post.quoteTweetId)
   }
   // Branch: Thread
-  else if (post.threadSegments && post.threadSegments.length > 0) {
-    result = await postThread(post.threadSegments)
+  else if (cleanSegments && cleanSegments.length > 0) {
+    result = await postThread(cleanSegments)
   }
   // Default: Regular tweet (or long-form article)
   else {
-    result = await postTweet(post.text, {
+    result = await postTweet(cleanText, {
       longForm: post.longForm,
       mediaIds: post.mediaIds ? [...post.mediaIds] : undefined,
     })
