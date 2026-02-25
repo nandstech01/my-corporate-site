@@ -375,9 +375,9 @@ async function generateCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下のルールに従い、${charConstraint}を3候補作成。
+      content: `あなたは@nands_tech。以下のルールに従い、${charConstraint}を${isArticle ? '1候補' : '3候補'}作成。
 
-${X_TWITTER_RULES}
+${isArticle ? '' : X_TWITTER_RULES}
 
 ${voiceProfile}
 
@@ -385,7 +385,7 @@ ${modeInstructions}
 ${trendingSection}
 ${bestPractices}
 
-3候補を「---」で区切って出力。候補のみ、説明不要。`,
+${isArticle ? '1つの長文記事を出力せよ。3000文字以上は絶対に守れ。候補のみ、説明不要。' : '3候補を「---」で区切って出力。候補のみ、説明不要。'}`,
     },
     {
       role: 'user' as const,
@@ -398,10 +398,17 @@ ${bestPractices}
       ? response.content
       : String(response.content)
 
-  const candidates = text
-    .split('---')
-    .map((c) => c.trim())
-    .filter((c) => c.length > 0)
+  // 記事モード: 全文を1候補として扱う（分割しない）
+  // 短文/スレッド: ---で3候補に分割
+  let candidates: string[]
+  if (isArticle) {
+    candidates = [text.trim()]
+  } else {
+    candidates = text
+      .split('---')
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0)
+  }
 
   const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
@@ -583,6 +590,21 @@ async function finalScore(
   // Knockout: 高い方を採用
   if (revisedCritique.overallScore > state.critiqueResult.overallScore) {
     // 改訂版の勝ち → finalPostに設定
+    // Article mode: タイトル・キーポイントも抽出
+    if (state.mode === 'article') {
+      const lines = state.revisedCandidate.split('\n').filter((l) => l.trim().length > 0)
+      const articleTitle = lines[0]?.trim() ?? null
+      const numberedLines = lines.filter((l) => /^\d+[\.\)、]\s*/.test(l.trim()))
+      const keyPoints = numberedLines
+        .slice(0, 3)
+        .map((l) => l.trim().replace(/^\d+[\.\)、]\s*/, ''))
+      return {
+        critiqueResult: revisedCritique,
+        finalPost: state.revisedCandidate,
+        articleTitle,
+        articleKeyPoints: keyPoints.length > 0 ? keyPoints : null,
+      }
+    }
     return {
       critiqueResult: revisedCritique,
       finalPost: state.revisedCandidate,
