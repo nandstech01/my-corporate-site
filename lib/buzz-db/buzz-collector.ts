@@ -119,10 +119,15 @@ function calculateRelevanceScore(text: string): number {
 // ============================================================
 
 const X_SEARCH_QUERY =
-  '(AI OR LLM OR エージェント OR Claude OR GPT) lang:ja min_faves:50'
+  '(AI OR LLM OR エージェント OR Claude OR GPT) lang:ja -is:retweet'
 
 const EN_VIRAL_SEARCH_QUERY =
-  '("Claude Code" OR "Cursor AI" OR "AI coding" OR "Copilot" OR "Windsurf" OR "Devin AI") lang:en min_faves:100 -is:retweet'
+  '(Claude Code OR Cursor AI OR AI coding OR Copilot OR Windsurf) lang:en -is:retweet'
+
+// min_faves は Twitter API Free/Basic tier で使用不可のため、
+// クライアントサイドで buzz_score フィルタリングを行う
+const MIN_BUZZ_SCORE_JA = 50   // likes*2 + retweets*3 + replies*1
+const MIN_BUZZ_SCORE_EN = 50
 
 async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
   if (!isTwitterConfigured()) {
@@ -136,7 +141,7 @@ async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
     const client = getTwitterClient()
 
     const result = await client.v2.search(X_SEARCH_QUERY, {
-      max_results: 50,
+      max_results: 100,
       'tweet.fields': ['created_at', 'public_metrics', 'author_id'],
       'user.fields': ['username'],
       expansions: ['author_id'],
@@ -152,7 +157,7 @@ async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
       userMap.set(u.id, u.username)
     })
 
-    return tweets.map((tweet): CollectedPost => {
+    const posts = tweets.map((tweet): CollectedPost => {
       const metrics = tweet.public_metrics
       const likes = metrics?.like_count ?? 0
       const retweets = metrics?.retweet_count ?? 0
@@ -180,6 +185,9 @@ async function collectXBuzzPosts(): Promise<readonly CollectedPost[]> {
         post_date: tweet.created_at ?? null,
       }
     })
+
+    // Client-side filtering: min_faves not available on Free/Basic tier
+    return posts.filter((p) => p.buzz_score >= MIN_BUZZ_SCORE_JA)
   } catch (error) {
     process.stdout.write(
       `[buzz-collector] X API error: ${error instanceof Error ? error.message : String(error)}\n`,
@@ -204,7 +212,7 @@ async function collectEnglishViralPosts(): Promise<readonly CollectedPost[]> {
     const client = getTwitterClient()
 
     const result = await client.v2.search(EN_VIRAL_SEARCH_QUERY, {
-      max_results: 30,
+      max_results: 100,
       'tweet.fields': ['created_at', 'public_metrics', 'author_id'],
       'user.fields': ['username'],
       expansions: ['author_id'],
@@ -220,7 +228,7 @@ async function collectEnglishViralPosts(): Promise<readonly CollectedPost[]> {
       userMap.set(u.id, u.username)
     })
 
-    return tweets.map((tweet): CollectedPost => {
+    const posts = tweets.map((tweet): CollectedPost => {
       const metrics = tweet.public_metrics
       const likes = metrics?.like_count ?? 0
       const retweets = metrics?.retweet_count ?? 0
@@ -248,6 +256,13 @@ async function collectEnglishViralPosts(): Promise<readonly CollectedPost[]> {
         post_date: tweet.created_at ?? null,
       }
     })
+
+    // Client-side filtering: min_faves not available on Free/Basic tier
+    const filtered = posts.filter((p) => p.buzz_score >= MIN_BUZZ_SCORE_EN)
+    process.stdout.write(
+      `[buzz-collector] English viral: ${tweets.length} found, ${filtered.length} above threshold\n`,
+    )
+    return filtered
   } catch (error) {
     process.stdout.write(
       `[buzz-collector] English viral collection error: ${error instanceof Error ? error.message : String(error)}\n`,

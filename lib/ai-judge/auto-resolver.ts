@@ -343,7 +343,8 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
     dynamicThreshold = await getCalibratedThreshold(post.platform, todayPostCount)
 
     // Quote tweets require higher confidence (0.80 minimum)
-    if (post.quoteTweetId) {
+    // Exception: long-form articles with quote tweets provide substantial original content
+    if (post.quoteTweetId && !post.longForm) {
       dynamicThreshold = Math.max(dynamicThreshold, QUOTE_TWEET_CONFIDENCE_THRESHOLD)
     }
   } catch (error) {

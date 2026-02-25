@@ -309,7 +309,7 @@ async function tryViralQuoteArticle(): Promise<boolean> {
     .select('*')
     .eq('platform', 'x')
     .eq('language', 'en')
-    .gte('buzz_score', 300)
+    .gte('buzz_score', 100)
     .gte('post_date', threeDaysAgo)
     .order('buzz_score', { ascending: false })
     .limit(5)

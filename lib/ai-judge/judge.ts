@@ -246,7 +246,19 @@ function buildUserPrompt(
   post: PostCandidate,
   safetyFlags: readonly string[],
 ): string {
-  const parts: string[] = [`投稿テキスト:\n${post.text}`]
+  // 投稿タイプを明示（AI Judgeが適切な基準で評価するため）
+  const postTypeLabels: string[] = []
+  if (post.longForm) postTypeLabels.push('Premium長文記事（25,000文字まで許容）')
+  if (post.quoteTweetId) postTypeLabels.push(`引用RT（元ツイート: ${post.quoteTweetId}）`)
+  if (post.threadSegments) postTypeLabels.push(`スレッド（${post.threadSegments.length}ツイート）`)
+
+  const parts: string[] = []
+
+  if (postTypeLabels.length > 0) {
+    parts.push(`投稿タイプ: ${postTypeLabels.join(' + ')}`)
+  }
+
+  parts.push(`投稿テキスト:\n${post.text}`)
 
   if (post.sourceUrl) {
     parts.push(`ソースURL: ${post.sourceUrl}`)
