@@ -1,11 +1,11 @@
 /**
  * LangGraph Threads投稿生成パイプライン
  *
- * 5段階パイプラインでThreads向け会話型投稿を生成。
+ * 7段階パイプラインでThreads向け会話型投稿を生成。
  *
  * パイプライン:
  *   START -> analyzeContent -> selectPattern -> generateCandidates
- *         -> scoreCandidates -> formatFinal -> END
+ *         -> scoreCandidates -> critiqueAndRevise -> finalScore -> formatFinal -> END
  */
 
 import { z } from 'zod'
@@ -25,6 +25,9 @@ import {
 import { VIRAL_HOOK_PATTERNS } from '../viral-hooks/hook-templates'
 import type { HookPattern } from '../viral-hooks/hook-templates'
 import { getThreadsLearnings } from '../slack-bot/proactive/threads-learnings'
+import { critiquePost, revisePost } from '../content-critique/critique-engine'
+import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
+import type { CritiqueResult } from '../content-critique/critique-engine'
 
 // ============================================================
 // LangChain usage_metadata type helper
@@ -61,6 +64,8 @@ export interface ThreadsGraphOutput {
   readonly tags: readonly string[]
   readonly scores?: readonly ThreadsCandidateScore[]
   readonly hookUsed?: string
+  readonly critiqueResult?: CritiqueResult
+  readonly revisedCandidate?: string
 }
 
 // ============================================================
@@ -103,6 +108,16 @@ const ThreadsPostState = Annotation.Root({
   scores: Annotation<ThreadsCandidateScore[]>({
     reducer: (_prev, next) => next,
     default: () => [],
+  }),
+
+  // Critique stage
+  critiqueResult: Annotation<CritiqueResult | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  revisedCandidate: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
   }),
 
   // Output
@@ -297,6 +312,9 @@ ${learnings.highPerformerSummary}`
     // Learnings fetch failure should not block generation
   }
 
+  // Voice profile
+  const voiceProfile = formatVoiceProfileForPrompt('short')
+
   // Tone guidelines
   const goodExpressions = THREADS_TONE_GUIDELINES.good_expressions
     .slice(0, 5)
@@ -330,6 +348,8 @@ ${learnings.highPerformerSummary}`
 - 自分の考え・実体験を軸に語る
 - 最後に問いかけで会話を誘発
 - 200-400文字が最適範囲
+
+${voiceProfile}
 
 ## 良い表現例
 「${goodExpressions}」
@@ -460,10 +480,97 @@ JSON配列のみ出力:
 }
 
 // ============================================================
-// ノード5: formatFinal（純粋関数）
+// ノード5: critiqueAndRevise（Self-Refine）
+// ============================================================
+
+async function critiqueAndRevise(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (state.candidates.length === 0 || state.scores.length === 0) {
+    return {}
+  }
+
+  // 最高スコア候補を取得
+  const sortedScores = [...state.scores].sort((a, b) => b.total - a.total)
+  const bestIndex = sortedScores[0].index
+  const bestCandidate = state.candidates[bestIndex] ?? state.candidates[0]
+
+  // 5次元評価
+  const critique = await critiquePost({
+    text: bestCandidate,
+    platform: 'threads',
+    mode: 'threads',
+    sourceContent: state.content.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `Threads critique: score=${critique.overallScore}/50, passed=${critique.passed}\n`,
+  )
+
+  // Adaptive exit: 高品質ならスキップ
+  if (critique.passed) {
+    return { critiqueResult: critique }
+  }
+
+  // 改訂版生成
+  const revised = await revisePost({
+    originalText: bestCandidate,
+    critique,
+    platform: 'threads',
+    mode: 'threads',
+  })
+
+  return {
+    critiqueResult: critique,
+    revisedCandidate: revised,
+  }
+}
+
+// ============================================================
+// ノード6: finalScore（Knockout）
+// ============================================================
+
+async function finalScore(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (!state.revisedCandidate || !state.critiqueResult) {
+    return {}
+  }
+
+  // 改訂版を再スコアリング
+  const revisedCritique = await critiquePost({
+    text: state.revisedCandidate,
+    platform: 'threads',
+    mode: 'threads',
+    sourceContent: state.content.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `Threads finalScore: original=${state.critiqueResult.overallScore}, revised=${revisedCritique.overallScore}\n`,
+  )
+
+  // Knockout: 高い方を採用
+  if (revisedCritique.overallScore > state.critiqueResult.overallScore) {
+    return {
+      critiqueResult: revisedCritique,
+      finalPost: state.revisedCandidate,
+    }
+  }
+
+  // 原文の勝ち
+  return { revisedCandidate: null }
+}
+
+// ============================================================
+// ノード7: formatFinal（純粋関数）
 // ============================================================
 
 function formatFinal(state: GraphStateType): Partial<GraphStateType> {
+  // finalScore で改訂版が採用済みの場合はスキップ
+  if (state.finalPost) {
+    return {}
+  }
+
   if (state.candidates.length === 0 || state.scores.length === 0) {
     return { error: 'No candidates or scores available' }
   }
@@ -500,8 +607,16 @@ function shouldContinueAfterCandidates(
 
 function shouldContinueAfterScoring(
   state: GraphStateType,
-): 'formatFinal' | typeof END {
-  return state.error ? END : 'formatFinal'
+): 'critiqueAndRevise' | typeof END {
+  return state.error ? END : 'critiqueAndRevise'
+}
+
+function shouldRevise(
+  state: GraphStateType,
+): 'finalScore' | 'formatFinal' {
+  if (!state.critiqueResult || state.critiqueResult.passed) return 'formatFinal'
+  if (!state.revisedCandidate) return 'formatFinal'
+  return 'finalScore'
 }
 
 // ============================================================
@@ -514,12 +629,16 @@ function buildThreadsPostGraph() {
     .addNode('selectPattern', selectPattern)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
+    .addNode('critiqueAndRevise', critiqueAndRevise)
+    .addNode('finalScore', finalScore)
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeContent')
     .addConditionalEdges('analyzeContent', shouldContinueAfterAnalysis)
     .addEdge('selectPattern', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
+    .addConditionalEdges('critiqueAndRevise', shouldRevise)
+    .addEdge('finalScore', 'formatFinal')
     .addEdge('formatFinal', END)
 
   return graph.compile()
@@ -570,5 +689,7 @@ export async function generateThreadsPost(
     tags,
     scores: result.scores.length > 0 ? result.scores : undefined,
     hookUsed,
+    ...(result.critiqueResult ? { critiqueResult: result.critiqueResult } : {}),
+    ...(result.revisedCandidate ? { revisedCandidate: result.revisedCandidate } : {}),
   }
 }

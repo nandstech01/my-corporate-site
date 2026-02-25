@@ -4,9 +4,9 @@
  * CLI (scripts/post-to-x.ts) と Admin UI (API route) の両方から
  * 呼び出せる共通エンジン。
  *
- * パイプライン:
+ * パイプライン (7段階):
  *   START → analyzeContent → selectPattern → generateCandidates
- *         → scoreCandidates → formatFinal → END
+ *         → scoreCandidates → critiqueAndRevise → finalScore → formatFinal → END
  */
 
 import { z } from 'zod'
@@ -19,7 +19,10 @@ import {
 import { selectPatternByBandit } from '../learning/pattern-bandit'
 import { TagGenerator } from './tag-generator'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
+import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
 import { getTwitterWeightedLength } from '../x-api/client'
+import { critiquePost, revisePost } from '../content-critique/critique-engine'
+import type { CritiqueResult } from '../content-critique/critique-engine'
 
 // ============================================================
 // LangChain usage_metadata type helper
@@ -71,6 +74,8 @@ export interface PostGraphOutput {
   completionTokens: number
   readonly articleTitle?: string
   readonly articleKeyPoints?: readonly string[]
+  readonly critiqueResult?: CritiqueResult
+  readonly revisedCandidate?: string
 }
 
 // ============================================================
@@ -118,6 +123,16 @@ const PostGraphState = Annotation.Root({
   scores: Annotation<CandidateScore[]>({
     reducer: (_prev, next) => next,
     default: () => [],
+  }),
+
+  // Critique stage
+  critiqueResult: Annotation<CritiqueResult | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  revisedCandidate: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
   }),
 
   // 出力
@@ -308,24 +323,29 @@ async function generateCandidates(
   const isArticle = state.mode === 'article'
   const isThread = state.mode === 'thread'
 
+  const voiceProfile = formatVoiceProfileForPrompt(isArticle ? 'article' : 'short')
+
   const charConstraint = isArticle
-    ? '1500-3000文字の長文投稿'
+    ? '3000-8000文字の有料記事スタイル長文投稿'
     : isThread
       ? '3セグメントのスレッド（各セグメント日本語120文字以内）'
       : '日本語120文字以内の投稿（X APIはCJK文字を2カウント換算。280カウント上限のため日本語は実質140文字が限界。余裕を持って120文字以内で）'
 
   const modeInstructions = isArticle
-    ? `- バズるX長文投稿（1500-3000文字）を作成せよ
+    ? `- バズるX有料記事スタイルの長文投稿（3000-8000文字）を作成せよ
 - URLは本文に含めないこと（リプライで自動投稿される）
-- 構成（この順番を厳守）:
-  1行目: 好奇心を刺激するフックタイトル（例:「〇〇が話題になってるので解説していく」「〇〇、中身が有益すぎたので共有する」）
-  本文: 番号付きセクション（3-6個）で記事のポイントを実務家視点で解説
-  各セクションに自分の経験・意見を織り交ぜる
-  「やりがちなミス」「よくある誤解」セクションを1つ入れる（実務あるある）
-  締め: なぜこれが刺さるのか/重要なのかの分析 → 議論を呼ぶ問いかけ
-- 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「〜なんだよね」）
+- 構成:
+  冒頭: 共感フック（「こんな経験ありませんか？」→ 番号付き具体例3-5個）
+  接続: 「全部、〇〇前の自分。」のような個人接続
+  結論先出し: 太字で結論を宣言
+  本文: 8-12の番号付きセクション（各: 概念→個人体験→実例）
+  各セクションにカジュアルな独り言・ツッコミを挟む（「(いや、これマジで？w)」）
+  「やりがちなミス」「よくある誤解」セクションを1-2個入れる
+  まとめ: 箇条書き5-7個
+  締め: 哲学的テイクアウェイ
+- 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「〜なんだよね」「ぶっちゃけ」）
 - ハッシュタグ0-1個
-- ※長文投稿なので280文字制限は適用しない。1500-3000文字で書くこと。`
+- ※長文投稿なので280文字制限は適用しない。3000-8000文字で書くこと。`
     : isThread
       ? `- 3セグメントのスレッドを作成
 - 各セグメントは日本語120文字以内（CJK=2カウント、280カウント上限）
@@ -358,6 +378,8 @@ async function generateCandidates(
       content: `あなたは@nands_tech。以下のルールに従い、${charConstraint}を3候補作成。
 
 ${X_TWITTER_RULES}
+
+${voiceProfile}
 
 ${modeInstructions}
 ${trendingSection}
@@ -408,7 +430,7 @@ async function scoreCandidates(
     .join('\n\n')
 
   const isArticle = state.mode === 'article'
-  const targetLength = isArticle ? '1500-3000文字' : '日本語120文字以内（280加重カウント以内）'
+  const targetLength = isArticle ? '3000-8000文字' : '日本語120文字以内（280加重カウント以内）'
 
   const response = await model.invoke([
     {
@@ -485,10 +507,102 @@ JSON配列のみ出力:
 }
 
 // ============================================================
-// ノード5: formatFinal（純粋関数）
+// ノード5: critiqueAndRevise（Self-Refine）
+// ============================================================
+
+async function critiqueAndRevise(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (state.candidates.length === 0 || state.scores.length === 0) {
+    return {}
+  }
+
+  // 最高スコア候補を取得
+  const sortedScores = [...state.scores].sort((a, b) => b.total - a.total)
+  const bestIndex = sortedScores[0].index
+  const bestCandidate = state.candidates[bestIndex] ?? state.candidates[0]
+
+  // Determine mode for constitution
+  const critiqueMode = state.mode === 'article' ? 'article' : 'short'
+
+  // 5次元評価
+  const critique = await critiquePost({
+    text: bestCandidate,
+    platform: 'x',
+    mode: critiqueMode,
+    sourceContent: state.content.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `X critique: score=${critique.overallScore}/50, passed=${critique.passed}\n`,
+  )
+
+  // Adaptive exit: 高品質ならスキップ
+  if (critique.passed) {
+    return { critiqueResult: critique }
+  }
+
+  // 改訂版生成
+  const revised = await revisePost({
+    originalText: bestCandidate,
+    critique,
+    platform: 'x',
+    mode: critiqueMode,
+  })
+
+  return {
+    critiqueResult: critique,
+    revisedCandidate: revised,
+  }
+}
+
+// ============================================================
+// ノード6: finalScore（Knockout）
+// ============================================================
+
+async function finalScore(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (!state.revisedCandidate || !state.critiqueResult) {
+    return {}
+  }
+
+  // 改訂版を再スコアリング
+  const critiqueMode = state.mode === 'article' ? 'article' : 'short'
+  const revisedCritique = await critiquePost({
+    text: state.revisedCandidate,
+    platform: 'x',
+    mode: critiqueMode,
+    sourceContent: state.content.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `X finalScore: original=${state.critiqueResult.overallScore}, revised=${revisedCritique.overallScore}\n`,
+  )
+
+  // Knockout: 高い方を採用
+  if (revisedCritique.overallScore > state.critiqueResult.overallScore) {
+    // 改訂版の勝ち → finalPostに設定
+    return {
+      critiqueResult: revisedCritique,
+      finalPost: state.revisedCandidate,
+    }
+  }
+
+  // 原文の勝ち → revisedCandidateをクリア
+  return { revisedCandidate: null }
+}
+
+// ============================================================
+// ノード7: formatFinal（純粋関数）
 // ============================================================
 
 function formatFinal(state: GraphStateType): Partial<GraphStateType> {
+  // finalScore で改訂版が採用済みの場合はスキップ
+  if (state.finalPost) {
+    return {}
+  }
+
   if (state.candidates.length === 0 || state.scores.length === 0) {
     return { error: 'No candidates or scores available' }
   }
@@ -577,8 +691,17 @@ function shouldContinueAfterCandidates(
 
 function shouldContinueAfterScoring(
   state: GraphStateType,
-): 'formatFinal' | typeof END {
-  return state.error ? END : 'formatFinal'
+): 'critiqueAndRevise' | typeof END {
+  return state.error ? END : 'critiqueAndRevise'
+}
+
+function shouldRevise(
+  state: GraphStateType,
+): 'finalScore' | 'formatFinal' {
+  // Adaptive exit: 高品質 or 改訂版なし → スキップ
+  if (!state.critiqueResult || state.critiqueResult.passed) return 'formatFinal'
+  if (!state.revisedCandidate) return 'formatFinal'
+  return 'finalScore'
 }
 
 // ============================================================
@@ -591,12 +714,16 @@ function buildPostGraph() {
     .addNode('selectPattern', selectPattern)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
+    .addNode('critiqueAndRevise', critiqueAndRevise)
+    .addNode('finalScore', finalScore)
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeContent')
     .addConditionalEdges('analyzeContent', shouldContinueAfterAnalysis)
     .addEdge('selectPattern', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
+    .addConditionalEdges('critiqueAndRevise', shouldRevise)
+    .addEdge('finalScore', 'formatFinal')
     .addEdge('formatFinal', END)
 
   return graph.compile()
@@ -650,5 +777,7 @@ export async function generateXPost(
     completionTokens: result.completionTokens,
     ...(result.articleTitle ? { articleTitle: result.articleTitle } : {}),
     ...(result.articleKeyPoints ? { articleKeyPoints: result.articleKeyPoints } : {}),
+    ...(result.critiqueResult ? { critiqueResult: result.critiqueResult } : {}),
+    ...(result.revisedCandidate ? { revisedCandidate: result.revisedCandidate } : {}),
   }
 }
