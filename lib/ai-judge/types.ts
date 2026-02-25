@@ -57,6 +57,7 @@ export interface PostCandidate {
   readonly pendingActionId?: string
   readonly quoteTweetId?: string
   readonly threadSegments?: readonly string[]
+  readonly longForm?: boolean
 }
 
 // ============================================================

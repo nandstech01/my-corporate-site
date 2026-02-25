@@ -111,9 +111,10 @@ async function postToX(post: PostCandidate): Promise<{
   else if (post.threadSegments && post.threadSegments.length > 0) {
     result = await postThread(post.threadSegments)
   }
-  // Default: Regular tweet
+  // Default: Regular tweet (or long-form article)
   else {
     result = await postTweet(post.text, {
+      longForm: post.longForm,
       mediaIds: post.mediaIds ? [...post.mediaIds] : undefined,
     })
   }
@@ -132,11 +133,13 @@ async function postToX(post: PostCandidate): Promise<{
   }
 
   // Determine post type for analytics
-  const postType: 'original' | 'quote' | 'thread' | 'reply' | 'repost' = post.quoteTweetId
+  const postType: 'original' | 'quote' | 'thread' | 'reply' | 'repost' | 'article' = post.quoteTweetId
     ? 'quote'
     : post.threadSegments
       ? 'thread'
-      : 'original'
+      : post.longForm
+        ? 'article'
+        : 'original'
 
   // Save analytics
   try {

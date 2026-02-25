@@ -308,7 +308,7 @@ export async function runXAutoPost(): Promise<void> {
   await randomDelay()
 
   // 1.5. Check for repost/quote RT opportunities
-  // Distribution: 10% repost, 25% quote RT, 10% thread (AI Judge), 55% original
+  // Distribution: 10% repost, 25% quote RT, 10% thread, 10% article (long-form), 45% original
   const roll = Math.random()
 
   if (roll < 0.10) {
@@ -375,6 +375,39 @@ export async function runXAutoPost(): Promise<void> {
       process.stdout.write(`X auto-post: Thread attempt failed: ${msg}\n`)
     }
     // Falls through to original post if thread generation fails
+  } else if (roll < 0.55 && isAiJudgeEnabled()) {
+    // Try article (long-form) generation (10% probability)
+    try {
+      const articleMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
+      if (articleMemories.length > 0) {
+        const articleCandidates = extractCandidatesFromMemories(articleMemories)
+        if (articleCandidates.length > 0) {
+          const topCandidate = articleCandidates[0]
+          const postResult = await generateXPost({
+            mode: 'article',
+            content: topCandidate.sourceBody,
+            topic: topCandidate.title,
+          })
+          const result = await autoResolvePost({
+            platform: 'x',
+            text: postResult.finalPost,
+            longForm: true,
+            sourceUrl: topCandidate.sourceUrl,
+            sourceTitle: topCandidate.title,
+            patternUsed: postResult.patternUsed,
+            tags: postResult.tags,
+          })
+          process.stdout.write(
+            `X auto-post (article): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+          )
+          return
+        }
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      process.stdout.write(`X auto-post: Article attempt failed: ${msg}\n`)
+    }
+    // Falls through to original post if article generation fails
   }
 
   // 2. linkedin_sources メモリを取得 (LinkedIn collector が収集済みのソースを共有)

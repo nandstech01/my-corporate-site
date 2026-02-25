@@ -101,7 +101,10 @@ function checkNgWords(text: string, ngWords: readonly NgWord[]): NgWordCheckResu
 // Character Count Validation
 // ============================================================
 
-function checkCharacterCount(text: string, platform: Platform): boolean {
+function checkCharacterCount(text: string, platform: Platform, longForm?: boolean): boolean {
+  if (platform === 'x' && longForm) {
+    return text.length >= 10 && text.length <= 25000
+  }
   const limits = getCharLimits(platform)
   const length = text.length
   return length >= limits.min && length <= limits.max
@@ -293,7 +296,13 @@ async function checkDuplicates(
     const supabase = getSupabase()
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-    const table = post.platform === 'linkedin' ? 'linkedin_post_analytics' : 'x_post_analytics'
+    const tableMap: Record<Platform, string> = {
+      x: 'x_post_analytics',
+      linkedin: 'linkedin_post_analytics',
+      instagram: 'instagram_post_analytics',
+      threads: 'threads_post_analytics',
+    }
+    const table = tableMap[post.platform]
     const { data, error } = await supabase
       .from(table)
       .select('post_text')
@@ -337,7 +346,7 @@ export async function runSafetyChecks(post: PostCandidate): Promise<SafetyCheckR
   ])
 
   const ngWordResult = checkNgWords(post.text, ngWords)
-  const characterCountValid = checkCharacterCount(post.text, post.platform)
+  const characterCountValid = checkCharacterCount(post.text, post.platform, post.longForm)
   // 投稿本文 + ソースタイトルを合わせて関連度判定（カジュアル文体対策）
   const relevanceText = post.sourceTitle
     ? `${post.text} ${post.sourceTitle}`

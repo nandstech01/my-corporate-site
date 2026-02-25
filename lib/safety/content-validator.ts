@@ -41,6 +41,16 @@ const NEGATIVE_MARKERS = [
   '炎上', '暴露', 'ステマ', 'PR案件',
 ]
 
+// Broader tech markers for Threads (more casual, wider tech topics)
+const THREADS_EXTRA_MARKERS = [
+  'programming', 'software', 'coding', 'open source', 'GitHub',
+  'developer', 'web', 'frontend', 'backend', 'startup',
+  'プログラミング', 'ソフトウェア', '開発者', 'オープンソース', 'スタートアップ',
+  'MIT', 'CS', 'terminal', 'CLI', 'IDE',
+  'Linux', 'Docker', 'Kubernetes', 'cloud', 'DevOps',
+  'database', 'security', 'network', 'algorithm',
+]
+
 // ============================================================
 // Anthropic Client
 // ============================================================
@@ -63,8 +73,11 @@ function checkBrandVoice(
   const flags: string[] = []
 
   // Count positive marker hits
+  const markers = platform === 'threads'
+    ? [...POSITIVE_MARKERS, ...THREADS_EXTRA_MARKERS]
+    : POSITIVE_MARKERS
   let positiveHits = 0
-  for (const marker of POSITIVE_MARKERS) {
+  for (const marker of markers) {
     if (lowerText.includes(marker.toLowerCase())) {
       positiveHits++
     }
@@ -85,7 +98,6 @@ function checkBrandVoice(
   }
 
   // Calculate score: positive density vs negative penalty
-  const totalMarkers = POSITIVE_MARKERS.length
   const positiveRatio = Math.min(positiveHits / 3, 1) // Normalize: 3+ hits = max
   const negativePenalty = negativeHits * 0.2
 
@@ -103,7 +115,9 @@ function checkBrandVoice(
   // Clamp to [0, 1]
   score = Math.max(0, Math.min(1, score))
 
-  if (score < BRAND_VOICE_THRESHOLD) {
+  // Threads uses a lower threshold (casual platform, broader tech topics)
+  const threshold = platform === 'threads' ? 0.2 : BRAND_VOICE_THRESHOLD
+  if (score < threshold) {
     flags.push(`brand_voice_low_score: ${score.toFixed(2)}`)
   }
 
@@ -202,7 +216,8 @@ export async function validateContent(
   flags.push(...factCheck.flags)
 
   // 3. Determine pass/fail
-  const brandVoicePassed = brandVoice.score >= BRAND_VOICE_THRESHOLD
+  const threshold = post.platform === 'threads' ? 0.2 : BRAND_VOICE_THRESHOLD
+  const brandVoicePassed = brandVoice.score >= threshold
   const passed = brandVoicePassed && factCheck.passed
 
   return {
