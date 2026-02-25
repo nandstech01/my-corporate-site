@@ -21,6 +21,7 @@ import {
 } from '../memory'
 import { runLinkedInEngagementLearner } from './linkedin-engagement-learner'
 import { recordPatternOutcome } from '../../learning/pattern-bandit'
+import { trackReplyEngagement } from '../../x-conversation/reply-engagement-tracker'
 
 interface TweetMetrics {
   readonly likes: number
@@ -362,6 +363,14 @@ export async function runEngagementLearner(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     process.stdout.write(`X engagement learner failed: ${message}\n`)
+  }
+
+  // Reply engagement tracking
+  try {
+    await trackReplyEngagement()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stdout.write(`Reply engagement tracker failed: ${message}\n`)
   }
 
   try {

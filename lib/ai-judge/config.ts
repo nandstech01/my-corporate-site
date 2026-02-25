@@ -53,7 +53,7 @@ export function getCharLimits(platform: Platform): { readonly min: number; reado
 
 const DAILY_POST_LIMITS: Record<Platform, number> = {
   x: 8,
-  linkedin: 4,
+  linkedin: 2,
   instagram: 2,
   threads: 3,
 }
@@ -89,6 +89,9 @@ export function getDynamicThreshold(
 // ============================================================
 // AI Judge システム有効判定
 // ============================================================
+
+/** プロアクティブ返信の信頼度閾値 */
+export const PROACTIVE_REPLY_CONFIDENCE_THRESHOLD = 0.85
 
 export function isAiJudgeEnabled(): boolean {
   return process.env.AI_JUDGE_ENABLED === 'true'

@@ -24,6 +24,8 @@ import { closePlaywright, notifyApiFallback } from '../x-playwright'
 import { autoResolvePost } from '../ai-judge/auto-resolver'
 import { isAiJudgeEnabled } from '../ai-judge/config'
 import { addSelfReply } from './thread-composer'
+import { generateReplyWithPipeline } from './reply-graph'
+import type { ReplyCandidateScore } from './reply-graph'
 
 // ============================================================
 // Constants
@@ -329,7 +331,22 @@ export async function runConversationBuilder(): Promise<void> {
           if (existingReplies + repliesPosted >= MAX_REPLIES_PER_THREAD) break
 
           try {
-            const replyText = await generateReply(tweet.text, userReply.text)
+            let replyText: string
+            let strategyUsed: string | undefined
+            let pipelineScores: readonly ReplyCandidateScore[] | undefined
+            try {
+              const pipelineResult = await generateReplyWithPipeline({
+                originalPostText: tweet.text,
+                userReplyText: userReply.text,
+                replyType: 'reply_to_user',
+              })
+              replyText = pipelineResult.finalReply
+              strategyUsed = pipelineResult.strategyUsed
+              pipelineScores = pipelineResult.scores
+            } catch {
+              process.stdout.write('Conversation Builder: Reply pipeline failed, falling back to simple generation\n')
+              replyText = await generateReply(tweet.text, userReply.text)
+            }
 
             // Route through AI Judge if enabled
             if (isAiJudgeEnabled()) {
@@ -387,7 +404,18 @@ export async function runConversationBuilder(): Promise<void> {
       existingReplies === 0
     ) {
       try {
-        const followUpText = await generateFollowUp(tweet.text)
+        let followUpText: string
+        try {
+          const pipelineResult = await generateReplyWithPipeline({
+            originalPostText: tweet.text,
+            userReplyText: '',
+            replyType: 'self_thread',
+          })
+          followUpText = pipelineResult.finalReply
+        } catch {
+          process.stdout.write('Conversation Builder: Follow-up pipeline failed, falling back to simple generation\n')
+          followUpText = await generateFollowUp(tweet.text)
+        }
 
         if (isAiJudgeEnabled()) {
           const result = await autoResolvePost({

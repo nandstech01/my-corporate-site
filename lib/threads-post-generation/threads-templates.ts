@@ -137,6 +137,48 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
     conversationCloser: '賛成？反対？理由も聞かせてください',
     features: ['両面提示', '立場表明', '意見募集'],
   },
+  {
+    id: 'risk_warning',
+    name: 'リスク警告',
+    description: 'AI導入の落とし穴を実務家の視点で語り、対策を共有',
+    template: `{risk_scenario_observation}
+
+{what_goes_wrong_in_practice}
+
+{practical_mitigation}`,
+    category: 'risk',
+    optimalLength: { min: 200, max: 400 },
+    conversationCloser: '同じ罠にハマった人いる？',
+    features: ['リスク提示', '実務ベース', '対策共有'],
+  },
+  {
+    id: 'failure_reflection',
+    name: '失敗振り返り',
+    description: '実際の失敗体験から得た率直な学びを共有',
+    template: `{what_i_tried_and_expected}
+
+{reality_and_failure}
+
+{honest_lesson}`,
+    category: 'experience',
+    optimalLength: { min: 200, max: 400 },
+    conversationCloser: '似たような失敗経験ある人、どう乗り越えた？',
+    features: ['失敗共有', '率直さ', '共感'],
+  },
+  {
+    id: 'diagnostic_check',
+    name: '診断チェック',
+    description: '読者の課題を診断する問いかけで専門性を示しつつ会話を誘発',
+    template: `{diagnostic_scenario}
+
+{common_patterns_observed}
+
+{self_check_invitation}`,
+    category: 'cta',
+    optimalLength: { min: 200, max: 400 },
+    conversationCloser: 'いくつ当てはまった？',
+    features: ['診断型', '専門性', 'ソフトCTA'],
+  },
 ] as const
 
 // ============================================================

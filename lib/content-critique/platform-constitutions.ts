@@ -154,6 +154,36 @@ JSON形式のみ出力:
 }
 
 // ============================================================
+// X 返信（120文字以内）
+// ============================================================
+
+const X_REPLY_CONSTITUTION: PlatformConstitution = {
+  platform: 'x',
+  mode: 'reply',
+  principles: [
+    '会話の流れに自然に乗り、唐突な話題転換をしない',
+    '相手のポイントを認めた上で追加情報を提供する',
+    '問いかけで会話継続の余地を残す',
+    '実務家の具体的知見を1つ以上含む',
+    '120文字以内で簡潔に価値を伝える',
+    'フレンドリーだが実務家らしいトーン',
+  ],
+  antiPatterns: [...COMMON_ANTI_PATTERNS, ...AI_SMELL_ANTI_PATTERNS,
+    '自己宣伝的な返信（自分のサービス・ブログの宣伝）',
+    '空虚な同意（「その通りですね！」のみ）',
+  ],
+  scoringPrompt: `以下の5次元で返信を0-10点で評価せよ:
+1. conversationalNaturalness: 会話の自然さ（流れに乗っているか）
+2. topicRelevance: 元の話題との関連性
+3. valueAdd: 追加価値（新情報・視点・経験を提供しているか）
+4. lengthFit: 120文字以内適合
+5. continuationPotential: 会話継続力（相手が返信したくなるか）
+
+JSON形式のみ出力:
+{"conversationalNaturalness":N,"topicRelevance":N,"valueAdd":N,"lengthFit":N,"continuationPotential":N,"overallScore":N,"strengths":["..."],"weaknesses":["..."],"revision":"改善案テキスト（弱点がある場合）"}`,
+}
+
+// ============================================================
 // 憲法取得
 // ============================================================
 
@@ -162,6 +192,7 @@ const CONSTITUTION_MAP: ReadonlyMap<string, PlatformConstitution> = new Map([
   ['x:research', X_SHORT_CONSTITUTION],
   ['x:article', X_ARTICLE_CONSTITUTION],
   ['x:thread', X_SHORT_CONSTITUTION],
+  ['x:reply', X_REPLY_CONSTITUTION],
   ['threads:threads', THREADS_CONSTITUTION],
   ['linkedin:linkedin', LINKEDIN_CONSTITUTION],
 ])

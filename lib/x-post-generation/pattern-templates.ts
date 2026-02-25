@@ -139,6 +139,48 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['x_post'],
     features: ['会話', '返信', '深度構築'],
     generateDiagram: false
+  },
+  {
+    id: 'risk_reduction',
+    name: 'リスク低減',
+    description: 'AI導入の落とし穴と対策を実務家視点で語る',
+    template: `{risk_scenario}
+
+{what_went_wrong}
+
+{mitigation}`,
+    category: 'risk',
+    dataSources: ['trend', 'company', 'trending'],
+    features: ['リスク提示', '実例ベース', '対策共有'],
+    generateDiagram: false
+  },
+  {
+    id: 'failure_story',
+    name: '失敗談',
+    description: '実際の失敗から得た学びを率直に共有',
+    template: `{what_i_tried}
+
+{what_happened}
+
+{lesson}`,
+    category: 'experience',
+    dataSources: ['company', 'trend'],
+    features: ['失敗共有', '率直さ', '学び'],
+    generateDiagram: false
+  },
+  {
+    id: 'diagnostic_cta',
+    name: '診断型CTA',
+    description: '読者の課題を診断する問いかけで専門性を示す',
+    template: `{diagnostic_question}
+
+{patterns}
+
+{self_check}`,
+    category: 'cta',
+    dataSources: ['trend', 'company', 'x_post'],
+    features: ['診断型', '専門性', 'ソフトCTA'],
+    generateDiagram: false
   }
 ];
 
