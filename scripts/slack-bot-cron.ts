@@ -318,6 +318,7 @@ async function main() {
     const runCronJob = createTracedCronJob(jobName)
     await runCronJob(runner)
     process.stdout.write(`Job ${jobName} completed successfully\n`)
+    process.exit(0)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     process.stderr.write(`Job ${jobName} failed: ${message}\n`)
