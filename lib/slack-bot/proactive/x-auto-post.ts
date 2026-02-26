@@ -2,9 +2,9 @@
  * X 自動投稿生成ジョブ
  *
  * GitHub Actions cron (UTC 2,6,12 = JST 11,15,21) で実行。
- * スパム検出回避のため、実行時に 0~20 分のランダム遅延を挟む。
+ * スパム検出回避のため、実行時に 0~5 分のランダム遅延を挟む。
  *
- * 1. ランダム遅延 (0~20分)
+ * 1. ランダム遅延 (0~5分)
  * 2. slack_bot_memory から直近の linkedin_sources を recall (共有ソース)
  * 3. フォールバック: trending_topics メモリ recall
  * 4. 重複排除 (直近7日のX投稿テキスト + pending actions sourceUrl)
@@ -34,7 +34,7 @@ import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/sou
 // ランダム遅延（スパム検出回避）
 // ============================================================
 
-const MAX_DELAY_MINUTES = 20
+const MAX_DELAY_MINUTES = 5
 
 async function randomDelay(): Promise<void> {
   const delayMs = Math.floor(Math.random() * MAX_DELAY_MINUTES * 60 * 1000)
