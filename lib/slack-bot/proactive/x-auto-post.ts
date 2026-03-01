@@ -474,7 +474,7 @@ async function tryViralQuoteArticle(): Promise<boolean> {
   }
 
   process.stdout.write(
-    `X auto-post (viral quote article): @${candidate.author_handle} → ${result.success ? 'posted' : 'rejected'}\n`,
+    `X auto-post (viral quote article): @${candidate.author_handle} → ${result.success ? 'posted' : 'rejected'}${result.error ? ` (${result.error})` : ''}\n`,
   )
 
   return result.success
@@ -673,7 +673,7 @@ async function runXAutoPostInner(): Promise<void> {
               tags: postResult.tags,
             })
             process.stdout.write(
-              `X auto-post (thread): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+              `X auto-post (thread): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${result.error ? ` (${result.error})` : ''}\n`,
             )
             return
           }
@@ -731,7 +731,7 @@ async function runXAutoPostInner(): Promise<void> {
             tags: postResult.tags,
           })
           process.stdout.write(
-            `X auto-post (article): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${thumbnailMediaId ? ' (with thumbnail)' : ''}\n`,
+            `X auto-post (article): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${result.error ? ` (${result.error})` : ''}${thumbnailMediaId ? ' (with thumbnail)' : ''}\n`,
           )
           return
         }
@@ -921,7 +921,7 @@ async function runXAutoPostInner(): Promise<void> {
         mediaIds,
       })
       process.stdout.write(
-        `X auto-post (AI Judge): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}\n`,
+        `X auto-post (AI Judge): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${result.error ? ` (${result.error})` : ''}\n`,
       )
       return
     }
