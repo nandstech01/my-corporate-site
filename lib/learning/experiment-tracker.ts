@@ -153,6 +153,7 @@ export async function recordExperimentOutcome(
   variantId: string,
   engagement: number,
   success: boolean,
+  platform: Platform = 'x',
 ): Promise<void> {
   const supabase = getSupabase()
 
@@ -165,7 +166,7 @@ export async function recordExperimentOutcome(
 
   const { error } = await supabase.from('learning_pipeline_events').insert({
     event_type: 'experiment_outcome',
-    platform: 'x', // Will be overridden by experiment context
+    platform,
     post_id: experimentId,
     data: outcomeData,
   })
@@ -377,10 +378,11 @@ export async function concludeExperiment(
 ): Promise<void> {
   const supabase = getSupabase()
   const result = await evaluateExperiment(experimentId)
+  const experiment = await fetchExperimentConfig(experimentId)
 
   const { error } = await supabase.from('learning_pipeline_events').insert({
     event_type: 'experiment_concluded',
-    platform: 'x',
+    platform: experiment?.platform ?? 'x',
     post_id: experimentId,
     data: {
       ...result,

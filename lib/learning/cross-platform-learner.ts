@@ -208,6 +208,7 @@ async function transferPatternsWithBayesianPrior(
           await supabase.from('learning_pipeline_events').insert({
             event_type: 'bayesian_transfer',
             platform: targetPlatform,
+            post_id: `transfer:${sourceRow.pattern_id}`,
             data: {
               patternId: sourceRow.pattern_id,
               sourcePlatform,
@@ -306,6 +307,7 @@ async function checkTransferDivergence(
       await supabase.from('learning_pipeline_events').insert({
         event_type: 'bayesian_transfer',
         platform: targetPlatform,
+        post_id: `divergence:${targetRow.pattern_id}`,
         data: {
           action: 'divergence_check',
           patternId: targetRow.pattern_id,

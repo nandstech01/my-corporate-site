@@ -15,6 +15,7 @@ export interface JudgeVerdict {
   readonly editSuggestion?: string
   readonly safetyFlags: readonly string[]
   readonly topicRelevance: number // AI関連トピックとの関連度 0-1
+  readonly predictedEngagementRate?: number // 0.0-1.0 predicted engagement rate
 }
 
 // ============================================================
@@ -150,6 +151,7 @@ export interface AiJudgeDecisionRecord {
   readonly created_at: string
   readonly posted_at: string | null
   readonly engagement_fetched_at: string | null
+  readonly predicted_engagement_rate: number | null
 }
 
 // ============================================================

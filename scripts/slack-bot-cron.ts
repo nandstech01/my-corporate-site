@@ -31,6 +31,7 @@ import { runThreadsAutoPost } from '../lib/slack-bot/proactive/threads-auto-post
 import { runThreadsEngagementLearner } from '../lib/slack-bot/proactive/threads-engagement-learner'
 import { runProactiveDiscussion } from '../lib/x-conversation/proactive-discussion-runner'
 import { collectXEngagement } from '../lib/slack-bot/proactive/x-engagement-collector'
+import { applyPatternDecay } from '../lib/learning/pattern-bandit'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -85,6 +86,7 @@ type JobName =
   | 'threads-engagement-learner'
   | 'x-proactive-discussion'
   | 'x-engagement-collector'
+  | 'pattern-decay'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -142,7 +144,8 @@ function detectJob(): JobName {
     explicit === 'threads-auto-post' ||
     explicit === 'threads-engagement-learner' ||
     explicit === 'x-proactive-discussion' ||
-    explicit === 'x-engagement-collector'
+    explicit === 'x-engagement-collector' ||
+    explicit === 'pattern-decay'
   ) {
     return explicit
   }
@@ -278,8 +281,12 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'ai-judge-calibrator': runCalibrator,
   'buzz-collector': async () => { await runBuzzCollector() },
   'ai-judge-drift-monitor': async () => {
-    const drift = await checkModelDrift('linkedin')
-    process.stdout.write(`Drift check: drifted=${drift.drifted}, shouldRetrain=${drift.shouldRetrain}, rollingMAE=${drift.rollingMae}\n`)
+    for (const platform of ['x', 'linkedin', 'threads'] as const) {
+      const drift = await checkModelDrift(platform)
+      process.stdout.write(
+        `Drift check [${platform}]: drifted=${drift.drifted}, shouldRetrain=${drift.shouldRetrain}, rollingMAE=${drift.rollingMae}\n`,
+      )
+    }
     // Weekly cross-platform learning (runs with drift monitor on Sundays)
     await runCrossPlatformLearner()
   },
@@ -293,6 +300,10 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'threads-engagement-learner': runThreadsEngagementLearner,
   'x-proactive-discussion': runProactiveDiscussion,
   'x-engagement-collector': collectXEngagement,
+  'pattern-decay': async () => {
+    const updated = await applyPatternDecay()
+    process.stdout.write(`Pattern decay complete: ${updated} patterns updated\n`)
+  },
 }
 
 function createTracedCronJob(jobName: JobName) {

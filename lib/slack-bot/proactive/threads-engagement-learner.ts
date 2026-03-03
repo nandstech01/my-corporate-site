@@ -105,6 +105,7 @@ export async function runThreadsEngagementLearner(): Promise<void> {
         threadsMediaId: post.threads_media_id,
         postText: post.post_text,
         metrics,
+        patternUsed: post.pattern_used ?? undefined,
       })
       process.stdout.write(
         `  ${post.threads_media_id}: ${metrics.likes} likes, ${metrics.replies} replies, ${metrics.reposts} reposts, ${metrics.views} views\n`,
@@ -119,11 +120,26 @@ export async function runThreadsEngagementLearner(): Promise<void> {
     return
   }
 
+  // Record pattern outcomes for all posts (bandit learning)
+  try {
+    const avgEngagement =
+      results.reduce((sum, r) => sum + computeEngagement(r.metrics), 0) / results.length
+
+    for (const r of results) {
+      if (r.patternUsed) {
+        const totalEngagement = computeEngagement(r.metrics)
+        const isSuccess = totalEngagement > avgEngagement * 0.8
+        await recordPatternOutcome(r.patternUsed, 'threads', isSuccess, totalEngagement)
+      }
+    }
+  } catch {
+    // Best-effort: bandit learning failure should not block main flow
+  }
+
   // Identify high performers and save learnings
   const highPerformers = identifyHighPerformers(results)
 
   for (const hp of highPerformers) {
-    const engagement = computeEngagement(hp.metrics)
     const isExceptional = hp.metrics.likes > 20 || hp.metrics.views > 2000
 
     const characteristics = [
@@ -148,14 +164,6 @@ export async function runThreadsEngagementLearner(): Promise<void> {
       importance: isExceptional ? 0.9 : 0.8,
     })
 
-    // Record pattern outcome for bandit learning
-    if (hp.patternUsed) {
-      try {
-        await recordPatternOutcome(hp.patternUsed, 'threads', true, engagement)
-      } catch {
-        // Best-effort
-      }
-    }
   }
 
   // Negative learning: identify low performers
@@ -174,15 +182,6 @@ export async function runThreadsEngagementLearner(): Promise<void> {
       },
       importance: 0.7,
     })
-
-    // Record negative pattern outcome
-    if (lp.patternUsed) {
-      try {
-        await recordPatternOutcome(lp.patternUsed, 'threads', false, computeEngagement(lp.metrics))
-      } catch {
-        // Best-effort
-      }
-    }
   }
 
   // Update ai_judge_decisions actual engagement

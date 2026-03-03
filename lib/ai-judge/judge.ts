@@ -143,8 +143,12 @@ const SUBMIT_VERDICT_TOOL: Anthropic.Messages.Tool = {
         type: 'number',
         description: 'Topic relevance score between 0 and 1',
       },
+      predicted_engagement_rate: {
+        type: 'number',
+        description: '予想エンゲージメント率 (0.0-1.0)。この投稿がインプレッションあたりどの程度のエンゲージメント(いいね+リポスト+リプライ)を得られるか予測する。',
+      },
     },
-    required: ['decision', 'confidence', 'reasoning', 'safety_flags', 'topic_relevance'],
+    required: ['decision', 'confidence', 'reasoning', 'safety_flags', 'topic_relevance', 'predicted_engagement_rate'],
   },
 }
 
@@ -228,7 +232,8 @@ nands.techはAI/LLM/自動化に特化した技術メディアです。
 2. コンテンツ品質 - 内容が正確で価値があるか
 3. AI関連度 - AI/LLM/自動化のトピックに関連しているか (${TOPIC_RELEVANCE_THRESHOLD}未満は自動却下)
 4. エンゲージメント可能性 - 議論を促す構造になっているか
-5. ソース信頼性 - 引用元が信頼できるか
+5. エンゲージメント予測 - 予想されるエンゲージメント率(いいね+リポスト+リプライ)/インプレッション を0.0-1.0で予測
+6. ソース信頼性 - 引用元が信頼できるか
 
 ${platform}での投稿を評価してください。
 
@@ -305,6 +310,7 @@ function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVe
     edit_suggestion?: string
     safety_flags: string[]
     topic_relevance: number
+    predicted_engagement_rate?: number
   }
 
   return {
@@ -314,6 +320,7 @@ function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVe
     editSuggestion: input.edit_suggestion,
     safetyFlags: input.safety_flags,
     topicRelevance: Math.max(0, Math.min(1, input.topic_relevance)),
+    predictedEngagementRate: input.predicted_engagement_rate ?? undefined,
   }
 }
 
@@ -338,6 +345,7 @@ async function logDecision(
       safety_flags: verdict.safetyFlags,
       edit_suggestion: verdict.editSuggestion ?? null,
       topic_relevance: verdict.topicRelevance,
+      predicted_engagement_rate: verdict.predictedEngagementRate ?? null,
       auto_resolved: false,
       model_used: AI_JUDGE_MODEL,
       latency_ms: latencyMs,

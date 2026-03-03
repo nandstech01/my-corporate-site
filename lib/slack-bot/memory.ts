@@ -793,20 +793,20 @@ export async function saveThreadsPostAnalytics(params: {
 
 export async function getRecentThreadsPostIds(
   hours: number = 48,
-): Promise<readonly { threads_media_id: string; post_text: string }[]> {
+): Promise<readonly { threads_media_id: string; post_text: string; pattern_used: string | null }[]> {
   const supabase = getSupabase()
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
     .from('threads_post_analytics')
-    .select('threads_media_id, post_text')
+    .select('threads_media_id, post_text, pattern_used')
     .gte('posted_at', since)
 
   if (error) {
     throw new Error(`Failed to get recent Threads post IDs: ${error.message}`)
   }
 
-  return (data ?? []) as readonly { threads_media_id: string; post_text: string }[]
+  return (data ?? []) as readonly { threads_media_id: string; post_text: string; pattern_used: string | null }[]
 }
 
 export async function getThreadsPostAnalytics(params: {

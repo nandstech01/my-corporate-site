@@ -20,6 +20,9 @@ export interface DriftCheckResult {
   readonly rollingMae: number
   readonly trainingMae: number
   readonly consecutiveDriftDays: number
+  readonly shortTermMae: number
+  readonly longTermMae: number
+  readonly shortTermDrift: boolean
 }
 
 interface DriftLogRow {
@@ -39,6 +42,8 @@ interface DriftLogRow {
 // ============================================================
 
 const ROLLING_WINDOW_DAYS = 7
+const SHORT_WINDOW_DAYS = 7
+const LONG_WINDOW_DAYS = 30
 const DRIFT_MULTIPLIER = 2
 const CONSECUTIVE_DRIFT_THRESHOLD = 3
 const DEFAULT_MODEL_VERSION = 'v1.0'
@@ -61,13 +66,13 @@ function getSupabase() {
 // Calculate Rolling MAE
 // ============================================================
 
-async function calculateRollingMae(platform: Platform): Promise<{
+async function calculateRollingMae(platform: Platform, days: number = ROLLING_WINDOW_DAYS): Promise<{
   readonly mae: number
   readonly sampleCount: number
 }> {
   const supabase = getSupabase()
   const since = new Date()
-  since.setDate(since.getDate() - ROLLING_WINDOW_DAYS)
+  since.setDate(since.getDate() - days)
 
   const { data, error } = await supabase
     .from('prediction_accuracy')
@@ -209,6 +214,9 @@ export async function checkModelDrift(platform: Platform): Promise<DriftCheckRes
         rollingMae: 0,
         trainingMae,
         consecutiveDriftDays: 0,
+        shortTermMae: 0,
+        longTermMae: 0,
+        shortTermDrift: false,
       }
     }
 
@@ -268,12 +276,32 @@ export async function checkModelDrift(platform: Platform): Promise<DriftCheckRes
       }
     }
 
+    // Two-stage drift: short-term (7d) vs long-term (30d) comparison
+    const [shortTerm, longTerm] = await Promise.all([
+      calculateRollingMae(platform, SHORT_WINDOW_DAYS),
+      calculateRollingMae(platform, LONG_WINDOW_DAYS),
+    ])
+
+    const shortTermDrift =
+      longTerm.sampleCount >= 5 &&
+      shortTerm.sampleCount >= 3 &&
+      shortTerm.mae > longTerm.mae * 1.5
+
+    if (shortTermDrift) {
+      process.stdout.write(
+        `Short-term drift [${platform}]: 7d MAE=${shortTerm.mae.toFixed(3)} vs 30d MAE=${longTerm.mae.toFixed(3)}\n`,
+      )
+    }
+
     return {
       drifted: isDrifted,
       shouldRetrain,
       rollingMae,
       trainingMae,
       consecutiveDriftDays,
+      shortTermMae: shortTerm.mae,
+      longTermMae: longTerm.mae,
+      shortTermDrift,
     }
   } catch (error) {
     throw new Error(

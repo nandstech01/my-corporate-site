@@ -218,8 +218,10 @@ export async function selectPatternByBandit(
     }
 
     return bestPattern
-  } catch {
-    // Fallback to random on any error
+  } catch (error) {
+    process.stderr.write(
+      `Pattern bandit error (${platform}), falling back to random: ${error instanceof Error ? error.message : String(error)}\n`,
+    )
     const randomIndex = Math.floor(Math.random() * candidates.length)
     return candidates[randomIndex]
   }
@@ -344,7 +346,7 @@ export async function recordPatternOutcome(
       const expMap = await getExperimentPatternMap(platform)
       const mapping = expMap.get(patternId)
       if (mapping) {
-        await recordExperimentOutcome(mapping.experimentId, mapping.variantId, engagement, success)
+        await recordExperimentOutcome(mapping.experimentId, mapping.variantId, engagement, success, platform)
       }
     } catch {
       // Best-effort: experiment tracking failure should not break pattern recording
@@ -364,4 +366,55 @@ export async function getPatternStats(
   platform: Platform,
 ): Promise<readonly PatternStats[]> {
   return fetchPatternPerformance(platform)
+}
+
+// ============================================================
+// Time Decay (Discounted Thompson Sampling)
+// ============================================================
+
+const DECAY_FACTOR = 0.97 // Half-life ~23 days
+const MIN_TOTAL_USES_FOR_DECAY = 2
+
+export async function applyPatternDecay(): Promise<number> {
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase
+    .from('pattern_performance')
+    .select('id, successes, failures, total_uses')
+    .gt('total_uses', MIN_TOTAL_USES_FOR_DECAY)
+
+  if (error) {
+    throw new Error(`Failed to fetch patterns for decay: ${error.message}`)
+  }
+
+  if (!data || data.length === 0) {
+    return 0
+  }
+
+  let updated = 0
+
+  for (const row of data as readonly { id: string; successes: number; failures: number; total_uses: number }[]) {
+    const newSuccesses = Math.round(row.successes * DECAY_FACTOR * 100) / 100
+    const newFailures = Math.round(row.failures * DECAY_FACTOR * 100) / 100
+    const newTotalUses = Math.round((newSuccesses + newFailures) * 100) / 100
+
+    if (newTotalUses < MIN_TOTAL_USES_FOR_DECAY) continue
+
+    const { error: updateError } = await supabase
+      .from('pattern_performance')
+      .update({
+        successes: newSuccesses,
+        failures: newFailures,
+        total_uses: newTotalUses,
+      })
+      .eq('id', row.id)
+
+    if (!updateError) updated++
+  }
+
+  process.stdout.write(
+    `Pattern Decay: applied γ=${DECAY_FACTOR} to ${updated}/${data.length} patterns\n`,
+  )
+
+  return updated
 }

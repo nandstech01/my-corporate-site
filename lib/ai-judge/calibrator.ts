@@ -27,6 +27,7 @@ interface PredictionRecord {
   readonly platform: Platform
   readonly postId: string
   readonly confidence: number
+  readonly predictedEngagementRate: number | null
   readonly actualEngagement: Record<string, unknown>
   readonly postedAt: string
 }
@@ -78,7 +79,7 @@ async function fetchUncalibratedDecisions(): Promise<readonly PredictionRecord[]
 
   const { data, error } = await supabase
     .from('ai_judge_decisions')
-    .select('id, platform, post_id, confidence, actual_engagement, posted_at')
+    .select('id, platform, post_id, confidence, predicted_engagement_rate, actual_engagement, posted_at')
     .eq('was_posted', true)
     .not('engagement_fetched_at', 'is', null)
     .is('prediction_error', null)
@@ -98,6 +99,7 @@ async function fetchUncalibratedDecisions(): Promise<readonly PredictionRecord[]
     platform: row.platform,
     postId: row.post_id ?? '',
     confidence: row.confidence,
+    predictedEngagementRate: row.predicted_engagement_rate ?? null,
     actualEngagement: (row.actual_engagement ?? {}) as Record<string, unknown>,
     postedAt: row.posted_at ?? row.created_at,
   }))
@@ -269,8 +271,11 @@ export async function runCalibrator(): Promise<void> {
     // Process each uncalibrated decision
     const processingPromises = uncalibrated.map(async (record) => {
       try {
+        // Skip records without predicted engagement rate (old data before this field existed)
+        if (record.predictedEngagementRate === null) return
+
         const actualScore = computeEngagementScore(record.actualEngagement)
-        const absoluteError = Math.abs(record.confidence - actualScore)
+        const absoluteError = Math.abs(record.predictedEngagementRate - actualScore)
         const percentageError =
           actualScore > 0 ? absoluteError / actualScore : absoluteError > 0 ? 1 : 0
 
@@ -278,7 +283,7 @@ export async function runCalibrator(): Promise<void> {
           judgeDecisionId: record.judgeDecisionId,
           platform: record.platform,
           postId: record.postId,
-          predictedEngagement: record.confidence,
+          predictedEngagement: record.predictedEngagementRate,
           actualEngagement: actualScore,
           absoluteError,
           percentageError,
