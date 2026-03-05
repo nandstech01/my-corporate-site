@@ -63,6 +63,7 @@ export interface PostGraphInput {
   slug?: string
   topic?: string
   tags?: string[]
+  recentPostTexts?: readonly string[]
 }
 
 export interface PostGraphOutput {
@@ -100,6 +101,10 @@ const PostGraphState = Annotation.Root({
     default: () => null,
   }),
   tags: Annotation<string[] | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  recentPostTexts: Annotation<string[] | null>({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
@@ -344,7 +349,8 @@ async function generateCandidates(
   「やりがちなミス」「よくある誤解」セクションを1-2個入れる
   まとめ: 箇条書き5-7個
   締め: 哲学的テイクアウェイ
-- 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「〜なんだよね」「ぶっちゃけ」）
+- 語り口: 解説系インフルエンサーのカジュアルなトーン（「〜していく」「ぶっちゃけ」「〜なと。」）
+- 語尾NG: 「〜なんだよね」「〜だよね」「〜よね」は使うな。言い切れ
 - ハッシュタグ0-1個
 - Markdown記号（#, ##, **, ---, ___）は使うな。プレーンテキストで書け。見出しは改行と番号で表現しろ
 - ※長文投稿なので280文字制限は適用しない。3000-8000文字で書くこと。`
@@ -366,10 +372,14 @@ async function generateCandidates(
     ? `\n## 今AIコミュニティで話題のトピック（関連性を持たせろ）\n${trendingTopics}\n`
     : ''
 
+  const recentPostsSection = state.recentPostTexts && state.recentPostTexts.length > 0
+    ? `\n## 直近に投稿済み（同じトピック・切り口は避けろ。新しい視点を提供しろ）\n${state.recentPostTexts.slice(0, 5).map((t, i) => `${i + 1}. ${t.slice(0, 80)}`).join('\n')}\n`
+    : ''
+
   const bestPractices = `
 ## 投稿のベストプラクティス
 - 1行目で読者の注意を引くフック
-- 議論を呼ぶ問いかけで締める
+- 締め方: 毎回疑問形にするな。考えさせる余韻（断定・含み・独白）で終わらせてもいい
 - ハッシュタグ0-1個
 - 抽象分析より具体的な実務価値
 - 実体験ベースの語り口`
@@ -385,6 +395,7 @@ ${voiceProfile}
 
 ${modeInstructions}
 ${trendingSection}
+${recentPostsSection}
 ${bestPractices}
 
 ${isArticle ? '1つの長文記事を出力せよ。3000文字以上は絶対に守れ。候補のみ、説明不要。' : '3候補を「---」で区切って出力。候補のみ、説明不要。'}`,
@@ -816,6 +827,7 @@ export async function generateXPost(
       slug: input.slug ?? null,
       topic: input.topic ?? null,
       tags: input.tags ?? null,
+      recentPostTexts: input.recentPostTexts ? [...input.recentPostTexts] : null,
     },
     {
       runName: `x-post-${input.mode}`,

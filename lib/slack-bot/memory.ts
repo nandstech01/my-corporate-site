@@ -485,6 +485,7 @@ export async function savePostAnalytics(params: {
   readonly quotedTweetId?: string
   readonly threadPosition?: number
   readonly threadRootId?: string
+  readonly sourceUrl?: string
 }): Promise<XPostAnalytics> {
   const supabase = getSupabase()
 
@@ -502,6 +503,7 @@ export async function savePostAnalytics(params: {
       quoted_tweet_id: params.quotedTweetId ?? null,
       thread_position: params.threadPosition ?? null,
       thread_root_id: params.threadRootId ?? null,
+      source_url: params.sourceUrl ?? null,
     })
     .select()
     .single()
@@ -710,6 +712,28 @@ export async function getRecentlyPostedSourceUrls(
 
   if (error) {
     throw new Error(`Failed to get recently posted source URLs: ${error.message}`)
+  }
+
+  return (data ?? [])
+    .map((row) => row.source_url as string)
+    .filter((url) => url.length > 0)
+}
+
+/** X自動投稿用: 直近N日間に投稿されたX投稿のソースURLを取得（重複排除用） */
+export async function getRecentXSourceUrls(
+  days: number = 7,
+): Promise<readonly string[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('x_post_analytics')
+    .select('source_url')
+    .gte('posted_at', since)
+    .not('source_url', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to get recent X source URLs: ${error.message}`)
   }
 
   return (data ?? [])

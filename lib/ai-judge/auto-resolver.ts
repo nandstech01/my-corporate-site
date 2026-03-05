@@ -172,6 +172,7 @@ async function postToX(post: PostCandidate): Promise<{
       tags: post.tags ? [...post.tags] : undefined,
       postType,
       quotedTweetId: post.quoteTweetId,
+      sourceUrl: post.sourceUrl,
     })
   } catch {
     // Best-effort: analytics failure should not block

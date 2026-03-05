@@ -15,7 +15,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { createPendingAction, getRecentXPostTexts } from '../memory'
+import { createPendingAction, getRecentXPostTexts, getRecentXSourceUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateXPost } from '../../x-post-generation/post-graph'
 import { generateQuoteTweet } from '../../x-quote-generation/quote-graph'
@@ -24,6 +24,7 @@ import { retweetPost } from '../../x-api/client'
 import { savePostAnalytics } from '../memory'
 import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
+import { calculateCharacterOverlap } from '../../ai-judge/safety-checks'
 import { uploadMediaToX } from '../../x-api/media'
 import { generateArticleThumbnail } from '../../x-article/thumbnail-generator'
 import { watchTrends } from '../../trending/trend-watcher'
@@ -134,21 +135,26 @@ async function getRecentPendingSourceUrls(): Promise<ReadonlySet<string>> {
   return urls
 }
 
+const TITLE_SIMILARITY_THRESHOLD = 0.5
+
 function deduplicateCandidates(
   candidates: readonly LinkedInTopicCandidate[],
   recentPostTexts: readonly string[],
   recentPendingUrls: ReadonlySet<string>,
+  recentPostedUrls: ReadonlySet<string>,
 ): readonly LinkedInTopicCandidate[] {
   return candidates.filter((candidate) => {
-    // Skip if sourceUrl is already in pending actions
+    // 1. pending action URL一致 → 除外
     if (recentPendingUrls.has(candidate.sourceUrl)) return false
-
-    // Skip if title appears in recent post texts (fuzzy: substring match)
+    // 2. 投稿済みソースURL一致 → 除外
+    if (recentPostedUrls.has(candidate.sourceUrl)) return false
+    // 3. タイトル類似度チェック (substring + bigram Jaccard)
     const titleLower = candidate.title.toLowerCase()
     for (const text of recentPostTexts) {
-      if (text.toLowerCase().includes(titleLower)) return false
+      const textLower = text.toLowerCase()
+      if (textLower.includes(titleLower)) return false
+      if (calculateCharacterOverlap(titleLower, textLower) >= TITLE_SIMILARITY_THRESHOLD) return false
     }
-
     return true
   })
 }
@@ -518,10 +524,14 @@ async function tryTrendingReactive(): Promise<boolean> {
 async function generateTrendingPost(
   opportunity: TrendingOpportunity,
 ): Promise<boolean> {
+  let trendingRecentTexts: readonly string[] = []
+  try { trendingRecentTexts = await getRecentXPostTexts(7) } catch { /* best-effort */ }
+
   const postResult = await generateXPost({
     mode: 'research',
     content: opportunity.topic,
     topic: opportunity.topic.slice(0, 100),
+    recentPostTexts: trendingRecentTexts,
   })
 
   if (!isAiJudgeEnabled()) {
@@ -579,6 +589,12 @@ async function runXAutoPostInner(): Promise<void> {
 
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
+
+  // 1.1. 直近投稿テキストを早期取得（重複排除 + LLMプロンプト注入用）
+  let recentTexts: readonly string[] = []
+  try {
+    recentTexts = await getRecentXPostTexts(7)
+  } catch { /* best-effort */ }
 
   // 1.5. Check for high-priority trending opportunities before content distribution
   const trendingResult = await tryTrendingReactive()
@@ -656,6 +672,7 @@ async function runXAutoPostInner(): Promise<void> {
           const postResult = await generateXPost({
             mode: 'thread',
             content: topCandidate.sourceBody,
+            recentPostTexts: recentTexts,
             topic: topCandidate.title,
           })
           const segments = postResult.finalPost
@@ -700,6 +717,7 @@ async function runXAutoPostInner(): Promise<void> {
             mode: 'article',
             content: topCandidate.sourceBody,
             topic: topCandidate.title,
+            recentPostTexts: recentTexts,
           })
 
           // Generate thumbnail (best-effort)
@@ -848,15 +866,16 @@ async function runXAutoPostInner(): Promise<void> {
   // 3. 重複排除
   let candidates: readonly LinkedInTopicCandidate[] = allCandidates
   try {
-    const [recentTexts, recentPendingUrls] = await Promise.all([
-      getRecentXPostTexts(7),
+    const [recentPendingUrls, recentPostedUrls] = await Promise.all([
       getRecentPendingSourceUrls(),
+      getRecentXSourceUrls(7),
     ])
 
     const deduped = deduplicateCandidates(
       allCandidates,
       recentTexts,
       recentPendingUrls,
+      new Set(recentPostedUrls),
     )
 
     if (deduped.length < allCandidates.length) {
@@ -880,6 +899,7 @@ async function runXAutoPostInner(): Promise<void> {
       mode: 'research',
       content: topCandidate.sourceBody,
       topic: topCandidate.title,
+      recentPostTexts: recentTexts,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
@@ -1039,6 +1059,9 @@ export async function triggerXPostFromSource(
   }
 
   // X投稿生成
+  let triggerRecentTexts: readonly string[] = []
+  try { triggerRecentTexts = await getRecentXPostTexts(7) } catch { /* best-effort */ }
+
   const content = params.description
     ? `${params.title}\n\n${params.description}`
     : params.title
@@ -1047,6 +1070,7 @@ export async function triggerXPostFromSource(
     mode: 'research',
     content,
     topic: params.title,
+    recentPostTexts: triggerRecentTexts,
   })
 
   // メディア取得 (best-effort)

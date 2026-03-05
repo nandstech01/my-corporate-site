@@ -272,7 +272,7 @@ export function checkTopicRelevance(text: string): number {
 // Duplicate Check (fuzzy similarity)
 // ============================================================
 
-function calculateCharacterOverlap(textA: string, textB: string): number {
+export function calculateCharacterOverlap(textA: string, textB: string): number {
   const shorter = textA.length <= textB.length ? textA : textB
   const longer = textA.length <= textB.length ? textB : textA
 

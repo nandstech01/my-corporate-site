@@ -44,6 +44,7 @@ interface PostContext {
   readonly avgEngagementRate: number | null
   readonly topPatterns: readonly string[]
   readonly recentPostCount: number
+  readonly recentPostTexts: readonly string[]
 }
 
 async function getPostContext(platform: Platform): Promise<PostContext> {
@@ -67,7 +68,7 @@ async function getPostContext(platform: Platform): Promise<PostContext> {
       .limit(50)
 
     if (error || !data || data.length === 0) {
-      return { avgEngagementRate: null, topPatterns: [], recentPostCount: 0 }
+      return { avgEngagementRate: null, topPatterns: [], recentPostCount: 0, recentPostTexts: [] }
     }
 
     const postsWithEngagement = data.filter(
@@ -97,13 +98,22 @@ async function getPostContext(platform: Platform): Promise<PostContext> {
       .slice(0, 3)
       .map(([pattern]) => pattern)
 
+    let recentPostTexts: readonly string[] = []
+    if (platform === 'x') {
+      try {
+        const { getRecentXPostTexts } = await import('../slack-bot/memory')
+        recentPostTexts = await getRecentXPostTexts(7)
+      } catch { /* best-effort */ }
+    }
+
     return {
       avgEngagementRate,
       topPatterns,
       recentPostCount: data.length,
+      recentPostTexts,
     }
   } catch {
-    return { avgEngagementRate: null, topPatterns: [], recentPostCount: 0 }
+    return { avgEngagementRate: null, topPatterns: [], recentPostCount: 0, recentPostTexts: [] }
   }
 }
 
@@ -214,6 +224,14 @@ function buildSystemPrompt(platform: Platform, context: PostContext, learnings?:
     contextLines.push(`直近30日間の投稿数: ${context.recentPostCount}件`)
   }
 
+  if (context.recentPostTexts.length > 0) {
+    const recentSample = context.recentPostTexts
+      .slice(0, 5)
+      .map((t, i) => `${i + 1}. ${t.slice(0, 100)}`)
+      .join('\n')
+    contextLines.push(`直近7日間の投稿（トピック重複がないか確認せよ）:\n${recentSample}`)
+  }
+
   // 高パフォーマンス投稿の特徴を注入（学習ループ閉鎖）
   if (learnings) {
     contextLines.push(`過去の高パフォーマンス投稿の特徴:\n${learnings}`)
@@ -234,6 +252,7 @@ nands.techはAI/LLM/自動化に特化した技術メディアです。
 4. エンゲージメント可能性 - 議論を促す構造になっているか
 5. エンゲージメント予測 - 予想されるエンゲージメント率(いいね+リポスト+リプライ)/インプレッション を0.0-1.0で予測
 6. ソース信頼性 - 引用元が信頼できるか
+7. 新規性 - 直近の投稿と同じトピック/ソースを扱っていないか。同じニュースの切り口が被っていたらrejectまたはedit
 
 ${platform}での投稿を評価してください。
 
