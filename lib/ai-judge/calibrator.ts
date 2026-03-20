@@ -77,7 +77,10 @@ function computeEngagementScore(engagement: Record<string, unknown>): number {
 async function fetchUncalibratedDecisions(): Promise<readonly PredictionRecord[]> {
   const supabase = getSupabase()
 
-  const { data, error } = await supabase
+  // Try with predicted_engagement_rate first; fall back without it if column doesn't exist yet
+  let data: AiJudgeDecisionRecord[] | null = null
+
+  const { data: d1, error: e1 } = await supabase
     .from('ai_judge_decisions')
     .select('id, platform, post_id, confidence, predicted_engagement_rate, actual_engagement, posted_at')
     .eq('was_posted', true)
@@ -86,8 +89,26 @@ async function fetchUncalibratedDecisions(): Promise<readonly PredictionRecord[]
     .not('post_id', 'is', null)
     .not('actual_engagement', 'is', null)
 
-  if (error) {
-    throw new Error(`Failed to fetch uncalibrated decisions: ${error.message}`)
+  if (e1 && e1.message.includes('does not exist')) {
+    // Column not yet added — run without it
+    process.stdout.write('Calibrator: predicted_engagement_rate column missing, running without it\n')
+    const { data: d2, error: e2 } = await supabase
+      .from('ai_judge_decisions')
+      .select('id, platform, post_id, confidence, actual_engagement, posted_at')
+      .eq('was_posted', true)
+      .not('engagement_fetched_at', 'is', null)
+      .is('prediction_error', null)
+      .not('post_id', 'is', null)
+      .not('actual_engagement', 'is', null)
+
+    if (e2) {
+      throw new Error(`Failed to fetch uncalibrated decisions: ${e2.message}`)
+    }
+    data = d2
+  } else if (e1) {
+    throw new Error(`Failed to fetch uncalibrated decisions: ${e1.message}`)
+  } else {
+    data = d1
   }
 
   if (!data || data.length === 0) {
