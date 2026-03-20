@@ -12,6 +12,8 @@ import { fetchRedditPractitionerPosts } from './reddit-client'
 import { fetchRecentGitHubReleases } from './github-releases-client'
 import { fetchTrendingStories } from '../x-trending-collector/trending-client'
 import { fetchRSSFeeds } from './rss-feed-client'
+import { fetchZennArticles } from './zenn-client'
+import { fetchQiitaArticles } from './qiita-client'
 import {
   analyzeSourcesForLinkedIn,
   type CollectedSource,
@@ -132,11 +134,13 @@ export async function runLinkedInSourceCollector(): Promise<void> {
   process.stdout.write('Collecting LinkedIn sources...\n')
 
   // 1. 全ソースを並列取得
-  const [redditResult, githubResult, trendingResult, rssResult] = await Promise.allSettled([
+  const [redditResult, githubResult, trendingResult, rssResult, zennResult, qiitaResult] = await Promise.allSettled([
     fetchRedditPractitionerPosts(),
     fetchRecentGitHubReleases(),
     fetchTrendingStories(),
     fetchRSSFeeds(),
+    fetchZennArticles(),
+    fetchQiitaArticles(),
   ])
 
   // 2. CollectedSource に正規化
@@ -204,6 +208,38 @@ export async function runLinkedInSourceCollector(): Promise<void> {
     process.stdout.write(`RSS Feeds: ${rssResult.value.length} articles\n`)
   } else {
     process.stdout.write(`RSS Feeds: failed (${rssResult.reason})\n`)
+  }
+
+  if (zennResult.status === 'fulfilled') {
+    for (const article of zennResult.value) {
+      allSources.push({
+        id: `zenn_${article.id}`,
+        sourceType: 'zenn',
+        title: article.title,
+        body: `${article.title} (${article.likedCount} likes, by @${article.userName})`,
+        url: article.url,
+        score: article.likedCount,
+      })
+    }
+    process.stdout.write(`Zenn: ${zennResult.value.length} articles\n`)
+  } else {
+    process.stdout.write(`Zenn: failed (${zennResult.reason})\n`)
+  }
+
+  if (qiitaResult.status === 'fulfilled') {
+    for (const article of qiitaResult.value) {
+      allSources.push({
+        id: `qiita_${article.id}`,
+        sourceType: 'qiita',
+        title: article.title,
+        body: article.body.slice(0, 300),
+        url: article.url,
+        score: article.likesCount,
+      })
+    }
+    process.stdout.write(`Qiita: ${qiitaResult.value.length} articles\n`)
+  } else {
+    process.stdout.write(`Qiita: failed (${qiitaResult.reason})\n`)
   }
 
   // 1b. 内部ハイブリッド検索で関連トレンドデータも取得

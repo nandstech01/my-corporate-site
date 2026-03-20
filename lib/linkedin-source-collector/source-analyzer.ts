@@ -15,7 +15,7 @@ import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 
 export interface CollectedSource {
   readonly id: string
-  readonly sourceType: 'reddit' | 'github_release' | 'hackernews' | 'devto' | 'official_blog'
+  readonly sourceType: 'reddit' | 'github_release' | 'hackernews' | 'devto' | 'official_blog' | 'internal_trend' | 'zenn' | 'qiita'
   readonly title: string
   readonly body: string
   readonly url: string

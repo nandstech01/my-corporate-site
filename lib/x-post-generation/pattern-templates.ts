@@ -251,6 +251,47 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['reddit', 'news', 'release'],
     features: ['内部対話', '両面', '独自結論'],
     generateDiagram: false
+  },
+  // 1スロットテンプレート（構造なし、一言）
+  {
+    id: 'single_thought',
+    name: '一言',
+    description: '構造を持たない一言の気づき・観察・断定',
+    template: `{thought}`,
+    category: 'minimal',
+    dataSources: ['trend', 'company', 'x_post', 'trending', 'reddit', 'news', 'release'],
+    features: ['一言', '構造なし', '自然体'],
+    generateDiagram: false
+  },
+  // 2スロットテンプレート
+  {
+    id: 'observation_reaction',
+    name: '観察→反応',
+    description: '事実の観察と、それに対する即座の反応・感想',
+    template: `{observation}
+
+{reaction}`,
+    category: 'reaction',
+    dataSources: ['trend', 'company', 'x_post', 'trending', 'reddit', 'news', 'release'],
+    features: ['観察', '即座の反応', '簡潔'],
+    generateDiagram: false
+  },
+  // 4スロットテンプレート
+  {
+    id: 'layered_analysis',
+    name: '多層分析',
+    description: '事実→文脈→分析→結論の4層で深く掘り下げる',
+    template: `{fact}
+
+{context}
+
+{analysis}
+
+{conclusion}`,
+    category: 'analysis',
+    dataSources: ['trend', 'company', 'trending', 'reddit', 'news', 'release'],
+    features: ['多層', '深掘り', '構造的'],
+    generateDiagram: false
   }
 ];
 

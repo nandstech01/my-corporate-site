@@ -542,6 +542,7 @@ async function generateTrendingPost(
   const result = await autoResolvePost({
     platform: 'x',
     text: postResult.finalPost,
+    longForm: true,
     patternUsed: postResult.patternUsed,
     tags: [...postResult.tags, 'trending_reactive', opportunity.urgency],
   })
@@ -709,6 +710,7 @@ async function runXAutoPostInner(): Promise<void> {
             const result = await autoResolvePost({
               platform: 'x',
               text: segments[0],
+              longForm: true,
               threadSegments: segments,
               sourceUrl: topCandidate.sourceUrl,
               sourceTitle: topCandidate.title,
@@ -825,6 +827,7 @@ async function runXAutoPostInner(): Promise<void> {
           const result = await autoResolvePost({
             platform: 'x',
             text: postResult.finalPost,
+            longForm: true,
             patternUsed: postResult.patternUsed,
             tags: postResult.tags,
           })
@@ -960,6 +963,7 @@ async function runXAutoPostInner(): Promise<void> {
       const result = await autoResolvePost({
         platform: 'x',
         text: postResult.finalPost,
+        longForm: true,
         sourceUrl: topCandidate.sourceUrl,
         sourceTitle: topCandidate.title,
         patternUsed: postResult.patternUsed,
@@ -1118,6 +1122,7 @@ export async function triggerXPostFromSource(
     const result = await autoResolvePost({
       platform: 'x',
       text: postResult.finalPost,
+      longForm: true,
       sourceUrl: params.sourceUrl,
       sourceTitle: params.title,
       patternUsed: postResult.patternUsed,
