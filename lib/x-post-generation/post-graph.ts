@@ -4,9 +4,9 @@
  * CLI (scripts/post-to-x.ts) と Admin UI (API route) の両方から
  * 呼び出せる共通エンジン。
  *
- * パイプライン (7段階):
+ * パイプライン (8段階):
  *   START → analyzeContent → selectPattern → generateCandidates
- *         → scoreCandidates → critiqueAndRevise → finalScore → formatFinal → END
+ *         → validateHook → scoreCandidates → critiqueAndRevise → finalScore → formatFinal → END
  */
 
 import { z } from 'zod'
@@ -47,12 +47,11 @@ export interface ContentAnalysis {
 
 export interface CandidateScore {
   index: number
-  practitionerVoice: number
-  accuracy: number
-  discussionPotential: number
-  lengthFit: number
-  originality: number
-  bookmarkPotential: number
+  hookStrength: number        // 1行目のスクロール停止力
+  voiceAuthenticity: number   // AI感のなさ、実務家の声
+  engagementTrigger: number   // リプライ・RT誘発力（質問より大胆な主張）
+  platformFit: number         // 文字数・フォーマット適合
+  factualGrounding: number    // ソースへの忠実さ
   total: number
 }
 
@@ -433,6 +432,24 @@ ${isArticle ? '1つの長文記事を出力せよ。3000文字以上は絶対に
 }
 
 // ============================================================
+// ノード3.5: validateHook（フック品質バリデーション）
+// ============================================================
+
+function validateHook(state: GraphStateType): Partial<GraphStateType> {
+  if (state.mode === 'article') return {}
+
+  const genericStarters = ['最近の', '現在の', '今日は', '本日は', 'このたび', 'さて、']
+  const validated = state.candidates.filter(candidate => {
+    const firstLine = candidate.split('\n')[0].trim()
+    if (firstLine.length > 50) return false  // 1行目が長すぎる
+    if (genericStarters.some(s => firstLine.startsWith(s))) return false
+    return true
+  })
+
+  return { candidates: validated.length > 0 ? validated : state.candidates }
+}
+
+// ============================================================
 // ノード4: scoreCandidates
 // ============================================================
 
@@ -456,23 +473,25 @@ async function scoreCandidates(
     {
       role: 'system' as const,
       content: `あなたはX投稿の品質評価者です。@nands_tech（AI実務家）の投稿として適切か評価してください。
-以下の候補を6基準で評価してください。各0-10点。
+以下の候補を5基準で評価してください。各0-10点。
 
 基準:
-1. practitionerVoice: 実務家の声として自然か（URLが本文内 → -5点、ニュース口調「〜を発表」→ 0点、元のニュース内容と無関係な架空体験 → 0点）
-2. accuracy: 情報の正確性（方向性が合っていれば高め。議論を呼ぶ主張はOK）
-3. discussionPotential: 議論を生む力（問いかけなし → 低スコア。反論・共感を誘う主張 → 高スコア）
-4. lengthFit: 文字数適合度（目標: ${targetLength}）
-5. originality: 独自の視点・切り口（ハッシュタグ2個以上 → -3点、煽り表現「ヤバい」「致命的」「🚨🔥」→ -5点）
-6. bookmarkPotential: ブックマークされやすいか（リスト形式、how-to、リファレンス、チートシート型 = 高スコア。雑感や一般論 = 低スコア）
+1. hookStrength: 1行目のスクロール停止力（好奇心・驚きを生むか。汎用的な書き出し「最近の」「現在の」→ 低スコア）
+2. voiceAuthenticity: AI感のなさ、実務家の声（URLが本文内 → -5点、ニュース口調「〜を発表」→ 0点、元のニュース内容と無関係な架空体験 → 0点）
+3. engagementTrigger: リプライ・RT・ブックマークを誘う力。
+高スコア: 大胆な断定、実務経験に基づく具体的意見、逆張り、反論を呼ぶ主張
+低スコア: 空虚な質問「〜でしょうか？」、無難な感想、一般論
+Xアルゴリズム: リプライ13.5x、RT20x、ブックマーク10x。質問より大胆な主張が効果的。
+4. platformFit: 文字数・フォーマット適合度（目標: ${targetLength}。ハッシュタグ2個以上 → -3点、煽り表現「ヤバい」「致命的」「🚨🔥」→ -5点）
+5. factualGrounding: ソースへの忠実さ（方向性が合っていれば高め。議論を呼ぶ主張はOK）
 
 重み付きスコア計算:
-total = practitionerVoice*0.2 + accuracy*0.1 + discussionPotential*0.3 + lengthFit*0.1 + originality*0.15 + bookmarkPotential*0.15
+total = hookStrength*0.25 + voiceAuthenticity*0.20 + engagementTrigger*0.30 + platformFit*0.10 + factualGrounding*0.15
 （totalは0-10のスケールで出力）
 
 JSON配列のみ出力:
 [
-  {"index":0,"practitionerVoice":8,"accuracy":9,"discussionPotential":7,"lengthFit":9,"originality":8,"bookmarkPotential":7,"total":7.75},
+  {"index":0,"hookStrength":8,"voiceAuthenticity":9,"engagementTrigger":7,"platformFit":9,"factualGrounding":8,"total":8.05},
   ...
 ]`,
     },
@@ -492,12 +511,11 @@ JSON配列のみ出力:
     // フォールバック: 最初の候補を選定
     const fallbackScores: CandidateScore[] = state.candidates.map((_, i) => ({
       index: i,
-      practitionerVoice: 5,
-      accuracy: 5,
-      discussionPotential: 5,
-      lengthFit: 5,
-      originality: 5,
-      bookmarkPotential: 5,
+      hookStrength: 5,
+      voiceAuthenticity: 5,
+      engagementTrigger: 5,
+      platformFit: 5,
+      factualGrounding: 5,
       total: 5,
     }))
     const fallbackUsage = response.usage_metadata as LangChainUsageMetadata | undefined
@@ -511,12 +529,11 @@ JSON配列のみ出力:
   const CandidateScoreSchema = z.array(
     z.object({
       index: z.number(),
-      practitionerVoice: z.number().default(5),
-      accuracy: z.number().default(5),
-      discussionPotential: z.number().default(5),
-      lengthFit: z.number().default(5),
-      originality: z.number().default(5),
-      bookmarkPotential: z.number().default(5),
+      hookStrength: z.number().default(5),
+      voiceAuthenticity: z.number().default(5),
+      engagementTrigger: z.number().default(5),
+      platformFit: z.number().default(5),
+      factualGrounding: z.number().default(5),
       total: z.number().default(5),
     }),
   )
@@ -526,19 +543,17 @@ JSON配列のみ出力:
   // Recalculate weighted total server-side to ensure correctness
   const scores: CandidateScore[] = parsed.map((s) => ({
     index: s.index,
-    practitionerVoice: s.practitionerVoice,
-    accuracy: s.accuracy,
-    discussionPotential: s.discussionPotential,
-    lengthFit: s.lengthFit,
-    originality: s.originality,
-    bookmarkPotential: s.bookmarkPotential,
+    hookStrength: s.hookStrength,
+    voiceAuthenticity: s.voiceAuthenticity,
+    engagementTrigger: s.engagementTrigger,
+    platformFit: s.platformFit,
+    factualGrounding: s.factualGrounding,
     total:
-      s.practitionerVoice * 0.2 +
-      s.accuracy * 0.1 +
-      s.discussionPotential * 0.3 +
-      s.lengthFit * 0.1 +
-      s.originality * 0.15 +
-      s.bookmarkPotential * 0.15,
+      s.hookStrength * 0.25 +
+      s.voiceAuthenticity * 0.20 +
+      s.engagementTrigger * 0.30 +
+      s.platformFit * 0.10 +
+      s.factualGrounding * 0.15,
   }))
   const usage = response.usage_metadata as LangChainUsageMetadata | undefined
 
@@ -733,9 +748,12 @@ function formatFinal(state: GraphStateType): Partial<GraphStateType> {
     return { finalPost: truncated + '...' }
   }
 
-  // Article mode: Markdown除去 + タイトル・キーポイント抽出
+  // Article mode: Markdown除去 + 最低3000文字チェック + タイトル・キーポイント抽出
   if (state.mode === 'article') {
     const cleaned = stripMarkdown(withTag)
+    if (cleaned.length < 3000) {
+      return { error: `Article too short: ${cleaned.length} chars (min 3000)` }
+    }
     const lines = cleaned.split('\n').filter((l) => l.trim().length > 0)
     const articleTitle = lines[0]?.trim() ?? null
     const numberedLines = lines.filter((l) => /^\d+[\.\)、]\s*/.test(l.trim()))
@@ -764,8 +782,8 @@ function shouldContinueAfterAnalysis(
 
 function shouldContinueAfterCandidates(
   state: GraphStateType,
-): 'scoreCandidates' | typeof END {
-  return state.error ? END : 'scoreCandidates'
+): 'validateHook' | typeof END {
+  return state.error ? END : 'validateHook'
 }
 
 function shouldContinueAfterScoring(
@@ -792,6 +810,7 @@ function buildPostGraph() {
     .addNode('analyzeContent', analyzeContent)
     .addNode('selectPattern', selectPattern)
     .addNode('generateCandidates', generateCandidates)
+    .addNode('validateHook', validateHook)
     .addNode('scoreCandidates', scoreCandidates)
     .addNode('critiqueAndRevise', critiqueAndRevise)
     .addNode('finalScore', finalScore)
@@ -800,6 +819,7 @@ function buildPostGraph() {
     .addConditionalEdges('analyzeContent', shouldContinueAfterAnalysis)
     .addEdge('selectPattern', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
+    .addEdge('validateHook', 'scoreCandidates')
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
     .addConditionalEdges('critiqueAndRevise', shouldRevise)
     .addEdge('finalScore', 'formatFinal')

@@ -54,8 +54,8 @@ export function rankOpportunity(
 ): OpportunityScore {
   // Engagement velocity: weighted interactions per minute
   const safeAge = Math.max(ageMinutes, 1)
-  const rawVelocity = (tweet.likes * 3 + tweet.retweets * 5) / safeAge
-  const engagementVelocity = Math.min(rawVelocity, 10) / 10 // normalize to 0-1
+  const rawVelocity = (tweet.likes * 1 + tweet.retweets * 20 + tweet.replies * 13.5) / safeAge
+  const engagementVelocity = Math.min(rawVelocity, 100) / 100 // normalize to 0-1
 
   // Topic relevance: AI keyword density
   const topicRelevance = computeTopicRelevance(tweet.text)

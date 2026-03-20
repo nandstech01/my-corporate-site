@@ -210,7 +210,7 @@ export async function generateArticleThumbnail(
 
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-image-preview',
+      model: 'gemini-3.1-flash-image-preview',
     })
 
     const result = await model.generateContent({

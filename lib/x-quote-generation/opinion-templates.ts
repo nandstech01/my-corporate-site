@@ -5,6 +5,8 @@
  * 4種類のアプローチで引用RTの多様性を確保する。
  */
 
+import { selectPatternByBandit } from '../learning/pattern-bandit'
+
 export interface OpinionTemplate {
   readonly id: string
   readonly name: string
@@ -55,9 +57,15 @@ export const opinionTemplates: readonly OpinionTemplate[] = [
 ]
 
 /**
- * ランダムにテンプレートを選択する（多様性確保）
+ * バンディット学習でテンプレートを選択する（Thompson Sampling）
+ * フォールバック: ランダム選択
  */
-export function selectOpinionTemplate(): OpinionTemplate {
-  const index = Math.floor(Math.random() * opinionTemplates.length)
-  return opinionTemplates[index]
+export async function selectOpinionTemplate(): Promise<OpinionTemplate> {
+  const ids = opinionTemplates.map(t => `quote_${t.id}`)
+  try {
+    const selected = await selectPatternByBandit(ids, 'x')
+    const found = opinionTemplates.find(t => `quote_${t.id}` === selected)
+    if (found) return found
+  } catch { /* fallback */ }
+  return opinionTemplates[Math.floor(Math.random() * opinionTemplates.length)]
 }

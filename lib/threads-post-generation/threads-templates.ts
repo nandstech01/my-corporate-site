@@ -36,7 +36,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {open_ended_question}`,
     category: 'perspective',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '皆さんはどう見てますか？',
+    conversationCloser: 'ここが分水嶺になる気がしている',
     features: ['観察ベース', '分析共有', '問いかけ'],
   },
   {
@@ -50,7 +50,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {sharing_the_lesson}`,
     category: 'engineering',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '同じようなこと試した人いますか？',
+    conversationCloser: '結局、手を動かさないと何も見えてこない',
     features: ['実装体験', '発見共有', 'ナラティブ'],
   },
   {
@@ -64,7 +64,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {nuanced_position}`,
     category: 'analysis',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: 'これって自分だけの感覚ですかね？',
+    conversationCloser: '正解かどうかはまだ分からない。ただ、現場の肌感はそう言っている',
     features: ['通説への疑問', '根拠提示', '議論喚起'],
   },
   {
@@ -78,7 +78,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {direct_question_to_community}`,
     category: 'discussion',
     optimalLength: { min: 150, max: 350 },
-    conversationCloser: 'あなたのチームではどうしてますか？',
+    conversationCloser: '答えを持ってる人がいたら聞きたい',
     features: ['議論喚起', 'コミュニティ参加', '問いかけ'],
   },
   {
@@ -92,7 +92,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {practical_implication}`,
     category: 'commentary',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '現場的にはどう影響しそうですか？',
+    conversationCloser: '影響が出始めるのは、たぶんもう少し先',
     features: ['トレンド分析', '実務家目線', '実用的示唆'],
   },
   {
@@ -106,7 +106,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {implications_for_discussion}`,
     category: 'data',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: 'この数字、皆さんの実感と合ってますか？',
+    conversationCloser: '数字は嘘をつかない。ただ、文脈は語ってくれない',
     features: ['データドリブン', '文脈付与', '影響議論'],
   },
   {
@@ -120,7 +120,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {prediction_and_bet}`,
     category: 'forecast',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '他に注目してるシグナルありますか？',
+    conversationCloser: 'まだ誰も確信を持てていない。だから面白い',
     features: ['シグナル検出', '未来予測', '先読み'],
   },
   {
@@ -134,7 +134,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {invitation_to_debate}`,
     category: 'debate',
     optimalLength: { min: 250, max: 450 },
-    conversationCloser: '賛成？反対？理由も聞かせてください',
+    conversationCloser: 'どっちが正しいかより、どっちを選ぶか',
     features: ['両面提示', '立場表明', '意見募集'],
   },
   {
@@ -148,7 +148,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {practical_mitigation}`,
     category: 'risk',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '同じ罠にハマった人いる？',
+    conversationCloser: '知ってれば避けられた。でも知らなかった',
     features: ['リスク提示', '実務ベース', '対策共有'],
   },
   {
@@ -162,7 +162,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {honest_lesson}`,
     category: 'experience',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: '似たような失敗経験ある人、どう乗り越えた？',
+    conversationCloser: '失敗しないと到達できない理解がある',
     features: ['失敗共有', '率直さ', '共感'],
   },
   {
@@ -176,7 +176,7 @@ export const threadsPatternTemplates: readonly ThreadsPatternTemplate[] = [
 {self_check_invitation}`,
     category: 'cta',
     optimalLength: { min: 200, max: 400 },
-    conversationCloser: 'いくつ当てはまった？',
+    conversationCloser: '全部当てはまった人は、そろそろ本気で向き合うタイミング',
     features: ['診断型', '専門性', 'ソフトCTA'],
   },
 ] as const
@@ -216,7 +216,8 @@ export const THREADS_TONE_GUIDELINES = {
 
   principles: [
     '友人に話すようなカジュアルさ',
-    '断定より問いかけで会話を誘う',
+    '締め方は余韻重視 — 考えさせる断定・含み・独白で終わらせる（問いかけは時々でOK）',
+    '語尾NG: 「〜なんだよね」「〜だよね」「〜よね」は禁止。言い切れ',
     '実体験ベースの信頼性',
     'ハッシュタグは0-1個',
     '200-400文字を目安に',

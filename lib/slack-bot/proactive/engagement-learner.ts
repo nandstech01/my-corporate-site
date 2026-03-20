@@ -82,6 +82,14 @@ async function fetchTweetMetrics(
   }
 }
 
+/**
+ * Xアルゴリズム重み付きエンゲージメントスコア
+ * likes:1 + retweets:20 + replies:13.5
+ */
+function weightedEngagement(m: { likes: number; retweets: number; replies: number }): number {
+  return m.likes * 1 + m.retweets * 20 + m.replies * 13.5
+}
+
 function identifyHighPerformers(
   results: readonly {
     tweetId: string
@@ -97,14 +105,12 @@ function identifyHighPerformers(
 
   const avgEngagement =
     results.reduce(
-      (sum, r) =>
-        sum + r.metrics.likes + r.metrics.retweets + r.metrics.replies,
+      (sum, r) => sum + weightedEngagement(r.metrics),
       0,
     ) / results.length
 
   return results.filter((r) => {
-    const engagement =
-      r.metrics.likes + r.metrics.retweets + r.metrics.replies
+    const engagement = weightedEngagement(r.metrics)
     return engagement > avgEngagement * 1.5
   })
 }
@@ -124,14 +130,12 @@ function identifyLowPerformers(
 
   const avgEngagement =
     results.reduce(
-      (sum, r) =>
-        sum + r.metrics.likes + r.metrics.retweets + r.metrics.replies,
+      (sum, r) => sum + weightedEngagement(r.metrics),
       0,
     ) / results.length
 
   return results.filter((r) => {
-    const engagement =
-      r.metrics.likes + r.metrics.retweets + r.metrics.replies
+    const engagement = weightedEngagement(r.metrics)
     return engagement < avgEngagement * 0.5
   })
 }
@@ -172,16 +176,18 @@ async function runXEngagementLearner(): Promise<void> {
   try {
     const avgEngagement = results.length > 0
       ? results.reduce(
-          (sum, r) => sum + r.metrics.likes + r.metrics.retweets + r.metrics.replies,
+          (sum, r) => sum + weightedEngagement(r.metrics),
           0,
         ) / results.length
       : 0
 
+    const ABSOLUTE_SUCCESS_THRESHOLD = 5
     for (const r of results) {
       const tweet = recentTweets.find((t) => t.tweet_id === r.tweetId)
       if (tweet?.pattern_used) {
-        const totalEngagement = r.metrics.likes + r.metrics.retweets + r.metrics.replies
-        const isSuccess = totalEngagement > avgEngagement * 0.8
+        const totalEngagement = weightedEngagement(r.metrics)
+        const isSuccess = totalEngagement >= ABSOLUTE_SUCCESS_THRESHOLD &&
+                          totalEngagement > avgEngagement * 0.8
         await recordPatternOutcome(tweet.pattern_used, 'x', isSuccess, totalEngagement)
       }
     }
@@ -312,10 +318,11 @@ async function runXEngagementLearner(): Promise<void> {
             typeStats[pType] = { count: 0, totalEng: 0 }
           }
           typeStats[pType].count++
-          typeStats[pType].totalEng +=
-            ((post.likes as number) ?? 0) +
-            ((post.retweets as number) ?? 0) +
-            ((post.replies as number) ?? 0)
+          typeStats[pType].totalEng += weightedEngagement({
+            likes: (post.likes as number) ?? 0,
+            retweets: (post.retweets as number) ?? 0,
+            replies: (post.replies as number) ?? 0,
+          })
         }
 
         const typeReport = Object.entries(typeStats)

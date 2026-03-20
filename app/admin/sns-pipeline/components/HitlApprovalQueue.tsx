@@ -25,6 +25,7 @@ const ACTION_TYPE_CONFIG: Record<
   post_x_long: { label: 'Post X (Long)', bg: '#FFFFFF20', color: '#FFFFFF' },
   post_linkedin: { label: 'Post LinkedIn', bg: '#0077B520', color: '#0077B5' },
   post_instagram_story: { label: 'Post IG Story', bg: '#E1306C20', color: '#E1306C' },
+  post_threads: { label: 'Post Threads', bg: '#99999920', color: '#999999' },
   trigger_blog: { label: 'Trigger Blog', bg: '#F9731620', color: '#F97316' },
 } as const
 

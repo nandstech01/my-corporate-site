@@ -124,14 +124,14 @@ export async function POST(request: NextRequest) {
     // 3. 画像編集用プロンプト生成（公式ガイドライン準拠）
     const prompt = buildImageEditPrompt(title, subtitleText, baseImage.color_scheme);
 
-    console.log('🤖 Gemini API呼び出し中（Nano Banana Pro）...');
+    console.log('🤖 Gemini API呼び出し中（Nano Banana 2）...');
     console.log(`📝 プロンプト: ${prompt.substring(0, 200)}...`);
 
-    // 4. Gemini APIで画像編集（Nano Banana Pro / ナノバナナプロ）
-    // 正式モデル名: gemini-3-pro-image-preview
+    // 4. Gemini APIで画像編集（Nano Banana 2 / ナノバナナ2）
+    // 正式モデル名: gemini-3.1-flash-image-preview
     // 特徴: 高品質画像生成・編集、マルチモーダル推論、テキスト埋め込み
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-image-preview'
+      model: 'gemini-3.1-flash-image-preview'
     });
 
     const result = await model.generateContent({

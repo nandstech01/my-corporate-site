@@ -6,6 +6,7 @@ import type {
   XPostAnalytics,
   LinkedInPostAnalytics,
   InstagramPostAnalytics,
+  ThreadsPostAnalytics,
   InstagramStoryQueue,
   BlogTopicQueue,
   SlackPendingAction,
@@ -15,6 +16,7 @@ interface PlatformDetailCardsProps {
   readonly xPosts: readonly XPostAnalytics[]
   readonly linkedinPosts: readonly LinkedInPostAnalytics[]
   readonly instagramPosts: readonly InstagramPostAnalytics[]
+  readonly threadsPosts: readonly ThreadsPostAnalytics[]
   readonly storyQueue: readonly InstagramStoryQueue[]
   readonly blogTopics: readonly BlogTopicQueue[]
   readonly pendingActions: readonly SlackPendingAction[]
@@ -30,6 +32,7 @@ const COLORS = {
   x: '#FFFFFF',
   linkedin: '#0077B5',
   instagram: '#E1306C',
+  threads: '#999999',
   blogRss: '#F97316',
 } as const
 
@@ -637,12 +640,136 @@ function BlogRssCard({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Threads Card                                                      */
+/* ------------------------------------------------------------------ */
+function ThreadsCard({
+  posts,
+  pendingCount,
+}: {
+  readonly posts: readonly ThreadsPostAnalytics[]
+  readonly pendingCount: number
+}) {
+  const recent = posts.slice(0, 5)
+  const topPost = [...posts].sort(
+    (a, b) => b.engagement_rate - a.engagement_rate
+  )[0]
+  const chartData = groupPostsByDay(
+    posts.map((p) => ({ posted_at: p.posted_at, likes: p.likes, impressions: p.views }))
+  )
+
+  return (
+    <motion.div
+      id="platform-threads"
+      {...cardAnimation}
+      style={{
+        backgroundColor: COLORS.cardBg,
+        borderColor: COLORS.border,
+        borderTopColor: COLORS.threads,
+        borderTopWidth: 3,
+      }}
+      className="rounded-xl border p-5"
+    >
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-lg" role="img" aria-label="threads">
+          {'\uD83E\uDDF5'}
+        </span>
+        <h3 style={{ color: COLORS.text }} className="text-lg font-bold">
+          Threads
+        </h3>
+        <PendingBadge count={pendingCount} />
+      </div>
+
+      <div
+        style={{ backgroundColor: COLORS.cardInner }}
+        className="mb-4 rounded-lg p-3"
+      >
+        <p
+          style={{ color: COLORS.textMuted }}
+          className="mb-2 text-xs font-semibold uppercase tracking-wider"
+        >
+          Recent Posts
+        </p>
+        <ul className="space-y-2">
+          {recent.map((post) => (
+            <li key={post.id} className="flex items-center justify-between">
+              <span
+                style={{ color: COLORS.text }}
+                className="line-clamp-1 flex-1 text-sm"
+              >
+                {post.post_text}
+              </span>
+              <div className="ml-3 flex shrink-0 items-center gap-2">
+                {post.pattern_used && (
+                  <span
+                    style={{
+                      backgroundColor: COLORS.border,
+                      color: COLORS.textMuted,
+                    }}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium"
+                  >
+                    {post.pattern_used}
+                  </span>
+                )}
+                <span
+                  style={{ color: COLORS.textDim }}
+                  className="text-xs whitespace-nowrap"
+                >
+                  {post.engagement_rate.toFixed(1)}% ER
+                </span>
+                <span
+                  style={{ color: COLORS.textDim }}
+                  className="text-xs whitespace-nowrap"
+                >
+                  {formatRelativeTime(post.posted_at)}
+                </span>
+              </div>
+            </li>
+          ))}
+          {recent.length === 0 && (
+            <li style={{ color: COLORS.textDim }} className="text-sm">
+              No posts yet
+            </li>
+          )}
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <EngagementMiniChart data={chartData} color={COLORS.threads} />
+      </div>
+
+      {topPost && (
+        <div
+          style={{ backgroundColor: COLORS.cardInner }}
+          className="rounded-lg p-3"
+        >
+          <p
+            style={{ color: COLORS.textMuted }}
+            className="mb-1 text-xs font-semibold"
+          >
+            Top Performer
+          </p>
+          <p style={{ color: COLORS.text }} className="line-clamp-1 text-sm">
+            <span className="mr-1">&#127942;</span>
+            {topPost.post_text}
+          </p>
+          <p style={{ color: COLORS.textDim }} className="mt-1 text-xs">
+            {topPost.engagement_rate.toFixed(2)}% engagement &middot;{' '}
+            {(topPost.likes + topPost.replies + topPost.reposts + topPost.quotes).toLocaleString()} engagements
+          </p>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Grid                                                         */
 /* ------------------------------------------------------------------ */
 export function PlatformDetailCards({
   xPosts,
   linkedinPosts,
   instagramPosts,
+  threadsPosts,
   storyQueue,
   blogTopics,
   pendingActions,
@@ -655,6 +782,9 @@ export function PlatformDetailCards({
   ).length
   const instagramPending = pendingActions.filter(
     (a) => a.action_type === 'post_instagram_story'
+  ).length
+  const threadsPending = pendingActions.filter(
+    (a) => a.action_type === 'post_threads'
   ).length
   const blogPending = pendingActions.filter(
     (a) => a.action_type === 'trigger_blog'
@@ -669,6 +799,7 @@ export function PlatformDetailCards({
         storyQueue={storyQueue}
         pendingCount={instagramPending}
       />
+      <ThreadsCard posts={threadsPosts} pendingCount={threadsPending} />
       <BlogRssCard topics={blogTopics} pendingCount={blogPending} />
     </div>
   )

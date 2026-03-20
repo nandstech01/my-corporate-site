@@ -309,7 +309,7 @@ export default function Header() {
                               </ul>
                         </div>
                         
-                            {/* 右列: リスキリング */}
+                            {/* 右列: リスキリング & プロダクト */}
                             <div>
                               <h3 className="text-xs font-normal text-gray-500 mb-4 tracking-wide">
                                 リスキリング
@@ -320,7 +320,7 @@ export default function Header() {
                                   { label: '法人向けリスキリング', href: '/corporate' },
                                 ].map((item) => (
                                   <li key={item.href}>
-                                    <Link 
+                                    <Link
                                       href={item.href}
                                       className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
                                     >
@@ -329,11 +329,30 @@ export default function Header() {
                                   </li>
                                 ))}
                               </ul>
-                              
+
+                              <h3 className="text-xs font-normal text-gray-500 mb-4 mt-8 pt-6 border-t border-gray-200 tracking-wide">
+                                プロダクト
+                              </h3>
+                              <ul className="space-y-3">
+                                {[
+                                  { label: 'AI搭載システム開発', href: '/system-dev-lp' },
+                                  { label: 'CLAVI - AI検索最適化', href: '/clavi' },
+                                ].map((item) => (
+                                  <li key={item.href}>
+                                    <Link
+                                      href={item.href}
+                                      className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors block"
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+
                               {/* 追加リンク */}
                               <div className="mt-8 pt-6 border-t border-gray-200">
-                          <Link 
-                            href="/faq" 
+                          <Link
+                            href="/faq"
                                   className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
                           >
                                   よくある質問
@@ -823,6 +842,39 @@ export default function Header() {
                           ['ベクトルRAG検索', '/vector-rag', 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'],
                           ['AIエージェント', '/ai-agents', 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'],
                           ['MCPサーバー', '/mcp-servers', 'M13 10V3L4 14h7v7l9-11h-7z']
+                        ].map(([label, href, iconPath]) => (
+                          <Link
+                            key={href}
+                            href={href}
+                            className="group flex items-center px-4 py-3 text-gray-700 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/80 rounded-xl transition-all duration-300 backdrop-blur-sm border border-transparent hover:border-cyan-200/50 hover:shadow-md"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <div className="w-6 h-6 mr-3 flex-shrink-0">
+                              <svg className="w-full h-full text-gray-500 group-hover:text-cyan-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                              </svg>
+                            </div>
+                            <span className="font-medium">{label}</span>
+                            <motion.span
+                              className="ml-auto text-cyan-500 opacity-0 group-hover:opacity-100"
+                              whileHover={{ x: 3 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              →
+                            </motion.span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mb-8">
+                      <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent uppercase tracking-wider mb-4 px-4">
+                        プロダクト
+                      </h3>
+                      <div className="space-y-1">
+                        {[
+                          ['AI搭載システム開発', '/system-dev-lp', 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                          ['CLAVI - AI検索最適化', '/clavi', 'M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z']
                         ].map(([label, href, iconPath]) => (
                           <Link
                             key={href}

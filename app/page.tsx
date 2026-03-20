@@ -133,9 +133,17 @@ const tocItems = [
     targetQueries: ['AI 倫理', '持続可能 AI', 'AI 責任', 'AI ガバナンス'],
     entities: ['AI倫理', '持続可能性', 'AIガバナンス', '責任あるAI']
   },
-  { 
-    id: 'premium-solutions', 
-    title: '注目ソリューション', 
+  {
+    id: 'products',
+    title: 'プロダクト',
+    level: 1,
+    semanticWeight: 0.93,
+    targetQueries: ['AI搭載システム開発', 'AI検索最適化', 'CLAVI', 'IT補助金 システム開発', 'AIO対策 SaaS'],
+    entities: ['AI搭載システム開発', 'CLAVI', 'AI検索最適化', 'IT導入補助金', 'Schema.org']
+  },
+  {
+    id: 'premium-solutions',
+    title: '注目ソリューション',
     level: 1,
     semanticWeight: 0.90,
     targetQueries: ['プレミアム AI', '高度 AI開発', 'カスタム AI', 'エンタープライズ AI'],
@@ -852,6 +860,13 @@ export default async function Home() {
           },
           {
             "@type": "WebPageElement",
+            "@id": "https://nands.tech/#products-section",
+            "name": "プロダクト - AI搭載システム開発 & CLAVI",
+            "description": "AI搭載システム開発（IT補助金対応・費用最大70%OFF）とCLAVI AI検索最適化プラットフォーム（14日間無料トライアル）",
+            "cssSelector": "#products"
+          },
+          {
+            "@type": "WebPageElement",
             "@id": "https://nands.tech/#faq-section",
             "name": "よくある質問",
             "description": "生成AI研修・退職代行サービスに関するFAQ",
@@ -900,7 +915,77 @@ export default async function Home() {
         ]
       },
       
-      // 【5】VideoObject Collection（YouTubeショート動画・動画スニペット対応）
+      // 【5】SoftwareApplication - CLAVI AI検索最適化プラットフォーム
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://nands.tech/#clavi-app",
+        "name": "CLAVI - AI検索最適化",
+        "alternateName": ["CLAVI", "クラヴィ"],
+        "description": "ChatGPT・Gemini・Perplexityなど主要AI検索エンジンにサイトが引用されるよう最適化するSaaSプラットフォーム。Schema.org 16.0準拠の構造化データを自動生成。",
+        "url": "https://nands.tech/clavi",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "JPY",
+          "description": "14日間無料トライアル",
+          "availability": "https://schema.org/InStock"
+        },
+        "featureList": [
+          "AI検索エンジン最適化",
+          "Schema.org 16.0準拠の構造化データ生成",
+          "ChatGPT・Gemini・Perplexity対応",
+          "リアルタイムダッシュボード",
+          "14日間無料トライアル"
+        ],
+        "provider": {
+          "@id": "https://nands.tech/#organization"
+        }
+      },
+
+      // 【6】Service - AI搭載システム開発
+      {
+        "@type": "Service",
+        "@id": "https://nands.tech/#system-dev-service",
+        "name": "AI搭載システム開発",
+        "description": "AI技術を活用したシステム開発サービス。IT導入補助金対応で費用最大70%OFF。要件定義から納品まで一貫サポート。無料AIシミュレーション付き。",
+        "url": "https://nands.tech/system-dev-lp",
+        "serviceType": "AI System Development",
+        "provider": {
+          "@id": "https://nands.tech/#organization"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "日本"
+        },
+        "offers": {
+          "@type": "Offer",
+          "description": "IT導入補助金対応・費用最大70%OFF",
+          "availableAtOrFrom": {
+            "@type": "Place",
+            "name": "オンライン・全国対応"
+          }
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "AI搭載システム開発メニュー",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "name": "無料AIシミュレーション",
+              "description": "AI技術を活用した要件分析・費用シミュレーション"
+            },
+            {
+              "@type": "Offer",
+              "name": "IT導入補助金申請サポート",
+              "description": "補助金活用で開発費用を最大70%削減"
+            }
+          ]
+        }
+      },
+
+      // 【7】VideoObject Collection（YouTubeショート動画・動画スニペット対応）
       ...(youtubeShorts.length > 0 ? [{
         "@type": "ItemList",
         "@id": "https://nands.tech/#video-collection",

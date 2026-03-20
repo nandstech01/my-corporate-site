@@ -6,6 +6,7 @@ import type {
   XPostAnalytics,
   LinkedInPostAnalytics,
   InstagramPostAnalytics,
+  ThreadsPostAnalytics,
   InstagramStoryQueue,
   BlogTopicQueue,
   SlackPendingAction,
@@ -22,6 +23,7 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
   const [xPosts, setXPosts] = useState<readonly XPostAnalytics[]>([])
   const [linkedinPosts, setLinkedinPosts] = useState<readonly LinkedInPostAnalytics[]>([])
   const [instagramPosts, setInstagramPosts] = useState<readonly InstagramPostAnalytics[]>([])
+  const [threadsPosts, setThreadsPosts] = useState<readonly ThreadsPostAnalytics[]>([])
   const [storyQueue, setStoryQueue] = useState<readonly InstagramStoryQueue[]>([])
   const [blogTopics, setBlogTopics] = useState<readonly BlogTopicQueue[]>([])
   const [pendingActions, setPendingActions] = useState<readonly SlackPendingAction[]>([])
@@ -39,6 +41,7 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
         xResult,
         linkedinResult,
         instagramResult,
+        threadsResult,
         storyResult,
         blogResult,
         pendingResult,
@@ -60,6 +63,13 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
         supabase
           .from('instagram_post_analytics')
           .select('id,instagram_media_id,media_type,post_url,caption,blog_slug,posted_at,reach,impressions,taps_forward,taps_back,exits,replies,likes,comments,saves,shares,engagement_rate,hashtags')
+          .gte('posted_at', since)
+          .order('posted_at', { ascending: false })
+          .limit(100),
+
+        supabase
+          .from('threads_post_analytics')
+          .select('id,threads_media_id,post_url,post_text,pattern_used,posted_at,likes,replies,reposts,quotes,views,engagement_rate,tags')
           .gte('posted_at', since)
           .order('posted_at', { ascending: false })
           .limit(100),
@@ -87,6 +97,7 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
         xResult.error,
         linkedinResult.error,
         instagramResult.error,
+        threadsResult.error,
         storyResult.error,
         blogResult.error,
         pendingResult.error,
@@ -100,6 +111,7 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
       setXPosts((xResult.data ?? []) as XPostAnalytics[])
       setLinkedinPosts((linkedinResult.data ?? []) as LinkedInPostAnalytics[])
       setInstagramPosts((instagramResult.data ?? []) as InstagramPostAnalytics[])
+      setThreadsPosts((threadsResult.data ?? []) as ThreadsPostAnalytics[])
       setStoryQueue((storyResult.data ?? []) as InstagramStoryQueue[])
       setBlogTopics((blogResult.data ?? []) as BlogTopicQueue[])
       setPendingActions((pendingResult.data ?? []) as SlackPendingAction[])
@@ -120,6 +132,7 @@ export function useSnsData(enabled = true): SnsData & { refetch: () => void } {
     xPosts,
     linkedinPosts,
     instagramPosts,
+    threadsPosts,
     storyQueue,
     blogTopics,
     pendingActions,

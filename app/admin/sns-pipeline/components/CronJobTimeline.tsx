@@ -18,6 +18,7 @@ const PLATFORM_LABEL: Record<CronJobConfig['platform'], string> = {
   linkedin: 'LinkedIn',
   instagram: 'Instagram',
   blog: 'Blog RSS',
+  threads: 'Threads',
   all: 'All Platforms',
 }
 
@@ -26,6 +27,7 @@ const PLATFORM_COLOR: Record<CronJobConfig['platform'], string> = {
   linkedin: '#0077B5',
   instagram: '#E1306C',
   blog: '#F97316',
+  threads: '#999999',
   all: '#06B6D4',
 }
 
@@ -124,7 +126,7 @@ function groupJobsByPlatform(): Record<string, readonly CronJobConfig[]> {
 
 export default function CronJobTimeline() {
   const grouped = groupJobsByPlatform()
-  const platformOrder: CronJobConfig['platform'][] = ['x', 'linkedin', 'instagram', 'blog', 'all']
+  const platformOrder: CronJobConfig['platform'][] = ['x', 'linkedin', 'instagram', 'blog', 'threads', 'all']
 
   return (
     <div

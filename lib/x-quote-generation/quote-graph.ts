@@ -5,7 +5,7 @@
  *
  * パイプライン:
  *   START → analyzeOriginal → formOpinion → generateCandidates
- *         → scoreCandidates → formatFinal → END
+ *         → scoreCandidates → critiqueAndRevise → formatFinal → END
  */
 
 import { z } from 'zod'
@@ -16,6 +16,8 @@ import { selectOpinionTemplate } from './opinion-templates'
 import { getTwitterWeightedLength } from '../x-api/client'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
 import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
+import { critiquePost, revisePost } from '../content-critique/critique-engine'
+import type { CritiqueResult } from '../content-critique/critique-engine'
 
 // ============================================================
 // LangChain usage_metadata type helper
@@ -88,6 +90,14 @@ const QuoteGraphState = Annotation.Root({
     default: () => [],
   }),
   highPerformerPatterns: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  critiqueResult: Annotation<CritiqueResult | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  revisedCandidate: Annotation<string | null>({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
@@ -197,7 +207,7 @@ async function analyzeOriginal(state: GraphState): Promise<Partial<GraphState>> 
 
 async function formOpinion(state: GraphState): Promise<Partial<GraphState>> {
   const model = createModel()
-  const template = selectOpinionTemplate()
+  const template = await selectOpinionTemplate()
 
   const highPerformerSection = state.highPerformerPatterns
     ? `\n## 過去の高パフォーマンス投稿パターン（参考にせよ）\n${state.highPerformerPatterns}\n`
@@ -374,7 +384,52 @@ JSON配列のみ出力:
 }
 
 // ============================================================
-// ノード5: formatFinal
+// ノード5: critiqueAndRevise（Self-Refine）
+// ============================================================
+
+async function critiqueAndRevise(state: GraphState): Promise<Partial<GraphState>> {
+  if (state.candidates.length === 0 || state.scores.length === 0) {
+    return {}
+  }
+
+  // 最高スコア候補を取得
+  const sortedScores = [...state.scores].sort((a, b) => b.total - a.total)
+  const bestIndex = sortedScores[0].index
+  const bestCandidate = state.candidates[bestIndex] ?? state.candidates[0]
+
+  // 5次元評価
+  const critique = await critiquePost({
+    text: bestCandidate,
+    platform: 'x',
+    mode: 'short',
+    sourceContent: state.originalText.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `Quote RT critique: score=${critique.overallScore}/50, passed=${critique.passed}\n`,
+  )
+
+  // Adaptive exit: 高品質ならスキップ
+  if (critique.passed) {
+    return { critiqueResult: critique }
+  }
+
+  // 改訂版生成
+  const revised = await revisePost({
+    originalText: bestCandidate,
+    critique,
+    platform: 'x',
+    mode: 'short',
+  })
+
+  return {
+    critiqueResult: critique,
+    revisedCandidate: revised,
+  }
+}
+
+// ============================================================
+// ノード6: formatFinal
 // ============================================================
 
 function formatFinal(state: GraphState): Partial<GraphState> {
@@ -382,9 +437,12 @@ function formatFinal(state: GraphState): Partial<GraphState> {
     return { error: 'No candidates or scores available' }
   }
 
+  // Use revised candidate if critique produced one, otherwise best scored candidate
   const sortedScores = [...state.scores].sort((a, b) => b.total - a.total)
   const bestIndex = sortedScores[0].index
-  const bestCandidate = state.candidates[bestIndex] ?? state.candidates[0]
+  const bestCandidate = state.revisedCandidate
+    ?? state.candidates[bestIndex]
+    ?? state.candidates[0]
 
   // Character limit check (weighted count)
   const WEIGHTED_LIMIT = 280
@@ -417,6 +475,7 @@ function buildQuoteGraph() {
     .addNode('formOpinion', formOpinion)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
+    .addNode('critiqueAndRevise', critiqueAndRevise)
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeOriginal')
     .addConditionalEdges('analyzeOriginal', shouldContinue, {
@@ -432,9 +491,10 @@ function buildQuoteGraph() {
       __end__: END,
     })
     .addConditionalEdges('scoreCandidates', shouldContinue, {
-      continue: 'formatFinal',
+      continue: 'critiqueAndRevise',
       __end__: END,
     })
+    .addEdge('critiqueAndRevise', 'formatFinal')
     .addEdge('formatFinal', END)
 
   return graph.compile()

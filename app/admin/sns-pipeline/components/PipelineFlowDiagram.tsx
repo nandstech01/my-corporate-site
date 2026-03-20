@@ -6,10 +6,12 @@ interface PipelineFlowDiagramProps {
   xPostCount: number
   linkedinPostCount: number
   instagramPostCount: number
+  threadsPostCount: number
   blogTopicCount: number
   xActive: boolean
   linkedinActive: boolean
   instagramActive: boolean
+  threadsActive: boolean
   blogActive: boolean
   onPlatformClick: (platform: string) => void
 }
@@ -57,16 +59,26 @@ const PLATFORMS = [
     cx: '78%',
     cy: '78%',
   },
+  {
+    id: 'threads',
+    label: 'Threads',
+    icon: '\uD83E\uDDF5',
+    color: '#999999',
+    cx: '50%',
+    cy: '90%',
+  },
 ] as const
 
 export default function PipelineFlowDiagram({
   xPostCount,
   linkedinPostCount,
   instagramPostCount,
+  threadsPostCount,
   blogTopicCount,
   xActive,
   linkedinActive,
   instagramActive,
+  threadsActive,
   blogActive,
   onPlatformClick,
 }: PipelineFlowDiagramProps) {
@@ -76,6 +88,7 @@ export default function PipelineFlowDiagram({
     x: xPostCount,
     linkedin: linkedinPostCount,
     instagram: instagramPostCount,
+    threads: threadsPostCount,
     blog: blogTopicCount,
   }
 
@@ -83,6 +96,7 @@ export default function PipelineFlowDiagram({
     x: xActive,
     linkedin: linkedinActive,
     instagram: instagramActive,
+    threads: threadsActive,
     blog: blogActive,
   }
 
@@ -92,7 +106,7 @@ export default function PipelineFlowDiagram({
       style={{
         background: COLORS.bg,
         border: `1px solid ${COLORS.border}`,
-        minHeight: 380,
+        minHeight: 440,
       }}
     >
       {/* Dot grid background */}
@@ -188,7 +202,7 @@ export default function PipelineFlowDiagram({
 
         {/* Animated particles flowing from center to each platform */}
         {PLATFORMS.map((p, i) => {
-          const durations = ['2.8s', '3.2s', '3.6s', '4s']
+          const durations = ['2.8s', '3.2s', '3.6s', '4s', '3.4s']
           const endX = parseFloat(p.cx)
           const endY = parseFloat(p.cy)
           return (
@@ -226,7 +240,7 @@ export default function PipelineFlowDiagram({
       </svg>
 
       {/* Node layer */}
-      <div className="relative w-full h-full" style={{ minHeight: 380 }}>
+      <div className="relative w-full h-full" style={{ minHeight: 440 }}>
         {/* Center node: Slack Bot */}
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 center-float"
@@ -263,6 +277,7 @@ export default function PipelineFlowDiagram({
             linkedin: 'left-[78%] top-[18%]',
             instagram: 'left-[22%] top-[78%]',
             blog: 'left-[78%] top-[78%]',
+            threads: 'left-[50%] top-[90%]',
           }
 
           return (

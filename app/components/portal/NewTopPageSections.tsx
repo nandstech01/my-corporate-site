@@ -18,6 +18,7 @@ import NewHeroSection from './NewHeroSection'
 import ProblemSection from './ProblemSection'
 import PhilosophySection from './PhilosophySection'
 import SolutionBentoGrid from './SolutionBentoGrid'
+import ProductSpotlightSection from './ProductSpotlightSection'
 import PricingSection from './PricingSection'
 import CTASection from './CTASection'
 import FAQSection from './FAQSection'
@@ -82,6 +83,11 @@ function TopPageContent({ posts, youtubeShorts }: NewTopPageSectionsProps) {
       {/* Solution Section - Bento Grid */}
       <section id="solution" className="scroll-mt-20">
         <SolutionBentoGrid />
+      </section>
+
+      {/* Products Spotlight Section */}
+      <section id="products" className="scroll-mt-20">
+        <ProductSpotlightSection />
       </section>
 
       {/* Pricing & Subsidy Section */}

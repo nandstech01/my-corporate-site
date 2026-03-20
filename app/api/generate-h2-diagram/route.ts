@@ -254,9 +254,9 @@ async function generateDiagramForH2(
   
   const prompt = buildDiagramPrompt(section, articleTitle, diagramStyle);
   
-  // Nano Banana Pro で図解生成
+  // Nano Banana 2 で図解生成
   const model = genAI.getGenerativeModel({
-    model: 'gemini-3-pro-image-preview'
+    model: 'gemini-3.1-flash-image-preview'
   });
 
   const result = await model.generateContent({

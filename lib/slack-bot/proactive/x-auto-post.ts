@@ -603,6 +603,32 @@ async function runXAutoPostInner(): Promise<void> {
     return
   }
 
+  // 1.6. Fresh high-value quote RT gets priority over distribution roll
+  if (isAiJudgeEnabled() && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const urgentSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    )
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    const { data: urgentQuote } = await urgentSupabase
+      .from('x_quote_opportunities')
+      .select('*')
+      .eq('status', 'pending')
+      .gte('opportunity_score', 0.7)
+      .gte('detected_at', oneHourAgo)
+      .order('opportunity_score', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (urgentQuote) {
+      const quoted = await tryQuoteRTOpportunity()
+      if (quoted) {
+        process.stdout.write('X auto-post: Urgent quote RT posted (< 1 hour old)\n')
+        return
+      }
+    }
+  }
+
   // 2. Adaptive content distribution based on engagement data
   let weights: Record<string, number>
   try {

@@ -54,14 +54,14 @@ const X_SHORT_CONSTITUTION: PlatformConstitution = {
     '実務家が実体験を語る口調で、ニュースbot調を避ける',
     '具体的なツール名・数字・事実を1つ以上含む',
     '問いかけや議論を誘う締め方をする',
-    'カジュアルな日本語（〜なんだよね、〜していく）を使う',
+    'カジュアルな日本語（〜していく、〜なと。、ぶっちゃけ）を使う。ただし「〜なんだよね」「〜だよね」「〜よね」は禁止',
     'Premium枠を活かし100-500文字で要点を伝える（280制限にとらわれない）',
   ],
   antiPatterns: [...COMMON_ANTI_PATTERNS, ...AI_SMELL_ANTI_PATTERNS],
   scoringPrompt: `以下の5次元で投稿を0-10点で評価せよ:
 1. hookStrength: 1行目のスクロール停止力（好奇心・驚き）
 2. voiceAuthenticity: bot感・AI感のなさ（AI特有の汎用表現を使っていないか、実務家の体験談口調か）
-3. engagementTrigger: 問いかけ・議論誘発力
+3. engagementTrigger: リプライ・RT誘発力（大胆な主張 > 質問。Xアルゴリズム: リプ13.5x, RT20x）
 4. platformFit: 100-500文字の適正範囲、フォーマット適合
 5. factualGrounding: ソースコンテンツへの忠実さ、具体的ファクト
 
@@ -108,7 +108,7 @@ const THREADS_CONSTITUTION: PlatformConstitution = {
     '1行目のフックで会話を始める（「〜って知ってた？」「最近〜で気づいたんだけど」）',
     '具体的な数字やファクトを1つ以上含める',
     '自分の考え・体験を軸に語り、共感を呼ぶ',
-    '最後に答えたくなる問いかけでリプライを誘発する',
+    '締め方は余韻重視 — 考えさせる断定・含み・独白で終わらせる（問いかけは時々でOK）',
     '200-400文字の最適範囲に収める',
   ],
   antiPatterns: [...COMMON_ANTI_PATTERNS, ...AI_SMELL_ANTI_PATTERNS],

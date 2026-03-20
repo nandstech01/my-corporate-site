@@ -5,7 +5,7 @@
  * Instagram Story のダーク背景に最適化した図解を生成
  *
  * 戦略:
- * 1. 主: Gemini (gemini-3-pro-image-preview) — 日本語構造化プロンプト
+ * 1. 主: Gemini (gemini-3.1-flash-image-preview) — 日本語構造化プロンプト
  * 2. フォールバック1: Supabase DB の thumbnail_url
  * 3. フォールバック2: OG画像を直接fetch
  */
@@ -268,7 +268,7 @@ const generateGeminiDiagram = traceable(
 
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-image-preview',
+      model: 'gemini-3.1-flash-image-preview',
     })
 
     const style = selectDiagramStyle()

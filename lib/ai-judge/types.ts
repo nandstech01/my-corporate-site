@@ -16,6 +16,13 @@ export interface JudgeVerdict {
   readonly safetyFlags: readonly string[]
   readonly topicRelevance: number // AI関連トピックとの関連度 0-1
   readonly predictedEngagementRate?: number // 0.0-1.0 predicted engagement rate
+  readonly dimensions?: {
+    readonly hookStrength: number
+    readonly voiceAuthenticity: number
+    readonly engagementTrigger: number
+    readonly platformFit: number
+    readonly factualGrounding: number
+  }
 }
 
 // ============================================================

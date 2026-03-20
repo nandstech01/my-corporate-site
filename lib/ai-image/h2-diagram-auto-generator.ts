@@ -292,7 +292,7 @@ async function generateDiagramForSection(
     const prompt = buildDiagramPrompt(section, style);
     
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-image-preview'
+      model: 'gemini-3.1-flash-image-preview'
     });
 
     const result = await model.generateContent({

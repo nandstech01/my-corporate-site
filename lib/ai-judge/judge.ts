@@ -157,6 +157,17 @@ const SUBMIT_VERDICT_TOOL: Anthropic.Messages.Tool = {
         type: 'number',
         description: '予想エンゲージメント率 (0.0-1.0)。この投稿がインプレッションあたりどの程度のエンゲージメント(いいね+リポスト+リプライ)を得られるか予測する。',
       },
+      dimensions: {
+        type: 'object',
+        description: '5次元評価スコア (各0-10)',
+        properties: {
+          hookStrength: { type: 'number', description: '冒頭のフック力 (0-10)' },
+          voiceAuthenticity: { type: 'number', description: '実務家の声の自然さ (0-10)' },
+          engagementTrigger: { type: 'number', description: 'エンゲージメント誘発力 (0-10)' },
+          platformFit: { type: 'number', description: 'プラットフォーム適合度 (0-10)' },
+          factualGrounding: { type: 'number', description: '事実・実体験ベース度 (0-10)' },
+        },
+      },
     },
     required: ['decision', 'confidence', 'reasoning', 'safety_flags', 'topic_relevance', 'predicted_engagement_rate'],
   },
@@ -254,6 +265,13 @@ nands.techはAI/LLM/自動化に特化した技術メディアです。
 6. ソース信頼性 - 引用元が信頼できるか
 7. 新規性 - 直近の投稿と同じトピック/ソースを扱っていないか。同じニュースの切り口が被っていたらrejectまたはedit
 
+加えて、以下の5次元で0-10点のスコアも返せ（dimensionsフィールド）:
+- hookStrength: 冒頭のフック力（スクロールを止める力）
+- voiceAuthenticity: @nands_techらしい実務家の声か
+- engagementTrigger: リプライ・RT・ブックマークを誘発する力
+- platformFit: ${platform}のアルゴリズム・文化への適合度
+- factualGrounding: 事実・実体験に基づいているか
+
 ${platform}での投稿を評価してください。
 
 プラットフォームガイドライン (${platform}):
@@ -330,6 +348,13 @@ function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVe
     safety_flags: string[]
     topic_relevance: number
     predicted_engagement_rate?: number
+    dimensions?: {
+      hookStrength: number
+      voiceAuthenticity: number
+      engagementTrigger: number
+      platformFit: number
+      factualGrounding: number
+    }
   }
 
   return {
@@ -340,6 +365,7 @@ function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVe
     safetyFlags: input.safety_flags,
     topicRelevance: Math.max(0, Math.min(1, input.topic_relevance)),
     predictedEngagementRate: input.predicted_engagement_rate ?? undefined,
+    dimensions: input.dimensions ?? undefined,
   }
 }
 
