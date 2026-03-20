@@ -67,21 +67,14 @@
 | `clavi.remove_member()` | メンバー削除 |
 | `clavi.log_audit()` | 監査ログ記録 |
 
-### RLS ポリシー（7つ）
+### RLS ポリシー
 
-1. `tenants_select` - SELECT（user_tenants所属確認）
-2. `tenants_update` - UPDATE（owner/admin）
-3. `user_tenants_select` - SELECT（current_tenant + 所属確認）
-4. `user_tenants_insert` - INSERT（owner/admin）
-5. `user_tenants_insert_onboard` - INSERT（未所属者 → owner登録）
-6. `user_tenants_update` - UPDATE（ownerのみ）
-7. `user_tenants_delete` - DELETE（ownerのみ）
+- テナント単位の行レベルセキュリティ（7ポリシー）
+- SELECT / INSERT / UPDATE / DELETE を役割ベースで制御
 
 ### 認証
 
-- JWT custom claim hook: `public.custom_access_token_hook()`
-- テナントID埋め込み: `https://nands.tech/tenant_id`
-- テナントロール埋め込み: `https://nands.tech/tenant_role`
+- JWT custom claim hook によるテナントコンテキスト埋め込み
 
 ---
 
@@ -108,17 +101,7 @@
 
 ## 緊急時の対応
 
-RLSロールバック: [`RLS_ROLLBACK.sql`](./RLS_ROLLBACK.sql)
-
-```bash
-# マイグレーションのロールバック
-supabase db reset --db-url postgres://...
-
-# 環境変数の削除（Vercel Dashboard）
-
-# デプロイの巻き戻し
-vercel rollback
-```
+RLSロールバック・マイグレーションリセット・デプロイ巻き戻しの手順はプライベートドキュメントを参照。
 
 ---
 

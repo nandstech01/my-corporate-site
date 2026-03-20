@@ -1,9 +1,15 @@
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local' });
 
-const supabase = createClient(
-  'https://xhmhzhethpwjxuwksmuv.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhobWh6aGV0aHB3anh1d2tzbXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMxMzc2NzcsImV4cCI6MjA0ODcxMzY3N30.Ej8Ej8Ej8Ej8'
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing SUPABASE_URL or ANON_KEY. Check .env.local');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkPost() {
   const { data, error } = await supabase
