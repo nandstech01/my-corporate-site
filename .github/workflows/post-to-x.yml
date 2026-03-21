@@ -4,12 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'article（ブログ記事要約）or research（最新ツール調査）'
+        description: 'article / research / quote（引用RT）'
         required: true
         type: choice
         options:
           - article
           - research
+          - quote
+      quote_tweet_id:
+        description: '引用元ツイートID（quoteモード用）'
+        required: false
+        type: string
+      quote_text:
+        description: '引用テキスト（quoteモード用）'
+        required: false
+        type: string
       slug:
         description: 'ブログ記事slug（articleモード用）'
         required: false
@@ -50,8 +59,15 @@ jobs:
         run: npm ci
 
       - name: 🚀 Generate & Post to X
-        run: npx tsx scripts/post-to-x.ts
+        run: |
+          if [ "${{ inputs.mode }}" = "quote" ]; then
+            npx tsx scripts/quote-tweet-manual.ts
+          else
+            npx tsx scripts/post-to-x.ts
+          fi
         env:
+          QUOTE_TEXT: ${{ inputs.quote_text }}
+          QUOTE_TWEET_ID: ${{ inputs.quote_tweet_id }}
           MODE: ${{ inputs.mode }}
           SLUG: ${{ inputs.slug }}
           TOPIC: ${{ inputs.topic }}
