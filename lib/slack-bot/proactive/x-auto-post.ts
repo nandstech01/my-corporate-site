@@ -934,7 +934,42 @@ async function runXAutoPostInner(): Promise<void> {
     }
 
     if (deduped.length === 0) {
-      process.stdout.write('X auto-post: All candidates are duplicates. Skipping.\n')
+      process.stdout.write('X auto-post: All linkedin_sources candidates are duplicates. Falling back to trending_topics.\n')
+
+      // フォールバック: trending_topicsから新しいトピックで投稿生成
+      try {
+        const trendingMemories = await recallSourceMemories(userId, 'trending_topics', 3)
+        if (trendingMemories.length > 0) {
+          const trendingContent = trendingMemories[0].content
+          if (trendingContent) {
+            const postResult = await generateXPost({
+              mode: 'research',
+              content: trendingContent,
+              topic: 'tech trends',
+              recentPostTexts: recentTexts,
+            })
+
+            if (isAiJudgeEnabled()) {
+              const result = await autoResolvePost({
+                platform: 'x',
+                text: postResult.finalPost,
+                longForm: true,
+                patternUsed: postResult.patternUsed,
+                tags: postResult.tags,
+              })
+              process.stdout.write(
+                `X auto-post (dedup fallback, AI Judge): ${result.success ? 'posted' : 'rejected'}\n`,
+              )
+              return
+            }
+          }
+        }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Unknown error'
+        process.stdout.write(`X auto-post: Dedup fallback failed: ${msg}\n`)
+      }
+
+      process.stdout.write('X auto-post: No fallback sources available. Skipping.\n')
       return
     }
     candidates = deduped
