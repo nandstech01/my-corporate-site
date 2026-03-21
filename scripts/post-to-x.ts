@@ -141,7 +141,7 @@ async function main() {
       throw new Error('Twitter API credentials not configured');
     }
 
-    const tweetResult = await postTweet(postText);
+    const tweetResult = await postTweet(postText, { longForm: true });
     if (!tweetResult.success) {
       throw new Error(`Post failed: ${tweetResult.error}`);
     }
