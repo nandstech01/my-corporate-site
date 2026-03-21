@@ -135,7 +135,19 @@ async function getRecentPendingSourceUrls(): Promise<ReadonlySet<string>> {
   return urls
 }
 
-const TITLE_SIMILARITY_THRESHOLD = 0.5
+const TITLE_SIMILARITY_THRESHOLD = 0.35
+
+/**
+ * タイトルからキーワードを抽出（助詞・一般語を除去）
+ */
+function extractTitleKeywords(title: string): readonly string[] {
+  return title
+    .toLowerCase()
+    .replace(/[（）()「」『』【】\[\]]/g, ' ')
+    .split(/[\s、,・:：\-—]+/)
+    .filter((w) => w.length >= 2)
+    .filter((w) => !['the', 'and', 'for', 'with', 'from', 'that', 'this', 'are', 'was', 'has', 'have', 'its', 'about', 'into', 'new', 'how'].includes(w))
+}
 
 function deduplicateCandidates(
   candidates: readonly LinkedInTopicCandidate[],
@@ -148,12 +160,20 @@ function deduplicateCandidates(
     if (recentPendingUrls.has(candidate.sourceUrl)) return false
     // 2. 投稿済みソースURL一致 → 除外
     if (recentPostedUrls.has(candidate.sourceUrl)) return false
-    // 3. タイトル類似度チェック (substring + bigram Jaccard)
+    // 3. タイトル類似度チェック (substring + bigram Jaccard + keyword overlap)
     const titleLower = candidate.title.toLowerCase()
+    const titleKeywords = extractTitleKeywords(candidate.title)
     for (const text of recentPostTexts) {
       const textLower = text.toLowerCase()
+      // 3a. タイトルが投稿テキストに含まれる
       if (textLower.includes(titleLower)) return false
+      // 3b. bigram Jaccard類似度（しきい値を下げて検出力向上）
       if (calculateCharacterOverlap(titleLower, textLower) >= TITLE_SIMILARITY_THRESHOLD) return false
+      // 3c. キーワード一致率: タイトルのキーワードの60%以上が投稿テキストに含まれる → 同トピック
+      if (titleKeywords.length >= 2) {
+        const matchCount = titleKeywords.filter((kw) => textLower.includes(kw)).length
+        if (matchCount / titleKeywords.length >= 0.6) return false
+      }
     }
     return true
   })
@@ -897,7 +917,7 @@ async function runXAutoPostInner(): Promise<void> {
   try {
     const [recentPendingUrls, recentPostedUrls] = await Promise.all([
       getRecentPendingSourceUrls(),
-      getRecentXSourceUrls(7),
+      getRecentXSourceUrls(14),
     ])
 
     const deduped = deduplicateCandidates(
@@ -912,7 +932,12 @@ async function runXAutoPostInner(): Promise<void> {
         `X auto-post dedup: ${allCandidates.length - deduped.length} duplicate(s) removed\n`,
       )
     }
-    candidates = deduped.length > 0 ? deduped : allCandidates
+
+    if (deduped.length === 0) {
+      process.stdout.write('X auto-post: All candidates are duplicates. Skipping.\n')
+      return
+    }
+    candidates = deduped
   } catch {
     // Dedup failure should not block the pipeline
   }
@@ -1075,12 +1100,21 @@ export async function triggerXPostFromSource(
 
   if (!channel || !userId) return false
 
-  // 重複チェック: 同じsourceUrlのpending actionが既にあるか
+  // 重複チェック: 同じsourceUrlのpending action or 投稿済みがあるか
   try {
-    const pendingUrls = await getRecentPendingSourceUrls()
+    const [pendingUrls, postedUrls] = await Promise.all([
+      getRecentPendingSourceUrls(),
+      getRecentXSourceUrls(14),
+    ])
     if (pendingUrls.has(params.sourceUrl)) {
       process.stdout.write(
         `X auto-post trigger: Skipping "${params.title}" (already pending)\n`,
+      )
+      return false
+    }
+    if (postedUrls.includes(params.sourceUrl)) {
+      process.stdout.write(
+        `X auto-post trigger: Skipping "${params.title}" (already posted)\n`,
       )
       return false
     }
