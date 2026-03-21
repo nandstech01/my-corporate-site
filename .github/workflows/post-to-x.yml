@@ -4,13 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'article / research / quote（引用RT）'
+        description: 'article / research / quote / direct'
         required: true
         type: choice
         options:
           - article
           - research
           - quote
+          - direct
+      post_text:
+        description: '直接投稿テキスト（directモード用）'
+        required: false
+        type: string
       quote_tweet_id:
         description: '引用元ツイートID（quoteモード用）'
         required: false
@@ -62,12 +67,15 @@ jobs:
         run: |
           if [ "${{ inputs.mode }}" = "quote" ]; then
             npx tsx scripts/quote-tweet-manual.ts
+          elif [ "${{ inputs.mode }}" = "direct" ]; then
+            npx tsx scripts/direct-post.ts
           else
             npx tsx scripts/post-to-x.ts
           fi
         env:
           QUOTE_TEXT: ${{ inputs.quote_text }}
           QUOTE_TWEET_ID: ${{ inputs.quote_tweet_id }}
+          POST_TEXT: ${{ inputs.post_text }}
           MODE: ${{ inputs.mode }}
           SLUG: ${{ inputs.slug }}
           TOPIC: ${{ inputs.topic }}
