@@ -1,0 +1,51 @@
+name: Weekly X Threads
+
+on:
+  schedule:
+    # Claude Code Update: 毎週土曜 11:00 JST (= UTC 02:00)
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'claude-code / ai-news / both'
+        required: true
+        type: choice
+        options:
+          - both
+          - claude-code
+          - ai-news
+
+permissions:
+  contents: read
+
+jobs:
+  post-threads:
+    name: 📰 Weekly Thread
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 📰 Research & Post Threads
+        run: npx tsx scripts/weekly-claude-code-update.ts
+        env:
+          WEEKLY_POST_TYPE: ${{ github.event.inputs.type || 'both' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
