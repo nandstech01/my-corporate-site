@@ -71,11 +71,15 @@ async function recallSourceMemories(
 
   const supabase = createClient(url, key)
 
+  // Only recall memories from the last 7 days to prevent stale content
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
   const { data, error } = await supabase
     .from('slack_bot_memory')
     .select('*')
     .eq('slack_user_id', slackUserId)
     .eq('context->>source', sourceType)
+    .gte('created_at', sevenDaysAgo)
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -115,7 +119,8 @@ async function getRecentPendingSourceUrls(): Promise<ReadonlySet<string>> {
   if (!url || !key) return new Set()
 
   const supabase = createClient(url, key)
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  // Extend dedup window to 30 days to prevent stale content resurfacing
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const { data } = await supabase
     .from('slack_pending_actions')
@@ -448,7 +453,7 @@ async function tryViralQuoteArticle(): Promise<boolean> {
   if (!viralPosts || viralPosts.length === 0) return false
 
   // Dedup: skip tweets we've already quoted
-  const recentTexts = await getRecentXPostTexts(7)
+  const recentTexts = await getRecentXPostTexts(30)
 
   const candidate = viralPosts.find((post) => {
     const tweetId = post.external_post_id as string | null
@@ -545,7 +550,7 @@ async function generateTrendingPost(
   opportunity: TrendingOpportunity,
 ): Promise<boolean> {
   let trendingRecentTexts: readonly string[] = []
-  try { trendingRecentTexts = await getRecentXPostTexts(7) } catch { /* best-effort */ }
+  try { trendingRecentTexts = await getRecentXPostTexts(30) } catch { /* best-effort */ }
 
   const postResult = await generateXPost({
     mode: 'research',
@@ -614,7 +619,7 @@ async function runXAutoPostInner(): Promise<void> {
   // 1.1. 直近投稿テキストを早期取得（重複排除 + LLMプロンプト注入用）
   let recentTexts: readonly string[] = []
   try {
-    recentTexts = await getRecentXPostTexts(7)
+    recentTexts = await getRecentXPostTexts(30)
   } catch { /* best-effort */ }
 
   // 1.5. Check for high-priority trending opportunities before content distribution
@@ -1159,7 +1164,7 @@ export async function triggerXPostFromSource(
 
   // X投稿生成
   let triggerRecentTexts: readonly string[] = []
-  try { triggerRecentTexts = await getRecentXPostTexts(7) } catch { /* best-effort */ }
+  try { triggerRecentTexts = await getRecentXPostTexts(30) } catch { /* best-effort */ }
 
   const content = params.description
     ? `${params.title}\n\n${params.description}`

@@ -325,7 +325,7 @@ export async function researchTopic(
       `${topic} site:openai.com OR site:anthropic.com OR site:blog.google OR site:x.com`,
       { freshness: 'pd' },
     ).catch(() => []),
-    searchBrave(`${topic} AI latest news`).catch(() => []),
+    searchBrave(`${topic} AI latest news`, { freshness: 'pw' }).catch(() => []),
   ])
 
   const merged = deduplicateAndPrioritize(allResults.flat())
