@@ -28,6 +28,7 @@ on:
     - cron: '30 16 * * *'     # JST 01:30 Threads engagement learner
     - cron: '30 0,3,5,7,9,11 * * *'    # JST 9:30, 12:30, 14:30, 16:30, 18:30, 20:30 X proactive discussion
     - cron: '0 22,10 * * *'           # JST 7:00, 19:00 X engagement collector
+    - cron: '0 12 * * *'              # JST 21:00 Viral repost (daily, evening golden hour)
   workflow_dispatch:
     inputs:
       job:
@@ -60,6 +61,7 @@ on:
           - threads-engagement-learner
           - x-proactive-discussion
           - x-engagement-collector
+          - viral-repost
 
 jobs:
   run:
@@ -120,5 +122,6 @@ jobs:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_TOKEN_EXPIRES_AT: ${{ secrets.THREADS_TOKEN_EXPIRES_AT }}
           THREADS_POSTING_ENABLED: ${{ secrets.THREADS_POSTING_ENABLED }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
           LANGCHAIN_PROJECT: nands-sns-pipeline
 

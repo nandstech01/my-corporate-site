@@ -32,6 +32,7 @@ import { runThreadsEngagementLearner } from '../lib/slack-bot/proactive/threads-
 import { runProactiveDiscussion } from '../lib/x-conversation/proactive-discussion-runner'
 import { collectXEngagement } from '../lib/slack-bot/proactive/x-engagement-collector'
 import { applyPatternDecay } from '../lib/learning/pattern-bandit'
+import { runViralRepost } from '../lib/slack-bot/proactive/viral-repost'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -87,6 +88,7 @@ type JobName =
   | 'x-proactive-discussion'
   | 'x-engagement-collector'
   | 'pattern-decay'
+  | 'viral-repost'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -115,6 +117,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '30 16 * * *': 'threads-engagement-learner',
   '30 0,3,5,7,9,11 * * *': 'x-proactive-discussion',
   '0 22,10 * * *': 'x-engagement-collector',
+  '0 12 * * *': 'viral-repost',
 }
 
 function detectJob(): JobName {
@@ -304,6 +307,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
     const updated = await applyPatternDecay()
     process.stdout.write(`Pattern decay complete: ${updated} patterns updated\n`)
   },
+  'viral-repost': runViralRepost,
 }
 
 function createTracedCronJob(jobName: JobName) {
