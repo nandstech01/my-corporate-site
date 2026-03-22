@@ -2,8 +2,8 @@ name: Weekly X Threads
 
 on:
   schedule:
-    # Claude Code Update: 毎週土曜 11:00 JST (= UTC 02:00)
-    - cron: '0 2 * * 6'
+    # 毎週日曜 12:00 JST (= UTC 03:00) — 週末キャッチアップ層に最適
+    - cron: '0 3 * * 0'
   workflow_dispatch:
     inputs:
       type:
