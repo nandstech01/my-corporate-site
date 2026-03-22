@@ -13,6 +13,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { uploadMediaToX } from '../lib/x-api/media'
 import { getTwitterClient, getTwitterWeightedLength } from '../lib/x-api/client'
+import { multiSearch } from '../lib/web-search/brave'
 
 // ============================================================
 // Date Helpers
@@ -20,12 +21,12 @@ import { getTwitterClient, getTwitterWeightedLength } from '../lib/x-api/client'
 
 function getThisWeekRange(): { start: string; end: string; label: string } {
   const now = new Date()
-  const day = now.getDay()
-  const diffToMonday = day === 0 ? 6 : day - 1
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - diffToMonday)
-  const friday = new Date(monday)
-  friday.setDate(monday.getDate() + 4)
+  // Always look at the most recently completed Mon-Fri week
+  const daysBack = now.getDay() === 0 ? 2 : now.getDay() === 6 ? 1 : now.getDay()
+  const friday = new Date(now)
+  friday.setDate(now.getDate() - daysBack)
+  const monday = new Date(friday)
+  monday.setDate(friday.getDate() - 4)
 
   const fmt = (d: Date) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
   const fmtShort = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`
@@ -41,24 +42,68 @@ function getThisWeekRange(): { start: string; end: string; label: string } {
 // Research with Claude
 // ============================================================
 
-async function researchClaudeCodeUpdates(weekRange: { start: string; end: string }): Promise<string> {
+async function webSearchAndSummarize(
+  type: 'claude-code' | 'ai-news',
+  weekRange: { start: string; end: string },
+  outputFormat: string,
+): Promise<string> {
+  // Step 1: Web search for real-time data
+  process.stdout.write('[search] Running web searches...\n')
+
+  const queries = type === 'claude-code'
+    ? [
+        `Claude Code changelog ${weekRange.start}`,
+        'Claude Code update release notes site:anthropic.com OR site:github.com',
+        'Claude Code new features this week',
+      ]
+    : [
+        `AI news ${weekRange.start} ${weekRange.end}`,
+        'AI industry news this week OpenAI Google Anthropic NVIDIA',
+        'AI ニュース 今週 2026年3月',
+        'biggest AI announcements March 2026',
+      ]
+
+  const results = await multiSearch(queries, { count: 10, freshness: 'pw' })
+  process.stdout.write(`[search] Found ${results.length} results\n`)
+
+  if (results.length === 0) return '{}'
+
+  const searchContext = results
+    .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.description}`)
+    .join('\n\n')
+
+  // Step 2: Claude summarizes
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+
+  const instruction = type === 'claude-code'
+    ? `以下のWeb検索結果から、Claude Codeの今週（${weekRange.start}〜${weekRange.end}）のアップデート情報を抽出してまとめてください。`
+    : `以下のWeb検索結果から、今週（${weekRange.start}〜${weekRange.end}）のAI業界の重大ニュースTOP5を抽出してまとめてください。
+条件: 検索結果に含まれる情報のみ使用。推測や古い情報は絶対に混ぜないこと。各ニュースのソースURLを必ず含めること。`
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 8192,
     messages: [{
       role: 'user',
-      content: `Claude Codeの今週（${weekRange.start}〜${weekRange.end}）のアップデート情報をまとめてください。
+      content: `${instruction}
 
-以下のソースを確認してください:
-- https://docs.anthropic.com/en/docs/claude-code/changelog
-- https://github.com/anthropics/claude-code/releases
-- https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
+## Web検索結果
+${searchContext}
 
-以下の形式で出力してください（JSON）:
+---
 
-{
+JSONのみ出力してください（他のテキスト不要）:
+
+${outputFormat}`,
+    }],
+  })
+
+  const text = response.content.find((b): b is Anthropic.Messages.TextBlock => b.type === 'text')
+  return text?.text ?? '{}'
+}
+
+async function researchClaudeCodeUpdates(weekRange: { start: string; end: string }): Promise<string> {
+  return webSearchAndSummarize('claude-code', weekRange, `{
   "versions": [
     {
       "version": "v2.1.XX",
@@ -70,42 +115,11 @@ async function researchClaudeCodeUpdates(weekRange: { start: string; end: string
   "summary": "今週全体の一言まとめ（バズるキャッチーな表現で）",
   "opinion": "エンジニアとしての個人的な意見・感想（1-2文）",
   "source_urls": ["公式ソースURL1", "公式ソースURL2"]
+}`)
 }
-
-注意:
-- 今週のリリースのみ含めること（先週以前のものは除外）
-- 各バージョンのハイライトは日本語で簡潔に（各15文字以内）
-- 情報が見つからない場合は versions を空配列にして summary に「今週はリリースなし」と記載`,
-    }],
-  })
-
-  const text = response.content.find((b): b is Anthropic.Messages.TextBlock => b.type === 'text')
-  return text?.text ?? '{}'
-}
-
-// ============================================================
-// Research AI Industry News with Claude (web search)
-// ============================================================
 
 async function researchAINews(weekRange: { start: string; end: string }): Promise<string> {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
-    messages: [{
-      role: 'user',
-      content: `今週（${weekRange.start}〜${weekRange.end}）のAI業界の重大ニュースTOP5をまとめてください。
-
-条件:
-- 必ず今週発表・公開された情報のみ（古い情報は絶対に混ぜない）
-- 公式発表、プレスリリース、信頼できるニュースソースに基づくこと
-- 可能であればX(Twitter)の公式アカウントの投稿URLを含める
-- バズりやすい（議論を呼ぶ、驚き、影響が大きい）ニュースを優先
-
-以下の形式で出力してください（JSON）:
-
-{
+  return webSearchAndSummarize('ai-news', weekRange, `{
   "stories": [
     {
       "headline": "キャッチーな見出し（20文字以内）",
@@ -117,22 +131,9 @@ async function researchAINews(weekRange: { start: string; end: string }): Promis
   "summary": "今週のAI業界を一言で（バズるキャッチーな表現で）",
   "opinion": "エンジニアとしての個人的な意見・感想（1-2文）",
   "infographic_items": [
-    {
-      "label": "短い見出し（10文字以内）",
-      "description": "補足説明（15文字以内）"
-    }
+    {"label": "短い見出し（10文字以内）", "description": "補足説明（15文字以内）"}
   ]
-}
-
-注意:
-- 日付の正確性が最重要。今週以外の情報を含めたら致命的
-- OpenAI, Google, Anthropic, Meta, NVIDIA等の大手の動向を優先
-- 日本のテック層に刺さる内容を優先`,
-    }],
-  })
-
-  const text = response.content.find((b): b is Anthropic.Messages.TextBlock => b.type === 'text')
-  return text?.text ?? '{}'
+}`)
 }
 
 // ============================================================

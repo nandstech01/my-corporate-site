@@ -14,6 +14,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { postThreadsChain } from '../lib/threads-api/client'
+import { multiSearch } from '../lib/web-search/brave'
 
 // ============================================================
 // Date Helpers
@@ -21,12 +22,13 @@ import { postThreadsChain } from '../lib/threads-api/client'
 
 function getThisWeekRange(): { start: string; end: string; label: string } {
   const now = new Date()
-  const day = now.getDay()
-  const diffToMonday = day === 0 ? 6 : day - 1
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - diffToMonday)
-  const friday = new Date(monday)
-  friday.setDate(monday.getDate() + 4)
+  // Always look at the most recently completed Mon-Fri week
+  // Go back to find last Friday, then derive Monday from that
+  const daysBack = now.getDay() === 0 ? 2 : now.getDay() === 6 ? 1 : now.getDay()
+  const friday = new Date(now)
+  friday.setDate(now.getDate() - daysBack)
+  const monday = new Date(friday)
+  monday.setDate(friday.getDate() - 4)
 
   const fmt = (d: Date) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
   const fmtShort = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`
@@ -42,24 +44,67 @@ function getThisWeekRange(): { start: string; end: string; label: string } {
 // Research with Claude (Threads-optimized output)
 // ============================================================
 
+async function searchAndCollect(
+  type: 'claude-code' | 'ai-news',
+  weekRange: { start: string; end: string },
+): Promise<string> {
+  process.stdout.write('[search] Running web searches...\n')
+
+  const queries = type === 'claude-code'
+    ? [
+        `Claude Code changelog ${weekRange.start}`,
+        'Claude Code update release notes site:anthropic.com OR site:github.com',
+        'Claude Code new features this week',
+      ]
+    : [
+        `AI news ${weekRange.start} ${weekRange.end}`,
+        'AI industry news this week OpenAI Google Anthropic NVIDIA',
+        'AI ニュース 今週 2026年3月',
+        'biggest AI announcements March 2026',
+        'AI startup funding acquisition March 2026',
+      ]
+
+  const results = await multiSearch(queries, { count: 10, freshness: 'pw' })
+  process.stdout.write(`[search] Found ${results.length} results\n`)
+
+  // Format search results for Claude
+  const searchContext = results
+    .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.description}`)
+    .join('\n\n')
+
+  return searchContext
+}
+
 async function researchForThreads(
   type: 'claude-code' | 'ai-news',
   weekRange: { start: string; end: string },
 ): Promise<string> {
+  // Step 1: Web search for real-time data
+  const searchContext = await searchAndCollect(type, weekRange)
+
+  if (!searchContext) {
+    return '{}'
+  }
+
+  // Step 2: Claude summarizes search results
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
-  const topicPrompt = type === 'claude-code'
-    ? `Claude Codeの今週（${weekRange.start}〜${weekRange.end}）のアップデート情報をまとめてください。
-ソース: Claude Codeの公式changelog、GitHub releases`
-    : `今週（${weekRange.start}〜${weekRange.end}）のAI業界の重大ニュースTOP5をまとめてください。
-条件: 必ず今週発表された情報のみ。古い情報は絶対に混ぜないこと。`
+  const topicInstruction = type === 'claude-code'
+    ? `以下のWeb検索結果から、Claude Codeの今週（${weekRange.start}〜${weekRange.end}）のアップデート情報を抽出してまとめてください。`
+    : `以下のWeb検索結果から、今週（${weekRange.start}〜${weekRange.end}）のAI業界の重大ニュースTOP5を抽出してまとめてください。
+条件: 検索結果に含まれる情報のみ使用。推測や古い情報は絶対に混ぜないこと。各ニュースのソースURLを必ず含めること。`
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 8192,
     messages: [{
       role: 'user',
-      content: `${topicPrompt}
+      content: `${topicInstruction}
+
+## Web検索結果
+${searchContext}
+
+---
 
 **Threads向けに最適化した出力をお願いします。**
 
@@ -70,7 +115,7 @@ Threadsの特徴:
 - 専門用語は噛み砕く
 - 「へぇ〜」「これすごい」的な驚きを演出
 
-以下のJSON形式で出力:
+以下のJSON形式で出力（JSONのみ、他のテキストは不要）:
 
 {
   "parent_text": "最初の投稿（図解画像と一緒に投稿される、150文字以内、キャッチーに）",
