@@ -76,6 +76,7 @@ async function createMediaContainer(options: {
   readonly text: string
   readonly imageUrl?: string
   readonly mediaType: ThreadsMediaType
+  readonly replyToId?: string
 }): Promise<string> {
   const userId = process.env.THREADS_USER_ID!
 
@@ -86,6 +87,10 @@ async function createMediaContainer(options: {
 
   if (options.imageUrl && options.mediaType === 'IMAGE') {
     params.set('image_url', options.imageUrl)
+  }
+
+  if (options.replyToId) {
+    params.set('reply_to_id', options.replyToId)
   }
 
   const result = await graphApiFetch<{ id: string }>(
@@ -193,6 +198,103 @@ export async function postToThreads(options: {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     return { success: false, error: message, status: 'failed' }
+  }
+}
+
+// ============================================================
+// リプライ（スレッド/チェーン投稿）
+// ============================================================
+
+/**
+ * 既存のThreads投稿にリプライする
+ */
+export async function replyToThreads(options: {
+  readonly text: string
+  readonly replyToId: string
+  readonly imageUrl?: string
+}): Promise<ThreadsPostResult> {
+  if (!isThreadsConfigured() || !isThreadsPostingEnabled()) {
+    return { success: false, error: 'Threads not configured or disabled', status: 'failed' }
+  }
+
+  try {
+    const mediaType: ThreadsMediaType = options.imageUrl ? 'IMAGE' : 'TEXT'
+
+    const containerId = await createMediaContainer({
+      text: options.text,
+      imageUrl: options.imageUrl,
+      mediaType,
+      replyToId: options.replyToId,
+    })
+
+    await pollContainerStatus(containerId)
+    const published = await publishMedia(containerId)
+
+    return {
+      success: true,
+      mediaId: published.id,
+      permalinkUrl: published.permalink,
+      status: 'posted',
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return { success: false, error: message, status: 'failed' }
+  }
+}
+
+/**
+ * チェーン型スレッドを投稿する（親 → 子1 → 子2 → ...）
+ */
+export async function postThreadsChain(options: {
+  readonly parentText: string
+  readonly parentImageUrl?: string
+  readonly replies: readonly string[]
+}): Promise<{
+  readonly parentUrl?: string
+  readonly replyCount: number
+  readonly errors: readonly string[]
+}> {
+  const errors: string[] = []
+
+  // Parent post
+  const parentResult = await postToThreads({
+    text: options.parentText,
+    imageUrl: options.parentImageUrl,
+  })
+
+  if (!parentResult.success || !parentResult.mediaId) {
+    return { replyCount: 0, errors: [parentResult.error ?? 'Parent post failed'] }
+  }
+
+  process.stdout.write(`[threads] Parent: ${parentResult.permalinkUrl ?? parentResult.mediaId}\n`)
+
+  // Chain replies
+  let lastMediaId = parentResult.mediaId
+  let replyCount = 0
+
+  for (let i = 0; i < options.replies.length; i++) {
+    // Threads API rate limit buffer
+    await new Promise((r) => setTimeout(r, 3000))
+
+    const replyResult = await replyToThreads({
+      text: options.replies[i],
+      replyToId: lastMediaId,
+    })
+
+    if (replyResult.success && replyResult.mediaId) {
+      lastMediaId = replyResult.mediaId
+      replyCount++
+      process.stdout.write(`[threads] Reply ${i + 1}: ${replyResult.permalinkUrl ?? replyResult.mediaId}\n`)
+    } else {
+      errors.push(`Reply ${i + 1}: ${replyResult.error}`)
+      process.stdout.write(`[threads] Reply ${i + 1} FAILED: ${replyResult.error}\n`)
+    }
+  }
+
+  return {
+    parentUrl: parentResult.permalinkUrl,
+    replyCount,
+    errors,
   }
 }
 
