@@ -35,6 +35,7 @@ on:
     - cron: '0 23 * * *'              # JST 8:00 Daily buzz global AI news
     - cron: '0 4 * * *'               # JST 13:00 Daily buzz Claude Code
     - cron: '0 11 * * *'              # JST 20:00 Daily buzz AI tech Japan
+    - cron: '*/15 0-14 * * *'         # JST 9:00-23:00 every 15min Anthropic tweet reactor
   workflow_dispatch:
     inputs:
       job:
@@ -73,6 +74,7 @@ on:
           - daily-buzz-global
           - daily-buzz-claude-code
           - daily-buzz-japan
+          - anthropic-tweet-reactor
 
 jobs:
   run:

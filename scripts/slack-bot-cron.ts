@@ -36,6 +36,7 @@ import { applyPatternDecay } from '../lib/learning/pattern-bandit'
 import { runViralRepost } from '../lib/slack-bot/proactive/viral-repost'
 import { runCrossPostEngagementCollector } from '../lib/cross-post/cross-post-engagement-collector'
 import { runDailyBuzzThread } from '../lib/daily-buzz/runner'
+import { runAnthropicReactor } from '../lib/tweet-reactor/anthropic-reactor'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -97,6 +98,7 @@ type JobName =
   | 'daily-buzz-global'
   | 'daily-buzz-claude-code'
   | 'daily-buzz-japan'
+  | 'anthropic-tweet-reactor'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -132,6 +134,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 23 * * *': 'daily-buzz-global',
   '0 4 * * *': 'daily-buzz-claude-code',
   '0 11 * * *': 'daily-buzz-japan',
+  '*/15 0-14 * * *': 'anthropic-tweet-reactor',
 }
 
 function detectJob(): JobName {
@@ -167,7 +170,8 @@ function detectJob(): JobName {
     explicit === 'cross-post-engagement-collector' ||
     explicit === 'daily-buzz-global' ||
     explicit === 'daily-buzz-claude-code' ||
-    explicit === 'daily-buzz-japan'
+    explicit === 'daily-buzz-japan' ||
+    explicit === 'anthropic-tweet-reactor'
   ) {
     return explicit
   }
@@ -369,6 +373,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'daily-buzz-global': async () => { await runDailyBuzzThread('global-ai-news') },
   'daily-buzz-claude-code': async () => { await runDailyBuzzThread('claude-code') },
   'daily-buzz-japan': async () => { await runDailyBuzzThread('ai-tech-japan') },
+  'anthropic-tweet-reactor': runAnthropicReactor,
 }
 
 function createTracedCronJob(jobName: JobName) {
