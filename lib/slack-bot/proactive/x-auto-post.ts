@@ -15,7 +15,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { createPendingAction, getRecentXPostTexts, getRecentXSourceUrls } from '../memory'
+import { createPendingAction, getRecentXPostTexts, getRecentXSourceUrls, getRecentXMediaUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateXPost } from '../../x-post-generation/post-graph'
 import { generateQuoteTweet } from '../../x-quote-generation/quote-graph'
@@ -143,6 +143,33 @@ async function getRecentPendingSourceUrls(): Promise<ReadonlySet<string>> {
     const payload = row.payload as Record<string, unknown> | null
     if (payload?.sourceUrl && typeof payload.sourceUrl === 'string') {
       urls.add(payload.sourceUrl)
+    }
+  }
+  return urls
+}
+
+/** pending actionsから直近使用済みの画像URLを取得 */
+async function getRecentPendingImageUrls(): Promise<ReadonlySet<string>> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return new Set()
+
+  const supabase = createClient(url, key)
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data } = await supabase
+    .from('slack_pending_actions')
+    .select('payload')
+    .in('action_type', ['post_x', 'post_x_long'])
+    .gte('created_at', since)
+
+  if (!data) return new Set()
+
+  const urls = new Set<string>()
+  for (const row of data) {
+    const payload = row.payload as Record<string, unknown> | null
+    if (payload?.mediaUrl && typeof payload.mediaUrl === 'string') {
+      urls.add(payload.mediaUrl)
     }
   }
   return urls
@@ -624,19 +651,26 @@ async function runXAutoPostInner(): Promise<void> {
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
 
-  // 1.1. 直近投稿テキスト + URLセットを早期取得（重複排除 + LLMプロンプト注入用）
+  // 1.1. 直近投稿テキスト + URLセット + 画像URLを早期取得（重複排除用）
   let recentTexts: readonly string[] = []
   let recentPendingUrls: ReadonlySet<string> = new Set()
   let recentPostedUrls: ReadonlySet<string> = new Set()
+  let recentImageUrls: ReadonlySet<string> = new Set()
   try {
-    const [texts, pending, posted] = await Promise.all([
+    const [texts, pending, posted, mediaUrls, pendingImageUrls] = await Promise.all([
       getRecentXPostTexts(30),
       getRecentPendingSourceUrls(),
       getRecentXSourceUrls(14),
+      getRecentXMediaUrls(14),
+      getRecentPendingImageUrls(),
     ])
     recentTexts = texts
     recentPendingUrls = pending
     recentPostedUrls = new Set(posted)
+    // 画像URLは analytics + pending actions の両方からマージ
+    const allImageUrls = new Set(mediaUrls)
+    for (const u of pendingImageUrls) allImageUrls.add(u)
+    recentImageUrls = allImageUrls
   } catch { /* best-effort */ }
 
   // 1.5. Check for high-priority trending opportunities before content distribution
@@ -1023,16 +1057,19 @@ async function runXAutoPostInner(): Promise<void> {
     return
   }
 
-  // 6. メディア取得 (best-effort)
+  // 6. メディア取得 (best-effort, 画像重複排除あり)
   let mediaIds: string[] | undefined
+  let mediaUrl: string | undefined
   try {
     const media = await fetchMediaForPost({
       sourceUrl: topCandidate.sourceUrl,
       topic: topCandidate.title,
+      recentImageUrls,
     })
     if (media?.mediaId) {
       mediaIds = [media.mediaId]
-      process.stdout.write('X auto-post: Media attached\n')
+      mediaUrl = media.imageUrl
+      process.stdout.write(`X auto-post: Media attached${media.imageUrl ? ` (${media.imageUrl.slice(0, 80)})` : ''}\n`)
     }
   } catch {
     // メディア取得失敗はテキストのみ投稿で続行
@@ -1052,6 +1089,7 @@ async function runXAutoPostInner(): Promise<void> {
         patternUsed: postResult.patternUsed,
         tags: postResult.tags,
         mediaIds,
+        mediaUrl,
       })
       process.stdout.write(
         `X auto-post (AI Judge): "${topCandidate.title}" → ${result.success ? 'posted' : 'rejected'}${result.error ? ` (${result.error})` : ''}\n`,
@@ -1071,6 +1109,7 @@ async function runXAutoPostInner(): Promise<void> {
         patternUsed: postResult.patternUsed,
         tags: postResult.tags,
         ...(mediaIds ? { mediaIds } : {}),
+        ...(mediaUrl ? { mediaUrl } : {}),
       },
       previewText: postResult.finalPost,
     })
@@ -1195,15 +1234,24 @@ export async function triggerXPostFromSource(
     recentPostTexts: triggerRecentTexts,
   })
 
-  // メディア取得 (best-effort)
+  // メディア取得 (best-effort, 画像重複排除あり)
   let mediaIds: string[] | undefined
+  let triggerMediaUrl: string | undefined
   try {
+    let triggerRecentImageUrls: ReadonlySet<string> = new Set()
+    try {
+      const mediaUrls = await getRecentXMediaUrls(14)
+      triggerRecentImageUrls = new Set(mediaUrls)
+    } catch { /* best-effort */ }
+
     const media = await fetchMediaForPost({
       sourceUrl: params.sourceUrl,
       topic: params.title,
+      recentImageUrls: triggerRecentImageUrls,
     })
     if (media?.mediaId) {
       mediaIds = [media.mediaId]
+      triggerMediaUrl = media.imageUrl
     }
   } catch {
     // テキストのみで続行
@@ -1220,6 +1268,7 @@ export async function triggerXPostFromSource(
       patternUsed: postResult.patternUsed,
       tags: postResult.tags,
       mediaIds,
+      mediaUrl: triggerMediaUrl,
     })
     process.stdout.write(
       `X auto-post trigger (AI Judge): "${params.title}" → ${result.success ? 'posted' : 'rejected'}\n`,

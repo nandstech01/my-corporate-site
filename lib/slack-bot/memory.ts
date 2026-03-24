@@ -486,6 +486,11 @@ export async function savePostAnalytics(params: {
   readonly threadPosition?: number
   readonly threadRootId?: string
   readonly sourceUrl?: string
+  readonly mediaUrl?: string
+  readonly mlPrediction?: number
+  readonly mlConfidence?: number
+  readonly mlFeatures?: Record<string, number>
+  readonly mlModelVersion?: string
 }): Promise<XPostAnalytics> {
   const supabase = getSupabase()
 
@@ -504,6 +509,11 @@ export async function savePostAnalytics(params: {
       thread_position: params.threadPosition ?? null,
       thread_root_id: params.threadRootId ?? null,
       source_url: params.sourceUrl ?? null,
+      media_url: params.mediaUrl ?? null,
+      ml_features: params.mlFeatures ?? null,
+      ml_prediction: params.mlPrediction ?? null,
+      ml_confidence: params.mlConfidence ?? null,
+      ml_model_version: params.mlModelVersion ?? null,
     })
     .select()
     .single()
@@ -738,6 +748,28 @@ export async function getRecentXSourceUrls(
 
   return (data ?? [])
     .map((row) => row.source_url as string)
+    .filter((url) => url.length > 0)
+}
+
+/** X自動投稿用: 直近N日間に使用された画像URLを取得（画像重複排除用） */
+export async function getRecentXMediaUrls(
+  days: number = 14,
+): Promise<readonly string[]> {
+  const supabase = getSupabase()
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('x_post_analytics')
+    .select('media_url')
+    .gte('posted_at', since)
+    .not('media_url', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to get recent X media URLs: ${error.message}`)
+  }
+
+  return (data ?? [])
+    .map((row) => row.media_url as string)
     .filter((url) => url.length > 0)
 }
 

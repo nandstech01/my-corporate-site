@@ -50,12 +50,16 @@ export interface MediaResult {
   buffer: Buffer
   mimeType: string
   source: string
+  /** og:image等の実際の画像URL（重複排除用） */
+  imageUrl?: string
 }
 
 export interface FetchMediaParams {
   sourceUrl: string
   topic?: string
   searchResultUrls?: string[]
+  /** 直近で使用済みの画像URL（重複排除用） */
+  recentImageUrls?: ReadonlySet<string>
 }
 
 interface DownloadedMedia {
@@ -248,7 +252,7 @@ export async function downloadVideo(
  */
 export async function fetchOgImage(
   url: string,
-): Promise<DownloadedMedia | null> {
+): Promise<(DownloadedMedia & { imageUrl: string }) | null> {
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), OG_FETCH_TIMEOUT)
@@ -276,8 +280,10 @@ export async function fetchOgImage(
     if (!imageUrl) return null
 
     const absoluteUrl = new URL(imageUrl, url).href
+    const downloaded = await downloadImage(absoluteUrl)
+    if (!downloaded) return null
 
-    return await downloadImage(absoluteUrl)
+    return { ...downloaded, imageUrl: absoluteUrl }
   } catch (error) {
     console.error('[media] fetchOgImage failed:', error)
     return null
@@ -422,7 +428,7 @@ export async function uploadMediaToX(
 export async function fetchMediaForPost(
   params: FetchMediaParams,
 ): Promise<MediaResult | null> {
-  const { sourceUrl, topic, searchResultUrls } = params
+  const { sourceUrl, topic, searchResultUrls, recentImageUrls } = params
 
   // 1. og:video from sourceUrl (記事の動画)
   if (sourceUrl) {
@@ -446,14 +452,20 @@ export async function fetchMediaForPost(
     console.log(`[media] Step 2: Trying og:image from ${sourceUrl}`)
     const image = await fetchOgImage(sourceUrl)
     if (image) {
-      const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
-      console.log(`[media] og:image found, X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
-      return {
-        mediaId,
-        type: 'image',
-        buffer: image.buffer,
-        mimeType: image.mimeType,
-        source: 'og:image',
+      // 画像URL重複チェック: 直近で同じ画像が使われていたらスキップ
+      if (recentImageUrls?.has(image.imageUrl)) {
+        console.log(`[media] Skipping duplicate og:image: ${image.imageUrl}`)
+      } else {
+        const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
+        console.log(`[media] og:image found, X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
+        return {
+          mediaId,
+          type: 'image',
+          buffer: image.buffer,
+          mimeType: image.mimeType,
+          source: 'og:image',
+          imageUrl: image.imageUrl,
+        }
       }
     }
   }
@@ -464,6 +476,11 @@ export async function fetchMediaForPost(
     for (const resultUrl of searchResultUrls.slice(0, 5)) {
       const image = await fetchOgImage(resultUrl)
       if (image) {
+        // 画像URL重複チェック
+        if (recentImageUrls?.has(image.imageUrl)) {
+          console.log(`[media] Skipping duplicate search og:image: ${image.imageUrl}`)
+          continue
+        }
         const mediaId = await uploadMediaToX(image.buffer, image.mimeType)
         console.log(`[media] og:image from search result found (${resultUrl}), X upload: ${mediaId ? 'success' : 'failed (Slack fallback)'}`)
         return {
@@ -472,6 +489,7 @@ export async function fetchMediaForPost(
           buffer: image.buffer,
           mimeType: image.mimeType,
           source: `og:image:search(${resultUrl})`,
+          imageUrl: image.imageUrl,
         }
       }
     }

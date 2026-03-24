@@ -16,6 +16,7 @@ import { QUOTE_TWEET_CONFIDENCE_THRESHOLD, getDailyPostLimit } from './config'
 import { postToLinkedIn } from '../linkedin-api/client'
 import { postToThreads } from '../threads-api/client'
 import { predictEngagement } from '../linkedin-ml-bridge/ml-client'
+import { predictXEngagement } from '../x-ml-bridge/ml-client'
 import { savePostAnalytics, saveLinkedInPostAnalytics, saveThreadsPostAnalytics } from '../slack-bot/memory'
 import { revisePost } from '../content-critique/critique-engine'
 
@@ -162,6 +163,30 @@ async function postToX(post: PostCandidate): Promise<{
         ? 'article'
         : 'original'
 
+  // ML prediction (best-effort)
+  let mlPrediction: number | undefined
+  let mlConfidence: number | undefined
+  let mlFeatures: Record<string, number> | undefined
+  let mlModelVersion: string | undefined
+
+  try {
+    const now = new Date()
+    const prediction = await predictXEngagement(post.text, {
+      dayOfWeek: now.getDay(),
+      hour: now.getHours(),
+      postType,
+      hasMedia: (post.mediaIds?.length ?? 0) > 0,
+    })
+    if (prediction) {
+      mlPrediction = prediction.predictedEngagement
+      mlConfidence = prediction.confidence
+      mlFeatures = prediction.features
+      mlModelVersion = prediction.modelVersion
+    }
+  } catch {
+    // Best-effort: ML prediction failure should not block
+  }
+
   // Save analytics
   try {
     await savePostAnalytics({
@@ -173,6 +198,11 @@ async function postToX(post: PostCandidate): Promise<{
       postType,
       quotedTweetId: post.quoteTweetId,
       sourceUrl: post.sourceUrl,
+      mediaUrl: post.mediaUrl,
+      mlPrediction,
+      mlConfidence,
+      mlFeatures,
+      mlModelVersion,
     })
   } catch {
     // Best-effort: analytics failure should not block

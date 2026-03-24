@@ -62,6 +62,7 @@ export interface PostCandidate {
   readonly patternUsed?: string
   readonly tags?: readonly string[]
   readonly mediaIds?: readonly string[]
+  readonly mediaUrl?: string
   readonly pendingActionId?: string
   readonly quoteTweetId?: string
   readonly threadSegments?: readonly string[]
@@ -159,6 +160,13 @@ export interface AiJudgeDecisionRecord {
   readonly posted_at: string | null
   readonly engagement_fetched_at: string | null
   readonly predicted_engagement_rate: number | null
+  readonly dimensions: {
+    readonly hookStrength: number
+    readonly voiceAuthenticity: number
+    readonly engagementTrigger: number
+    readonly platformFit: number
+    readonly factualGrounding: number
+  } | null
 }
 
 // ============================================================

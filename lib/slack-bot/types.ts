@@ -51,6 +51,7 @@ export interface XPostAnalytics {
   readonly post_mode: 'article' | 'research' | 'pattern' | null
   readonly pattern_used: string | null
   readonly source_url: string | null
+  readonly media_url: string | null
   readonly posted_at: string
   readonly likes: number
   readonly retweets: number
