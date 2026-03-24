@@ -14,6 +14,7 @@ import { runTrendingCollector } from '../lib/x-trending-collector/trending-colle
 import { runLinkedInSourceCollector } from '../lib/linkedin-source-collector/source-collector'
 import { runLinkedInAutoPost } from '../lib/slack-bot/proactive/linkedin-auto-post'
 import { runLinkedInModelRetrainer } from '../lib/slack-bot/proactive/linkedin-model-retrainer'
+import { runXModelRetrainer } from '../lib/slack-bot/proactive/x-model-retrainer'
 import { runBlogRSSMonitor } from '../lib/blog-generation/rss-blog-monitor'
 import { runInstagramEngagementLearner } from '../lib/slack-bot/proactive/instagram-engagement-learner'
 import { findUnstoriedBlogs } from '../lib/instagram-story-generation/trigger'
@@ -33,6 +34,8 @@ import { runProactiveDiscussion } from '../lib/x-conversation/proactive-discussi
 import { collectXEngagement } from '../lib/slack-bot/proactive/x-engagement-collector'
 import { applyPatternDecay } from '../lib/learning/pattern-bandit'
 import { runViralRepost } from '../lib/slack-bot/proactive/viral-repost'
+import { runCrossPostEngagementCollector } from '../lib/cross-post/cross-post-engagement-collector'
+import { runDailyBuzzThread } from '../lib/daily-buzz/runner'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -87,8 +90,13 @@ type JobName =
   | 'threads-engagement-learner'
   | 'x-proactive-discussion'
   | 'x-engagement-collector'
+  | 'x-model-retrainer'
   | 'pattern-decay'
   | 'viral-repost'
+  | 'cross-post-engagement-collector'
+  | 'daily-buzz-global'
+  | 'daily-buzz-claude-code'
+  | 'daily-buzz-japan'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -108,6 +116,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 17 * * *': 'ai-judge-calibrator',
   '0 21,3,9 * * *': 'buzz-collector',
   '0 19 * * 0': 'ai-judge-drift-monitor',
+  '0 19 * * 3': 'cross-platform-learner',
   '30 3,9,15,21 * * *': 'safety-event-scanner',
   '30 0,6,12,18 * * *': 'lead-email-sequences',
   '15 0-14 * * *': 'x-account-monitor',
@@ -117,7 +126,12 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '30 16 * * *': 'threads-engagement-learner',
   '30 0,3,5,7,9,11 * * *': 'x-proactive-discussion',
   '0 22,10 * * *': 'x-engagement-collector',
+  '30 18 * * *': 'x-model-retrainer',
   '0 12 * * *': 'viral-repost',
+  '0 13 * * *': 'cross-post-engagement-collector',
+  '0 23 * * *': 'daily-buzz-global',
+  '0 4 * * *': 'daily-buzz-claude-code',
+  '0 11 * * *': 'daily-buzz-japan',
 }
 
 function detectJob(): JobName {
@@ -148,7 +162,12 @@ function detectJob(): JobName {
     explicit === 'threads-engagement-learner' ||
     explicit === 'x-proactive-discussion' ||
     explicit === 'x-engagement-collector' ||
-    explicit === 'pattern-decay'
+    explicit === 'x-model-retrainer' ||
+    explicit === 'pattern-decay' ||
+    explicit === 'cross-post-engagement-collector' ||
+    explicit === 'daily-buzz-global' ||
+    explicit === 'daily-buzz-claude-code' ||
+    explicit === 'daily-buzz-japan'
   ) {
     return explicit
   }
@@ -223,8 +242,13 @@ function detectJob(): JobName {
   // instagram-story-auto-check resolved via explicit CRON_JOB or CRON_SCHEDULE
 
   // JST 03:00 = UTC 18:00 → LinkedIn ML model retrainer
-  if (utcHour === 18) {
+  if (utcHour === 18 && utcMinute < 30) {
     return 'linkedin-model-retrainer'
+  }
+
+  // JST 03:30 = UTC 18:30 → X ML model retrainer
+  if (utcHour === 18 && utcMinute >= 30) {
+    return 'x-model-retrainer'
   }
 
   // JST 6:30,12:30,18:30 = UTC 21:30,3:30,9:30 → X auto-post (1日3回)
@@ -241,6 +265,11 @@ function detectJob(): JobName {
   // JST 04:00 Sunday = UTC 19:00 Sunday → drift monitor
   if (utcHour === 19 && dayOfWeek === 0) {
     return 'ai-judge-drift-monitor'
+  }
+
+  // JST 04:00 Wednesday = UTC 19:00 Wednesday → cross-platform learner
+  if (utcHour === 19 && dayOfWeek === 3) {
+    return 'cross-platform-learner'
   }
 
   // JST 6:00,12:00,18:00 = UTC 21:00,3:00,9:00 → buzz collector (1日3回)
@@ -289,6 +318,33 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
       process.stdout.write(
         `Drift check [${platform}]: drifted=${drift.drifted}, shouldRetrain=${drift.shouldRetrain}, rollingMAE=${drift.rollingMae}\n`,
       )
+
+      // Auto-retrain if drift threshold exceeded
+      if (drift.shouldRetrain) {
+        process.stdout.write(`[drift-monitor] Auto-retraining triggered for ${platform}\n`)
+        try {
+          if (platform === 'linkedin') {
+            await runLinkedInModelRetrainer()
+          } else if (platform === 'x') {
+            await runXModelRetrainer()
+          } else {
+            await runEngagementLearner()
+          }
+          // Notify via Slack
+          try {
+            const { sendMessage } = await import('../lib/slack-bot/slack-client')
+            const channel = process.env.SLACK_DEFAULT_CHANNEL
+            if (channel) {
+              await sendMessage({
+                channel,
+                text: `:brain: *自動再学習を実行* [${platform}]\nMAE: ${drift.rollingMae.toFixed(3)} (training baseline: ${drift.trainingMae.toFixed(3)})\n${drift.consecutiveDriftDays}日連続ドリフト検出`,
+              })
+            }
+          } catch { /* best-effort notification */ }
+        } catch (e) {
+          process.stdout.write(`[drift-monitor] Retrain failed for ${platform}: ${e instanceof Error ? e.message : e}\n`)
+        }
+      }
     }
     // Weekly cross-platform learning (runs with drift monitor on Sundays)
     await runCrossPlatformLearner()
@@ -303,11 +359,16 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'threads-engagement-learner': runThreadsEngagementLearner,
   'x-proactive-discussion': runProactiveDiscussion,
   'x-engagement-collector': collectXEngagement,
+  'x-model-retrainer': runXModelRetrainer,
   'pattern-decay': async () => {
     const updated = await applyPatternDecay()
     process.stdout.write(`Pattern decay complete: ${updated} patterns updated\n`)
   },
   'viral-repost': runViralRepost,
+  'cross-post-engagement-collector': runCrossPostEngagementCollector,
+  'daily-buzz-global': async () => { await runDailyBuzzThread('global-ai-news') },
+  'daily-buzz-claude-code': async () => { await runDailyBuzzThread('claude-code') },
+  'daily-buzz-japan': async () => { await runDailyBuzzThread('ai-tech-japan') },
 }
 
 function createTracedCronJob(jobName: JobName) {
