@@ -98,11 +98,19 @@ function extractCandidatesFromMemories(
   memories: readonly MemoryRow[],
 ): readonly LinkedInTopicCandidate[] {
   const allCandidates: LinkedInTopicCandidate[] = []
+  const seen = new Set<string>()
 
   for (const memory of memories) {
     const ctx = memory.context as MemoryContext | null
     if (ctx?.candidates && Array.isArray(ctx.candidates)) {
-      allCandidates.push(...ctx.candidates)
+      for (const candidate of ctx.candidates) {
+        // URL or title-based dedup across memory rows
+        const key = candidate.sourceUrl || candidate.title
+        if (key && !seen.has(key)) {
+          seen.add(key)
+          allCandidates.push(candidate)
+        }
+      }
     }
   }
 
@@ -161,10 +169,10 @@ function deduplicateCandidates(
   recentPostedUrls: ReadonlySet<string>,
 ): readonly LinkedInTopicCandidate[] {
   return candidates.filter((candidate) => {
-    // 1. pending action URL一致 → 除外
-    if (recentPendingUrls.has(candidate.sourceUrl)) return false
-    // 2. 投稿済みソースURL一致 → 除外
-    if (recentPostedUrls.has(candidate.sourceUrl)) return false
+    // 1. pending action URL一致 → 除外（空URLはスキップ）
+    if (candidate.sourceUrl && recentPendingUrls.has(candidate.sourceUrl)) return false
+    // 2. 投稿済みソースURL一致 → 除外（空URLはスキップ）
+    if (candidate.sourceUrl && recentPostedUrls.has(candidate.sourceUrl)) return false
     // 3. タイトル類似度チェック (substring + bigram Jaccard + keyword overlap)
     const titleLower = candidate.title.toLowerCase()
     const titleKeywords = extractTitleKeywords(candidate.title)
@@ -616,10 +624,19 @@ async function runXAutoPostInner(): Promise<void> {
   // 1. ランダム遅延（スパム検出回避）
   await randomDelay()
 
-  // 1.1. 直近投稿テキストを早期取得（重複排除 + LLMプロンプト注入用）
+  // 1.1. 直近投稿テキスト + URLセットを早期取得（重複排除 + LLMプロンプト注入用）
   let recentTexts: readonly string[] = []
+  let recentPendingUrls: ReadonlySet<string> = new Set()
+  let recentPostedUrls: ReadonlySet<string> = new Set()
   try {
-    recentTexts = await getRecentXPostTexts(30)
+    const [texts, pending, posted] = await Promise.all([
+      getRecentXPostTexts(30),
+      getRecentPendingSourceUrls(),
+      getRecentXSourceUrls(14),
+    ])
+    recentTexts = texts
+    recentPendingUrls = pending
+    recentPostedUrls = new Set(posted)
   } catch { /* best-effort */ }
 
   // 1.5. Check for high-priority trending opportunities before content distribution
@@ -718,7 +735,10 @@ async function runXAutoPostInner(): Promise<void> {
     try {
       const threadMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (threadMemories.length > 0) {
-        const threadCandidates = extractCandidatesFromMemories(threadMemories)
+        const rawThreadCandidates = extractCandidatesFromMemories(threadMemories)
+        const threadCandidates = deduplicateCandidates(
+          rawThreadCandidates, recentTexts, recentPendingUrls, recentPostedUrls,
+        )
         if (threadCandidates.length > 0) {
           const topCandidate = threadCandidates[0]
           const postResult = await generateXPost({
@@ -763,7 +783,10 @@ async function runXAutoPostInner(): Promise<void> {
     try {
       const articleMemories = await recallSourceMemories(userId, 'linkedin_sources', 3)
       if (articleMemories.length > 0) {
-        const articleCandidates = extractCandidatesFromMemories(articleMemories)
+        const rawArticleCandidates = extractCandidatesFromMemories(articleMemories)
+        const articleCandidates = deduplicateCandidates(
+          rawArticleCandidates, recentTexts, recentPendingUrls, recentPostedUrls,
+        )
         if (articleCandidates.length > 0) {
           const topCandidate = articleCandidates[0]
           const postResult = await generateXPost({
@@ -917,19 +940,14 @@ async function runXAutoPostInner(): Promise<void> {
     return
   }
 
-  // 3. 重複排除
+  // 3. 重複排除（URLセットは早期取得済み）
   let candidates: readonly LinkedInTopicCandidate[] = allCandidates
   try {
-    const [recentPendingUrls, recentPostedUrls] = await Promise.all([
-      getRecentPendingSourceUrls(),
-      getRecentXSourceUrls(14),
-    ])
-
     const deduped = deduplicateCandidates(
       allCandidates,
       recentTexts,
       recentPendingUrls,
-      new Set(recentPostedUrls),
+      recentPostedUrls,
     )
 
     if (deduped.length < allCandidates.length) {
