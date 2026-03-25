@@ -22,6 +22,7 @@ type BuzzCategory = 'global-ai-news' | 'claude-code' | 'ai-tech-japan'
 interface BuzzTweet {
   readonly url: string
   readonly authorName: string
+  readonly authorHandle: string
   readonly text: string
 }
 
@@ -158,6 +159,31 @@ async function getRecentlyUsedBuzzUrls(): Promise<ReadonlySet<string>> {
   return urls
 }
 
+/** 過去7日間にメンションしたアカウントを取得（同じ人に繰り返しメンションしない） */
+async function getRecentlyMentionedAccounts(): Promise<ReadonlySet<string>> {
+  const accounts = new Set<string>()
+
+  try {
+    const recentTexts = await getRecentXPostTexts(7)
+    for (const text of recentTexts) {
+      // @handle パターンを抽出（.@handle も含む）
+      const matches = text.match(/\.?@([a-zA-Z0-9_]+)/g)
+      if (matches) {
+        for (const m of matches) {
+          const handle = m.replace(/^\.?@/, '').toLowerCase()
+          if (handle) accounts.add(handle)
+        }
+      }
+    }
+  } catch { /* best-effort */ }
+
+  if (accounts.size > 0) {
+    process.stdout.write(`[dedup] ${accounts.size} recently mentioned accounts loaded\n`)
+  }
+
+  return accounts
+}
+
 // ============================================================
 // Buzz Collection
 // ============================================================
@@ -171,6 +197,9 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
   const usedUrls = await getRecentlyUsedBuzzUrls()
   for (const url of usedUrls) seenUrls.add(url)
 
+  // 過去7日間にメンション済みのアカウントを取得
+  const mentionedAccounts = await getRecentlyMentionedAccounts()
+
   for (const query of config.searchQueries) {
     try {
       const results = await braveWebSearch(query, { count: 10 })
@@ -181,10 +210,17 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
 
       for (const result of tweetResults) {
         if (seenUrls.has(result.url)) {
-          process.stdout.write(`[dedup] Skipping already used: ${result.url.slice(0, 60)}\n`)
+          process.stdout.write(`[dedup] Skipping already used URL: ${result.url.slice(0, 60)}\n`)
           continue
         }
         seenUrls.add(result.url)
+
+        // 最近メンション済みのアカウントの投稿はスキップ
+        const handle = extractHandleFromUrl(result.url).toLowerCase()
+        if (handle && mentionedAccounts.has(handle)) {
+          process.stdout.write(`[dedup] Skipping recently mentioned account: @${handle}\n`)
+          continue
+        }
 
         const tweet = await fetchTweetOembed(result.url, result.title, result.description)
         if (tweet) {
@@ -228,6 +264,7 @@ async function fetchTweetOembed(
         return {
           url,
           authorName: data.author_name ?? extractAuthorFromUrl(url),
+          authorHandle: extractHandleFromUrl(url),
           text: text || fallbackDescription,
         }
       }
@@ -241,6 +278,7 @@ async function fetchTweetOembed(
   return {
     url,
     authorName: extractAuthorFromUrl(url),
+    authorHandle: extractHandleFromUrl(url),
     text: fallbackDescription || fallbackTitle,
   }
 }
@@ -248,6 +286,11 @@ async function fetchTweetOembed(
 function extractAuthorFromUrl(url: string): string {
   const match = url.match(/x\.com\/([^/]+)\/status/)
   return match ? `@${match[1]}` : 'unknown'
+}
+
+function extractHandleFromUrl(url: string): string {
+  const match = url.match(/x\.com\/([^/]+)\/status/)
+  return match ? match[1] : ''
 }
 
 // ============================================================
@@ -268,7 +311,7 @@ async function generateThreadContent(
 
   const tweetSummaries = tweets
     .slice(0, 10)
-    .map((t, i) => `[${i + 1}] ${t.authorName}: ${t.text.slice(0, 200)}\nURL: ${t.url}`)
+    .map((t, i) => `[${i + 1}] ${t.authorName} (@${t.authorHandle}): ${t.text.slice(0, 200)}\nURL: ${t.url}`)
     .join('\n\n')
 
   const prompt = `あなたはAIスタートアップのCEOです。以下のバズツイートを分析し、Xスレッド用のコンテンツを生成してください。
@@ -308,8 +351,10 @@ ${tweetSummaries}
 }
 
 ## 重要
+- 各リプライの冒頭または本文中に元投稿者のメンション（.@handle形式）を自然に入れること（先頭に.を付けてフォロワー全員に表示させる）
 - 各リプライの末尾に対応するツイートURLを含めること
 - メインツイートの末尾にハッシュタグ: ${config.hashtags}
+- メンションは1リプライにつき1つまで
 - JSONのみ出力（他のテキスト不要）`
 
   const response = await anthropic.messages.create({
