@@ -35,11 +35,19 @@ function getGitHubToken(): string {
  * Generate a Zenn-safe slug: lowercase, alphanumeric + hyphens, max 50 chars.
  */
 function toZennSlug(slug: string): string {
-  const sanitized = slug
+  const ZENN_SLUG_MIN_LENGTH = 12
+
+  let sanitized = slug
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
+
+  // Zennはslug12文字以上を要求する
+  if (sanitized.length < ZENN_SLUG_MIN_LENGTH) {
+    const suffix = `-article-${Date.now().toString(36).slice(-6)}`
+    sanitized = sanitized + suffix
+  }
 
   return sanitized.slice(0, ZENN_SLUG_MAX_LENGTH)
 }
