@@ -48,7 +48,7 @@ interface ReactorConfig {
 const REACTOR_CONFIGS: Readonly<Record<string, ReactorConfig>> = {
   AnthropicAI: {
     account: 'AnthropicAI',
-    searchQuery: 'site:x.com/AnthropicAI/status',
+    searchQuery: 'x.com AnthropicAI status',
     infographicAccent: '#D97757',
     infographicGradient: '#1a1a2e to #0f3460',
   },

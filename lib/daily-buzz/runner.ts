@@ -51,9 +51,9 @@ function getCategoryConfig(category: BuzzCategory): CategoryConfig {
     case 'global-ai-news':
       return {
         searchQueries: [
-          `site:x.com (OpenAI OR Google AI OR NVIDIA OR Anthropic OR SoftBank) ${year}`,
-          `site:x.com AI news breakthrough ${year}`,
-          `site:x.com (GPT OR Gemini OR Claude) announcement ${year}`,
+          `x.com status OpenAI ${year}`,
+          `x.com status Google AI NVIDIA Anthropic ${year}`,
+          `x.com status GPT Gemini Claude announcement ${year}`,
         ],
         hashtags: '#AI #AINews #テック',
         infographicAccent: '#4A9EFF',
@@ -63,9 +63,9 @@ function getCategoryConfig(category: BuzzCategory): CategoryConfig {
     case 'claude-code':
       return {
         searchQueries: [
-          `site:x.com Claude Code ${year}`,
-          `site:x.com "Claude Code" tips OR tricks OR workflow ${year}`,
-          `site:x.com Anthropic Claude developer ${year}`,
+          `x.com status "Claude Code" ${year}`,
+          `x.com status Claude Code tips workflow ${year}`,
+          `x.com status Anthropic Claude developer ${year}`,
         ],
         hashtags: '#ClaudeCode #Anthropic #AI',
         infographicAccent: '#D97757',
@@ -75,9 +75,9 @@ function getCategoryConfig(category: BuzzCategory): CategoryConfig {
     case 'ai-tech-japan':
       return {
         searchQueries: [
-          `site:x.com (AI OR 人工知能 OR Claude OR ChatGPT) lang:ja ${year}`,
-          `site:x.com (生成AI OR LLM OR プロンプト) lang:ja ${year}`,
-          `site:x.com (AIエージェント OR Cursor OR Claude Code) lang:ja ${year}`,
+          `x.com status AI 人工知能 ChatGPT ${year}`,
+          `x.com status 生成AI LLM プロンプト ${year}`,
+          `x.com status AIエージェント Claude Code ${year}`,
         ],
         hashtags: '#AI #生成AI #テック',
         infographicAccent: '#26C6DA',
