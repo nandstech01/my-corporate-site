@@ -54,15 +54,22 @@ function buildZennMarkdown(article: RewrittenArticle): string {
     .map((tag) => `"${tag}"`)
     .join(', ')
 
-  const frontmatter = [
+  const frontmatterLines = [
     '---',
     `title: "${article.title.replace(/"/g, '\\"')}"`,
     `emoji: "${emoji}"`,
     'type: "tech"',
     `topics: [${topics}]`,
     'published: true',
-    '---',
-  ].join('\n')
+  ]
+
+  // canonical_urlがあれば追加（SEO: 元記事への正規URLを設定）
+  if (article.canonicalUrl) {
+    frontmatterLines.push(`canonical_url: "${article.canonicalUrl}"`)
+  }
+
+  frontmatterLines.push('---')
+  const frontmatter = frontmatterLines.join('\n')
 
   return `${frontmatter}\n\n${article.body}`
 }
@@ -151,6 +158,7 @@ export async function publishToZenn(
       platform: 'zenn',
       success: true,
       url: articleUrl,
+      externalId: slug,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

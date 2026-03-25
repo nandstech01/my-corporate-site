@@ -29,6 +29,7 @@ interface QiitaItemPayload {
   readonly body: string
   readonly tags: readonly QiitaTag[]
   readonly private: boolean
+  readonly canonical_url?: string
 }
 
 interface QiitaItemResponse {
@@ -82,6 +83,7 @@ export async function publishToQiita(
       body: article.body,
       tags: toQiitaTags(article.tags),
       private: false,
+      ...(article.canonicalUrl ? { canonical_url: article.canonicalUrl } : {}),
     }
 
     process.stdout.write(`[qiita] Publishing: ${article.title}\n`)
@@ -111,6 +113,7 @@ export async function publishToQiita(
       platform: 'qiita',
       success: true,
       url: data.url,
+      externalId: data.id,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
