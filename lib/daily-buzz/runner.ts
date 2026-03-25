@@ -173,7 +173,7 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
 
   for (const query of config.searchQueries) {
     try {
-      const results = await braveWebSearch(query, { count: 10, freshness: 'pw' })
+      const results = await braveWebSearch(query, { count: 10 })
 
       const tweetResults = results.filter((r) =>
         r.url.includes('x.com/') && r.url.includes('/status/'),
