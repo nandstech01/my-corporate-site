@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
 import { uploadMediaToX } from '../x-api/media'
 import { getTwitterClient, getTwitterWeightedLength } from '../x-api/client'
-import { savePostAnalytics } from '../slack-bot/memory'
+import { savePostAnalytics, getRecentXPostTexts } from '../slack-bot/memory'
 
 // ============================================================
 // Types
@@ -88,6 +88,77 @@ function getCategoryConfig(category: BuzzCategory): CategoryConfig {
 }
 
 // ============================================================
+// Dedup: 過去に使用済みのツイートURLを取得
+// ============================================================
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
+
+/** 過去14日間のバズスレッドで使用済みのツイートURLを取得 */
+async function getRecentlyUsedBuzzUrls(): Promise<ReadonlySet<string>> {
+  const supabase = getSupabase()
+  if (!supabase) return new Set()
+
+  const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  const urls = new Set<string>()
+
+  // 1. x_post_analytics の post_text からツイートURLを抽出（daily-buzzタグ付き）
+  try {
+    const { data } = await supabase
+      .from('x_post_analytics')
+      .select('post_text')
+      .contains('tags', ['daily-buzz'])
+      .gte('posted_at', since)
+
+    if (data) {
+      for (const row of data) {
+        const text = row.post_text as string
+        // x.com/*/status/* パターンのURLを抽出
+        const matches = text.match(/https?:\/\/x\.com\/\w+\/status\/\d+/g)
+        if (matches) {
+          for (const m of matches) urls.add(m)
+        }
+      }
+    }
+  } catch { /* best-effort */ }
+
+  // 2. tweet_reactions テーブルからも取得
+  try {
+    const { data } = await supabase
+      .from('tweet_reactions')
+      .select('source_tweet_id, source_account')
+      .gte('created_at', since)
+
+    if (data) {
+      for (const row of data) {
+        urls.add(`https://x.com/${row.source_account}/status/${row.source_tweet_id}`)
+      }
+    }
+  } catch { /* best-effort */ }
+
+  // 3. 直近の投稿テキスト全体からもURLを抽出（タグなしの手動投稿も含む）
+  try {
+    const recentTexts = await getRecentXPostTexts(14)
+    for (const text of recentTexts) {
+      const matches = text.match(/https?:\/\/x\.com\/\w+\/status\/\d+/g)
+      if (matches) {
+        for (const m of matches) urls.add(m)
+      }
+    }
+  } catch { /* best-effort */ }
+
+  if (urls.size > 0) {
+    process.stdout.write(`[dedup] ${urls.size} previously used tweet URLs loaded\n`)
+  }
+
+  return urls
+}
+
+// ============================================================
 // Buzz Collection
 // ============================================================
 
@@ -95,6 +166,10 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
   const config = getCategoryConfig(category)
   const tweets: BuzzTweet[] = []
   const seenUrls = new Set<string>()
+
+  // 過去に使用済みのURLを取得して除外
+  const usedUrls = await getRecentlyUsedBuzzUrls()
+  for (const url of usedUrls) seenUrls.add(url)
 
   for (const query of config.searchQueries) {
     try {
@@ -105,7 +180,10 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
       )
 
       for (const result of tweetResults) {
-        if (seenUrls.has(result.url)) continue
+        if (seenUrls.has(result.url)) {
+          process.stdout.write(`[dedup] Skipping already used: ${result.url.slice(0, 60)}\n`)
+          continue
+        }
         seenUrls.add(result.url)
 
         const tweet = await fetchTweetOembed(result.url, result.title, result.description)
@@ -121,7 +199,7 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
     await new Promise((r) => setTimeout(r, 500))
   }
 
-  process.stdout.write(`[collect] Found ${tweets.length} buzz tweets for ${category}\n`)
+  process.stdout.write(`[collect] Found ${tweets.length} new buzz tweets for ${category}\n`)
   return tweets
 }
 
@@ -464,18 +542,21 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
   if (threadUrl) {
     process.stdout.write(`[done] Thread posted: ${threadUrl}\n`)
 
-    // Save analytics
+    // Save analytics — メイン投稿 + 全リプライのテキストを結合して保存
+    // リプライに含まれるソースURLが次回のdedup対象になる
     try {
       const parentId = threadUrl.split('/status/')[1]
       if (parentId) {
+        const fullText = [content.mainTweet, ...content.replies].join('\n---\n')
         await savePostAnalytics({
           tweetId: parentId,
           tweetUrl: threadUrl,
-          postText: content.mainTweet,
+          postText: fullText,
           postMode: 'pattern',
           postType: 'thread',
           tags: ['daily-buzz', category],
         })
+        process.stdout.write(`[analytics] Saved with ${content.replies.length} reply URLs for dedup\n`)
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
