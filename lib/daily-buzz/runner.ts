@@ -598,6 +598,25 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
     }
   }
 
+  // Step 3.5: Post-generation content similarity check (prevent topic-level duplicates)
+  try {
+    const recentTexts = await getRecentXPostTexts(14)
+    const generatedText = [content.mainTweet, ...content.replies].join(' ').toLowerCase()
+
+    for (const recentText of recentTexts) {
+      const overlap = calculateCharacterOverlap(generatedText, recentText.toLowerCase())
+      if (overlap >= 0.30) {
+        process.stdout.write(
+          `[dedup] Generated thread too similar to recent post (overlap=${overlap.toFixed(2)}). Skipping.\n`,
+        )
+        return
+      }
+    }
+    process.stdout.write(`[dedup] Content similarity check passed (checked ${recentTexts.length} recent posts)\n`)
+  } catch {
+    // best-effort: proceed if dedup check fails
+  }
+
   // Step 4: Post thread
   process.stdout.write('[step 4] Posting thread...\n')
   const threadUrl = await postBuzzThread(content, mainMediaId)
