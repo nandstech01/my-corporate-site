@@ -255,11 +255,12 @@ async function tryQuoteRTOpportunity(): Promise<boolean> {
       originalAuthor: opportunity.original_author_username,
     })
 
-    // Post via AI Judge
+    // Post via AI Judge (include source URL for primary source reply)
     const result = await autoResolvePost({
       platform: 'x',
       text: quoteResult.quoteText,
       quoteTweetId: opportunity.original_tweet_id,
+      sourceUrl: opportunity.source_url ?? undefined,
       patternUsed: `quote_${quoteResult.opinionTemplateUsed}`,
     })
 

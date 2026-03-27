@@ -145,8 +145,8 @@ async function postToX(post: PostCandidate): Promise<{
     return { error: result.error }
   }
 
-  // Reply with source URL if available (not for quote tweets which already reference source)
-  if (post.sourceUrl && result.tweetId && !post.quoteTweetId) {
+  // Reply with source URL if available (including quote tweets with primary source docs)
+  if (post.sourceUrl && result.tweetId) {
     try {
       await replyToTweet(post.sourceUrl, result.tweetId)
     } catch {

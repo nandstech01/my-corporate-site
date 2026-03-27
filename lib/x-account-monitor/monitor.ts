@@ -32,6 +32,37 @@ function getSupabase() {
 const MIN_OPPORTUNITY_SCORE = 0.4
 
 // ============================================================
+// Primary Source URL Extraction
+// ============================================================
+
+/** Extract non-Twitter URLs from tweet text (docs, blog posts, announcements) */
+function extractPrimarySourceUrl(text: string): string | null {
+  const urlPattern = /https?:\/\/[^\s)]+/g
+  const urls = text.match(urlPattern)
+  if (!urls) return null
+
+  // Filter out x.com/twitter.com links and t.co shortened links
+  const externalUrls = urls.filter((url) =>
+    !url.includes('x.com/') &&
+    !url.includes('twitter.com/') &&
+    !url.includes('t.co/'),
+  )
+
+  // Prefer official documentation / blog URLs
+  const priorityDomains = [
+    'anthropic.com', 'code.claude.com', 'claude.ai',
+    'openai.com', 'ai.google', 'deepmind.google',
+    'github.com', 'arxiv.org',
+  ]
+
+  const priorityUrl = externalUrls.find((url) =>
+    priorityDomains.some((domain) => url.includes(domain)),
+  )
+
+  return priorityUrl ?? externalUrls[0] ?? null
+}
+
+// ============================================================
 // Resolve missing account IDs
 // ============================================================
 
@@ -185,6 +216,9 @@ async function processAccount(
 
     // Only insert if score meets threshold
     if (score.composite >= MIN_OPPORTUNITY_SCORE) {
+      // Extract primary source URLs from tweet text (docs, blog posts, announcements)
+      const sourceUrl = extractPrimarySourceUrl(tweet.text)
+
       const { error: insertError } = await supabase
         .from('x_quote_opportunities')
         .upsert(
@@ -201,6 +235,7 @@ async function processAccount(
             freshness_score: score.freshness,
             relevance_score: score.topicRelevance,
             engagement_velocity: score.engagementVelocity,
+            source_url: sourceUrl,
             status: 'pending',
           },
           { onConflict: 'original_tweet_id' },

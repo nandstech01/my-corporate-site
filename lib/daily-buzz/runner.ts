@@ -9,6 +9,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
+import { calculateCharacterOverlap } from '../ai-judge/safety-checks'
 import { uploadMediaToX } from '../x-api/media'
 import { getTwitterClient, getTwitterWeightedLength } from '../x-api/client'
 import { savePostAnalytics, getRecentXPostTexts } from '../slack-bot/memory'
@@ -200,6 +201,12 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
   // 過去7日間にメンション済みのアカウントを取得
   const mentionedAccounts = await getRecentlyMentionedAccounts()
 
+  // X auto-postとのコンテンツ重複を防ぐため、直近の投稿テキストを取得
+  let recentPostTexts: readonly string[] = []
+  try {
+    recentPostTexts = await getRecentXPostTexts(7)
+  } catch { /* best-effort */ }
+
   for (const query of config.searchQueries) {
     try {
       const results = await braveWebSearch(query, { count: 10 })
@@ -219,6 +226,17 @@ async function collectBuzzTweets(category: BuzzCategory): Promise<readonly BuzzT
         const handle = extractHandleFromUrl(result.url).toLowerCase()
         if (handle && mentionedAccounts.has(handle)) {
           process.stdout.write(`[dedup] Skipping recently mentioned account: @${handle}\n`)
+          continue
+        }
+
+        // コンテンツ類似度チェック（X auto-postとの重複防止）
+        const titleLower = (result.title || '').toLowerCase()
+        if (titleLower && recentPostTexts.some((text) => {
+          const textLower = text.toLowerCase()
+          return textLower.includes(titleLower) ||
+            calculateCharacterOverlap(titleLower, textLower) >= 0.35
+        })) {
+          process.stdout.write(`[dedup] Skipping similar content: ${result.title?.slice(0, 50)}\n`)
           continue
         }
 
