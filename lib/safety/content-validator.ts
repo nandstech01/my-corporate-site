@@ -41,8 +41,8 @@ const NEGATIVE_MARKERS = [
   '炎上', '暴露', 'ステマ', 'PR案件',
 ]
 
-// Broader tech markers for Threads (more casual, wider tech topics)
-const THREADS_EXTRA_MARKERS = [
+// Broader tech markers (shared across all platforms)
+const TECH_MARKERS = [
   // English: core tech
   'programming', 'software', 'coding', 'open source', 'GitHub',
   'developer', 'web', 'frontend', 'backend', 'startup',
@@ -91,10 +91,8 @@ function checkBrandVoice(
   const lowerText = text.toLowerCase()
   const flags: string[] = []
 
-  // Count positive marker hits
-  const markers = platform === 'threads'
-    ? [...POSITIVE_MARKERS, ...THREADS_EXTRA_MARKERS]
-    : POSITIVE_MARKERS
+  // Count positive marker hits (all platforms share the same broad tech markers)
+  const markers = [...POSITIVE_MARKERS, ...TECH_MARKERS]
   let positiveHits = 0
   for (const marker of markers) {
     if (lowerText.includes(marker.toLowerCase())) {
@@ -235,9 +233,9 @@ export async function validateContent(
   flags.push(...factCheck.flags)
 
   // 3. Determine pass/fail
-  const threshold = post.platform === 'threads' ? 0.2 : BRAND_VOICE_THRESHOLD
-  const brandVoicePassed = brandVoice.score >= threshold
-  const passed = brandVoicePassed && factCheck.passed
+  // Brand voice is advisory only — AI Judge (L3) makes the final brand fit decision.
+  // Only fact check failures are hard blockers at L2.
+  const passed = factCheck.passed
 
   return {
     passed,
