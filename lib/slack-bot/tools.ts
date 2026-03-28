@@ -823,12 +823,12 @@ export function createTools(ctx: AgentContext) {
   )
 
   // LINE Harness tools (CORTEX Phase 2)
-  let lineTools: ReturnType<typeof createLineHarnessToolsFn> = []
+  // Note: static import to avoid async in non-async function
+  let lineTools: unknown[] = []
   try {
-    const { createLineHarnessTools: createLineHarnessToolsFn2 } = await import(
-      '@/lib/cortex/line-harness/slack-tools'
-    )
-    lineTools = createLineHarnessToolsFn2(ctx)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { createLineHarnessTools } = require('@/lib/cortex/line-harness/slack-tools')
+    lineTools = createLineHarnessTools(ctx)
   } catch {
     // LINE Harness not available - continue without LINE tools
   }
