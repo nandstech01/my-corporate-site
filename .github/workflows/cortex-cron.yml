@@ -1,0 +1,106 @@
+name: CORTEX Cron Jobs
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'       # JST 03:00 Sunday platform rule collector
+    - cron: '0 16 * * *'       # JST 01:00 daily viral structure analyzer
+    - cron: '0 17 * * 1'       # JST 02:00 Monday temporal pattern miner
+    - cron: '0 3,9,15 * * *'   # JST 12:00, 18:00, 00:00 deep trend researcher (3x/day)
+    - cron: '0 19 * * 3'       # JST 04:00 Wednesday auto improver
+    - cron: '0 17 * * *'       # JST 02:00 daily unified learner
+    - cron: '0 20 * * 0'       # JST 05:00 Sunday cross-channel intelligence
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job to run'
+        required: true
+        type: choice
+        options:
+          - cortex-platform-rule-collector
+          - cortex-viral-structure-analyzer
+          - cortex-temporal-pattern-miner
+          - cortex-deep-trend-researcher
+          - cortex-auto-improver
+          - cortex-unified-learner
+          - cortex-cross-channel-intelligence
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright Chromium (for X scraping)
+        run: npx playwright install chromium --with-deps
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            services/linkedin-ml/requirements.txt
+            services/x-ml/requirements.txt
+      - name: Install & verify Python ML dependencies
+        run: |
+          pip install -r services/linkedin-ml/requirements.txt -r services/x-ml/requirements.txt
+          python3 -c "import xgboost, sklearn, fugashi; print('ML dependencies OK')"
+      - name: Determine job name
+        id: job
+        run: |
+          if [ "${{ github.event.inputs.job }}" != "" ]; then
+            echo "name=${{ github.event.inputs.job }}" >> $GITHUB_OUTPUT
+          else
+            SCHEDULE="${{ github.event.schedule }}"
+            case "$SCHEDULE" in
+              "0 18 * * 0")       echo "name=cortex-platform-rule-collector" >> $GITHUB_OUTPUT ;;
+              "0 16 * * *")       echo "name=cortex-viral-structure-analyzer" >> $GITHUB_OUTPUT ;;
+              "0 17 * * 1")       echo "name=cortex-temporal-pattern-miner" >> $GITHUB_OUTPUT ;;
+              "0 3,9,15 * * *")   echo "name=cortex-deep-trend-researcher" >> $GITHUB_OUTPUT ;;
+              "0 19 * * 3")       echo "name=cortex-auto-improver" >> $GITHUB_OUTPUT ;;
+              "0 17 * * *")       echo "name=cortex-unified-learner" >> $GITHUB_OUTPUT ;;
+              "0 20 * * 0")       echo "name=cortex-cross-channel-intelligence" >> $GITHUB_OUTPUT ;;
+              *)                  echo "name=unknown" >> $GITHUB_OUTPUT ;;
+            esac
+          fi
+      - run: npx tsx lib/cortex/cron-runner.ts ${{ steps.job.outputs.name }}
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
+          SLACK_ALLOWED_USER_IDS: ${{ secrets.SLACK_ALLOWED_USER_IDS }}
+          SLACK_DEFAULT_CHANNEL: ${{ secrets.SLACK_DEFAULT_CHANNEL }}
+          SLACK_GENERAL_CHANNEL_ID: ${{ secrets.SLACK_GENERAL_CHANNEL_ID }}
+          AI_JUDGE_ENABLED: ${{ secrets.AI_JUDGE_ENABLED }}
+          ADMIN_API_SECRET: ${{ secrets.ADMIN_API_SECRET }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          X_PLAYWRIGHT_SESSION: ${{ secrets.X_PLAYWRIGHT_SESSION }}
+          X_USERNAME: ${{ secrets.X_USERNAME }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_PERSON_ID: ${{ secrets.LINKEDIN_PERSON_ID }}
+          LINKEDIN_TOKEN_EXPIRES_AT: ${{ secrets.LINKEDIN_TOKEN_EXPIRES_AT }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_TOKEN_EXPIRES_AT: ${{ secrets.INSTAGRAM_TOKEN_EXPIRES_AT }}
+          INSTAGRAM_POSTING_ENABLED: ${{ secrets.INSTAGRAM_POSTING_ENABLED }}
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_TOKEN_EXPIRES_AT: ${{ secrets.THREADS_TOKEN_EXPIRES_AT }}
+          THREADS_POSTING_ENABLED: ${{ secrets.THREADS_POSTING_ENABLED }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+          QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
+          LANGCHAIN_PROJECT: nands-sns-pipeline

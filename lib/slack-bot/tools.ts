@@ -822,6 +822,17 @@ export function createTools(ctx: AgentContext) {
     },
   )
 
+  // LINE Harness tools (CORTEX Phase 2)
+  let lineTools: ReturnType<typeof createLineHarnessToolsFn> = []
+  try {
+    const { createLineHarnessTools: createLineHarnessToolsFn2 } = await import(
+      '@/lib/cortex/line-harness/slack-tools'
+    )
+    lineTools = createLineHarnessToolsFn2(ctx)
+  } catch {
+    // LINE Harness not available - continue without LINE tools
+  }
+
   return [
     generateXPostTool,
     postToXTool,
@@ -835,5 +846,6 @@ export function createTools(ctx: AgentContext) {
     postToLinkedInTool,
     generateInstagramStoryTool,
     previewInstagramStoryTool,
+    ...lineTools,
   ]
 }
