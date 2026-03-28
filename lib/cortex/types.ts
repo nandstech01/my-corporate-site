@@ -208,6 +208,42 @@ export interface ContentReviewResult {
   evidence_sources: string[];
 }
 
+// ============================================================
+// Loop State Types (AI-to-AI conversation loop)
+// ============================================================
+
+export type LoopSpeaker = 'ai_a' | 'ai_b';
+export type LoopAgendaTopic = 'post_review' | 'buzz_post' | 'performance' | 'pattern_optimize' | 'strategy';
+export type LoopAgendaPhase = 'analyze' | 'propose' | 'execute' | 'learn';
+export type LoopStatus = 'active' | 'paused' | 'sleeping';
+
+export interface CortexLoopState {
+  id: string;
+  turn_number: number;
+  current_speaker: LoopSpeaker;
+  agenda_topic: LoopAgendaTopic;
+  agenda_phase: LoopAgendaPhase;
+  context_summary: string | null;
+  last_message_id: string | null;
+  turns_today: number;
+  posts_today: number;
+  last_turn_at: string | null;
+  daily_budget: number;
+  status: LoopStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoopExecutorResult {
+  topic: LoopAgendaTopic;
+  phase: LoopAgendaPhase;
+  turn_number: number;
+  response_text: string;
+  actions_taken: string[];
+  next_action: string;
+  posts_published: number;
+}
+
 export interface TrendResearchResult {
   topic: string;
   maturity: 'emerging' | 'growing' | 'saturated';

@@ -70,6 +70,28 @@ function checkStaleness(sourceUrl?: string, sourceTitle?: string): boolean {
 // Main
 // ============================================================
 
+// ============================================================
+// Auto-Post Gate
+// ============================================================
+
+interface AutoPostGate {
+  cortex_score: number
+  is_duplicate: boolean
+  is_stale: boolean
+  timing_score: number
+  posts_today: number
+  max_posts_per_day: number
+}
+
+export function canAutoPost(gate: AutoPostGate): { allowed: boolean; reason: string } {
+  if (gate.is_duplicate) return { allowed: false, reason: '重複検出' }
+  if (gate.is_stale) return { allowed: false, reason: '記事が古い (7日以上前)' }
+  if (gate.cortex_score < 0.6) return { allowed: false, reason: `cortexスコア不足: ${gate.cortex_score.toFixed(2)} < 0.6` }
+  if (gate.timing_score <= 0.5) return { allowed: false, reason: `投稿時間が非推奨: timing=${gate.timing_score.toFixed(2)}` }
+  if (gate.posts_today >= gate.max_posts_per_day) return { allowed: false, reason: `1日の投稿上限: ${gate.posts_today}/${gate.max_posts_per_day}` }
+  return { allowed: true, reason: 'ゲート通過: 自動投稿OK' }
+}
+
 export async function cortexReview(candidates: CandidatePost[]): Promise<ReviewedPost[]> {
   const supabase = getSupabase()
   const thirtyDaysAgo = new Date()

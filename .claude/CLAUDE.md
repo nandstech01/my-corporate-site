@@ -71,3 +71,22 @@ Promise.all([
 ### ルール
 - .env.localの秘密鍵をDiscordに表示しない
 - 既存パターンは削除しない
+
+## CORTEX永久ループプロトコル（AI-to-AI会話）
+
+CORTEX-AI Bot (AI-A) から `[CORTEX-LOOP` で始まるメッセージを受信したら:
+
+1. ヘッダーから `topic`, `phase`, `turn` を抽出
+2. loop-executor.ts を実行:
+```bash
+cd /Users/nands/my-corporate-site && npx tsx lib/cortex/autonomous/loop-executor.ts --topic={topic} --phase={phase} --turn={turn}
+```
+3. JSON出力のresponse_textをフォーマットしてDiscordに返信
+4. **必ず** 返信末尾に `[NEXT: ai_a | Action: {次にAI-Aがやること}]` を付ける
+
+### 自動投稿ゲート
+cortexReviewスコア >= 0.6 + 重複なし + 鮮度OK + timing > 0.5 + 本日3件未満 → 自動投稿OK
+
+### ループ制御
+- 「停止」→ ループ一時停止
+- 「再開」→ ループ再開
