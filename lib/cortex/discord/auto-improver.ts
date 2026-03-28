@@ -90,7 +90,7 @@ interface JudgeDecisionRow {
   readonly id: string
   readonly decision: string
   readonly confidence: number
-  readonly predicted_engagement_rate: number | null
+  readonly prediction_error: number | null
   readonly actual_engagement: Record<string, unknown> | null
   readonly was_posted: boolean | null
   readonly created_at: string
@@ -265,7 +265,7 @@ async function analyzeThresholds(): Promise<ThresholdAnalysisResult> {
 
   const { data, error } = await supabase
     .from('ai_judge_decisions')
-    .select('id, decision, confidence, predicted_engagement_rate, actual_engagement, was_posted, created_at')
+    .select('id, decision, confidence, prediction_error, actual_engagement, was_posted, created_at')
     .gte('created_at', since)
 
   if (error) {
