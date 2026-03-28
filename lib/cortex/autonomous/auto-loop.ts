@@ -170,8 +170,28 @@ async function main(): Promise<void> {
     .from('cortex_line_friends')
     .select('id', { count: 'exact', head: true })
 
+  // Step 8: Check blog status
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: recentBlog } = await supabase
+    .from('posts')
+    .select('title, published_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(1)
+
+  const lastBlogDate = recentBlog?.[0]?.published_at
+  const blogDaysAgo = lastBlogDate ? Math.round((Date.now() - new Date(lastBlogDate).getTime()) / (24 * 60 * 60 * 1000)) : 999
+  const blogReady = blogDaysAgo >= 2
+
+  const { data: blogDrafts } = await supabase
+    .from('cortex_pending_posts')
+    .select('id, status')
+    .eq('platform', 'blog')
+    .in('status', ['draft', 'reviewed'])
+
   result.discord_message += `\n\n■ LinkedIn (7日): ${linkedinPostCount}件`
   result.discord_message += `\n■ Threads (7日): ${threadsPostCount}件`
+  result.discord_message += `\n■ ブログ: ${blogDaysAgo === 999 ? '公開記事なし' : `直近${blogDaysAgo}日前`} ${blogReady ? '📝 新規記事生成可能' : ''} ${(blogDrafts?.length ?? 0) > 0 ? `| ドラフト${blogDrafts!.length}件` : ''}`
   result.discord_message += `\n■ LINE Harness: 友だち${friendCount || 0}人`
 
   console.log(JSON.stringify(result, null, 2))

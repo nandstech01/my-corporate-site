@@ -73,6 +73,16 @@ async function main() {
         await runPostEngagementCheck()
         break
       }
+      case 'cortex-blog-research': {
+        // Triggers blog_research:analyze via loop-executor
+        const { execFileSync } = await import('child_process')
+        execFileSync('npx', ['tsx', 'lib/cortex/autonomous/loop-executor.ts', '--topic=blog_research', '--phase=analyze'], {
+          cwd: process.cwd(),
+          stdio: 'inherit',
+          timeout: 120_000,
+        })
+        break
+      }
       default:
         console.error(`[cortex-cron] Unknown job: ${JOB_NAME}`)
         process.exit(1)
