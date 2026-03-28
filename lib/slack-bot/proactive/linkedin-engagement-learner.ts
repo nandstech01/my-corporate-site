@@ -14,6 +14,7 @@ import {
   type LinkedInPostMetrics,
 } from '@/lib/linkedin-api/analytics'
 import { notifyLearningEvent } from '../../ai-judge/slack-notifier'
+import { recordPatternOutcome } from '@/lib/learning/pattern-bandit'
 import {
   getRecentLinkedInPostIds,
   updateLinkedInPostEngagement,
@@ -27,6 +28,7 @@ import {
 interface PostResult {
   readonly linkedinPostId: string
   readonly postText: string
+  readonly patternUsed: string | null
   readonly metrics: LinkedInPostMetrics
 }
 
@@ -106,6 +108,7 @@ export async function runLinkedInEngagementLearner(): Promise<void> {
       results.push({
         linkedinPostId: post.linkedin_post_id,
         postText: post.post_text,
+        patternUsed: post.pattern_used,
         metrics,
       })
       process.stdout.write(
@@ -124,6 +127,30 @@ export async function runLinkedInEngagementLearner(): Promise<void> {
       'LinkedIn Engagement Learner: no metrics retrieved\n',
     )
     return
+  }
+
+  // Record pattern outcomes for Thompson Sampling (bandit learning)
+  const avgEngagement =
+    results.reduce(
+      (sum, r) =>
+        sum + r.metrics.reactions + r.metrics.comments * 2 + r.metrics.reshares,
+      0,
+    ) / results.length
+
+  for (const r of results) {
+    if (r.patternUsed) {
+      const totalEngagement =
+        r.metrics.reactions + r.metrics.comments * 2 + r.metrics.reshares
+      const isSuccess = totalEngagement > avgEngagement * 0.8
+      try {
+        await recordPatternOutcome(
+          r.patternUsed,
+          'linkedin',
+          isSuccess,
+          totalEngagement,
+        )
+      } catch { /* best-effort */ }
+    }
   }
 
   // Identify high performers and save learnings

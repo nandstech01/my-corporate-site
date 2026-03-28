@@ -45,6 +45,14 @@ function bigramOverlap(a: string, b: string): number {
   return union === 0 ? 0 : intersection / union
 }
 
+function getAnalyticsTable(platform: string | undefined): { table: string; idColumn: string } {
+  switch (platform) {
+    case 'linkedin': return { table: 'linkedin_post_analytics', idColumn: 'linkedin_post_id' }
+    case 'threads': return { table: 'threads_post_analytics', idColumn: 'threads_media_id' }
+    default: return { table: 'x_post_analytics', idColumn: 'tweet_id' }
+  }
+}
+
 function extractUrls(text: string): string[] {
   const matches = text.match(/https?:\/\/[^\s)>\]]+/g)
   return matches ?? []
@@ -101,13 +109,21 @@ export async function cortexReview(candidates: CandidatePost[]): Promise<Reviewe
 
   console.log(`[cortex-review] Reviewing ${candidates.length} candidates`)
 
-  // Fetch recent posts for duplicate checking
+  // Fetch recent posts for duplicate checking (platform-aware)
+  const platform = candidates[0]?.platform
+  const { table, idColumn } = getAnalyticsTable(platform)
   const { data: recentPosts } = await supabase
-    .from('x_post_analytics')
-    .select('post_text, tweet_id, source_url')
+    .from(table)
+    .select('*')
     .gte('created_at', since)
 
-  const existingPosts = recentPosts ?? []
+  // Normalize to common shape for downstream code
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const existingPosts = (recentPosts ?? []).map((p: any) => ({
+    post_text: (p.post_text ?? null) as string | null,
+    post_id: (p[idColumn] ?? null) as string | null,
+    source_url: (p.source_url ?? null) as string | null,
+  }))
 
   const results: ReviewedPost[] = []
   let approvedCount = 0
@@ -126,8 +142,8 @@ export async function cortexReview(candidates: CandidatePost[]): Promise<Reviewe
       if (!existing.post_text) continue
       const overlap = bigramOverlap(candidate.text, existing.post_text)
       if (overlap >= 0.35) {
-        duplicateOf = existing.tweet_id
-        notes.push(`テキスト重複: overlap=${(overlap * 100).toFixed(0)}% (tweet_id=${existing.tweet_id})`)
+        duplicateOf = existing.post_id
+        notes.push(`テキスト重複: overlap=${(overlap * 100).toFixed(0)}% (tweet_id=${existing.post_id})`)
         break
       }
     }
@@ -138,8 +154,8 @@ export async function cortexReview(candidates: CandidatePost[]): Promise<Reviewe
       for (const url of urls) {
         const match = existingPosts.find((p) => p.source_url === url)
         if (match) {
-          duplicateOf = match.tweet_id
-          notes.push(`URL重複: ${url} (tweet_id=${match.tweet_id})`)
+          duplicateOf = match.post_id
+          notes.push(`URL重複: ${url} (tweet_id=${match.post_id})`)
           break
         }
       }

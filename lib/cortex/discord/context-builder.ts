@@ -187,34 +187,65 @@ async function fetchRecentPosts(
 ): Promise<readonly RecentPostSummary[]> {
   const supabase = getSupabase()
 
-  let query = supabase
-    .from('x_post_analytics')
-    .select('post_text, posted_at, likes, impressions, engagement_rate, pattern_used')
-    .order('posted_at', { ascending: false })
-    .limit(20)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRows = (rows: any[], plat: string): RecentPostSummary[] =>
+    rows.map((row) => ({
+      post_text: row.post_text as string,
+      platform: plat,
+      posted_at: row.posted_at as string,
+      likes: (row.likes as number) ?? 0,
+      impressions: (row.impressions ?? row.views ?? 0) as number,
+      engagement_rate: (row.engagement_rate as number) ?? 0,
+      pattern_used: (row.pattern_used as string) ?? null,
+    }))
+
+  if (platform === 'linkedin') {
+    const { data } = await supabase
+      .from('linkedin_post_analytics')
+      .select('post_text, posted_at, likes, impressions, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false })
+      .limit(20)
+    return mapRows(data ?? [], 'linkedin')
+  }
+
+  if (platform === 'threads') {
+    const { data } = await supabase
+      .from('threads_post_analytics')
+      .select('post_text, posted_at, likes, views, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false })
+      .limit(20)
+    return mapRows(data ?? [], 'threads')
+  }
 
   if (platform === 'x') {
-    // Already querying x_post_analytics, no extra filter needed
-  } else if (platform) {
-    // For non-X platforms, still return X posts as reference data
-    // (other platform analytics tables can be added here later)
+    const { data } = await supabase
+      .from('x_post_analytics')
+      .select('post_text, posted_at, likes, impressions, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false })
+      .limit(20)
+    return mapRows(data ?? [], 'x')
   }
 
-  const { data, error } = await query
+  // No platform specified: query all 3 and merge
+  const [xRes, liRes, thRes] = await Promise.all([
+    supabase.from('x_post_analytics')
+      .select('post_text, posted_at, likes, impressions, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false }).limit(10),
+    supabase.from('linkedin_post_analytics')
+      .select('post_text, posted_at, likes, impressions, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false }).limit(10),
+    supabase.from('threads_post_analytics')
+      .select('post_text, posted_at, likes, views, engagement_rate, pattern_used')
+      .order('posted_at', { ascending: false }).limit(10),
+  ])
 
-  if (error) {
-    throw new Error(`Failed to fetch recent posts: ${error.message}`)
-  }
+  const all = [
+    ...mapRows(xRes.data ?? [], 'x'),
+    ...mapRows(liRes.data ?? [], 'linkedin'),
+    ...mapRows(thRes.data ?? [], 'threads'),
+  ].sort((a, b) => new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime())
 
-  return (data ?? []).map((row) => ({
-    post_text: row.post_text as string,
-    platform: 'x',
-    posted_at: row.posted_at as string,
-    likes: (row.likes as number) ?? 0,
-    impressions: (row.impressions as number) ?? 0,
-    engagement_rate: (row.engagement_rate as number) ?? 0,
-    pattern_used: (row.pattern_used as string) ?? null,
-  })) as readonly RecentPostSummary[]
+  return all.slice(0, 20)
 }
 
 // ============================================================

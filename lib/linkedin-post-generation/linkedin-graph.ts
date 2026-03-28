@@ -18,6 +18,10 @@ import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 import { predictEngagement, getInsights } from '../linkedin-ml-bridge/ml-client'
 import { searchMultipleRAGs } from '../rag/multi-rag-search'
+import { critiquePost, revisePost } from '../content-critique/critique-engine'
+import { researchTopic } from '../x-post-generation/data-fetchers'
+import { createClient } from '@supabase/supabase-js'
+import type { CritiqueResult } from '../content-critique/critique-engine'
 import type { MlPrediction } from '../linkedin-ml-bridge/types'
 
 // ============================================================
@@ -84,6 +88,10 @@ const LinkedInGraphState = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
+  researchContext: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
   candidates: Annotation<string[]>({
     reducer: (_prev, next) => next,
     default: () => [],
@@ -91,6 +99,16 @@ const LinkedInGraphState = Annotation.Root({
   scores: Annotation<LinkedInCandidateScore[]>({
     reducer: (_prev, next) => next,
     default: () => [],
+  }),
+
+  // Critique-revise
+  critiqueResult: Annotation<CritiqueResult | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  revisedCandidate: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
   }),
 
   // 出力
@@ -210,7 +228,69 @@ async function enrichWithRAG(
 }
 
 // ============================================================
-// ノード2: generateCandidates
+// ノード2a: researchPrimarySources（Brave Search一次情報リサーチ）
+// ============================================================
+
+function getResearchSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
+
+async function researchPrimarySources(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  try {
+    const topic = state.generatedTags?.[0] ?? state.sourceData.slice(0, 100)
+
+    // Check cache (6h)
+    const sb = getResearchSupabase()
+    if (sb) {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+      const { data: cached } = await sb
+        .from('slack_bot_memory')
+        .select('context')
+        .eq('memory_type', 'fact')
+        .like('content', `%research_cache:${topic.slice(0, 30)}%`)
+        .gte('created_at', sixHoursAgo)
+        .limit(1)
+        .single()
+
+      if (cached?.context?.research_results) {
+        process.stdout.write(`LinkedIn research: cache hit for "${topic.slice(0, 30)}"\n`)
+        return { researchContext: cached.context.research_results as string }
+      }
+    }
+
+    const research = await researchTopic(topic, state.sourceUrl || undefined)
+    const formatted = research.searchResults.length > 0
+      ? '■ 一次情報リサーチ結果:\n' + research.searchResults.slice(0, 5).map(r =>
+          `- ${r.title}: ${r.description} (${r.url})`
+        ).join('\n')
+      : null
+
+    // Cache result
+    if (formatted && sb) {
+      await sb.from('slack_bot_memory').insert({
+        user_id: 'system-pipeline',
+        memory_type: 'fact' as const,
+        content: `research_cache:${topic.slice(0, 30)}`,
+        context: { type: 'research_cache', topic: topic.slice(0, 50), research_results: formatted },
+        importance: 0.3,
+      }).catch(() => {})
+    }
+
+    process.stdout.write(`LinkedIn research: ${research.searchResults.length} results found\n`)
+    return { researchContext: formatted }
+  } catch (e) {
+    process.stdout.write(`LinkedIn research failed, continuing without: ${e}\n`)
+    return { researchContext: null }
+  }
+}
+
+// ============================================================
+// ノード2b: generateCandidates
 // ============================================================
 
 async function generateCandidates(
@@ -229,6 +309,10 @@ async function generateCandidates(
 
   const ragHint = state.ragContext
     ? `\n\n内部RAGから取得した関連コンテキスト（深みと引用の追加に活用）:\n${state.ragContext}`
+    : ''
+
+  const researchHint = state.researchContext
+    ? `\n\n一次情報リサーチ（Brave Search）結果（信頼性の高い引用に活用）:\n${state.researchContext}`
     : ''
 
   // 学習データの注入（コールドスタート時はスキップ）
@@ -273,7 +357,7 @@ ${templateInfo}
 元ソースタイプ: ${state.sourceType}
 元ソースURL: ${state.sourceUrl}
 ${state.sourceAuthor ? `元ソース著者: ${state.sourceAuthor}` : ''}
-${japanAngleHint}${learningsHint}${buzzInsightHint}${ragHint}
+${japanAngleHint}${learningsHint}${buzzInsightHint}${ragHint}${researchHint}
 
 ハッシュタグ候補: ${state.generatedTags.join(' ')}
 
@@ -449,10 +533,90 @@ JSON配列のみ出力:
 }
 
 // ============================================================
-// ノード4: formatFinal
+// ノード4: critiqueAndRevise（Self-Refine）
+// ============================================================
+
+async function critiqueAndRevise(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (state.candidates.length === 0 || state.scores.length === 0) {
+    return {}
+  }
+
+  const sortedScores = [...state.scores].sort((a, b) => b.total - a.total)
+  const bestIndex = sortedScores[0].index
+  const bestCandidate = state.candidates[bestIndex] ?? state.candidates[0]
+
+  const critique = await critiquePost({
+    text: bestCandidate,
+    platform: 'linkedin',
+    mode: 'linkedin',
+    sourceContent: state.sourceData.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `LinkedIn critique: score=${critique.overallScore}/50, passed=${critique.passed}\n`,
+  )
+
+  if (critique.passed) {
+    return { critiqueResult: critique }
+  }
+
+  const revised = await revisePost({
+    originalText: bestCandidate,
+    critique,
+    platform: 'linkedin',
+    mode: 'linkedin',
+  })
+
+  return {
+    critiqueResult: critique,
+    revisedCandidate: revised,
+  }
+}
+
+// ============================================================
+// ノード5: linkedInFinalScore（Knockout）
+// ============================================================
+
+async function linkedInFinalScore(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  if (!state.revisedCandidate || !state.critiqueResult) {
+    return {}
+  }
+
+  const revisedCritique = await critiquePost({
+    text: state.revisedCandidate,
+    platform: 'linkedin',
+    mode: 'linkedin',
+    sourceContent: state.sourceData.slice(0, 1000),
+  })
+
+  process.stdout.write(
+    `LinkedIn finalScore: original=${state.critiqueResult.overallScore}, revised=${revisedCritique.overallScore}\n`,
+  )
+
+  if (revisedCritique.overallScore > state.critiqueResult.overallScore) {
+    return {
+      critiqueResult: revisedCritique,
+      finalPost: state.revisedCandidate,
+    }
+  }
+
+  return { revisedCandidate: null }
+}
+
+// ============================================================
+// ノード6: formatFinal
 // ============================================================
 
 function formatFinal(state: GraphStateType): Partial<GraphStateType> {
+  // finalScore で改訂版が採用済みの場合はスキップ
+  if (state.finalPost) {
+    return {}
+  }
+
   if (state.candidates.length === 0 || state.scores.length === 0) {
     return { error: 'No candidates or scores available' }
   }
@@ -489,8 +653,17 @@ function shouldContinueAfterCandidates(
 
 function shouldContinueAfterScoring(
   state: GraphStateType,
-): 'formatFinal' | typeof END {
-  return state.error ? END : 'formatFinal'
+): 'critiqueAndRevise' | typeof END {
+  return state.error ? END : 'critiqueAndRevise'
+}
+
+function shouldRevise(
+  state: GraphStateType,
+): 'linkedInFinalScore' | 'formatFinal' {
+  if (state.critiqueResult?.passed || !state.revisedCandidate) {
+    return 'formatFinal'
+  }
+  return 'linkedInFinalScore'
 }
 
 // ============================================================
@@ -501,14 +674,20 @@ function buildLinkedInGraph() {
   const graph = new StateGraph(LinkedInGraphState)
     .addNode('analyzeSource', analyzeSource)
     .addNode('enrichWithRAG', enrichWithRAG)
+    .addNode('researchPrimarySources', researchPrimarySources)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
+    .addNode('critiqueAndRevise', critiqueAndRevise)
+    .addNode('linkedInFinalScore', linkedInFinalScore)
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeSource')
     .addEdge('analyzeSource', 'enrichWithRAG')
-    .addEdge('enrichWithRAG', 'generateCandidates')
+    .addEdge('enrichWithRAG', 'researchPrimarySources')
+    .addEdge('researchPrimarySources', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
+    .addConditionalEdges('critiqueAndRevise', shouldRevise)
+    .addEdge('linkedInFinalScore', 'formatFinal')
     .addEdge('formatFinal', END)
 
   return graph.compile()

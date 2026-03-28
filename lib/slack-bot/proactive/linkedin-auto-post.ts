@@ -18,6 +18,7 @@ import { isAiJudgeEnabled } from '../../ai-judge/config'
 import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 import { getLinkedInLearnings } from './linkedin-learnings'
+import { cortexReview } from '../../cortex/review/pre-post-reviewer'
 
 // ============================================================
 // LinkedIn ソースメモリの取得
@@ -236,6 +237,29 @@ async function runLinkedInAutoPostInner(): Promise<void> {
 
     const candidate = topCandidates[i]
     const post = result.value
+
+    // CORTEX品質ゲート: 重複・陳腐化チェック
+    try {
+      const [reviewed] = await cortexReview([{
+        text: post.finalPost,
+        sourceUrl: candidate.sourceUrl,
+        platform: 'linkedin',
+      }])
+      if (reviewed.cortex_score === 0) {
+        process.stdout.write(
+          `LinkedIn auto-post: candidate ${i + 1} skipped (duplicate: ${reviewed.duplicate_of})\n`,
+        )
+        continue
+      }
+      if (reviewed.is_stale) {
+        process.stdout.write(
+          `LinkedIn auto-post: candidate ${i + 1} skipped (stale source)\n`,
+        )
+        continue
+      }
+    } catch (e) {
+      process.stdout.write(`LinkedIn auto-post: cortexReview failed, proceeding: ${e}\n`)
+    }
 
     try {
       // AI Judge 自動投稿モード

@@ -21,6 +21,7 @@ import { autoResolvePost } from '../../ai-judge/auto-resolver'
 import { collectThreadsSources } from '../../threads-post-generation/threads-source-collector'
 import type { ThreadsSourceCandidate } from '../../threads-post-generation/threads-source-collector'
 import { rankThreadsSources } from '../../threads-post-generation/threads-source-ranker'
+import { cortexReview } from '../../cortex/review/pre-post-reviewer'
 
 // ============================================================
 // 配信ロール (Delivery Role)
@@ -204,6 +205,27 @@ async function generateAndPost(
       sourceUrl: source.url ?? undefined,
       trendingContext: trendingContext || undefined,
     })
+
+    // CORTEX品質ゲート: 重複・陳腐化チェック
+    try {
+      const [reviewed] = await cortexReview([{
+        text: post.finalPost,
+        sourceUrl: source.url ?? undefined,
+        platform: 'threads',
+      }])
+      if (reviewed.cortex_score === 0) {
+        process.stdout.write(
+          `Threads auto-post: skipped (duplicate: ${reviewed.duplicate_of})\n`,
+        )
+        return
+      }
+      if (reviewed.is_stale) {
+        process.stdout.write(`Threads auto-post: skipped (stale source)\n`)
+        return
+      }
+    } catch (e) {
+      process.stdout.write(`Threads auto-post: cortexReview failed, proceeding: ${e}\n`)
+    }
 
     if (isAiJudgeEnabled()) {
       const aiResult = await autoResolvePost({

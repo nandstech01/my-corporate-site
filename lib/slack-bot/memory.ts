@@ -671,20 +671,20 @@ export async function getLinkedInPostAnalytics(params: {
 
 export async function getRecentLinkedInPostIds(
   hours: number = 48,
-): Promise<readonly { linkedin_post_id: string; post_text: string }[]> {
+): Promise<readonly { linkedin_post_id: string; post_text: string; pattern_used: string | null }[]> {
   const supabase = getSupabase()
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
     .from('linkedin_post_analytics')
-    .select('linkedin_post_id, post_text')
+    .select('linkedin_post_id, post_text, pattern_used')
     .gte('posted_at', since)
 
   if (error) {
     throw new Error(`Failed to get recent LinkedIn post IDs: ${error.message}`)
   }
 
-  return (data ?? []) as readonly { linkedin_post_id: string; post_text: string }[]
+  return (data ?? []) as readonly { linkedin_post_id: string; post_text: string; pattern_used: string | null }[]
 }
 
 /** X自動投稿用: 直近N日間に投稿されたX投稿のテキストを取得（重複排除用） */

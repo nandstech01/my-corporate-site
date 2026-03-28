@@ -27,6 +27,8 @@ import type { HookPattern } from '../viral-hooks/hook-templates'
 import { getThreadsLearnings } from '../slack-bot/proactive/threads-learnings'
 import { critiquePost, revisePost } from '../content-critique/critique-engine'
 import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
+import { researchTopic } from '../x-post-generation/data-fetchers'
+import { createClient } from '@supabase/supabase-js'
 import type { CritiqueResult } from '../content-critique/critique-engine'
 
 // ============================================================
@@ -98,6 +100,10 @@ const ThreadsPostState = Annotation.Root({
     default: () => null,
   }),
   selectedHookId: Annotation<string | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  researchContext: Annotation<string | null>({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
@@ -263,6 +269,68 @@ async function selectPattern(
 }
 
 // ============================================================
+// ノード2a: researchPrimarySources（Brave Search一次情報リサーチ）
+// ============================================================
+
+function getThreadsResearchSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
+
+async function researchPrimarySources(
+  state: GraphStateType,
+): Promise<Partial<GraphStateType>> {
+  try {
+    const topic = state.topic ?? state.content.slice(0, 100)
+
+    // Check cache (6h)
+    const sb = getThreadsResearchSupabase()
+    if (sb) {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+      const { data: cached } = await sb
+        .from('slack_bot_memory')
+        .select('context')
+        .eq('memory_type', 'fact')
+        .like('content', `%research_cache:${topic.slice(0, 30)}%`)
+        .gte('created_at', sixHoursAgo)
+        .limit(1)
+        .single()
+
+      if (cached?.context?.research_results) {
+        process.stdout.write(`Threads research: cache hit for "${topic.slice(0, 30)}"\n`)
+        return { researchContext: cached.context.research_results as string }
+      }
+    }
+
+    const research = await researchTopic(topic, state.sourceUrl || undefined)
+    const formatted = research.searchResults.length > 0
+      ? '■ 一次情報リサーチ結果:\n' + research.searchResults.slice(0, 5).map(r =>
+          `- ${r.title}: ${r.description} (${r.url})`
+        ).join('\n')
+      : null
+
+    // Cache result
+    if (formatted && sb) {
+      await sb.from('slack_bot_memory').insert({
+        user_id: 'system-pipeline',
+        memory_type: 'fact' as const,
+        content: `research_cache:${topic.slice(0, 30)}`,
+        context: { type: 'research_cache', topic: topic.slice(0, 50), research_results: formatted },
+        importance: 0.3,
+      }).catch(() => {})
+    }
+
+    process.stdout.write(`Threads research: ${research.searchResults.length} results found\n`)
+    return { researchContext: formatted }
+  } catch (e) {
+    process.stdout.write(`Threads research failed, continuing without: ${e}\n`)
+    return { researchContext: null }
+  }
+}
+
+// ============================================================
 // ノード3: generateCandidates (LLM)
 // ============================================================
 
@@ -313,7 +381,7 @@ ${learnings.highPerformerSummary}`
   }
 
   // Voice profile
-  const voiceProfile = formatVoiceProfileForPrompt('short')
+  const voiceProfile = formatVoiceProfileForPrompt('threads')
 
   // Tone guidelines
   const goodExpressions = THREADS_TONE_GUIDELINES.good_expressions
@@ -370,6 +438,7 @@ ${hookSection}
 ${narrativeSection}
 ${trendingSection}
 ${learningsSection}
+${state.researchContext ? `\n## 一次情報リサーチ結果（引用に活用）\n${state.researchContext}` : ''}
 
 3候補を「---」で区切って出力。候補のみ、説明不要。`,
     },
@@ -629,6 +698,7 @@ function buildThreadsPostGraph() {
   const graph = new StateGraph(ThreadsPostState)
     .addNode('analyzeContent', analyzeContent)
     .addNode('selectPattern', selectPattern)
+    .addNode('researchPrimarySources', researchPrimarySources)
     .addNode('generateCandidates', generateCandidates)
     .addNode('scoreCandidates', scoreCandidates)
     .addNode('critiqueAndRevise', critiqueAndRevise)
@@ -636,7 +706,8 @@ function buildThreadsPostGraph() {
     .addNode('formatFinal', formatFinal)
     .addEdge(START, 'analyzeContent')
     .addConditionalEdges('analyzeContent', shouldContinueAfterAnalysis)
-    .addEdge('selectPattern', 'generateCandidates')
+    .addEdge('selectPattern', 'researchPrimarySources')
+    .addEdge('researchPrimarySources', 'generateCandidates')
     .addConditionalEdges('generateCandidates', shouldContinueAfterCandidates)
     .addConditionalEdges('scoreCandidates', shouldContinueAfterScoring)
     .addConditionalEdges('critiqueAndRevise', shouldRevise)
