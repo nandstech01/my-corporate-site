@@ -87,7 +87,8 @@ export function canAutoPost(gate: AutoPostGate): { allowed: boolean; reason: str
   if (gate.is_duplicate) return { allowed: false, reason: '重複検出' }
   if (gate.is_stale) return { allowed: false, reason: '記事が古い (7日以上前)' }
   if (gate.cortex_score < 0.6) return { allowed: false, reason: `cortexスコア不足: ${gate.cortex_score.toFixed(2)} < 0.6` }
-  if (gate.timing_score <= 0.5) return { allowed: false, reason: `投稿時間が非推奨: timing=${gate.timing_score.toFixed(2)}` }
+  // タイミングは参考情報。内容が良ければ投稿する。極端に悪い時間帯(深夜2-5時)のみブロック
+  if (gate.timing_score <= 0.1) return { allowed: false, reason: `深夜帯のため投稿見送り: timing=${gate.timing_score.toFixed(2)}` }
   if (gate.posts_today >= gate.max_posts_per_day) return { allowed: false, reason: `1日の投稿上限: ${gate.posts_today}/${gate.max_posts_per_day}` }
   return { allowed: true, reason: 'ゲート通過: 自動投稿OK' }
 }
