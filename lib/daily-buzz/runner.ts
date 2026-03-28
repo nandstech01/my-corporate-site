@@ -617,6 +617,24 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
     // best-effort: proceed if dedup check fails
   }
 
+  // Step 3.5: CORTEX Review — 重複排除 + ナレッジ最適化
+  try {
+    const { cortexReview } = await import('../cortex/review/pre-post-reviewer')
+    const candidates = [
+      { text: content.mainTweet, platform: 'x' },
+      ...content.replies.map((r: string) => ({ text: r, platform: 'x' })),
+    ]
+    const reviewed = await cortexReview(candidates)
+    const rejected = reviewed.filter(r => r.duplicate_of || r.is_stale)
+    if (rejected.length > reviewed.length / 2) {
+      process.stdout.write(`[cortex] ${rejected.length}/${reviewed.length} rejected by CORTEX, skipping\n`)
+      return
+    }
+    process.stdout.write(`[cortex] Review: ${reviewed.length - rejected.length}/${reviewed.length} approved\n`)
+  } catch (e) {
+    process.stdout.write(`[cortex] Review skipped: ${e instanceof Error ? e.message : e}\n`)
+  }
+
   // Step 4: Post thread
   process.stdout.write('[step 4] Posting thread...\n')
   const threadUrl = await postBuzzThread(content, mainMediaId)

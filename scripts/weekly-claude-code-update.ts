@@ -313,8 +313,44 @@ ${versionBlocks}
     replies.push(opinionText)
   }
 
+  // CORTEX Review: 重複排除 + ナレッジ最適化
+  try {
+    const { cortexReview } = await import('../lib/cortex/review/pre-post-reviewer')
+    const candidates = [
+      { text: parentText, platform: 'x' },
+      ...replies.map(r => ({ text: r, platform: 'x' })),
+    ]
+    const reviewed = await cortexReview(candidates)
+    const dominated = reviewed.filter(r => r.duplicate_of || r.is_stale)
+    if (dominated.length > reviewed.length / 2) {
+      process.stdout.write(`[cortex] ${dominated.length}/${reviewed.length} candidates rejected, skipping post\n`)
+      return
+    }
+    process.stdout.write(`[cortex] Review passed: ${reviewed.length - dominated.length}/${reviewed.length} approved\n`)
+  } catch (e) {
+    process.stdout.write(`[cortex] Review failed (continuing anyway): ${e instanceof Error ? e.message : e}\n`)
+  }
+
   const threadUrl = await postChainThread(parentText, replies, mediaId)
   process.stdout.write(`[done] ${threadUrl}\n`)
+
+  // Record analytics
+  try {
+    const { savePostAnalytics } = await import('../lib/slack-bot/memory')
+    const parentId = threadUrl.split('/status/')[1]
+    if (parentId) {
+      await savePostAnalytics({
+        tweetId: parentId,
+        tweetUrl: threadUrl,
+        postText: parentText,
+        postMode: 'pattern',
+        postType: 'thread',
+        tags: ['weekly-update', 'claude-code'],
+      })
+    }
+  } catch (e) {
+    process.stdout.write(`[analytics] Failed to save: ${e instanceof Error ? e.message : e}\n`)
+  }
 }
 
 async function postAINews(week: ReturnType<typeof getThisWeekRange>): Promise<void> {
@@ -383,8 +419,44 @@ ${itemBlocks}
     replies.push(`💭 個人的な所感\n\n${data.opinion}`)
   }
 
+  // CORTEX Review: 重複排除 + ナレッジ最適化
+  try {
+    const { cortexReview } = await import('../lib/cortex/review/pre-post-reviewer')
+    const candidates = [
+      { text: parentText, platform: 'x' },
+      ...replies.map(r => ({ text: r, platform: 'x', sourceUrl: r.match(/https?:\/\/\S+/)?.[0] })),
+    ]
+    const reviewed = await cortexReview(candidates)
+    const dominated = reviewed.filter(r => r.duplicate_of || r.is_stale)
+    if (dominated.length > reviewed.length / 2) {
+      process.stdout.write(`[cortex] ${dominated.length}/${reviewed.length} candidates rejected, skipping post\n`)
+      return
+    }
+    process.stdout.write(`[cortex] Review passed: ${reviewed.length - dominated.length}/${reviewed.length} approved\n`)
+  } catch (e) {
+    process.stdout.write(`[cortex] Review failed (continuing anyway): ${e instanceof Error ? e.message : e}\n`)
+  }
+
   const threadUrl = await postChainThread(parentText, replies, mediaId)
   process.stdout.write(`[done] ${threadUrl}\n`)
+
+  // Record analytics
+  try {
+    const { savePostAnalytics } = await import('../lib/slack-bot/memory')
+    const parentId = threadUrl.split('/status/')[1]
+    if (parentId) {
+      await savePostAnalytics({
+        tweetId: parentId,
+        tweetUrl: threadUrl,
+        postText: parentText,
+        postMode: 'pattern',
+        postType: 'thread',
+        tags: ['weekly-update', 'ai-news'],
+      })
+    }
+  } catch (e) {
+    process.stdout.write(`[analytics] Failed to save: ${e instanceof Error ? e.message : e}\n`)
+  }
 }
 
 main().catch((e) => {
