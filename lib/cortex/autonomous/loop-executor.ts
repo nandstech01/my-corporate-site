@@ -235,13 +235,26 @@ async function handlePostReviewAnalyze(): Promise<Partial<LoopExecutorResult>> {
   }
 
   const approved = reviewResults.filter(r => !r.isDuplicate)
+  const rejected = reviewResults.filter(r => r.isDuplicate)
+
+  // Reject duplicate posts in DB
+  for (const rej of rejected) {
+    await supabase
+      .from('cortex_pending_posts')
+      .update({ status: 'rejected' })
+      .eq('id', rej.id)
+  }
+
+  if (rejected.length > 0) {
+    lines.push(`🗑️ ${rejected.length}件の重複投稿を拒否しました。`)
+  }
   if (approved.length > 0) {
     lines.push(`🚀 ${approved.length}件が自動投稿可能。ゲートチェックに進みます。`)
   }
 
   return {
     response_text: lines.join('\n'),
-    actions_taken: ['保留投稿取得', '重複チェック (30日分)'],
+    actions_taken: ['保留投稿取得', '重複チェック (30日分)', `${rejected.length}件拒否`],
     next_action: approved.length > 0 ? 'execute_auto_post' : 'skip_to_next_topic',
   }
 }
@@ -393,6 +406,20 @@ async function main(): Promise<void> {
   const key = `${topic}:${phase}`
   const handler = handlers[key]
 
+  // Footer map: what AI-A should do next based on the result
+  const footerMap: Record<string, string> = {
+    'check_buzz': 'バズネタの有無を確認し、次のアジェンダを選択してください',
+    'pattern_optimize': 'パターン乖離のあるhook-templates.tsの更新を検討してください',
+    'generate_post': 'バズネタから投稿案を生成し、cortex_pending_postsに保存してください',
+    'execute_auto_post': '投稿のゲートチェック結果を確認し、投稿実行の判断をしてください',
+    'skip_to_next_topic': '次のアジェンダトピックに進んでください',
+    'create_improvement_pr': 'hook-templates.tsの改善内容を確認し、次のアクションを決定してください',
+    'start_new_cycle': '新しいサイクルを開始し、優先度の高いトピックを選択してください',
+    'wait': '次の好適時間帯まで待機し、データの蓄積を確認してください',
+    'reject': '重複投稿を削除し、別のアジェンダに進んでください',
+    'manual_handling': 'このフェーズの処理結果を確認し、次のアクションを決定してください',
+  }
+
   if (!handler) {
     const result: LoopExecutorResult = {
       topic,
@@ -402,12 +429,14 @@ async function main(): Promise<void> {
       actions_taken: [],
       next_action: 'manual_handling',
       posts_published: 0,
+      footer: `[NEXT: ai_a | Action: ${footerMap['manual_handling']}]`,
     }
     console.log(JSON.stringify(result, null, 2))
     return
   }
 
   const partial = await handler()
+  const nextAction = partial.next_action ?? 'wait'
 
   const result: LoopExecutorResult = {
     topic,
@@ -415,8 +444,9 @@ async function main(): Promise<void> {
     turn_number: turnNumber,
     response_text: partial.response_text ?? '',
     actions_taken: partial.actions_taken ?? [],
-    next_action: partial.next_action ?? 'wait',
+    next_action: nextAction,
     posts_published: 0,
+    footer: `[NEXT: ai_a | Action: ${footerMap[nextAction] ?? footerMap['wait']}]`,
   }
 
   console.log(JSON.stringify(result, null, 2))

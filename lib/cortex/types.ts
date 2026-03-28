@@ -242,6 +242,7 @@ export interface LoopExecutorResult {
   actions_taken: string[];
   next_action: string;
   posts_published: number;
+  footer: string; // [NEXT: ai_a | Action: ...] — Claude Codeはこれをそのまま返信に付ける
 }
 
 export interface TrendResearchResult {
