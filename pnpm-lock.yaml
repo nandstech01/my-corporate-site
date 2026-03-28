@@ -35,6 +35,9 @@ importers:
       '@langchain/openai':
         specifier: ^1.2.5
         version: 1.2.8(@langchain/core@1.1.26(openai@5.23.2(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@3.25.76)))(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))
+      '@line-harness/sdk':
+        specifier: ^0.2.1
+        version: 0.2.2
       '@mdx-js/loader':
         specifier: ^3.1.0
         version: 3.1.1(webpack@5.105.0)
@@ -981,6 +984,9 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       '@langchain/core': ^1.0.0
+
+  '@line-harness/sdk@0.2.2':
+    resolution: {integrity: sha512-pZaNdbOXfhrBMP9Opmzpif8tNoEbc0TiqQ/izMpTyYEONO6/DOsSGPzmLyGqike5UjTi61lfxMiFhDQbYfpovw==}
 
   '@mdx-js/loader@3.1.1':
     resolution: {integrity: sha512-0TTacJyZ9mDmY+VefuthVshaNIyCGZHJG2fMnGaDttCt8HmjUF7SizlHJpaCDoGnN635nK1wpzfpx/Xx5S4WnQ==}
@@ -6966,6 +6972,8 @@ snapshots:
       zod: 3.25.76
     transitivePeerDependencies:
       - ws
+
+  '@line-harness/sdk@0.2.2': {}
 
   '@mdx-js/loader@3.1.1(webpack@5.105.0)':
     dependencies:
