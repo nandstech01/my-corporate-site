@@ -24,27 +24,48 @@ import {
 // Config
 // ---------------------------------------------------------------------------
 
+// --- 映像インパクト系（ロボット、動画生成、デモ） ---
+// --- 開発者ツール系（Claude Code、Cursor、AIツール） ---
+// --- AIニュース・分析系 ---
 const INFLUENCERS = [
-  'rowancheung',
-  'deedydas',
-  'AlphaSignalAI',
-  'TheHumanoidHub',
-  'JeffreyTowson',
-  'rohanpaul_ai',
-  'alex_prompter',
-  'adcock_brett',
+  // 映像インパクト系
+  'figure_robot',      // Figure AI ヒューマノイドロボット
+  'BostonDynamics',    // Atlas ロボット
+  'TheHumanoidHub',    // ロボットニュースまとめ
+  'RunwayML',          // 動画生成AI
+  'adcock_brett',      // Figure CEO
+  // 開発者ツール系
+  'AnthropicAI',       // Claude / Claude Code
+  'cursor_ai',         // Cursor AI
+  'OpenAI',            // GPT / Codex
+  'DrJimFan',          // NVIDIA AIエージェント研究
+  // AIニュース・分析系
+  'rowancheung',       // AI news curator
+  'deedydas',          // tech/AI commentary
+  'AlphaSignalAI',     // AI research news
+  'GoogleDeepMind',    // Gemini / AI研究
+  'rohanpaul_ai',      // AI engineering
 ] as const
 
 // Cached user IDs to avoid resolveUserId API calls (IDs are permanent)
 const USER_ID_CACHE: Record<string, string> = {
+  // 映像インパクト系
+  figure_robot: '1602443956888817665',
+  BostonDynamics: '517473207',
+  TheHumanoidHub: '1682127524963426304',
+  RunwayML: '1001114465692200960',
+  adcock_brett: '3222018178',
+  // 開発者ツール系
+  AnthropicAI: '1353836358901501952',
+  cursor_ai: '1695890961094909952',
+  OpenAI: '4398626122',
+  DrJimFan: '1007413134',
+  // AIニュース・分析系
   rowancheung: '1314686042',
   deedydas: '361044311',
   AlphaSignalAI: '114783808',
-  TheHumanoidHub: '1682127524963426304',
-  JeffreyTowson: '135647479',
+  GoogleDeepMind: '4783690002',
   rohanpaul_ai: '2588345408',
-  alex_prompter: '1657385954594762758',
-  adcock_brett: '3222018178',
 }
 
 const MIN_IMPRESSIONS = 50_000
@@ -114,7 +135,7 @@ function extractDetails(text: string): TweetDetails {
   const company = companyMatch?.[1]
 
   // Product+version extraction
-  const productMatch = text.match(/\b(GPT-?[45]o?|Claude\s*(?:Code)?(?:\s*[0-9.]+)?|Gemini\s*[0-9.]*|Llama\s*[0-9.]*|Sora\s*[0-9.]*|Seedance\s*[0-9.]*|Midjourney\s*v?[0-9.]*|Cursor\s*[0-9.]*|Codex|Qwen[\w.-]*|Flux[\w.-]*|Veo\s*[0-9.]*|Grok\s*[0-9.]*|Atlas|Figure\s*[0-9]*)\b/i)
+  const productMatch = text.match(/\b(GPT-?[45]o?|Claude\s*(?:Code)?(?:\s*[0-9.]+)?|Gemini\s*[0-9.]*|Llama\s*[0-9.]*|Sora\s*[0-9.]*|Seedance\s*[0-9.]*|Midjourney\s*v?[0-9.]*|Cursor\s*[0-9.]*|Codex|Qwen[\w.-]*|Flux[\w.-]*|Veo\s*[0-9.]*|Grok\s*[0-9.]*|Atlas|Figure\s*0?[0-9]|Gen-?[0-9]|Runway\s*(?:Gen|Act)[- ]?[0-9]*|Helix|Spot|Optimus|Digit)\b/i)
   const product = productMatch?.[1]?.trim()
 
   // Number extraction (impressive metrics)
@@ -253,8 +274,13 @@ async function findViralTweets(): Promise<ViralTweet[]> {
     }
   }
 
-  // Sort by likes descending
-  return [...candidates].sort((a, b) => b.likeCount - a.likeCount)
+  // Sort by likes with visual-impact accounts boosted (1.5x weight)
+  const VISUAL_ACCOUNTS = new Set(['figure_robot', 'BostonDynamics', 'TheHumanoidHub', 'RunwayML', 'adcock_brett'])
+  return [...candidates].sort((a, b) => {
+    const aScore = a.likeCount * (VISUAL_ACCOUNTS.has(a.username) ? 1.5 : 1)
+    const bScore = b.likeCount * (VISUAL_ACCOUNTS.has(b.username) ? 1.5 : 1)
+    return bScore - aScore
+  })
 }
 
 export async function runViralAiRepost(dryRun = false): Promise<{ success: boolean; tweetUrl?: string; originalTweetUrl?: string; comment?: string; error?: string }> {
