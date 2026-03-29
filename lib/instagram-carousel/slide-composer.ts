@@ -84,7 +84,10 @@ function darkGradientBg() {
 // Slide 1: Cover
 // ============================================================
 
-function renderCoverSlide(hook: string, slideNum: number) {
+function renderCoverSlide(
+  hookLine1: string, hookLine2: string, hookLine3: string,
+  slideNum: number, coverBgDataUri: string | null,
+) {
   return {
     type: 'div',
     props: {
@@ -93,90 +96,86 @@ function renderCoverSlide(hook: string, slideNum: number) {
         flexDirection: 'column',
         width: CAROUSEL_WIDTH,
         height: CAROUSEL_HEIGHT,
-        background: darkGradientBg(),
         fontFamily: 'NotoSansJP',
         position: 'relative' as const,
-        padding: '60px 60px',
+        background: darkGradientBg(),
       },
       children: [
-        // NANDS label top-left
-        {
-          type: 'div',
+        // Background image (Canva cover with person)
+        ...(coverBgDataUri ? [{
+          type: 'img',
           props: {
+            src: coverBgDataUri,
             style: {
               position: 'absolute' as const,
-              top: 40,
-              left: 50,
-              fontSize: 22,
-              color: BRAND.textMuted,
-              letterSpacing: '0.1em',
+              top: 0,
+              left: 0,
+              width: CAROUSEL_WIDTH,
+              height: CAROUSEL_HEIGHT,
+              objectFit: 'cover' as const,
             },
-            children: 'NANDS',
           },
-        },
+        }] : []),
         // Slide number top-right
         slideNumberLabel(slideNum, true),
-        // Main hook text centered
+        // Text block - centered vertically, matching reference layout exactly
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
               flexDirection: 'column',
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
+              position: 'absolute' as const,
+              top: Math.round(CAROUSEL_HEIGHT * 0.35),
+              left: 50,
+              right: 50,
             },
             children: [
+              // Line 1: White, large (カテゴリ)
               {
                 type: 'div',
                 props: {
                   style: {
                     color: BRAND.textLight,
-                    fontSize: 52,
+                    fontSize: 64,
                     fontWeight: 700,
-                    textAlign: 'center' as const,
-                    lineHeight: 1.5,
-                    padding: '0 20px',
+                    lineHeight: 1.3,
+                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
                   },
-                  children: hook,
+                  children: hookLine1,
                 },
               },
-              // Cyan underline accent
+              // Line 2: Cyan, large (メインキーワード)
               {
                 type: 'div',
                 props: {
                   style: {
-                    width: 200,
-                    height: 4,
-                    background: BRAND.cyan,
-                    marginTop: 32,
-                    borderRadius: 2,
+                    color: BRAND.cyan,
+                    fontSize: 68,
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    marginTop: 12,
+                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
                   },
+                  children: hookLine2,
+                },
+              },
+              // Line 3: White, large (コンテンツ種類)
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: BRAND.textLight,
+                    fontSize: 72,
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    marginTop: 12,
+                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
+                  },
+                  children: hookLine3,
                 },
               },
             ],
-          },
-        },
-        // Bottom label
-        {
-          type: 'div',
-          props: {
-            style: {
-              display: 'flex',
-              justifyContent: 'center',
-              paddingBottom: 20,
-            },
-            children: {
-              type: 'div',
-              props: {
-                style: {
-                  color: BRAND.textMuted,
-                  fontSize: 24,
-                },
-                children: 'AI\u6700\u65B0\u30C8\u30EC\u30F3\u30C9',
-              },
-            },
           },
         },
       ],
@@ -736,9 +735,21 @@ export async function renderAllSlides(
     fonts: fontConfig,
   }
 
+  // Load cover background image
+  let coverBgDataUri: string | null = null
+  try {
+    const fs = await import('fs/promises')
+    const path = await import('path')
+    const coverPath = path.join(process.cwd(), 'public', 'images', 'instagram', 'carousel-cover-bg.png')
+    const coverBuffer = await fs.readFile(coverPath)
+    coverBgDataUri = `data:image/png;base64,${coverBuffer.toString('base64')}`
+  } catch {
+    process.stdout.write('Cover background not found, using gradient fallback\n')
+  }
+
   // Build all 8 slide elements
   const slideElements = [
-    renderCoverSlide(content.hook, 1),
+    renderCoverSlide(content.hookLine1, content.hookLine2, content.hookLine3, 1, coverBgDataUri),
     renderProblemSlide(content.problemBullets, 2),
     renderSolutionSlide(content.solutionTitle, content.solutionPoints, diagramBuffer, 3),
     renderDeepDiveSlide(0, content.deepDives[0].title, content.deepDives[0].bullets, 4),

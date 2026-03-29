@@ -143,7 +143,7 @@ async function saveAnalytics(
     posted_at: new Date().toISOString(),
     metadata: {
       topic,
-      hook: content.hook,
+      hook: `${content.hookLine1} ${content.hookLine2} ${content.hookLine3}`,
       hashtags: content.hashtags,
       slide_count: 8,
     },
@@ -172,7 +172,7 @@ export async function runCarouselPipeline(
     // Step 1: Generate content
     process.stdout.write(`[1/7] Generating content for: ${topic}\n`)
     const content = await generateCarouselContent(topic)
-    process.stdout.write(`  Hook: ${content.hook}\n`)
+    process.stdout.write(`  Hook: ${content.hookLine1} / ${content.hookLine2} / ${content.hookLine3}\n`)
 
     // Step 2: Generate diagram for solution slide
     process.stdout.write('[2/7] Generating diagram...\n')

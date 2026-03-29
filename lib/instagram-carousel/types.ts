@@ -6,7 +6,9 @@ export interface DeepDiveContent {
 }
 
 export interface CarouselContent {
-  readonly hook: string
+  readonly hookLine1: string
+  readonly hookLine2: string
+  readonly hookLine3: string
   readonly problemBullets: readonly string[]
   readonly solutionTitle: string
   readonly solutionPoints: readonly string[]

@@ -8,12 +8,15 @@ const deepDiveSchema = z.object({
 })
 
 const carouselContentSchema = z.object({
-  hook: z.string().default('知らないとやばい？'),
+  hookLine1: z.string().default('最新のAI仕事術'),
+  hookLine2: z.string().default('AIツール'),
+  hookLine3: z.string().default('完全ガイド'),
   problemBullets: z.array(z.string()).default(['課題1', '課題2', '課題3']),
   solutionTitle: z.string().default('解決策'),
   solutionPoints: z.array(z.string()).default(['メリット1', 'メリット2', 'メリット3']),
   deepDives: z
-    .tuple([deepDiveSchema, deepDiveSchema, deepDiveSchema])
+    .array(deepDiveSchema)
+    .transform(arr => [arr[0] || { title: 'ポイント1', bullets: ['詳細1'] }, arr[1] || { title: 'ポイント2', bullets: ['詳細2'] }, arr[2] || { title: 'ポイント3', bullets: ['詳細3'] }] as const)
     .default([
       { title: 'ポイント1', bullets: ['詳細1'] },
       { title: 'ポイント2', bullets: ['詳細2'] },
@@ -30,7 +33,9 @@ const SYSTEM_PROMPT = `あなたはInstagramカルーセル投稿のコンテン
 出力は以下のJSON構造に厳密に従ってください:
 
 {
-  "hook": "1-2行、挑発的な質問や「これ知らないとやばい」スタイル（30文字以内）",
+  "hookLine1": "カテゴリ・ジャンル（例: 最新のAI仕事術）10文字以内",
+  "hookLine2": "メインキーワード（例: バイブコーディング）10文字以内、最もインパクトのある単語",
+  "hookLine3": "コンテンツ種類（例: ツール5選、完全ガイド、徹底比較）10文字以内",
   "problemBullets": ["課題1（40文字以内）", "課題2", "課題3"],
   "solutionTitle": "解決策の名前・コンセプト（20文字以内）",
   "solutionPoints": ["メリット1（40文字以内）", "メリット2", "メリット3"],
