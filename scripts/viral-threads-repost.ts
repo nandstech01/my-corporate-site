@@ -204,6 +204,7 @@ async function savePost(postText: string, threadsMediaId: string, permalinkUrl: 
 interface MediaInfo {
   readonly type: 'video' | 'image'
   readonly url: string
+  readonly previewImageUrl?: string
 }
 
 interface XMediaVariant {
@@ -223,7 +224,9 @@ function extractBestMediaUrl(media: {
       .filter((v) => v.content_type === 'video/mp4' && v.bit_rate !== undefined)
       .sort((a, b) => (b.bit_rate ?? 0) - (a.bit_rate ?? 0))
     const best = mp4Variants[0]
-    if (best) return { type: 'video', url: best.url }
+    if (best) return { type: 'video', url: best.url, previewImageUrl: media.preview_image_url }
+    // Fallback to preview image if no video variants
+    if (media.preview_image_url) return { type: 'image', url: media.preview_image_url }
     return null
   }
 
@@ -365,11 +368,18 @@ export async function runViralThreadsRepost(dryRun = false): Promise<{
     return { success: true, comment, originalTweetId: best.id, mediaType: best.media.type }
   }
 
-  const postOptions = best.media.type === 'video'
-    ? { text: comment, videoUrl: best.media.url }
-    : { text: comment, imageUrl: best.media.url }
+  let result: { success: boolean; mediaId?: string; permalinkUrl?: string; error?: string }
 
-  const result = await postToThreads(postOptions)
+  if (best.media.type === 'video') {
+    // Try video first, fallback to preview image if video fails
+    result = await postToThreads({ text: comment, videoUrl: best.media.url })
+    if (!result.success && best.media.previewImageUrl) {
+      console.error('[Threads] Video failed, falling back to preview image')
+      result = await postToThreads({ text: comment, imageUrl: best.media.previewImageUrl })
+    }
+  } else {
+    result = await postToThreads({ text: comment, imageUrl: best.media.url })
+  }
 
   if (result.success && result.mediaId) {
     // Embed original tweet ID in post_text for dedup
