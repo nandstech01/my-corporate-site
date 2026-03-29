@@ -35,6 +35,18 @@ const INFLUENCERS = [
   'adcock_brett',
 ] as const
 
+// Cached user IDs to avoid resolveUserId API calls (IDs are permanent)
+const USER_ID_CACHE: Record<string, string> = {
+  rowancheung: '1314686042',
+  deedydas: '361044311',
+  AlphaSignalAI: '114783808',
+  TheHumanoidHub: '1682127524963426304',
+  JeffreyTowson: '135647479',
+  rohanpaul_ai: '2588345408',
+  alex_prompter: '1657385954594762758',
+  adcock_brett: '3222018178',
+}
+
 const MIN_IMPRESSIONS = 50_000
 const MIN_LIKES = 500
 
@@ -61,7 +73,19 @@ const TOPIC_KEYWORDS: readonly { readonly pattern: RegExp; readonly hint: string
   { pattern: /Apple|Google|Microsoft|Meta|Amazon|OpenAI/i, hint: 'ビッグテックAI' },
 ]
 
-const COMMENT_TEMPLATES = [
+// Templates when we have extracted details (company/product/number)
+const DETAIL_TEMPLATES = [
+  '{product}がここまで来たか…',
+  '{company}の{product}、これは次元が違う',
+  'まだ日本で話題になってないけど{product}すごいことになってる',
+  '{product}、海外勢の評価がえぐい',
+  '{company}が{product}出してきた。要チェック',
+  '{product}…{number}って本当？',
+  'えっ、{product}…？これはやばい',
+] as const
+
+// Fallback when extraction finds nothing
+const GENERIC_TEMPLATES = [
   'えっ、{topic_hint}ここまできてる…？',
   'おおー、{topic_hint}やばい',
   'これ見た？{topic_hint}',
@@ -78,14 +102,51 @@ function detectTopicHint(text: string): string {
   return 'AI'
 }
 
+interface TweetDetails {
+  readonly company?: string
+  readonly product?: string
+  readonly number?: string
+}
+
+function extractDetails(text: string): TweetDetails {
+  // Company extraction
+  const companyMatch = text.match(/\b(OpenAI|Google|Meta|Microsoft|NVIDIA|Apple|Amazon|Anthropic|DeepSeek|ByteDance|Mistral|xAI|Stability\s*AI|Hugging\s*Face)\b/i)
+  const company = companyMatch?.[1]
+
+  // Product+version extraction
+  const productMatch = text.match(/\b(GPT-?[45]o?|Claude\s*(?:Code)?(?:\s*[0-9.]+)?|Gemini\s*[0-9.]*|Llama\s*[0-9.]*|Sora\s*[0-9.]*|Seedance\s*[0-9.]*|Midjourney\s*v?[0-9.]*|Cursor\s*[0-9.]*|Codex|Qwen[\w.-]*|Flux[\w.-]*|Veo\s*[0-9.]*|Grok\s*[0-9.]*|Atlas|Figure\s*[0-9]*)\b/i)
+  const product = productMatch?.[1]?.trim()
+
+  // Number extraction (impressive metrics)
+  const numMatch = text.match(/\b(\d+(?:\.\d+)?)\s*([xX%]|times|faster|cheaper|smaller|billion|million|trillion)/i)
+  const number = numMatch ? `${numMatch[1]}${numMatch[2].toLowerCase()}` : undefined
+
+  return { company, product, number }
+}
+
 function pickComment(tweetText: string, tweetId: string): string {
+  const details = extractDetails(tweetText)
   const hint = detectTopicHint(tweetText)
-  // Use current hour + tweet ID for better rotation (avoids same template for same author)
   const hourSeed = new Date().getHours()
   const idSeed = tweetId.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
-  const index = (hourSeed + idSeed) % COMMENT_TEMPLATES.length
-  const template = COMMENT_TEMPLATES[index]
-  return template.replace('{topic_hint}', hint)
+
+  // Use detail templates if we have product or company
+  if (details.product || details.company) {
+    const index = (hourSeed + idSeed) % DETAIL_TEMPLATES.length
+    let comment: string = DETAIL_TEMPLATES[index]
+    comment = comment.replace('{product}', details.product || details.company || hint)
+    comment = comment.replace('{company}', details.company || '')
+    comment = comment.replace('{number}', details.number || '')
+    // Clean up empty placeholders and double spaces
+    comment = comment.replace(/\{[^}]+\}/g, '').replace(/\s{2,}/g, ' ').trim()
+    // Remove trailing punctuation issues from empty replacements
+    comment = comment.replace(/、$/, '').replace(/^、/, '').trim()
+    if (comment.length > 0) return comment
+  }
+
+  // Fallback to generic templates
+  const index = (hourSeed + idSeed) % GENERIC_TEMPLATES.length
+  return GENERIC_TEMPLATES[index].replace('{topic_hint}', hint)
 }
 
 // ---------------------------------------------------------------------------
@@ -129,17 +190,36 @@ interface ViralTweet {
   readonly url: string
 }
 
+async function fetchWithRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  try {
+    return await fn()
+  } catch (err: unknown) {
+    const msg = String(err)
+    if (msg.includes('429') || msg.includes('Too Many')) {
+      console.error(`[429] ${label} — waiting 60s`)
+      await new Promise(r => setTimeout(r, 60_000))
+      return fn()
+    }
+    throw err
+  }
+}
+
 async function findViralTweets(): Promise<ViralTweet[]> {
   const candidates: ViralTweet[] = []
 
   for (const username of INFLUENCERS) {
-    const resolved = await resolveUserId(username)
-    if (resolved.error || !resolved.id) {
-      console.error(`Skip @${username}: ${resolved.error}`)
+    const cachedId = USER_ID_CACHE[username]
+    const resolved = cachedId ? { id: cachedId } : await resolveUserId(username)
+    const userId = resolved.id
+    if (!userId) {
+      console.error(`Skip @${username}: could not resolve user ID`)
       continue
     }
 
-    const { tweets, error } = await getUserTimeline(resolved.id, { maxResults: 10 })
+    const { tweets, error } = await fetchWithRetry(
+      () => getUserTimeline(userId, { maxResults: 10 }),
+      `getUserTimeline(@${username})`,
+    )
     if (error) {
       console.error(`Timeline error @${username}: ${error}`)
       continue

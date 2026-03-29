@@ -1159,9 +1159,9 @@ const handlers: Record<string, Handler> = {
 }
 
 async function main(): Promise<void> {
-  const { topic, phase, turnNumber, context } = parseArgs()
-  const key = `${topic}:${phase}`
-  const handler = handlers[key]
+  const { topic: rawTopic, phase, turnNumber, context } = parseArgs()
+  let topic = rawTopic
+  let redirectedFrom: string | null = null
 
   // Footer map: what AI-A should do next based on the result
   const footerMap: Record<string, string> = {
@@ -1190,18 +1190,35 @@ async function main(): Promise<void> {
 
   if (completedTopics.has(topic)) {
     const nextTopic = suggestNextTopic(completedTopics)
-    const suggestion = nextTopic
-      ? `推奨トピック: ${nextTopic}`
-      : '全トピック処理済み。次サイクルまで待機してください'
 
-    // Write the next topic to DB so AI-A picks it up (fixes topic repetition bug)
+    if (!nextTopic) {
+      // All topics done today — return wait message
+      const result: LoopExecutorResult = {
+        topic,
+        phase,
+        turn_number: turnNumber,
+        response_text: `⏭️ トピック「${topic}」は本日処理済みです。全トピック処理済み。次サイクルまで待機してください`,
+        actions_taken: ['トピック重複チェック', '全トピック完了'],
+        next_action: 'wait',
+        posts_published: 0,
+        footer: `[NEXT: ai_a | Action: 全トピック完了。次サイクルまで待機してください]`,
+      }
+      console.log(JSON.stringify(result, null, 2))
+      return
+    }
+
+    // AUTO-REDIRECT: Override topic and process the next unprocessed one
+    console.error(`[loop-executor] Auto-redirect: ${topic} → ${nextTopic}`)
+    redirectedFrom = topic
+
+    // Write the redirected topic to DB so AI-A picks it up
     const { data: stateRow } = await supabase
       .from('cortex_loop_state')
       .select('id')
       .order('updated_at', { ascending: false })
       .limit(1)
       .single()
-    if (stateRow && nextTopic) {
+    if (stateRow) {
       await supabase
         .from('cortex_loop_state')
         .update({
@@ -1211,19 +1228,13 @@ async function main(): Promise<void> {
         .eq('id', stateRow.id)
     }
 
-    const result: LoopExecutorResult = {
-      topic,
-      phase,
-      turn_number: turnNumber,
-      response_text: `⏭️ トピック「${topic}」は本日処理済みです（スキップ）。\n${suggestion}`,
-      actions_taken: ['トピック重複チェック', 'スキップ', nextTopic ? `DB更新: agenda_topic→${nextTopic}` : 'DB更新なし'],
-      next_action: nextTopic ? 'skip_to_next_topic' : 'wait',
-      posts_published: 0,
-      footer: `[NEXT: ai_a | Action: ${nextTopic ? `トピックを「${nextTopic}」に切り替えてください` : '全トピック完了。次サイクルまで待機してください'}]`,
-    }
-    console.log(JSON.stringify(result, null, 2))
-    return
+    // Reassign topic — fall through to normal handler execution
+    topic = nextTopic
   }
+
+  // Resolve handler after potential redirect (topic may have changed)
+  const key = `${topic}:${phase}`
+  const handler = handlers[key]
 
   if (!handler) {
     const result: LoopExecutorResult = {
@@ -1250,8 +1261,8 @@ async function main(): Promise<void> {
     topic,
     phase,
     turn_number: turnNumber,
-    response_text: partial.response_text ?? '',
-    actions_taken: partial.actions_taken ?? [],
+    response_text: (redirectedFrom ? `⚡ 自動リダイレクト: ${redirectedFrom} → ${topic}\n\n` : '') + (partial.response_text ?? ''),
+    actions_taken: [...(redirectedFrom ? [`自動リダイレクト: ${redirectedFrom} → ${topic}`] : []), ...(partial.actions_taken ?? [])],
     next_action: nextAction,
     posts_published: 0,
     footer: `[NEXT: ai_a | Action: ${footerMap[nextAction] ?? footerMap['wait']}]`,
