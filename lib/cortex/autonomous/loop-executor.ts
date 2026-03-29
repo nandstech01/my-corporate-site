@@ -529,10 +529,14 @@ async function markTopicCompleted(supabase: ReturnType<typeof getSupabase>, topi
   const completed = await getCompletedTopicsToday(supabase)
   completed.add(topic)
 
+  // Determine the next topic so AI-A picks it up from the DB
+  const nextTopic = suggestNextTopic(completed) ?? topic
+
   const contextData = JSON.stringify({
     completed_topics_today: Array.from(completed),
     last_completed_turn: turnNumber,
     last_completed_at: new Date().toISOString(),
+    next_topic: nextTopic,
   })
 
   // Upsert the state row
@@ -547,7 +551,7 @@ async function markTopicCompleted(supabase: ReturnType<typeof getSupabase>, topi
     await supabase
       .from('cortex_loop_state')
       .update({
-        agenda_topic: topic,
+        agenda_topic: nextTopic,
         turn_number: turnNumber,
         context_summary: contextData,
         last_turn_at: new Date().toISOString(),
@@ -1190,12 +1194,29 @@ async function main(): Promise<void> {
       ? `推奨トピック: ${nextTopic}`
       : '全トピック処理済み。次サイクルまで待機してください'
 
+    // Write the next topic to DB so AI-A picks it up (fixes topic repetition bug)
+    const { data: stateRow } = await supabase
+      .from('cortex_loop_state')
+      .select('id')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single()
+    if (stateRow && nextTopic) {
+      await supabase
+        .from('cortex_loop_state')
+        .update({
+          agenda_topic: nextTopic,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', stateRow.id)
+    }
+
     const result: LoopExecutorResult = {
       topic,
       phase,
       turn_number: turnNumber,
       response_text: `⏭️ トピック「${topic}」は本日処理済みです（スキップ）。\n${suggestion}`,
-      actions_taken: ['トピック重複チェック', 'スキップ'],
+      actions_taken: ['トピック重複チェック', 'スキップ', nextTopic ? `DB更新: agenda_topic→${nextTopic}` : 'DB更新なし'],
       next_action: nextTopic ? 'skip_to_next_topic' : 'wait',
       posts_published: 0,
       footer: `[NEXT: ai_a | Action: ${nextTopic ? `トピックを「${nextTopic}」に切り替えてください` : '全トピック完了。次サイクルまで待機してください'}]`,
