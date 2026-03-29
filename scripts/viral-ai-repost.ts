@@ -168,13 +168,15 @@ async function isAlreadyPosted(tweetUrl: string): Promise<boolean> {
 }
 
 async function savePost(postText: string, tweetId: string, tweetUrl: string): Promise<void> {
-  await supabase.from('x_post_analytics').insert({
+  const { error } = await supabase.from('x_post_analytics').insert({
     post_text: postText,
-    post_id: tweetId,
-    post_url: tweetUrl,
+    tweet_id: tweetId,
+    tweet_url: tweetUrl,
     pattern_used: 'viral_repost',
     posted_at: new Date().toISOString(),
+    likes: 0, retweets: 0, replies: 0, impressions: 0, engagement_rate: 0,
   })
+  if (error) console.error('[savePost] DB error:', error.message)
 }
 
 // ---------------------------------------------------------------------------
