@@ -1,19 +1,33 @@
-export type SlideType = 'cover' | 'problem' | 'solution' | 'deep_dive' | 'summary' | 'cta'
+export type SlideType = 'cover' | 'conclusion' | 'content' | 'summary' | 'cta'
+export type SummaryType = 'comparison' | 'checklist' | 'pros_cons' | 'numbers' | 'before_after'
 
-export interface DeepDiveContent {
+export interface ContentSlide {
   readonly title: string
-  readonly bullets: readonly string[]
+  readonly description: string
+  readonly keyPoints: readonly string[]
+}
+
+export interface ComparisonItem {
+  readonly label: string
+  readonly values: readonly (boolean | string)[]
+}
+
+export interface SummaryData {
+  readonly type: SummaryType
+  readonly title: string
+  readonly items: readonly string[]
+  readonly columns?: readonly string[]
+  readonly pros?: readonly string[]
+  readonly cons?: readonly string[]
 }
 
 export interface CarouselContent {
   readonly hookLine1: string
   readonly hookLine2: string
   readonly hookLine3: string
-  readonly problemBullets: readonly string[]
-  readonly solutionTitle: string
-  readonly solutionPoints: readonly string[]
-  readonly deepDives: readonly [DeepDiveContent, DeepDiveContent, DeepDiveContent]
-  readonly takeaways: readonly string[]
+  readonly conclusionText: string
+  readonly contentSlides: readonly ContentSlide[]
+  readonly summary: SummaryData
   readonly caption: string
   readonly hashtags: readonly string[]
 }
@@ -36,8 +50,8 @@ export const BRAND = {
   textLight: '#FFFFFF',
   textMuted: '#94A3B8',
   textAccent: '#06B6D4',
+  yellow: '#FDE047',
 } as const
 
 export const CAROUSEL_WIDTH = 1080
 export const CAROUSEL_HEIGHT = 1350
-export const TOTAL_SLIDES = 8
