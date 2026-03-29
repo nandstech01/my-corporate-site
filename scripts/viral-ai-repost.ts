@@ -15,9 +15,9 @@ config({ path: '.env.local' })
 import { createClient } from '@supabase/supabase-js'
 import {
   resolveUserId,
-  getUserTimeline,
   postTweet,
   getTwitterWeightedLength,
+  getTwitterClient,
 } from '../lib/x-api/client'
 
 // ---------------------------------------------------------------------------
@@ -211,6 +211,7 @@ interface ViralTweet {
   readonly likeCount: number
   readonly impressionCount: number
   readonly url: string
+  readonly hasVideo: boolean
 }
 
 async function fetchWithRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
@@ -239,46 +240,61 @@ async function findViralTweets(): Promise<ViralTweet[]> {
       continue
     }
 
-    const { tweets, error } = await fetchWithRetry(
-      () => getUserTimeline(userId, { maxResults: 10 }),
-      `getUserTimeline(@${username})`,
-    )
-    if (error) {
-      console.error(`Timeline error @${username}: ${error}`)
+    try {
+      const client = getTwitterClient()
+      const timeline = await fetchWithRetry(
+        () => client.v2.userTimeline(userId, {
+          max_results: 10,
+          'tweet.fields': ['public_metrics', 'attachments'],
+          expansions: ['attachments.media_keys'],
+          'media.fields': ['type'],
+        }),
+        `getUserTimeline(@${username})`,
+      )
+
+      // Build set of video media keys
+      const videoKeys = new Set<string>()
+      for (const m of timeline.includes?.media ?? []) {
+        if (m.type === 'video' || m.type === 'animated_gif') videoKeys.add(m.media_key)
+      }
+
+      for (const tweet of timeline.data?.data ?? []) {
+        const metrics = tweet.public_metrics
+        if (!metrics) continue
+
+        const isViral =
+          (metrics.impression_count ?? 0) >= MIN_IMPRESSIONS || (metrics.like_count ?? 0) >= MIN_LIKES
+        if (!isViral) continue
+
+        if (tweet.text.startsWith('RT @')) continue
+
+        const tweetUrl = `https://x.com/${username}/status/${tweet.id}`
+        const alreadyPosted = await isAlreadyPosted(tweetUrl)
+        if (alreadyPosted) continue
+
+        const hasVideo = (tweet.attachments?.media_keys ?? []).some((k: string) => videoKeys.has(k))
+
+        candidates.push({
+          id: tweet.id,
+          text: tweet.text,
+          username,
+          likeCount: metrics.like_count ?? 0,
+          impressionCount: metrics.impression_count ?? 0,
+          url: tweetUrl,
+          hasVideo,
+        })
+      }
+    } catch (err) {
+      console.error(`Timeline error @${username}: ${err}`)
       continue
-    }
-
-    for (const tweet of tweets) {
-      const metrics = tweet.publicMetrics
-      if (!metrics) continue
-
-      const isViral =
-        metrics.impressionCount >= MIN_IMPRESSIONS || metrics.likeCount >= MIN_LIKES
-      if (!isViral) continue
-
-      // Skip retweets (they start with "RT @")
-      if (tweet.text.startsWith('RT @')) continue
-
-      const tweetUrl = `https://x.com/${username}/status/${tweet.id}`
-      const alreadyPosted = await isAlreadyPosted(tweetUrl)
-      if (alreadyPosted) continue
-
-      candidates.push({
-        id: tweet.id,
-        text: tweet.text,
-        username,
-        likeCount: metrics.likeCount,
-        impressionCount: metrics.impressionCount,
-        url: tweetUrl,
-      })
     }
   }
 
-  // Sort by likes with visual-impact accounts boosted (1.5x weight)
+  // Sort by likes with video boost (2x) and visual-impact account boost (1.5x)
   const VISUAL_ACCOUNTS = new Set(['figure_robot', 'BostonDynamics', 'TheHumanoidHub', 'RunwayML', 'adcock_brett'])
   return [...candidates].sort((a, b) => {
-    const aScore = a.likeCount * (VISUAL_ACCOUNTS.has(a.username) ? 1.5 : 1)
-    const bScore = b.likeCount * (VISUAL_ACCOUNTS.has(b.username) ? 1.5 : 1)
+    const aScore = a.likeCount * (a.hasVideo ? 2 : 1) * (VISUAL_ACCOUNTS.has(a.username) ? 1.5 : 1)
+    const bScore = b.likeCount * (b.hasVideo ? 2 : 1) * (VISUAL_ACCOUNTS.has(b.username) ? 1.5 : 1)
     return bScore - aScore
   })
 }
