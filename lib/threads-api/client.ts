@@ -75,6 +75,7 @@ async function graphApiFetch<T>(
 async function createMediaContainer(options: {
   readonly text: string
   readonly imageUrl?: string
+  readonly videoUrl?: string
   readonly mediaType: ThreadsMediaType
   readonly replyToId?: string
 }): Promise<string> {
@@ -87,6 +88,10 @@ async function createMediaContainer(options: {
 
   if (options.imageUrl && options.mediaType === 'IMAGE') {
     params.set('image_url', options.imageUrl)
+  }
+
+  if (options.videoUrl && options.mediaType === 'VIDEO') {
+    params.set('video_url', options.videoUrl)
   }
 
   if (options.replyToId) {
@@ -151,6 +156,7 @@ async function publishMedia(containerId: string): Promise<{
 export async function postToThreads(options: {
   readonly text: string
   readonly imageUrl?: string
+  readonly videoUrl?: string
 }): Promise<ThreadsPostResult> {
   if (!isThreadsConfigured()) {
     return {
@@ -178,15 +184,22 @@ export async function postToThreads(options: {
   }
 
   try {
-    const mediaType: ThreadsMediaType = options.imageUrl ? 'IMAGE' : 'TEXT'
+    const mediaType: ThreadsMediaType = options.videoUrl
+      ? 'VIDEO'
+      : options.imageUrl
+        ? 'IMAGE'
+        : 'TEXT'
 
     const containerId = await createMediaContainer({
       text: options.text,
       imageUrl: options.imageUrl,
+      videoUrl: options.videoUrl,
       mediaType,
     })
 
-    await pollContainerStatus(containerId)
+    // Video containers take longer to process
+    const maxPollAttempts = mediaType === 'VIDEO' ? 30 : 10
+    await pollContainerStatus(containerId, maxPollAttempts)
     const published = await publishMedia(containerId)
 
     return {
@@ -212,22 +225,30 @@ export async function replyToThreads(options: {
   readonly text: string
   readonly replyToId: string
   readonly imageUrl?: string
+  readonly videoUrl?: string
 }): Promise<ThreadsPostResult> {
   if (!isThreadsConfigured() || !isThreadsPostingEnabled()) {
     return { success: false, error: 'Threads not configured or disabled', status: 'failed' }
   }
 
   try {
-    const mediaType: ThreadsMediaType = options.imageUrl ? 'IMAGE' : 'TEXT'
+    const mediaType: ThreadsMediaType = options.videoUrl
+      ? 'VIDEO'
+      : options.imageUrl
+        ? 'IMAGE'
+        : 'TEXT'
 
     const containerId = await createMediaContainer({
       text: options.text,
       imageUrl: options.imageUrl,
+      videoUrl: options.videoUrl,
       mediaType,
       replyToId: options.replyToId,
     })
 
-    await pollContainerStatus(containerId)
+    // Video containers take longer to process
+    const maxPollAttempts = mediaType === 'VIDEO' ? 30 : 10
+    await pollContainerStatus(containerId, maxPollAttempts)
     const published = await publishMedia(containerId)
 
     return {
@@ -250,6 +271,7 @@ export async function postThreadsChain(options: {
   readonly parentImageUrl?: string
   readonly replies: readonly string[]
 }): Promise<{
+  readonly parentId?: string
   readonly parentUrl?: string
   readonly replyCount: number
   readonly errors: readonly string[]
@@ -292,6 +314,7 @@ export async function postThreadsChain(options: {
   }
 
   return {
+    parentId: parentResult.mediaId,
     parentUrl: parentResult.permalinkUrl,
     replyCount,
     errors,

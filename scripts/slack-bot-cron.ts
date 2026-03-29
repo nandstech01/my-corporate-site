@@ -38,6 +38,7 @@ import { runCrossPostEngagementCollector } from '../lib/cross-post/cross-post-en
 import { runDailyBuzzThread } from '../lib/daily-buzz/runner'
 import { runAnthropicReactor } from '../lib/tweet-reactor/anthropic-reactor'
 import { runViralAiRepost } from './viral-ai-repost'
+import { runViralThreadsRepost } from './viral-threads-repost'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -101,6 +102,7 @@ type JobName =
   | 'daily-buzz-japan'
   | 'anthropic-tweet-reactor'
   | 'viral-ai-repost'
+  | 'viral-threads-repost'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -138,6 +140,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 11 * * *': 'daily-buzz-japan',
   '*/15 0-14 * * *': 'anthropic-tweet-reactor',
   '0 */2 * * *': 'viral-ai-repost',
+  '30 */3 * * *': 'viral-threads-repost',
 }
 
 function detectJob(): JobName {
@@ -380,6 +383,10 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'viral-ai-repost': async () => {
     const result = await runViralAiRepost()
     process.stdout.write(`Viral AI repost: ${JSON.stringify(result)}\n`)
+  },
+  'viral-threads-repost': async () => {
+    const result = await runViralThreadsRepost()
+    process.stdout.write(`Viral Threads repost: ${JSON.stringify(result)}\n`)
   },
 }
 
