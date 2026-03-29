@@ -84,10 +84,23 @@ function darkGradientBg() {
 // Slide 1: Cover
 // ============================================================
 
+// ============================================================
+// COVER SLIDE DESIGN RULES (FIXED - DO NOT CHANGE)
+// 1行目: 130px 白 8文字固定
+// 2行目: 110px シアン (文字数少→サイズ大で調整)
+// 3行目: 140px 白
+// 全体: 上下左右中央揃え, 行間marginTop:16
+// テキストシャドウ: 0 6px 20px rgba(0,0,0,0.95), 0 3px 6px rgba(0,0,0,0.7)
+// ============================================================
 function renderCoverSlide(
   hookLine1: string, hookLine2: string, hookLine3: string,
   slideNum: number, coverBgDataUri: string | null,
 ) {
+  const TEXT_SHADOW = '0 6px 20px rgba(0,0,0,0.95), 0 3px 6px rgba(0,0,0,0.7)'
+  // 2行目: 文字数に応じてサイズ調整（短い→大きく）
+  const line2Len = hookLine2.length
+  const line2FontSize = line2Len <= 5 ? 140 : line2Len <= 8 ? 120 : 110
+
   return {
     type: 'div',
     props: {
@@ -99,79 +112,54 @@ function renderCoverSlide(
         fontFamily: 'NotoSansJP',
         position: 'relative' as const,
         background: darkGradientBg(),
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
       },
       children: [
-        // Background image (Canva cover with person)
         ...(coverBgDataUri ? [{
           type: 'img',
           props: {
             src: coverBgDataUri,
             style: {
               position: 'absolute' as const,
-              top: 0,
-              left: 0,
-              width: CAROUSEL_WIDTH,
-              height: CAROUSEL_HEIGHT,
+              top: 0, left: 0,
+              width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT,
               objectFit: 'cover' as const,
             },
           },
         }] : []),
-        // Slide number top-right
         slideNumberLabel(slideNum, true),
-        // Text block - centered vertically, matching reference layout exactly
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
               flexDirection: 'column',
-              position: 'absolute' as const,
-              top: Math.round(CAROUSEL_HEIGHT * 0.35),
-              left: 50,
-              right: 50,
+              alignItems: 'center' as const,
+              justifyContent: 'center' as const,
             },
             children: [
-              // Line 1: White, large (カテゴリ)
+              // Line 1: 白 130px 8文字固定
               {
                 type: 'div',
                 props: {
-                  style: {
-                    color: BRAND.textLight,
-                    fontSize: 64,
-                    fontWeight: 700,
-                    lineHeight: 1.3,
-                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
-                  },
+                  style: { color: BRAND.textLight, fontSize: 130, fontWeight: 700, lineHeight: 1.3, textAlign: 'center' as const, textShadow: TEXT_SHADOW },
                   children: hookLine1,
                 },
               },
-              // Line 2: Cyan, large (メインキーワード)
+              // Line 2: シアン 110px (可変)
               {
                 type: 'div',
                 props: {
-                  style: {
-                    color: BRAND.cyan,
-                    fontSize: 68,
-                    fontWeight: 700,
-                    lineHeight: 1.3,
-                    marginTop: 12,
-                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
-                  },
+                  style: { color: BRAND.cyan, fontSize: line2FontSize, fontWeight: 700, lineHeight: 1.3, marginTop: 16, textAlign: 'center' as const, textShadow: TEXT_SHADOW },
                   children: hookLine2,
                 },
               },
-              // Line 3: White, large (コンテンツ種類)
+              // Line 3: 白 140px
               {
                 type: 'div',
                 props: {
-                  style: {
-                    color: BRAND.textLight,
-                    fontSize: 72,
-                    fontWeight: 700,
-                    lineHeight: 1.3,
-                    marginTop: 12,
-                    textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
-                  },
+                  style: { color: BRAND.textLight, fontSize: 140, fontWeight: 700, lineHeight: 1.3, marginTop: 16, textAlign: 'center' as const, textShadow: TEXT_SHADOW },
                   children: hookLine3,
                 },
               },
