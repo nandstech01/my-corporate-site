@@ -369,13 +369,43 @@ export async function runViralThreadsRepost(dryRun = false): Promise<{
   }
 
   let result: { success: boolean; mediaId?: string; permalinkUrl?: string; error?: string }
+  let tempStoragePath: string | null = null
 
   if (best.media.type === 'video') {
-    // Try video first, fallback to preview image if video fails
-    result = await postToThreads({ text: comment, videoUrl: best.media.url })
-    if (!result.success && best.media.previewImageUrl) {
+    // Download video from X CDN → upload to Supabase Storage → post to Threads → delete
+    try {
+      console.error('[Threads] Downloading video from X CDN...')
+      const videoResponse = await fetch(best.media.url)
+      if (!videoResponse.ok) throw new Error(`Download failed: ${videoResponse.status}`)
+      const videoBuffer = Buffer.from(await videoResponse.arrayBuffer())
+
+      const fileName = `threads-temp-${Date.now()}.mp4`
+      tempStoragePath = `temp/${fileName}`
+      const { error: uploadError } = await supabase.storage
+        .from('video-jobs')
+        .upload(tempStoragePath, videoBuffer, { contentType: 'video/mp4', upsert: true })
+      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
+
+      const { data: urlData } = supabase.storage.from('video-jobs').getPublicUrl(tempStoragePath)
+      const publicVideoUrl = urlData.publicUrl
+      console.error('[Threads] Video uploaded to Supabase, posting to Threads...')
+
+      result = await postToThreads({ text: comment, videoUrl: publicVideoUrl })
+    } catch (err) {
+      console.error('[Threads] Video proxy failed:', err)
+      result = { success: false, error: String(err) }
+    }
+
+    // Fallback to preview image if video still fails
+    if (!result!.success && best.media.previewImageUrl) {
       console.error('[Threads] Video failed, falling back to preview image')
       result = await postToThreads({ text: comment, imageUrl: best.media.previewImageUrl })
+    }
+
+    // Delete temp video from Supabase Storage
+    if (tempStoragePath) {
+      await supabase.storage.from('video-jobs').remove([tempStoragePath])
+      console.error('[Threads] Temp video deleted from storage')
     }
   } else {
     result = await postToThreads({ text: comment, imageUrl: best.media.url })
