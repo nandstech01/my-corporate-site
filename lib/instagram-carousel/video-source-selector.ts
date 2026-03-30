@@ -310,6 +310,12 @@ async function trimVideoIfNeeded(inputBuffer: Buffer): Promise<Buffer> {
   writeFileSync(tmpIn, inputBuffer)
 
   try {
+    // Check ffmpeg availability
+    try { execSync('which ffprobe', { stdio: 'pipe' }) } catch {
+      process.stdout.write('  ffprobe not found, skipping trim (will use raw video)\n')
+      return inputBuffer
+    }
+
     // Check duration
     const probe = execSync(`ffprobe -v quiet -print_format json -show_format "${tmpIn}"`, { encoding: 'utf-8' })
     const duration = parseFloat(JSON.parse(probe).format?.duration || '0')
