@@ -39,6 +39,8 @@ import { runDailyBuzzThread } from '../lib/daily-buzz/runner'
 import { runAnthropicReactor } from '../lib/tweet-reactor/anthropic-reactor'
 import { runViralAiRepost } from './viral-ai-repost'
 import { runViralThreadsRepost } from './viral-threads-repost'
+import { runAutoCarouselPipeline } from '../lib/instagram-carousel/pipeline'
+import { runHybridCarouselPipeline } from '../lib/instagram-carousel/hybrid-carousel-pipeline'
 
 async function runInstagramStoryAutoCheck(): Promise<void> {
   const unstoriedBlogs = await findUnstoriedBlogs()
@@ -103,6 +105,8 @@ type JobName =
   | 'anthropic-tweet-reactor'
   | 'viral-ai-repost'
   | 'viral-threads-repost'
+  | 'instagram-carousel-auto-post'
+  | 'instagram-hybrid-carousel-auto-post'
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
@@ -141,6 +145,8 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '*/15 0-14 * * *': 'anthropic-tweet-reactor',
   '0 23,5,11 * * *': 'viral-ai-repost',
   '30 23,5,11 * * *': 'viral-threads-repost',
+  '0 22 * * 0,2,4,6': 'instagram-carousel-auto-post',
+  '0 22 * * 1,3,5': 'instagram-hybrid-carousel-auto-post',
 }
 
 function detectJob(): JobName {
@@ -177,7 +183,11 @@ function detectJob(): JobName {
     explicit === 'daily-buzz-global' ||
     explicit === 'daily-buzz-claude-code' ||
     explicit === 'daily-buzz-japan' ||
-    explicit === 'anthropic-tweet-reactor'
+    explicit === 'anthropic-tweet-reactor' ||
+    explicit === 'viral-ai-repost' ||
+    explicit === 'viral-threads-repost' ||
+    explicit === 'instagram-carousel-auto-post' ||
+    explicit === 'instagram-hybrid-carousel-auto-post'
   ) {
     return explicit
   }
@@ -387,6 +397,20 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'viral-threads-repost': async () => {
     const result = await runViralThreadsRepost()
     process.stdout.write(`Viral Threads repost: ${JSON.stringify(result)}\n`)
+  },
+  'instagram-carousel-auto-post': async () => {
+    const delay = Math.floor(Math.random() * 10 * 60 * 1000)
+    process.stdout.write(`Instagram carousel: ${Math.round(delay / 60000)}min delay\n`)
+    await new Promise((r) => setTimeout(r, delay))
+    const result = await runAutoCarouselPipeline(false)
+    process.stdout.write(`Instagram carousel: ${JSON.stringify(result)}\n`)
+  },
+  'instagram-hybrid-carousel-auto-post': async () => {
+    const delay = Math.floor(Math.random() * 10 * 60 * 1000)
+    process.stdout.write(`Instagram hybrid: ${Math.round(delay / 60000)}min delay\n`)
+    await new Promise((r) => setTimeout(r, delay))
+    const result = await runHybridCarouselPipeline(false)
+    process.stdout.write(`Instagram hybrid: ${JSON.stringify(result)}\n`)
   },
 }
 
