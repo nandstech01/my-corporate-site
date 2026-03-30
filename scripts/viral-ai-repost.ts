@@ -12,6 +12,7 @@
 import { config } from 'dotenv'
 config({ path: '.env.local' })
 
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import {
   resolveUserId,
@@ -19,6 +20,7 @@ import {
   getTwitterWeightedLength,
   getTwitterClient,
 } from '../lib/x-api/client'
+import { formatVoiceProfileForPrompt } from '../lib/prompts/voice-profile'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -72,102 +74,98 @@ const MIN_IMPRESSIONS = 50_000
 const MIN_LIKES = 500
 
 // ---------------------------------------------------------------------------
-// Comment templates & topic detection
+// AI Comment Generation (Claude Haiku 4.5 + voice-profile)
 // ---------------------------------------------------------------------------
 
-const TOPIC_KEYWORDS: readonly { readonly pattern: RegExp; readonly hint: string }[] = [
-  { pattern: /robot(ic)?s?|humanoid/i, hint: 'ヒューマノイドロボット' },
-  { pattern: /Seedance|Sora|Veo|video\s*(gen|model|diffusion)/i, hint: '動画生成AI' },
-  { pattern: /Midjourney|Flux|image\s*(gen|model)|Stable\s*Diffusion/i, hint: '画像生成AI' },
-  { pattern: /open\s*source|Apache|MIT\s*license/i, hint: 'オープンソースAI' },
-  { pattern: /Claude\s*Code|Codex|Cursor|coding\s*agent/i, hint: 'AIコーディング' },
-  { pattern: /Claude/i, hint: 'Claude' },
-  { pattern: /GPT-?[45]/i, hint: 'GPT' },
-  { pattern: /Gemini/i, hint: 'Gemini' },
-  { pattern: /agent|agentic|MCP/i, hint: 'AIエージェント' },
-  { pattern: /chip|GPU|NVIDIA|AMD|semiconductor|H100|B200/i, hint: 'GPU・半導体' },
-  { pattern: /China|Chinese|Baidu|ByteDance|DeepSeek|Qwen/i, hint: '中国AI' },
-  { pattern: /self[- ]?driv|autonom.*vehicle|Tesla\s*FSD|Waymo/i, hint: '自動運転' },
-  { pattern: /funding|valuation|IPO|billion|million|\$\d/i, hint: 'AI投資' },
-  { pattern: /reasoning|o[1-9]|thinking/i, hint: '推論AI' },
-  { pattern: /LLM|language\s*model/i, hint: 'LLM' },
-  { pattern: /Apple|Google|Microsoft|Meta|Amazon|OpenAI/i, hint: 'ビッグテックAI' },
-]
-
-// Templates when we have extracted details (company/product/number)
-const DETAIL_TEMPLATES = [
-  '{product}がここまで来たか…',
-  '{company}の{product}、これは次元が違う',
-  'まだ日本で話題になってないけど{product}すごいことになってる',
-  '{product}、海外勢の評価がえぐい',
-  '{company}が{product}出してきた。要チェック',
-  '{product}…{number}って本当？',
-  'えっ、{product}…？これはやばい',
+// Fallback templates (used only when API fails)
+const FALLBACK_TEMPLATES = [
+  'これはチェックしておいた方がいい',
+  '海外で話題になってるこれ、地味にすごい',
+  'お、これは面白い展開',
+  'ほんとこの進化スピードえぐいな',
 ] as const
 
-// Fallback when extraction finds nothing
-const GENERIC_TEMPLATES = [
-  'えっ、{topic_hint}ここまできてる…？',
-  'おおー、{topic_hint}やばい',
-  'これ見た？{topic_hint}',
-  '海外でバズってるこれ。{topic_hint}',
-  '{topic_hint}、ついにこのレベルか…',
-  'まだ日本で話題になってないけど、{topic_hint}すごいことになってる',
-  '{topic_hint}、これは追っといた方がいい',
-] as const
-
-function detectTopicHint(text: string): string {
-  for (const { pattern, hint } of TOPIC_KEYWORDS) {
-    if (pattern.test(text)) return hint
+async function fetchRecentComments(): Promise<readonly string[]> {
+  try {
+    const { data } = await supabase
+      .from('x_post_analytics')
+      .select('post_text')
+      .eq('pattern_used', 'viral_repost')
+      .order('posted_at', { ascending: false })
+      .limit(10)
+    return (data ?? []).map((r: { post_text: string }) =>
+      r.post_text.replace(/https?:\/\/\S+/g, '').replace(/\n+/g, ' ').trim(),
+    ).filter((t: string) => t.length > 0)
+  } catch {
+    return []
   }
-  return 'AI'
 }
 
-interface TweetDetails {
-  readonly company?: string
-  readonly product?: string
-  readonly number?: string
-}
+async function generateComment(tweet: ViralTweet): Promise<string> {
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set')
 
-function extractDetails(text: string): TweetDetails {
-  // Company extraction
-  const companyMatch = text.match(/\b(OpenAI|Google|Meta|Microsoft|NVIDIA|Apple|Amazon|Anthropic|DeepSeek|ByteDance|Mistral|xAI|Stability\s*AI|Hugging\s*Face)\b/i)
-  const company = companyMatch?.[1]
+    const anthropic = new Anthropic({ apiKey })
+    const recentComments = await fetchRecentComments()
+    const voiceProfile = formatVoiceProfileForPrompt('short')
 
-  // Product+version extraction
-  const productMatch = text.match(/\b(GPT-?[45]o?|Claude\s*(?:Code)?(?:\s*[0-9.]+)?|Gemini\s*[0-9.]*|Llama\s*[0-9.]*|Sora\s*[0-9.]*|Seedance\s*[0-9.]*|Midjourney\s*v?[0-9.]*|Cursor\s*[0-9.]*|Codex|Qwen[\w.-]*|Flux[\w.-]*|Veo\s*[0-9.]*|Grok\s*[0-9.]*|Atlas|Figure\s*0?[0-9]|Gen-?[0-9]|Runway\s*(?:Gen|Act)[- ]?[0-9]*|Helix|Spot|Optimus|Digit)\b/i)
-  const product = productMatch?.[1]?.trim()
+    const recentBlock = recentComments.length > 0
+      ? `\n\n## 最近使ったコメント（これらと表現が被らないこと）\n${recentComments.map(c => `- 「${c}」`).join('\n')}`
+      : ''
 
-  // Number extraction (impressive metrics)
-  const numMatch = text.match(/\b(\d+(?:\.\d+)?)\s*([xX%]|times|faster|cheaper|smaller|billion|million|trillion)/i)
-  const number = numMatch ? `${numMatch[1]}${numMatch[2].toLowerCase()}` : undefined
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 256,
+      messages: [{
+        role: 'user',
+        content: `以下の海外バズツイートに対する短い日本語コメントを1つだけ生成してください。
 
-  return { company, product, number }
-}
+## 元ツイート
+著者: @${tweet.username}
+いいね: ${tweet.likeCount.toLocaleString()}
+インプレッション: ${tweet.impressionCount.toLocaleString()}
+本文:
+${tweet.text}
 
-function pickComment(tweetText: string, tweetId: string): string {
-  const details = extractDetails(tweetText)
-  const hint = detectTopicHint(tweetText)
-  const hourSeed = new Date().getHours()
-  const idSeed = tweetId.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
+## ルール
+- コメントのみ出力（URL不要、引用符不要、説明不要）
+- 1〜2文、最大80文字
+- ツイートの内容を正確に理解した上でコメントすること
+- 単なる翻訳や要約ではなく、「AIエンジニアが本音でつぶやく感想・反応」を書け
+- 会社名と製品名の関係を間違えるな（ClaudeはAnthropic、GPTはOpenAI、GeminiはGoogle）
+- 絵文字は使うな
+- 「やばい」「すごい」だけで終わるな。何がどうすごいのか一言入れろ
+- テンプレっぽい表現禁止: 「ここまで来てる」「次元が違う」「海外でバズってる」「追っといた方がいい」
+${recentBlock}
 
-  // Use detail templates if we have product or company
-  if (details.product || details.company) {
-    const index = (hourSeed + idSeed) % DETAIL_TEMPLATES.length
-    let comment: string = DETAIL_TEMPLATES[index]
-    comment = comment.replace('{product}', details.product || details.company || hint)
-    comment = comment.replace('{company}', details.company || '')
-    comment = comment.replace('{number}', details.number || '')
-    // Clean up empty placeholders and double spaces
-    comment = comment.replace(/\{[^}]+\}/g, '').replace(/\s{2,}/g, ' ').trim()
-    // Remove trailing punctuation issues from empty replacements
-    comment = comment.replace(/、$/, '').replace(/^、/, '').trim()
-    if (comment.length > 0) return comment
+${voiceProfile}
+
+コメントのみを出力:`,
+      }],
+    })
+
+    const text = response.content.find(
+      (b): b is Anthropic.Messages.TextBlock => b.type === 'text',
+    )?.text?.trim()
+      // Strip quotes/brackets the model might wrap around
+      ?.replace(/^[「『"""]|[」』"""]$/g, '').trim()
+
+    if (text && text.length > 0 && text.length <= 120) {
+      return text
+    }
+    // If too long, truncate gracefully
+    if (text && text.length > 120) {
+      const truncated = text.slice(0, 117) + '…'
+      return truncated
+    }
+  } catch (err) {
+    process.stderr.write(`[generateComment] API error, falling back: ${err}\n`)
   }
 
-  // Fallback to generic templates
-  const index = (hourSeed + idSeed) % GENERIC_TEMPLATES.length
-  return GENERIC_TEMPLATES[index].replace('{topic_hint}', hint)
+  // Fallback to simple template
+  const seed = new Date().getHours() + tweet.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
+  return FALLBACK_TEMPLATES[seed % FALLBACK_TEMPLATES.length]
 }
 
 // ---------------------------------------------------------------------------
@@ -308,7 +306,7 @@ export async function runViralAiRepost(dryRun = false): Promise<{ success: boole
   }
 
   const best = viralTweets[0]
-  const comment = pickComment(best.text, best.id)
+  const comment = await generateComment(best)
 
   const textWithoutUrl = comment + '\n\n'
   const urlWeight = 23

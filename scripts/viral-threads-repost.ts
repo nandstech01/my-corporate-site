@@ -12,9 +12,11 @@
 import { config } from 'dotenv'
 config({ path: '.env.local' })
 
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { resolveUserId, getTwitterClient } from '../lib/x-api/client'
 import { postToThreads, isThreadsPostingEnabled } from '../lib/threads-api/client'
+import { formatVoiceProfileForPrompt } from '../lib/prompts/voice-profile'
 
 // ---------------------------------------------------------------------------
 // Config — same influencers & cache as viral-ai-repost.ts
@@ -48,122 +50,107 @@ const MIN_LIKES = 500
 const THREADS_CHAR_LIMIT = 500
 
 // ---------------------------------------------------------------------------
-// Topic detection (reused from viral-ai-repost)
+// AI Comment Generation (Claude Haiku 4.5 + voice-profile)
 // ---------------------------------------------------------------------------
 
-const TOPIC_KEYWORDS: readonly { readonly pattern: RegExp; readonly hint: string }[] = [
-  { pattern: /robot(ic)?s?|humanoid/i, hint: 'ヒューマノイドロボット' },
-  { pattern: /Seedance|Sora|Veo|video\s*(gen|model|diffusion)/i, hint: '動画生成AI' },
-  { pattern: /Midjourney|Flux|image\s*(gen|model)|Stable\s*Diffusion/i, hint: '画像生成AI' },
-  { pattern: /Claude\s*Code|Codex|Cursor|coding\s*agent/i, hint: 'AIコーディング' },
-  { pattern: /Claude/i, hint: 'Claude' },
-  { pattern: /GPT-?[45]/i, hint: 'GPT' },
-  { pattern: /Gemini/i, hint: 'Gemini' },
-  { pattern: /agent|agentic|MCP/i, hint: 'AIエージェント' },
-  { pattern: /chip|GPU|NVIDIA|semiconductor/i, hint: 'GPU・半導体' },
-  { pattern: /China|DeepSeek|Qwen/i, hint: '中国AI' },
-  { pattern: /self[- ]?driv|autonom.*vehicle|Tesla\s*FSD|Waymo/i, hint: '自動運転' },
-  { pattern: /LLM|language\s*model/i, hint: 'LLM' },
-]
-
-function detectTopicHint(text: string): string {
-  for (const { pattern, hint } of TOPIC_KEYWORDS) {
-    if (pattern.test(text)) return hint
-  }
-  return 'AI'
-}
-
-// ---------------------------------------------------------------------------
-// Threads commentary templates (longer than X — up to 500 chars)
-// ---------------------------------------------------------------------------
-
-const THREADS_TEMPLATES = [
-  'えっ、{topic}ここまで来てる…？\n\n{context}。\n\n海外ではすでに大きな話題。日本ではまだあまり知られてない。\n\n📹 @{username}',
-  'これ見た？\n\n{context}。\n\n{topic}のレベル、ちょっと前まで想像もできなかった。\n\n📹 @{username}',
-  '{topic}、ついにこのレベル。\n\n{context}。\n\n海外勢の反応もすごい。日本でももっと注目されるべき。\n\n📹 @{username}',
-  'まだ日本で話題になってないけど、これはやばい。\n\n{context}。\n\nこれが当たり前になる未来、もうすぐそこ。\n\n📹 @{username}',
-  '{context}。\n\n{topic}の進化スピードが本当にえぐい。見れば一発でわかる。\n\n📹 @{username}',
-  '海外でバズってるこれ。\n\n{context}。\n\nこのレベルの{topic}、もう映画の世界じゃない。\n\n📹 @{username}',
+// Fallback templates (used only when API fails)
+const THREADS_FALLBACK_TEMPLATES = [
+  'これはチェックしておいた方がいい\n\n📹 @{username}',
+  'この進化スピード、体感してみないとわからない\n\n📹 @{username}',
+  'お、これは面白い展開になってきた\n\n📹 @{username}',
+  'ほんとこのペースで来られると追いつけなくなる\n\n📹 @{username}',
 ] as const
 
-function generateContext(tweetText: string): string {
-  // Extract key details from tweet to build Japanese context
-  const details = extractDetails(tweetText)
-  const parts: string[] = []
-
-  if (details.company && details.product) {
-    parts.push(`${details.company}の${details.product}`)
-  } else if (details.product) {
-    parts.push(details.product)
-  } else if (details.company) {
-    parts.push(`${details.company}の最新技術`)
-  }
-
-  if (details.number) {
-    parts.push(`${details.number}という数字が話題`)
-  }
-
-  if (parts.length === 0) {
-    // Fallback: extract key English phrases
-    const cleaned = tweetText.replace(/https?:\/\/\S+/g, '').replace(/\n+/g, ' ').trim()
-    const snippet = cleaned.length > 80 ? cleaned.slice(0, 80) + '…' : cleaned
-    if (snippet.length > 10) parts.push(snippet)
-  }
-
-  return parts.join('。') || '最新のAI技術デモ'
-}
-
-interface TweetDetails {
-  readonly company?: string
-  readonly product?: string
-  readonly number?: string
-}
-
-function extractDetails(text: string): TweetDetails {
-  const companyMatch = text.match(/\b(OpenAI|Google|Meta|Microsoft|NVIDIA|Apple|Amazon|Anthropic|DeepSeek|ByteDance|Mistral|xAI|Stability\s*AI|Hugging\s*Face|Figure|Boston\s*Dynamics|Runway)\b/i)
-  const productMatch = text.match(/\b(GPT-?[45]o?|Claude\s*(?:Code)?(?:\s*[0-9.]+)?|Gemini\s*[0-9.]*|Sora\s*[0-9.]*|Seedance\s*[0-9.]*|Helix\s*0?[0-9]|Atlas|Figure\s*0?[0-9]|Gen-?[0-9]|Runway\s*(?:Gen|Act)[- ]?[0-9]*|Spot|Optimus|Digit)\b/i)
-  const numMatch = text.match(/\b(\d+(?:\.\d+)?)\s*([xX%]|times|faster|cheaper|billion|million)/i)
-  return {
-    company: companyMatch?.[1],
-    product: productMatch?.[1]?.trim(),
-    number: numMatch ? `${numMatch[1]}${numMatch[2].toLowerCase()}` : undefined,
+async function fetchRecentThreadsComments(): Promise<readonly string[]> {
+  try {
+    const { data } = await supabase
+      .from('x_post_analytics')
+      .select('post_text')
+      .eq('pattern_used', 'viral_threads_repost')
+      .order('posted_at', { ascending: false })
+      .limit(10)
+    return (data ?? []).map((r: { post_text: string }) =>
+      r.post_text.replace(/https?:\/\/\S+/g, '').replace(/\[original:\w+\]/g, '').replace(/\n+/g, ' ').trim(),
+    ).filter((t: string) => t.length > 0)
+  } catch {
+    return []
   }
 }
 
-// Username-based context when extraction fails
-const USERNAME_CONTEXT: Record<string, string> = {
-  figure_robot: 'Figure AIのヒューマノイドロボット、最新デモ映像',
-  BostonDynamics: 'Boston DynamicsのAtlas、最新動作デモ',
-  TheHumanoidHub: 'ヒューマノイドロボットの最新映像',
-  RunwayML: 'Runwayの最新AI動画生成デモ',
-  adcock_brett: 'Figure AI CEOが公開した最新ロボット映像',
-  AnthropicAI: 'Anthropicの最新AI技術',
-  cursor_ai: 'Cursor AIの最新アップデート',
-  OpenAI: 'OpenAIの最新発表',
-  DrJimFan: 'NVIDIAのAIエージェント研究、最新デモ',
-  GoogleDeepMind: 'Google DeepMindの最新AI研究',
-}
+async function generateThreadsComment(tweet: ViralMediaTweet): Promise<string> {
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set')
 
-function pickThreadsComment(tweetText: string, tweetId: string, username: string): string {
-  const topic = detectTopicHint(tweetText)
-  let context = generateContext(tweetText)
-  // If context is just raw English, use username-based fallback
-  if (/^[A-Za-z\s,.'":;\-!?@#$%^&*()]+$/.test(context) || context === '最新のAI技術デモ') {
-    context = USERNAME_CONTEXT[username] || `${username}が公開した最新AI映像`
+    const anthropic = new Anthropic({ apiKey })
+    const recentComments = await fetchRecentThreadsComments()
+    const voiceProfile = formatVoiceProfileForPrompt('threads')
+
+    const recentBlock = recentComments.length > 0
+      ? `\n\n## 最近使ったコメント（これらと表現が被らないこと）\n${recentComments.map(c => `- 「${c}」`).join('\n')}`
+      : ''
+
+    const mediaNote = tweet.media.type === 'video'
+      ? 'このツイートには動画が添付されている。動画の内容にも言及してよい。'
+      : 'このツイートには画像が添付されている。'
+
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{
+        role: 'user',
+        content: `以下の海外バズツイートに対するThreads用の日本語コメントを1つだけ生成してください。
+
+## 元ツイート
+著者: @${tweet.username}
+いいね: ${tweet.likeCount.toLocaleString()}
+インプレッション: ${tweet.impressionCount.toLocaleString()}
+メディア: ${mediaNote}
+本文:
+${tweet.text}
+
+## ルール
+- コメントのみ出力（引用符不要、説明不要）
+- 最大400文字（末尾に「📹 @${tweet.username}」を付けるので余裕を残す）
+- ツイートの内容を正確に理解した上でコメントすること
+- 「AIエンジニアが本音で感想を書いてる」ような自然な文章
+- 会社名と製品名の関係を間違えるな（ClaudeはAnthropic、GPTはOpenAI、GeminiはGoogle）
+- 改行を使って読みやすく構成してよい（2-3段落）
+- テンプレっぽい表現禁止: 「ここまで来てる」「次元が違う」「海外でバズってる」「映画の世界じゃない」「もうすぐそこ」
+- 絵文字は最小限（0-2個）
+${recentBlock}
+
+${voiceProfile}
+
+コメントのみを出力:`,
+      }],
+    })
+
+    const text = response.content.find(
+      (b): b is Anthropic.Messages.TextBlock => b.type === 'text',
+    )?.text?.trim()
+      ?.replace(/^[「『"""]|[」』"""]$/g, '').trim()
+
+    if (text && text.length > 0) {
+      // Don't double-add attribution if model already included it
+      const hasAttribution = text.includes(`@${tweet.username}`)
+      if (hasAttribution) {
+        const trimmed = text.length > THREADS_CHAR_LIMIT ? text.slice(0, THREADS_CHAR_LIMIT - 1) + '…' : text
+        return trimmed
+      }
+      const attribution = `\n\n📹 @${tweet.username}`
+      const maxLen = THREADS_CHAR_LIMIT - attribution.length
+      const trimmed = text.length > maxLen ? text.slice(0, maxLen - 1) + '…' : text
+      return trimmed + attribution
+    }
+  } catch (err) {
+    process.stderr.write(`[generateThreadsComment] API error, falling back: ${err}\n`)
   }
-  const seed = tweetId.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
-  const index = (new Date().getHours() + seed) % THREADS_TEMPLATES.length
 
-  let comment = THREADS_TEMPLATES[index]
-    .replace('{topic}', topic)
-    .replace('{context}', context)
-    .replace('{username}', username)
-
-  // Trim to Threads limit
-  if (comment.length > THREADS_CHAR_LIMIT) {
-    comment = comment.slice(0, THREADS_CHAR_LIMIT - 3) + '…'
-  }
-  return comment
+  // Fallback
+  const seed = new Date().getHours() + tweet.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
+  return THREADS_FALLBACK_TEMPLATES[seed % THREADS_FALLBACK_TEMPLATES.length]
+    .replace('{username}', tweet.username)
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +342,7 @@ export async function runViralThreadsRepost(dryRun = false): Promise<{
   }
 
   const best = viralTweets[0]
-  const comment = pickThreadsComment(best.text, best.id, best.username)
+  const comment = await generateThreadsComment(best)
 
   if (dryRun) {
     console.log(JSON.stringify({
