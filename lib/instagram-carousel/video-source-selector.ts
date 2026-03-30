@@ -49,22 +49,22 @@ const TOPIC_KEYWORDS: Record<string, string> = {
 // X API helpers (twitter-api-v2)
 // ============================================================
 
-// Cached user IDs (same pattern as viral-ai-repost.ts)
+// Cached user IDs — must match viral-ai-repost.ts (IDs are permanent)
 const USER_ID_CACHE: Record<string, string> = {
-  figure_robot: '1685943024647135232',
-  BostonDynamics: '1591035581',
-  TheHumanoidHub: '1791952798345560064',
-  RunwayML: '1025386778',
-  adcock_brett: '1444378025782489088',
-  AnthropicAI: '1480474935911456768',
-  cursor_ai: '1634247742827511808',
-  OpenAI: '2244994945',
-  DrJimFan: '1381278384830615553',
-  rowancheung: '389681470',
-  deedydas: '1518289774',
-  AlphaSignalAI: '1453076762750504960',
-  GoogleDeepMind: '1653750799',
-  rohanpaul_ai: '372aborting4679809',
+  figure_robot: '1602443956888817665',
+  BostonDynamics: '517473207',
+  TheHumanoidHub: '1682127524963426304',
+  RunwayML: '1001114465692200960',
+  adcock_brett: '3222018178',
+  AnthropicAI: '1353836358901501952',
+  cursor_ai: '1695890961094909952',
+  OpenAI: '4398626122',
+  DrJimFan: '1007413134',
+  rowancheung: '1314686042',
+  deedydas: '361044311',
+  AlphaSignalAI: '114783808',
+  GoogleDeepMind: '4783690002',
+  rohanpaul_ai: '2588345408',
   alexalbert__: '1526190834768785408',
 }
 
@@ -79,22 +79,42 @@ interface TweetCandidate {
   score: number
 }
 
+async function fetchWithRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  try {
+    return await fn()
+  } catch (err: unknown) {
+    const msg = String(err)
+    if (msg.includes('429') || msg.includes('Too Many')) {
+      process.stderr.write(`[429] ${label} — waiting 60s\n`)
+      await new Promise(r => setTimeout(r, 60_000))
+      return fn()
+    }
+    throw err
+  }
+}
+
 async function fetchVideoTweets(username: string): Promise<TweetCandidate[]> {
   let userId = USER_ID_CACHE[username]
   if (!userId) {
     const resolved = await resolveUserId(username)
-    if (!resolved) return []
+    if (!resolved) {
+      process.stderr.write(`  [fetchVideoTweets] @${username}: could not resolve user ID\n`)
+      return []
+    }
     userId = resolved.id
   }
 
   try {
     const client = getTwitterClient()
-    const timeline = await client.v2.userTimeline(userId, {
-      max_results: 10,
-      'tweet.fields': ['public_metrics', 'attachments'],
-      'media.fields': ['type', 'variants', 'preview_image_url'],
-      expansions: ['attachments.media_keys'],
-    })
+    const timeline = await fetchWithRetry(
+      () => client.v2.userTimeline(userId, {
+        max_results: 10,
+        'tweet.fields': ['public_metrics', 'attachments'],
+        'media.fields': ['type', 'variants', 'preview_image_url'],
+        expansions: ['attachments.media_keys'],
+      }),
+      `getUserTimeline(@${username})`,
+    )
 
     const tweets = timeline.data?.data || []
     const mediaMap = new Map<string, any>()
@@ -147,9 +167,7 @@ async function fetchVideoTweets(username: string): Promise<TweetCandidate[]> {
 
     return candidates
   } catch (e: any) {
-    if (e?.code === 429) {
-      process.stdout.write(`  Rate limited for @${username}, skipping\n`)
-    }
+    process.stderr.write(`  [fetchVideoTweets] @${username} (userId=${userId}): ${e?.code || ''} ${e?.message || e}\n`)
     return []
   }
 }
