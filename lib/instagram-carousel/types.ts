@@ -1,31 +1,34 @@
-export type SlideType = 'cover' | 'conclusion' | 'content' | 'summary' | 'cta'
-export type SummaryType = 'comparison' | 'checklist' | 'pros_cons' | 'numbers' | 'before_after'
+export type SlideType = 'cover' | 'bridge' | 'content' | 'summary' | 'cta'
+export type SummaryType = 'table' | 'takeaway'
 
+// コンテンツスライド: ブログ1セクション分の濃い情報
 export interface ContentSlide {
   readonly title: string
-  readonly description: string
-  readonly keyPoints: readonly string[]
+  readonly points: readonly string[]  // 各ポイント（詳細な説明付き、省略なし）
+  readonly callout: string            // 補足コメント（フッターに表示）
 }
 
-export interface ComparisonItem {
-  readonly label: string
-  readonly values: readonly (boolean | string)[]
-}
-
-export interface SummaryData {
-  readonly type: SummaryType
+// まとめスライド: 比較表またはTakeawayリスト
+export interface SummaryTable {
+  readonly type: 'table'
   readonly title: string
-  readonly items: readonly string[]
-  readonly columns?: readonly string[]
-  readonly pros?: readonly string[]
-  readonly cons?: readonly string[]
+  readonly headers: readonly string[]
+  readonly rows: readonly { readonly label: string; readonly values: readonly string[] }[]
 }
+
+export interface SummaryTakeaway {
+  readonly type: 'takeaway'
+  readonly title: string
+  readonly items: readonly { readonly text: string; readonly detail: string }[]
+}
+
+export type SummaryData = SummaryTable | SummaryTakeaway
 
 export interface CarouselContent {
   readonly hookLine1: string
   readonly hookLine2: string
   readonly hookLine3: string
-  readonly conclusionText: string
+  readonly bridgeText: string
   readonly contentSlides: readonly ContentSlide[]
   readonly summary: SummaryData
   readonly caption: string

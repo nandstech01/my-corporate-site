@@ -4,76 +4,112 @@ import type { CarouselContent } from './types'
 
 const contentSlideSchema = z.object({
   title: z.string().default('ポイント'),
-  description: z.string().default('詳細'),
-  keyPoints: z.array(z.string()).default(['要点1']),
+  points: z.array(z.string()).default(['要点1']),
+  callout: z.string().default('補足コメント'),
 })
 
-const summarySchema = z.object({
-  type: z.enum(['comparison', 'checklist', 'pros_cons', 'numbers', 'before_after']).default('checklist'),
-  title: z.string().default('まとめ'),
-  items: z.array(z.string()).default(['まとめ1', 'まとめ2']),
-  columns: z.array(z.string()).optional(),
-  pros: z.array(z.string()).optional(),
-  cons: z.array(z.string()).optional(),
+const summaryTableSchema = z.object({
+  type: z.literal('table'),
+  title: z.string(),
+  headers: z.array(z.string()),
+  rows: z.array(z.object({
+    label: z.string(),
+    values: z.array(z.string()),
+  })),
 })
+
+const summaryTakeawaySchema = z.object({
+  type: z.literal('takeaway'),
+  title: z.string(),
+  items: z.array(z.object({
+    text: z.string(),
+    detail: z.string(),
+  })),
+})
+
+const summarySchema = z.discriminatedUnion('type', [summaryTableSchema, summaryTakeawaySchema])
 
 const carouselContentSchema = z.object({
   hookLine1: z.string().default('最新のAI仕事術'),
   hookLine2: z.string().default('AIツール'),
   hookLine3: z.string().default('完全ガイド'),
-  conclusionText: z.string().default('AIを使いこなす人が勝つ時代'),
+  bridgeText: z.string().default('AIを使いこなす人が勝つ時代'),
   contentSlides: z.array(contentSlideSchema).default([
-    { title: 'ポイント1', description: '詳細1', keyPoints: ['要点'] },
-    { title: 'ポイント2', description: '詳細2', keyPoints: ['要点'] },
-    { title: 'ポイント3', description: '詳細3', keyPoints: ['要点'] },
+    { title: 'ポイント1', points: ['要点'], callout: '補足' },
   ]),
-  summary: summarySchema.default({ type: 'checklist', title: 'まとめ', items: ['要点1', '要点2'] }),
+  summary: summarySchema.default({ type: 'takeaway', title: 'まとめ', items: [{ text: '要点1', detail: '詳細' }] }),
   caption: z.string().default('詳しくはプロフィールのリンクから'),
   hashtags: z.array(z.string()).default(['#AI', '#テック', '#プログラミング', '#エンジニア', '#仕事術']),
 })
 
 const SYSTEM_PROMPT = `あなたはInstagramカルーセル投稿のコンテンツライターです。
-与えられたトピックから、可変枚数カルーセル用コンテンツをJSON形式で生成してください。
+与えられたトピックから、**ブログ記事1本分の濃さ**のカルーセル用コンテンツをJSON形式で生成してください。
+
+重要: 各スライドのコンテンツは省略せず、具体的な情報（コマンド名、数値、手順、比較データ）を含めること。
+「一般論」や「〜が重要です」だけで終わるスライドは禁止。必ず「具体的に何をどうするか」を書くこと。
 
 出力は以下のJSON構造に厳密に従ってください:
 
 {
   "hookLine1": "カテゴリ（必ず8文字ぴったり。例: 最新のAI仕事術、知らないと損する）",
   "hookLine2": "メインキーワード（短いほど良い。例: Claude Code、ChatGPT）",
-  "hookLine3": "コンテンツ種類（例: 活用術5選、完全ガイド、徹底比較）",
-  "conclusionText": "結論メッセージ（2行以内、インパクト重視。例: AIを味方にした人だけが生き残る時代）",
+  "hookLine3": "コンテンツ種類（7文字以内厳守。例: 活用術5選、完全ガイド、徹底比較）",
+  "bridgeText": "結論メッセージ（2行以内、体験・数値・断言を含むインパクト重視。例: 僕はこれで月40時間削減した）",
   "contentSlides": [
     {
-      "title": "ポイントのタイトル（15文字以内）",
-      "description": "1-2文の説明（50文字以内）",
-      "keyPoints": ["要点1（30文字以内）", "要点2"]
+      "title": "ポイントのタイトル（12文字以内）",
+      "points": [
+        "具体的なポイント1（40-80文字。コマンド名、数値、手順を含む詳細な説明）",
+        "具体的なポイント2（同上。抽象論禁止、実践的な内容のみ）",
+        "具体的なポイント3（同上）",
+        "具体的なポイント4（同上）"
+      ],
+      "callout": "このスライドの要約・注意点（30-50文字。💡的な補足）"
     }
   ],
   "summary": {
-    "type": "comparison または checklist または pros_cons または numbers または before_after",
-    "title": "まとめのタイトル",
-    "items": ["まとめ項目1", "まとめ項目2", "まとめ項目3"],
-    "pros": ["メリット1（pros_consの場合のみ）"],
-    "cons": ["デメリット1（pros_consの場合のみ）"]
+    "type": "table または takeaway",
+    ... (下記参照)
   },
-  "caption": "Instagram投稿キャプション（300-500文字、教育的なトーン）",
+  "caption": "Instagram投稿キャプション（300-500文字、教育的なトーン、一次情報・体験を含む）",
   "hashtags": ["#ハッシュタグ1", "#ハッシュタグ2", "#ハッシュタグ3", "#ハッシュタグ4", "#ハッシュタグ5"]
+}
+
+■ summaryのtype別構造:
+
+type: "table"（ツール比較、機能比較に最適）の場合:
+{
+  "type": "table",
+  "title": "比較表のタイトル",
+  "headers": ["ツールA", "ツールB", "ツールC"],
+  "rows": [
+    { "label": "機能名", "values": ["✅", "❌", "✅"] },
+    { "label": "月額", "values": ["$20", "$0", "$20"] }
+  ]
+}
+
+type: "takeaway"（まとめリスト）の場合:
+{
+  "type": "takeaway",
+  "title": "今日のまとめ",
+  "items": [
+    { "text": "要点タイトル（15文字以内）", "detail": "補足説明（25文字以内）" }
+  ]
 }
 
 ルール:
 - 全て日本語で書くこと
-- hookLine1は必ず8文字ぴったり（多くても少なくてもダメ）
-- hookLine2は短いほど良い（短い場合は自動でフォントが大きくなる）
-- contentSlidesは3〜6個（トピックに最適な数を判断すること）
-  - 「5選」なら5個、「3つのコツ」なら3個
-- summaryのtypeはコンテンツに最適な形式を選ぶ:
-  - comparison: ツール比較、機能比較に最適
-  - checklist: やることリスト、確認事項に最適
-  - pros_cons: メリット・デメリット分析に最適
-  - numbers: 数値の比較、統計データに最適
-  - before_after: 導入前後の変化に最適
-- captionは教育的で価値を提供する内容にすること
-- hashtagsは5つ、関連性の高いものを選ぶこと
+- hookLine1は必ず8文字ぴったり
+- hookLine2は短いほど良い
+- hookLine3は7文字以内
+- bridgeTextは具体的な体験・数値・断言を含むこと（一般論禁止）
+- contentSlidesは3〜6個（トピックに最適な数を判断）
+  - 各スライドのpointsは3〜5個
+  - pointsは40-80文字で具体的に書く（コマンド名、設定値、手順を含む）
+  - 「〜が重要」「〜が大事」で終わる抽象的な記述は禁止
+- summaryのtableは最低6行、takeawayは3-5項目
+- captionは300-500文字で教育的かつ一次情報を含む
+- hashtagsは5つ
 - JSON以外のテキストは出力しないこと`
 
 function extractJson(text: string): unknown {
@@ -99,12 +135,12 @@ export async function generateCarouselContent(topic: string): Promise<CarouselCo
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
-        content: `トピック: ${topic}\n\n上記トピックについて、Instagramカルーセル用のコンテンツをJSON形式で生成してください。`,
+        content: `トピック: ${topic}\n\n上記トピックについて、ブログ記事1本分の濃さでInstagramカルーセル用コンテンツをJSON形式で生成してください。各ポイントは具体的なコマンド名、数値、手順を含めること。`,
       },
     ],
   })
@@ -117,5 +153,5 @@ export async function generateCarouselContent(topic: string): Promise<CarouselCo
   const raw = extractJson(textBlock.text)
   const parsed = carouselContentSchema.parse(raw)
 
-  return parsed
+  return parsed as CarouselContent
 }

@@ -1,12 +1,13 @@
 /**
  * Instagram Carousel Slide Composer
  *
- * Renders variable-count Instagram carousel slides (1080x1350 4:5 portrait).
- * Slides: Cover -> Conclusion -> Content x N -> Summary -> CTA
+ * Renders Instagram carousel slides (1080x1350 4:5 portrait).
+ * Satori renders: Cover (1枚目) + Bridge (2枚目) + CTA (最終枚)
+ * Gemini generates: Content slides (3〜N枚目) + Summary (まとめ)
  */
 
 import { ImageResponse } from 'next/og'
-import type { CarouselContent, ContentSlide, SummaryData } from './types'
+import type { CarouselContent } from './types'
 import { BRAND, CAROUSEL_WIDTH, CAROUSEL_HEIGHT } from './types'
 
 // ============================================================
@@ -44,45 +45,30 @@ function darkGradientBg() {
   return `linear-gradient(180deg, ${BRAND.navy} 0%, ${BRAND.navyLight} 50%, ${BRAND.navy} 100%)`
 }
 
-function slideNumberLabel(num: number, total: number, light: boolean) {
+function slideNumberLabel(num: number, total: number, lightMode = false) {
   return {
     type: 'div',
     props: {
       style: {
-        position: 'absolute' as const, top: 40, right: 50, fontSize: 24,
-        color: light ? 'rgba(255,255,255,0.6)' : BRAND.textMuted,
+        position: 'absolute' as const, top: 50, right: 40,
+        fontSize: 24, color: lightMode ? 'rgba(255,255,255,0.6)' : BRAND.textMuted,
       },
       children: `${num}/${total}`,
     },
   }
 }
 
-function saveCTABadge() {
-  return {
-    type: 'div',
-    props: {
-      style: {
-        position: 'absolute' as const, bottom: 50, right: 50,
-        display: 'flex', flexDirection: 'row' as const, alignItems: 'center' as const,
-        backgroundColor: BRAND.yellow, borderRadius: 24, padding: '10px 18px',
-      },
-      children: [
-        { type: 'div', props: { style: { fontSize: 22, marginRight: 8 }, children: '🔖' } },
-        { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 16, fontWeight: 700 }, children: '忘れる前に今すぐ保存！' } },
-      ],
-    },
-  }
-}
-
 // ============================================================
 // COVER SLIDE (FIXED - DO NOT CHANGE)
-// 1行目: 130px白 8文字固定 / 2行目: 可変シアン / 3行目: 140px白
+// 1行目: 118px白 8文字固定 / 2行目: 可変シアン / 3行目: 可変白
 // ============================================================
 
 function renderCoverSlide(hookLine1: string, hookLine2: string, hookLine3: string, slideNum: number, total: number, coverBgDataUri: string | null) {
   const TEXT_SHADOW = '0 6px 20px rgba(0,0,0,0.95), 0 3px 6px rgba(0,0,0,0.7)'
   const line2Len = hookLine2.length
   const line2FontSize = line2Len <= 5 ? 140 : line2Len <= 8 ? 120 : 110
+  const line3Len = hookLine3.length
+  const line3FontSize = line3Len <= 6 ? 140 : line3Len <= 8 ? 110 : 90
 
   return {
     type: 'div',
@@ -93,9 +79,9 @@ function renderCoverSlide(hookLine1: string, hookLine2: string, hookLine3: strin
         slideNumberLabel(slideNum, total, true),
         {
           type: 'div', props: { style: { display: 'flex', flexDirection: 'column', alignItems: 'center' as const, justifyContent: 'center' as const }, children: [
-            { type: 'div', props: { style: { color: BRAND.textLight, fontSize: 130, fontWeight: 700, lineHeight: 1.3, textAlign: 'center' as const, textShadow: TEXT_SHADOW }, children: hookLine1 } },
+            { type: 'div', props: { style: { color: BRAND.textLight, fontSize: 118, fontWeight: 700, lineHeight: 1.3, textAlign: 'center' as const, textShadow: TEXT_SHADOW }, children: hookLine1 } },
             { type: 'div', props: { style: { color: BRAND.cyan, fontSize: line2FontSize, fontWeight: 700, lineHeight: 1.3, marginTop: 16, textAlign: 'center' as const, textShadow: TEXT_SHADOW }, children: hookLine2 } },
-            { type: 'div', props: { style: { color: BRAND.textLight, fontSize: 140, fontWeight: 700, lineHeight: 1.3, marginTop: 16, textAlign: 'center' as const, textShadow: TEXT_SHADOW }, children: hookLine3 } },
+            { type: 'div', props: { style: { color: BRAND.textLight, fontSize: line3FontSize, fontWeight: 700, lineHeight: 1.3, marginTop: 16, textAlign: 'center' as const, textShadow: TEXT_SHADOW }, children: hookLine3 } },
           ] },
         },
       ],
@@ -104,146 +90,70 @@ function renderCoverSlide(hookLine1: string, hookLine2: string, hookLine3: strin
 }
 
 // ============================================================
-// CONCLUSION SLIDE (2枚目)
+// BRIDGE SLIDE (2枚目 - CONFIRMED)
+// ダークネイビー背景 + 答えはこれ + 64px白テキスト + スワイプ誘導
 // ============================================================
 
-function renderConclusionSlide(conclusionText: string, slideNum: number, total: number) {
+function renderBridgeSlide(bridgeText: string, slideNum: number, total: number) {
+  const TEXT_SHADOW = '0 6px 20px rgba(0,0,0,0.95), 0 3px 6px rgba(0,0,0,0.7)'
+  const lines = bridgeText.split('\n')
+
   return {
     type: 'div',
     props: {
-      style: { display: 'flex', flexDirection: 'column', width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, background: '#FFFFFF', fontFamily: 'NotoSansJP', position: 'relative' as const, padding: '100px 70px 80px 70px' },
+      style: {
+        display: 'flex', flexDirection: 'column', width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT,
+        fontFamily: 'NotoSansJP',
+        background: `radial-gradient(ellipse at center, ${BRAND.navyLight} 0%, ${BRAND.navy} 70%)`,
+        alignItems: 'center' as const, justifyContent: 'center' as const,
+        position: 'relative' as const,
+      },
       children: [
-        slideNumberLabel(slideNum, total, false),
-        { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 44, fontWeight: 700, textAlign: 'center' as const, marginBottom: 60 }, children: '今日の結論' } },
-        {
-          type: 'div', props: { style: { flex: 1, display: 'flex', alignItems: 'center' as const, justifyContent: 'center' as const }, children: {
-            type: 'div', props: { style: { backgroundColor: BRAND.yellow, color: BRAND.textDark, padding: '40px 50px', borderRadius: 16, fontSize: 48, fontWeight: 700, textAlign: 'center' as const, lineHeight: 1.6, maxWidth: 850 }, children: conclusionText },
-          } },
-        },
-        saveCTABadge(),
-      ],
-    },
-  }
-}
-
-// ============================================================
-// CONTENT SLIDE (3〜N枚目、Gemini背景+テキスト)
-// ============================================================
-
-function renderContentSlide(slide: ContentSlide, slideNum: number, total: number, bgDataUri: string | null) {
-  return {
-    type: 'div',
-    props: {
-      style: { display: 'flex', flexDirection: 'column', width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, fontFamily: 'NotoSansJP', position: 'relative' as const, background: darkGradientBg() },
-      children: [
-        ...(bgDataUri ? [{ type: 'img', props: { src: bgDataUri, style: { position: 'absolute' as const, top: 0, left: 0, width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, objectFit: 'cover' as const } } }] : []),
-        // Dark overlay
-        { type: 'div', props: { style: { position: 'absolute' as const, top: 0, left: 0, width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, background: 'rgba(0,0,0,0.6)' } } },
         slideNumberLabel(slideNum, total, true),
-        // Content
+        // Section label
         {
-          type: 'div', props: { style: { display: 'flex', flexDirection: 'column', padding: '120px 70px 120px 70px', flex: 1 }, children: [
-            // Title with cyan left border
-            {
-              type: 'div', props: { style: { display: 'flex', flexDirection: 'row', alignItems: 'center' as const, marginBottom: 40 }, children: [
-                { type: 'div', props: { style: { width: 6, height: 60, backgroundColor: BRAND.cyan, marginRight: 24, borderRadius: 3, flexShrink: 0 } } },
-                { type: 'div', props: { style: { color: BRAND.textLight, fontSize: 48, fontWeight: 700, lineHeight: 1.3, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }, children: slide.title } },
-              ] },
-            },
-            // Description
-            { type: 'div', props: { style: { color: 'rgba(255,255,255,0.9)', fontSize: 28, lineHeight: 1.8, marginBottom: 40, textShadow: '0 1px 4px rgba(0,0,0,0.3)' }, children: slide.description } },
-            // Key points
-            ...slide.keyPoints.map((point) => ({
-              type: 'div', props: { style: { display: 'flex', flexDirection: 'row', alignItems: 'flex-start' as const, marginBottom: 20 }, children: [
-                { type: 'div', props: { style: { color: BRAND.cyan, fontSize: 24, marginRight: 16, flexShrink: 0, marginTop: 4 }, children: '→' } },
-                { type: 'div', props: { style: { color: BRAND.textLight, fontSize: 24, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.3)' }, children: point } },
-              ] },
-            })),
-          ] },
+          type: 'div', props: {
+            style: { fontSize: 28, color: BRAND.cyan, fontWeight: 700, letterSpacing: 4, marginBottom: 24 },
+            children: '答えはこれ',
+          },
         },
-        saveCTABadge(),
+        // Cyan decorative line
+        {
+          type: 'div', props: {
+            style: { width: 120, height: 2, background: BRAND.cyan, marginBottom: 60 },
+            children: '',
+          },
+        },
+        // Main text
+        ...lines.map((line: string) => ({
+          type: 'div', props: {
+            style: {
+              color: BRAND.textLight, fontSize: 64, fontWeight: 700, lineHeight: 1.4,
+              textAlign: 'center' as const, textShadow: TEXT_SHADOW,
+              maxWidth: 900, paddingLeft: 60, paddingRight: 60,
+            },
+            children: line,
+          },
+        })),
+        // Cyan accent line
+        {
+          type: 'div', props: {
+            style: { width: 200, height: 4, background: BRAND.cyan, borderRadius: 2, marginTop: 48 },
+            children: '',
+          },
+        },
+        // Swipe prompt
+        {
+          type: 'div', props: {
+            style: {
+              position: 'absolute' as const, bottom: 80,
+              fontSize: 24, color: 'rgba(255,255,255,0.4)', letterSpacing: 2,
+            },
+            children: 'スワイプで詳しく →',
+          },
+        },
       ],
     },
-  }
-}
-
-// ============================================================
-// SUMMARY SLIDE (まとめ、5パターン)
-// ============================================================
-
-function renderSummarySlide(summary: SummaryData, slideNum: number, total: number) {
-  const rows = buildSummaryContent(summary)
-
-  return {
-    type: 'div',
-    props: {
-      style: { display: 'flex', flexDirection: 'column', width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, background: BRAND.lightBg, fontFamily: 'NotoSansJP', position: 'relative' as const, padding: '100px 60px 80px 60px' },
-      children: [
-        slideNumberLabel(slideNum, total, false),
-        { type: 'div', props: { style: { color: BRAND.navy, fontSize: 40, fontWeight: 700, textAlign: 'center' as const, marginBottom: 50 }, children: summary.title } },
-        { type: 'div', props: { style: { display: 'flex', flexDirection: 'column', flex: 1 }, children: rows } },
-        saveCTABadge(),
-      ],
-    },
-  }
-}
-
-function buildSummaryContent(summary: SummaryData): unknown[] {
-  switch (summary.type) {
-    case 'checklist':
-      return summary.items.map((item) => ({
-        type: 'div', props: { style: { display: 'flex', flexDirection: 'row', alignItems: 'center' as const, marginBottom: 24, paddingLeft: 20 }, children: [
-          { type: 'div', props: { style: { fontSize: 28, marginRight: 16, flexShrink: 0, color: BRAND.cyan }, children: '✅' } },
-          { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 24, lineHeight: 1.5 }, children: item } },
-        ] },
-      }))
-
-    case 'pros_cons':
-      return [{
-        type: 'div', props: { style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' as const }, children: [
-          // Pros column
-          {
-            type: 'div', props: { style: { display: 'flex', flexDirection: 'column', width: 440 }, children: [
-              { type: 'div', props: { style: { color: BRAND.cyan, fontSize: 28, fontWeight: 700, marginBottom: 20 }, children: '✅ メリット' } },
-              ...(summary.pros ?? summary.items).map((item) => ({
-                type: 'div', props: { style: { display: 'flex', flexDirection: 'row', marginBottom: 16 }, children: [
-                  { type: 'div', props: { style: { color: BRAND.cyan, fontSize: 20, marginRight: 8, flexShrink: 0 }, children: '•' } },
-                  { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 20, lineHeight: 1.4 }, children: item } },
-                ] },
-              })),
-            ] },
-          },
-          // Cons column
-          {
-            type: 'div', props: { style: { display: 'flex', flexDirection: 'column', width: 440 }, children: [
-              { type: 'div', props: { style: { color: '#EF4444', fontSize: 28, fontWeight: 700, marginBottom: 20 }, children: '❌ デメリット' } },
-              ...(summary.cons ?? []).map((item) => ({
-                type: 'div', props: { style: { display: 'flex', flexDirection: 'row', marginBottom: 16 }, children: [
-                  { type: 'div', props: { style: { color: '#EF4444', fontSize: 20, marginRight: 8, flexShrink: 0 }, children: '•' } },
-                  { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 20, lineHeight: 1.4 }, children: item } },
-                ] },
-              })),
-            ] },
-          },
-        ] },
-      }]
-
-    case 'comparison':
-      return summary.items.map((item, idx) => ({
-        type: 'div', props: { style: { display: 'flex', flexDirection: 'row', alignItems: 'center' as const, paddingTop: 18, paddingBottom: 18, paddingLeft: 20, paddingRight: 20, backgroundColor: idx % 2 === 0 ? '#FFFFFF' : BRAND.lightBg, borderRadius: 8, marginBottom: 4 }, children: [
-          { type: 'div', props: { style: { flex: 1, color: BRAND.textDark, fontSize: 22, lineHeight: 1.4 }, children: item } },
-        ] },
-      }))
-
-    case 'numbers':
-    case 'before_after':
-    default:
-      return summary.items.map((item, idx) => ({
-        type: 'div', props: { style: { display: 'flex', flexDirection: 'row', alignItems: 'center' as const, marginBottom: 20, paddingLeft: 20 }, children: [
-          { type: 'div', props: { style: { fontSize: 28, marginRight: 16, flexShrink: 0, color: BRAND.cyan }, children: `${idx + 1}.` } },
-          { type: 'div', props: { style: { color: BRAND.textDark, fontSize: 24, lineHeight: 1.5 }, children: item } },
-        ] },
-      }))
   }
 }
 
@@ -273,7 +183,6 @@ function renderCtaSlide(total: number, ctaDataUri: string | null) {
       },
     }
   }
-  // Fallback if CTA image not found
   return {
     type: 'div',
     props: {
@@ -287,13 +196,13 @@ function renderCtaSlide(total: number, ctaDataUri: string | null) {
 }
 
 // ============================================================
-// Main Export
+// Satori Slides Export (Cover + Bridge + CTA only)
 // ============================================================
 
-export async function renderAllSlides(
+export async function renderSatoriSlides(
   content: CarouselContent,
-  bgBuffers: (Buffer | null)[],
-): Promise<Buffer[]> {
+  totalSlides: number,
+): Promise<{ cover: Buffer; bridge: Buffer; cta: Buffer }> {
   const font = await loadFont()
   const fontConfig = [{ name: 'NotoSansJP', data: font, weight: 700 as const, style: 'normal' as const }]
   const imageOptions = { width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, fonts: fontConfig }
@@ -308,36 +217,23 @@ export async function renderAllSlides(
     coverBgDataUri = `data:image/png;base64,${coverBuffer.toString('base64')}`
   } catch { process.stdout.write('Cover background not found\n') }
 
-  // Load CTA image
   const ctaDataUri = await loadCtaImage()
 
-  // Total slides = cover + conclusion + contentSlides + summary + cta
-  const totalSlides = 2 + content.contentSlides.length + 1 + 1
+  // Render Cover
+  const coverElement = renderCoverSlide(content.hookLine1, content.hookLine2, content.hookLine3, 1, totalSlides, coverBgDataUri)
+  const coverResponse = new ImageResponse(coverElement as any, imageOptions)
+  const cover = Buffer.from(await coverResponse.arrayBuffer())
 
-  // Convert bg buffers to data URIs
-  const bgDataUris = bgBuffers.map(buf =>
-    buf ? `data:image/jpeg;base64,${buf.toString('base64')}` : null
-  )
+  // Render Bridge
+  const bridgeElement = renderBridgeSlide(content.bridgeText, 2, totalSlides)
+  const bridgeResponse = new ImageResponse(bridgeElement as any, imageOptions)
+  const bridge = Buffer.from(await bridgeResponse.arrayBuffer())
 
-  // Build all slide elements
-  const slideElements: unknown[] = [
-    renderCoverSlide(content.hookLine1, content.hookLine2, content.hookLine3, 1, totalSlides, coverBgDataUri),
-    renderConclusionSlide(content.conclusionText, 2, totalSlides),
-    ...content.contentSlides.map((slide, i) =>
-      renderContentSlide(slide, 3 + i, totalSlides, bgDataUris[i] || null)
-    ),
-    renderSummarySlide(content.summary, totalSlides - 1, totalSlides),
-    renderCtaSlide(totalSlides, ctaDataUri),
-  ]
+  // Render CTA
+  const ctaElement = renderCtaSlide(totalSlides, ctaDataUri)
+  const ctaResponse = new ImageResponse(ctaElement as any, imageOptions)
+  const cta = Buffer.from(await ctaResponse.arrayBuffer())
 
-  // Render sequentially
-  const buffers: Buffer[] = []
-  for (const element of slideElements) {
-    const response = new ImageResponse(element, imageOptions)
-    const arrayBuffer = await response.arrayBuffer()
-    buffers.push(Buffer.from(arrayBuffer))
-  }
-
-  process.stdout.write(`  Rendered ${buffers.length} slides (${totalSlides} total)\n`)
-  return buffers
+  process.stdout.write(`  Rendered 3 Satori slides (cover, bridge, cta)\n`)
+  return { cover, bridge, cta }
 }

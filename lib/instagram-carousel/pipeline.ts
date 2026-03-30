@@ -1,8 +1,11 @@
 /**
  * Instagram Carousel Pipeline
  *
- * 全体オーケストレーション: コンテンツ生成 → 背景画像生成 → スライドレンダリング → アップロード → 投稿
- * 可変枚数対応: [カバー] + [結論] + [コンテンツ×N] + [まとめ] + [CTA]
+ * ハイブリッド構成:
+ * - Satori: Cover (1枚目) + Bridge (2枚目) + CTA (最終枚)
+ * - Gemini: Content slides (3〜N枚目) + Summary (まとめ)
+ *
+ * フロー: コンテンツ生成 → Satori描画 → Gemini図解生成 → 結合 → アップロード → 投稿
  */
 
 import { config } from 'dotenv'
@@ -10,8 +13,8 @@ config({ path: '.env.local' })
 
 import { createClient } from '@supabase/supabase-js'
 import { generateCarouselContent } from './content-generator'
-import { renderAllSlides } from './slide-composer'
-import { generateMultipleBackgrounds } from './diagram-generator'
+import { renderSatoriSlides } from './slide-composer'
+import { generateContentSlideImage, generateSummarySlideImage } from './carousel-diagram-generator'
 import { postInstagramCarousel } from './carousel-poster'
 
 // ============================================================
@@ -101,7 +104,7 @@ async function saveAnalytics(
     post_text: caption.slice(0, 500),
     tweet_id: mediaId,
     tweet_url: `https://www.instagram.com/p/${mediaId}`,
-    pattern_used: 'instagram_carousel',
+    pattern_used: 'instagram_carousel_v2',
     posted_at: new Date().toISOString(),
     likes: 0, retweets: 0, replies: 0, impressions: 0, engagement_rate: 0,
   })
@@ -129,35 +132,57 @@ export async function runCarouselPipeline(
   const slug = generateSlug(topic)
 
   try {
-    // Step 1: Generate content
+    // Step 1: Generate content (Claude)
     process.stdout.write(`[1/7] Generating content for: ${topic}\n`)
     const content = await generateCarouselContent(topic)
+    // Total = cover + bridge + contentSlides + summary + cta
     const totalSlides = 2 + content.contentSlides.length + 1 + 1
     process.stdout.write(`  Hook: ${content.hookLine1} / ${content.hookLine2} / ${content.hookLine3}\n`)
+    process.stdout.write(`  Bridge: ${content.bridgeText.slice(0, 40)}...\n`)
     process.stdout.write(`  Content slides: ${content.contentSlides.length}, Summary: ${content.summary.type}\n`)
     process.stdout.write(`  Total slides: ${totalSlides}\n`)
 
-    // Step 2: Generate background images (parallel)
-    process.stdout.write(`[2/7] Generating ${content.contentSlides.length} background images...\n`)
-    const bgBuffers = await generateMultipleBackgrounds(content.contentSlides.length)
-    const bgCount = bgBuffers.filter(Boolean).length
-    process.stdout.write(`  Backgrounds: ${bgCount}/${content.contentSlides.length} generated\n`)
+    // Step 2: Render Satori slides (Cover + Bridge + CTA)
+    process.stdout.write(`[2/7] Rendering Satori slides (cover, bridge, cta)...\n`)
+    const satoriSlides = await renderSatoriSlides(content, totalSlides)
 
-    // Step 3: Render all slides
-    process.stdout.write(`[3/7] Rendering ${totalSlides} slides...\n`)
-    const slideBuffers = await renderAllSlides(content, bgBuffers)
+    // Step 3: Generate Gemini diagram slides (Content + Summary)
+    process.stdout.write(`[3/7] Generating ${content.contentSlides.length + 1} Gemini diagram slides...\n`)
+    const geminiSlides: Buffer[] = []
 
-    // Step 4: Upload to Supabase Storage
-    process.stdout.write(`[4/7] Uploading to Supabase Storage...\n`)
-    const imageUrls = await uploadSlidesToStorage(slideBuffers, slug)
+    for (let i = 0; i < content.contentSlides.length; i++) {
+      const slideNum = 3 + i
+      const buf = await generateContentSlideImage(content.contentSlides[i], slideNum, totalSlides)
+      geminiSlides.push(buf)
+    }
+
+    const summarySlideNum = totalSlides - 1
+    const summaryBuf = await generateSummarySlideImage(content.summary, summarySlideNum, totalSlides)
+    geminiSlides.push(summaryBuf)
+
+    process.stdout.write(`  Generated ${geminiSlides.length} Gemini slides\n`)
+
+    // Step 4: Assemble all slides in order
+    // [Cover, Bridge, Content1, Content2, ..., Summary, CTA]
+    const allSlides: Buffer[] = [
+      satoriSlides.cover,
+      satoriSlides.bridge,
+      ...geminiSlides,  // content slides + summary
+      satoriSlides.cta,
+    ]
+    process.stdout.write(`[4/7] Assembled ${allSlides.length} total slides\n`)
+
+    // Step 5: Upload to Supabase Storage
+    process.stdout.write(`[5/7] Uploading to Supabase Storage...\n`)
+    const imageUrls = await uploadSlidesToStorage(allSlides, slug)
 
     if (dryRun) {
       process.stdout.write(`[DRY RUN] Skipping Instagram post and cleanup\n`)
       return { success: true, imageUrls, slideCount: totalSlides }
     }
 
-    // Step 5: Post to Instagram
-    process.stdout.write(`[5/7] Posting carousel to Instagram...\n`)
+    // Step 6: Post to Instagram
+    process.stdout.write(`[6/7] Posting carousel to Instagram...\n`)
     const fullCaption = `${content.caption}\n\n${content.hashtags.join(' ')}`
     const result = await postInstagramCarousel(imageUrls, fullCaption)
 
@@ -167,12 +192,9 @@ export async function runCarouselPipeline(
 
     process.stdout.write(`  Published: ${result.mediaId}\n`)
 
-    // Step 6: Save analytics
-    process.stdout.write(`[6/7] Saving analytics...\n`)
+    // Step 7: Save analytics + cleanup
+    process.stdout.write(`[7/7] Saving analytics & cleaning up...\n`)
     await saveAnalytics(topic, fullCaption, result.mediaId)
-
-    // Step 7: Cleanup storage
-    process.stdout.write(`[7/7] Cleaning up storage...\n`)
     await cleanupStorage(imageUrls)
 
     return { success: true, mediaId: result.mediaId, imageUrls, slideCount: totalSlides }
