@@ -77,7 +77,16 @@ async function generateHybridContent(
   const match = textBlock.text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('No JSON in response')
 
-  const parsed = JSON.parse(match[0])
+  let parsed: any
+  try {
+    parsed = JSON.parse(match[0])
+  } catch {
+    // Fix common LLM JSON issues: unescaped newlines/tabs inside string values
+    const cleaned = match[0]
+      .replace(/(?<=:\s*"[^"]*)\n/g, '\\n')
+      .replace(/(?<=:\s*"[^"]*)\t/g, '\\t')
+    parsed = JSON.parse(cleaned)
+  }
 
   return {
     hookLine1: parsed.hookLine1 || '衝撃のAI映像！',

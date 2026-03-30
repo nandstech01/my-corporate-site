@@ -296,13 +296,49 @@ export async function selectViralVideo(): Promise<ViralVideoSource | null> {
 // Video proxy (X CDN → Supabase)
 // ============================================================
 
+const IG_CAROUSEL_VIDEO_MAX_SECONDS = 59
+
+async function trimVideoIfNeeded(inputBuffer: Buffer): Promise<Buffer> {
+  const { execSync } = await import('child_process')
+  const { writeFileSync, readFileSync, unlinkSync } = await import('fs')
+  const { join } = await import('path')
+  const { tmpdir } = await import('os')
+
+  const tmpIn = join(tmpdir(), `ig-trim-in-${Date.now()}.mp4`)
+  const tmpOut = join(tmpdir(), `ig-trim-out-${Date.now()}.mp4`)
+
+  writeFileSync(tmpIn, inputBuffer)
+
+  try {
+    // Check duration
+    const probe = execSync(`ffprobe -v quiet -print_format json -show_format "${tmpIn}"`, { encoding: 'utf-8' })
+    const duration = parseFloat(JSON.parse(probe).format?.duration || '0')
+
+    if (duration <= IG_CAROUSEL_VIDEO_MAX_SECONDS) {
+      process.stdout.write(`  Video duration: ${duration.toFixed(1)}s (within limit)\n`)
+      return inputBuffer
+    }
+
+    process.stdout.write(`  Video duration: ${duration.toFixed(1)}s → trimming to ${IG_CAROUSEL_VIDEO_MAX_SECONDS}s\n`)
+    execSync(
+      `ffmpeg -y -i "${tmpIn}" -t ${IG_CAROUSEL_VIDEO_MAX_SECONDS} -c:v libx264 -c:a aac -movflags +faststart "${tmpOut}"`,
+      { stdio: 'pipe' },
+    )
+    return readFileSync(tmpOut)
+  } finally {
+    try { unlinkSync(tmpIn) } catch {}
+    try { unlinkSync(tmpOut) } catch {}
+  }
+}
+
 export async function proxyVideoToSupabase(
   videoUrl: string,
 ): Promise<{ publicUrl: string; storagePath: string }> {
   const resp = await fetch(videoUrl)
   if (!resp.ok) throw new Error(`Video download failed: ${resp.status}`)
 
-  const buffer = Buffer.from(await resp.arrayBuffer())
+  const rawBuffer = Buffer.from(await resp.arrayBuffer())
+  const buffer = await trimVideoIfNeeded(rawBuffer)
   const fileName = `temp/hybrid-carousel-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.mp4`
 
   const supabase = getSupabase()

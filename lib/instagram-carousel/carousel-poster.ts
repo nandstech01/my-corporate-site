@@ -31,6 +31,7 @@ interface ContainerStatusResponse {
     | 'FINISHED'
     | 'IN_PROGRESS'
     | 'PUBLISHED'
+  readonly status?: string
   readonly id: string
 }
 
@@ -199,11 +200,11 @@ const VIDEO_POLL_MAX_ATTEMPTS = 60
 async function pollVideoContainerStatus(containerId: string): Promise<void> {
   for (let attempt = 0; attempt < VIDEO_POLL_MAX_ATTEMPTS; attempt++) {
     const status = await graphApiFetch<ContainerStatusResponse>(
-      `/${containerId}?fields=status_code`,
+      `/${containerId}?fields=status_code,status`,
     )
     if (status.status_code === 'FINISHED') return
     if (status.status_code === 'ERROR' || status.status_code === 'EXPIRED') {
-      throw new Error(`Video container ${containerId} failed: ${status.status_code}`)
+      throw new Error(`Video container ${containerId} failed: ${status.status_code} — ${status.status || 'no details'}`)
     }
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
   }
