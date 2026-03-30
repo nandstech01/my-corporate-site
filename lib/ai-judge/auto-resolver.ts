@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getCalibratedThreshold } from './calibrated-threshold'
 import { isKillSwitchActive } from './emergency'
 import { judgePost } from './judge'
+import type { JudgeResult } from './judge'
 import { notifyPostPublished, notifyPostRejected } from './slack-notifier'
 import type { AutoResolveResult, JudgeVerdict, Platform, PostCandidate } from './types'
 import { postTweet, replyToTweet, quoteTweet, postThread } from '../x-api/client'
@@ -73,13 +74,14 @@ async function getTodayPostCount(platform: Platform): Promise<number> {
 // ============================================================
 
 async function markDecisionAsPosted(params: {
-  readonly pendingActionId: string
+  readonly pendingActionId?: string
+  readonly decisionId?: string
   readonly postId: string
   readonly postedAt: string
 }): Promise<void> {
   const supabase = getSupabase()
 
-  const { error } = await supabase
+  let query = supabase
     .from('ai_judge_decisions')
     .update({
       was_posted: true,
@@ -87,7 +89,16 @@ async function markDecisionAsPosted(params: {
       posted_at: params.postedAt,
       auto_resolved: true,
     })
-    .eq('pending_action_id', params.pendingActionId)
+
+  if (params.decisionId) {
+    query = query.eq('id', params.decisionId)
+  } else if (params.pendingActionId) {
+    query = query.eq('pending_action_id', params.pendingActionId)
+  } else {
+    return // No identifier available, skip
+  }
+
+  const { error } = await query
 
   if (error) {
     throw new Error(`Failed to mark decision as posted: ${error.message}`)
@@ -360,8 +371,11 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
 
   // 4. Get AI Judge verdict
   let verdict: JudgeVerdict
+  let decisionId: string | null = null
   try {
-    verdict = await judgePost(post)
+    const result: JudgeResult = await judgePost(post)
+    verdict = result.verdict
+    decisionId = result.decisionId
   } catch (error) {
     return {
       success: false,
@@ -461,7 +475,9 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
 
       // 改訂版を再Judge
       const revisedPost: PostCandidate = { ...post, text: revised }
-      const revisedVerdict = await judgePost(revisedPost)
+      const revisedResult = await judgePost(revisedPost)
+      const revisedVerdict = revisedResult.verdict
+      const revisedDecisionId = revisedResult.decisionId
 
       if (
         revisedVerdict.decision === 'approve' &&
@@ -473,7 +489,7 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
         )
         // Fall through to posting logic below with updated post and verdict
         // Recursion-free: directly call the posting section
-        return autoResolveApprovedPost(revisedPost, revisedVerdict)
+        return autoResolveApprovedPost(revisedPost, revisedVerdict, revisedDecisionId)
       }
 
       // 改訂版も不承認
@@ -523,7 +539,7 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
   }
 
   // 6c. Approve and above threshold -> post
-  return autoResolveApprovedPost(post, verdict)
+  return autoResolveApprovedPost(post, verdict, decisionId)
 }
 
 // ============================================================
@@ -533,6 +549,7 @@ export async function autoResolvePost(post: PostCandidate): Promise<AutoResolveR
 async function autoResolveApprovedPost(
   post: PostCandidate,
   verdict: JudgeVerdict,
+  decisionId?: string | null,
 ): Promise<AutoResolveResult> {
   try {
     let postResult: { readonly postId?: string; readonly postUrl?: string; readonly error?: string }
@@ -562,10 +579,11 @@ async function autoResolveApprovedPost(
     }
 
     // Update decision record
-    if (post.pendingActionId && postResult.postId) {
+    if ((post.pendingActionId || decisionId) && postResult.postId) {
       try {
         await markDecisionAsPosted({
           pendingActionId: post.pendingActionId,
+          decisionId: decisionId ?? undefined,
           postId: postResult.postId,
           postedAt: new Date().toISOString(),
         })

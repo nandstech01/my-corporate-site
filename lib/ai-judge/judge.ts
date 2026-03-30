@@ -377,10 +377,10 @@ async function logDecision(
   post: PostCandidate,
   verdict: JudgeVerdict,
   latencyMs: number,
-): Promise<void> {
+): Promise<string | null> {
   try {
     const supabase = getSupabase()
-    const { error } = await supabase.from('ai_judge_decisions').insert({
+    const { data, error } = await supabase.from('ai_judge_decisions').insert({
       pending_action_id: post.pendingActionId ?? null,
       platform: post.platform,
       post_text: post.text,
@@ -391,17 +391,21 @@ async function logDecision(
       edit_suggestion: verdict.editSuggestion ?? null,
       topic_relevance: verdict.topicRelevance,
       predicted_engagement_rate: verdict.predictedEngagementRate ?? null,
+      dimensions: verdict.dimensions ?? null,
       auto_resolved: false,
       model_used: AI_JUDGE_MODEL,
       latency_ms: latencyMs,
-    })
+    }).select('id').single()
     if (error) {
       process.stderr.write(`[AI Judge] logDecision error: ${error.message}\n`)
+      return null
     }
+    return data?.id ?? null
   } catch (err) {
     process.stderr.write(
       `[AI Judge] logDecision exception: ${err instanceof Error ? err.message : String(err)}\n`,
     )
+    return null
   }
 }
 
@@ -409,7 +413,12 @@ async function logDecision(
 // Main Entry Point
 // ============================================================
 
-export async function judgePost(post: PostCandidate): Promise<JudgeVerdict> {
+export interface JudgeResult {
+  readonly verdict: JudgeVerdict
+  readonly decisionId: string | null
+}
+
+export async function judgePost(post: PostCandidate): Promise<JudgeResult> {
   const startTime = Date.now()
 
   // 1. Run deterministic safety checks
@@ -425,8 +434,8 @@ export async function judgePost(post: PostCandidate): Promise<JudgeVerdict> {
       topicRelevance: 0,
     }
     const latencyMs = Date.now() - startTime
-    await logDecision(post, verdict, latencyMs)
-    return verdict
+    const decisionId = await logDecision(post, verdict, latencyMs)
+    return { verdict, decisionId }
   }
 
   // 3. Fetch context data + learnings (best-effort)
@@ -453,8 +462,8 @@ export async function judgePost(post: PostCandidate): Promise<JudgeVerdict> {
 
   // 5. Log decision to DB
   const latencyMs = Date.now() - startTime
-  await logDecision(post, verdict, latencyMs)
+  const decisionId = await logDecision(post, verdict, latencyMs)
 
-  // 6. Return verdict
-  return verdict
+  // 6. Return verdict with decision ID
+  return { verdict, decisionId }
 }

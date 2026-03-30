@@ -136,7 +136,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 12 * * *': 'viral-repost',
   '0 13 * * *': 'cross-post-engagement-collector',
   '0 23 * * *': 'daily-buzz-global',
-  '0 4 * * *': 'daily-buzz-claude-code',
+  '30 4 * * *': 'daily-buzz-claude-code',
   '0 11 * * *': 'daily-buzz-japan',
   '*/15 0-14 * * *': 'anthropic-tweet-reactor',
   '0 */2 * * *': 'viral-ai-repost',
