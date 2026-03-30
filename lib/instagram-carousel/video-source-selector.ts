@@ -91,8 +91,8 @@ async function fetchVideoTweets(username: string): Promise<TweetCandidate[]> {
     const client = getTwitterClient()
     const timeline = await client.v2.userTimeline(userId, {
       max_results: 10,
-      'tweet.fields': ['public_metrics', 'created_at', 'attachments'],
-      'media.fields': ['type', 'url', 'preview_image_url', 'variants'],
+      'tweet.fields': ['public_metrics', 'attachments'],
+      'media.fields': ['type', 'variants', 'preview_image_url'],
       expansions: ['attachments.media_keys'],
     })
 
