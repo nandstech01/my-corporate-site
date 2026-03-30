@@ -137,11 +137,14 @@ ${tweet.text}
 - 「やばい」「すごい」だけで終わるな。何がどうすごいのか具体的に書け
 - テンプレっぽい表現禁止: 「ここまで来てる」「次元が違う」「海外でバズってる」「追っといた方がいい」
 
+## 文字数制限（厳守）
+Twitter投稿なので日本語は最大120文字まで（これにURLが追加される）。絶対に120文字を超えるな。
+
 ## 文章スタイル（ランダムに選べ）
 以下の3パターンからランダムに1つ選んでコメントを書け:
-A) 短い反応型（1〜2文、80文字以内）— 直感的な感想やツッコミ
-B) 解説型（3〜4文、200文字以内）— 何が起きているか、なぜ重要かを簡潔に説明
-C) 考察型（2〜3文、150文字以内）— 技術的な意味合いや業界への影響を分析
+A) 短い反応型（1〜2文、60文字以内）— 直感的な感想やツッコミ
+B) 解説型（2〜3文、120文字以内）— 何が起きているか、なぜ重要かを簡潔に説明
+C) 考察型（1〜2文、100文字以内）— 技術的な意味合いや業界への影響を分析
 ${recentBlock}
 
 ${voiceProfile}
@@ -156,13 +159,10 @@ ${voiceProfile}
       // Strip quotes/brackets the model might wrap around
       ?.replace(/^[「『"""]|[」』"""]$/g, '').trim()
 
-    if (text && text.length > 0 && text.length <= 120) {
-      return text
-    }
-    // If too long, truncate gracefully
-    if (text && text.length > 120) {
-      const truncated = text.slice(0, 117) + '…'
-      return truncated
+    if (text && text.length > 0) {
+      // Truncate to 120 chars max (URL adds ~25 weighted chars)
+      if (text.length <= 120) return text
+      return text.slice(0, 117) + '…'
     }
   } catch (err) {
     process.stderr.write(`[generateComment] API error, falling back: ${err}\n`)
