@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import type { CarouselContent } from './types'
+import type { ResearchContext } from './topic-researcher'
 
 const contentSlideSchema = z.object({
   title: z.string().default('ポイント'),
@@ -110,7 +111,14 @@ type: "takeaway"（まとめリスト）の場合:
 - summaryのtableは最低6行、takeawayは3-5項目
 - captionは300-500文字で教育的かつ一次情報を含む
 - hashtagsは5つ
-- JSON以外のテキストは出力しないこと`
+- JSON以外のテキストは出力しないこと
+
+■ リサーチデータの活用ルール（リサーチデータが提供されている場合）:
+- 各スライドのpointsに、リサーチデータの具体的な数値・事例・ツール名を必ず1つ以上含めること
+- 「〜と言われている」ではなく「〜社の調査によると」のように出典を示唆すること
+- statisticsの数値データはそのまま引用すること
+- captionにもリサーチから得た一次情報を反映すること
+- リサーチデータがない場合は自身の知識で具体的に書くこと`
 
 function extractJson(text: string): unknown {
   const match = text.match(/\{[\s\S]*\}/)
@@ -127,20 +135,45 @@ function extractJson(text: string): unknown {
   }
 }
 
-export async function generateCarouselContent(topic: string): Promise<CarouselContent> {
+function buildResearchBlock(research: ResearchContext): string {
+  const parts: string[] = []
+
+  if (research.keyFacts.length > 0) {
+    parts.push(`■ 主要ファクト:\n${research.keyFacts.map((f, i) => `${i + 1}. ${f}`).join('\n')}`)
+  }
+  if (research.statistics.length > 0) {
+    parts.push(`■ 統計データ:\n${research.statistics.map((s, i) => `${i + 1}. ${s}`).join('\n')}`)
+  }
+  if (research.examples.length > 0) {
+    parts.push(`■ 具体事例:\n${research.examples.map((e, i) => `${i + 1}. ${e}`).join('\n')}`)
+  }
+  if (research.sourceUrls.length > 0) {
+    parts.push(`■ 参考ソース:\n${research.sourceUrls.slice(0, 3).join('\n')}`)
+  }
+
+  return parts.length > 0
+    ? `\n\n【リサーチ結果（以下の情報を必ずコンテンツに反映すること）】\n\n${parts.join('\n\n')}`
+    : ''
+}
+
+export async function generateCarouselContent(
+  topic: string,
+  research?: ResearchContext,
+): Promise<CarouselContent> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
 
   const client = new Anthropic({ apiKey })
+  const researchBlock = research ? buildResearchBlock(research) : ''
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 6144,
     system: SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
-        content: `トピック: ${topic}\n\n上記トピックについて、ブログ記事1本分の濃さでInstagramカルーセル用コンテンツをJSON形式で生成してください。各ポイントは具体的なコマンド名、数値、手順を含めること。`,
+        content: `トピック: ${topic}\n\n上記トピックについて、ブログ記事1本分の濃さでInstagramカルーセル用コンテンツをJSON形式で生成してください。各ポイントは具体的なコマンド名、数値、手順を含めること。${researchBlock}`,
       },
     ],
   })

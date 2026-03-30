@@ -16,6 +16,8 @@ import { generateCarouselContent } from './content-generator'
 import { renderSatoriSlides } from './slide-composer'
 import { generateContentSlideImage, generateSummarySlideImage } from './carousel-diagram-generator'
 import { postInstagramCarousel } from './carousel-poster'
+import { selectCarouselTopic } from './topic-selector'
+import { researchCarouselTopic, type ResearchContext } from './topic-researcher'
 
 // ============================================================
 // Supabase
@@ -125,16 +127,59 @@ interface PipelineResult {
   readonly error?: string
 }
 
+// ============================================================
+// Auto Pipeline (with topic selection + research)
+// ============================================================
+
+export async function runAutoCarouselPipeline(
+  dryRun = false,
+): Promise<PipelineResult> {
+  try {
+    // Step 1: Auto-select topic
+    process.stdout.write('[1/9] Auto-selecting topic...\n')
+    const candidate = await selectCarouselTopic()
+    process.stdout.write(`  Selected: "${candidate.topic}" (source: ${candidate.source}, score: ${candidate.score})\n`)
+
+    // Step 2: Research topic
+    process.stdout.write('[2/9] Researching topic...\n')
+    const research = await researchCarouselTopic(candidate)
+    process.stdout.write(`  Found ${research.keyFacts.length} facts, ${research.statistics.length} stats, ${research.examples.length} examples\n`)
+
+    // Step 3-9: Run pipeline with research
+    return runCarouselPipelineInternal(candidate.topic, research, dryRun)
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err)
+    process.stdout.write(`Auto pipeline failed: ${errorMsg}\n`)
+    return { success: false, error: errorMsg }
+  }
+}
+
+// ============================================================
+// Manual Pipeline (topic provided)
+// ============================================================
+
 export async function runCarouselPipeline(
   topic: string,
   dryRun = false,
+): Promise<PipelineResult> {
+  return runCarouselPipelineInternal(topic, undefined, dryRun)
+}
+
+// ============================================================
+// Internal Pipeline
+// ============================================================
+
+async function runCarouselPipelineInternal(
+  topic: string,
+  research: ResearchContext | undefined,
+  dryRun: boolean,
 ): Promise<PipelineResult> {
   const slug = generateSlug(topic)
 
   try {
     // Step 1: Generate content (Claude)
     process.stdout.write(`[1/7] Generating content for: ${topic}\n`)
-    const content = await generateCarouselContent(topic)
+    const content = await generateCarouselContent(topic, research)
     // Total = cover + bridge + contentSlides + summary + cta
     const totalSlides = 2 + content.contentSlides.length + 1 + 1
     process.stdout.write(`  Hook: ${content.hookLine1} / ${content.hookLine2} / ${content.hookLine3}\n`)
@@ -210,10 +255,15 @@ export async function runCarouselPipeline(
 // ============================================================
 
 if (require.main === module || process.argv[1]?.includes('pipeline')) {
-  const topic = process.argv.find((a) => a.startsWith('--topic='))?.split('=').slice(1).join('=') || 'Claude Code 2026年の革新的な使い方'
+  const autoMode = process.argv.includes('--auto')
+  const topic = process.argv.find((a) => a.startsWith('--topic='))?.split('=').slice(1).join('=')
   const dryRun = process.argv.includes('--dry-run')
 
-  runCarouselPipeline(topic, dryRun)
+  const promise = autoMode
+    ? runAutoCarouselPipeline(dryRun)
+    : runCarouselPipeline(topic || 'Claude Code 2026年の革新的な使い方', dryRun)
+
+  promise
     .then((r) => console.log(JSON.stringify(r, null, 2)))
     .catch((e) => { console.error(e); process.exit(1) })
 }
