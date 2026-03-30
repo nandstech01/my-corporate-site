@@ -139,8 +139,8 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '30 4 * * *': 'daily-buzz-claude-code',
   '0 11 * * *': 'daily-buzz-japan',
   '*/15 0-14 * * *': 'anthropic-tweet-reactor',
-  '0 */2 * * *': 'viral-ai-repost',
-  '30 */3 * * *': 'viral-threads-repost',
+  '0 23,5,11 * * *': 'viral-ai-repost',
+  '30 23,5,11 * * *': 'viral-threads-repost',
 }
 
 function detectJob(): JobName {

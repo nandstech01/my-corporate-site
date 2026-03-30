@@ -4,8 +4,8 @@ on:
   schedule:
     - cron: '*/15 0-14 * * *'              # JST 9:00-23:00 every 15min Anthropic tweet reactor
     - cron: '30 0,3,5,7,9,11 * * *'       # JST 9:30, 12:30, 14:30, 16:30, 18:30, 20:30 X proactive discussion
-    - cron: '0 */2 * * *'                  # Every 2 hours: viral AI repost from overseas influencers
-    - cron: '30 */3 * * *'                 # Every 3 hours: viral Threads repost with native media
+    - cron: '0 23,5,11 * * *'               # JST 8,14,20時 viral AI repost (1日3回)
+    - cron: '30 23,5,11 * * *'             # JST 8:30,14:30,20:30 viral Threads repost (1日3回)
   workflow_dispatch:
     inputs:
       job:
