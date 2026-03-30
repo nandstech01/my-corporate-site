@@ -113,7 +113,7 @@ function renderBridgeSlide(bridgeText: string, slideNum: number, total: number) 
         // Section label
         {
           type: 'div', props: {
-            style: { fontSize: 28, color: BRAND.cyan, fontWeight: 700, letterSpacing: 4, marginBottom: 24 },
+            style: { fontSize: 42, color: BRAND.cyan, fontWeight: 700, letterSpacing: 6, marginBottom: 24 },
             children: '答えはこれ',
           },
         },
