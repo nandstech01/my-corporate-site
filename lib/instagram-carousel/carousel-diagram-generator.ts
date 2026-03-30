@@ -25,7 +25,7 @@ function getGeminiModel() {
 // ブランドガイドテキスト（全プロンプト共通）
 // ============================================================
 
-function brandGuide(slideNumber: number, totalSlides: number): string {
+export function brandGuide(slideNumber: number, totalSlides: number): string {
   return `【重要: ブランドデザインガイド — 厳守】
 このカルーセルの1-2枚目はダークネイビー基調のモダンなデザインで統一されています。
 3枚目以降もこのブランドトーンに必ず合わせてください。
@@ -175,7 +175,7 @@ ${itemsText}
 // 画像生成実行
 // ============================================================
 
-async function generateImageFromPrompt(prompt: string): Promise<Buffer> {
+export async function generateImageFromPrompt(prompt: string): Promise<Buffer> {
   const model = getGeminiModel()
 
   const result = await model.generateContent({

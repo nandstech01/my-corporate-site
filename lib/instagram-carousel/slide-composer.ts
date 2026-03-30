@@ -237,3 +237,30 @@ export async function renderSatoriSlides(
   process.stdout.write(`  Rendered 3 Satori slides (cover, bridge, cta)\n`)
   return { cover, bridge, cta }
 }
+
+// ============================================================
+// Hybrid Carousel Hook Slide (single render for video carousel)
+// ============================================================
+
+export async function renderHybridHookSlide(
+  hookLine1: string,
+  hookLine2: string,
+  hookLine3: string,
+): Promise<Buffer> {
+  const font = await loadFont()
+  const fontConfig = [{ name: 'NotoSansJP', data: font, weight: 700 as const, style: 'normal' as const }]
+  const imageOptions = { width: CAROUSEL_WIDTH, height: CAROUSEL_HEIGHT, fonts: fontConfig }
+
+  let coverBgDataUri: string | null = null
+  try {
+    const fs = await import('fs/promises')
+    const path = await import('path')
+    const coverPath = path.join(process.cwd(), 'public', 'images', 'instagram', 'carousel-cover-bg.png')
+    const coverBuffer = await fs.readFile(coverPath)
+    coverBgDataUri = `data:image/png;base64,${coverBuffer.toString('base64')}`
+  } catch { /* no bg */ }
+
+  const element = renderCoverSlide(hookLine1, hookLine2, hookLine3, 1, 4, coverBgDataUri)
+  const response = new ImageResponse(element as any, imageOptions)
+  return Buffer.from(await response.arrayBuffer())
+}

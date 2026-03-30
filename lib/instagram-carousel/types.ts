@@ -58,3 +58,44 @@ export const BRAND = {
 
 export const CAROUSEL_WIDTH = 1080
 export const CAROUSEL_HEIGHT = 1350
+
+// ============================================================
+// Hybrid Carousel (映像入り) Types
+// ============================================================
+
+export type CarouselItemMediaType = 'IMAGE' | 'VIDEO'
+
+export interface CarouselItem {
+  readonly mediaType: CarouselItemMediaType
+  readonly publicUrl: string
+  readonly slideLabel: string
+}
+
+export interface ViralVideoSource {
+  readonly tweetId: string
+  readonly tweetText: string
+  readonly username: string
+  readonly videoUrl: string
+  readonly previewImageUrl?: string
+  readonly likeCount: number
+  readonly impressionCount: number
+  readonly topicHint: string
+}
+
+export interface HybridCarouselContent {
+  readonly hookLine1: string
+  readonly hookLine2: string
+  readonly hookLine3: string
+  readonly videoSource: ViralVideoSource
+  readonly diagramPromptContext: string
+  readonly caption: string
+  readonly hashtags: readonly string[]
+}
+
+export interface HybridPipelineResult {
+  readonly success: boolean
+  readonly mediaId?: string
+  readonly carouselItems?: readonly CarouselItem[]
+  readonly videoSource?: ViralVideoSource
+  readonly error?: string
+}

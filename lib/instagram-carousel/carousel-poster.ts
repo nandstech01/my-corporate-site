@@ -107,16 +107,25 @@ async function pollContainerStatus(containerId: string): Promise<void> {
 // 子コンテナ作成
 // ============================================================
 
-async function createChildContainer(imageUrl: string): Promise<string> {
+async function createChildContainer(
+  url: string,
+  mediaType: 'IMAGE' | 'VIDEO' = 'IMAGE',
+): Promise<string> {
   const userId = process.env.INSTAGRAM_USER_ID
   if (!userId) {
     throw new Error('INSTAGRAM_USER_ID is required')
   }
 
   const params = new URLSearchParams({
-    image_url: imageUrl,
     is_carousel_item: 'true',
   })
+
+  if (mediaType === 'VIDEO') {
+    params.set('media_type', 'VIDEO')
+    params.set('video_url', url)
+  } else {
+    params.set('image_url', url)
+  }
 
   const result = await graphApiFetch<{ id: string }>(
     `/${userId}/media?${params.toString()}`,
@@ -181,6 +190,88 @@ async function publishCarousel(containerId: string): Promise<string> {
  * @param imageUrls 公開アクセス可能な画像URLの配列（2-10枚）
  * @param caption 投稿キャプション
  */
+// ============================================================
+// 動画対応ポーリング（120秒タイムアウト）
+// ============================================================
+
+const VIDEO_POLL_MAX_ATTEMPTS = 60
+
+async function pollVideoContainerStatus(containerId: string): Promise<void> {
+  for (let attempt = 0; attempt < VIDEO_POLL_MAX_ATTEMPTS; attempt++) {
+    const status = await graphApiFetch<ContainerStatusResponse>(
+      `/${containerId}?fields=status_code`,
+    )
+    if (status.status_code === 'FINISHED') return
+    if (status.status_code === 'ERROR' || status.status_code === 'EXPIRED') {
+      throw new Error(`Video container ${containerId} failed: ${status.status_code}`)
+    }
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+  }
+  throw new Error(`Video container ${containerId} timeout after ${VIDEO_POLL_MAX_ATTEMPTS} attempts`)
+}
+
+// ============================================================
+// 混合カルーセル投稿（画像+動画）
+// ============================================================
+
+import type { CarouselItem } from './types'
+
+export async function postMixedCarousel(
+  items: readonly CarouselItem[],
+  caption: string,
+): Promise<CarouselPostResult> {
+  if (!process.env.INSTAGRAM_ACCESS_TOKEN || !process.env.INSTAGRAM_USER_ID) {
+    return { success: false, error: 'INSTAGRAM_ACCESS_TOKEN and INSTAGRAM_USER_ID are required' }
+  }
+  if (items.length < 2 || items.length > 10) {
+    return { success: false, error: `Carousel requires 2-10 items, got ${items.length}` }
+  }
+
+  try {
+    // Create child containers
+    process.stdout.write(`Creating ${items.length} child containers (mixed)...\n`)
+    const childIds: string[] = []
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const childId = await createChildContainer(item.publicUrl, item.mediaType)
+      process.stdout.write(`  Child ${i + 1}/${items.length} [${item.mediaType}] ${item.slideLabel}: ${childId}\n`)
+      childIds.push(childId)
+    }
+
+    // Poll children (video gets longer timeout)
+    process.stdout.write('Polling child containers...\n')
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].mediaType === 'VIDEO') {
+        await pollVideoContainerStatus(childIds[i])
+      } else {
+        await pollContainerStatus(childIds[i])
+      }
+      process.stdout.write(`  Child ${i + 1}/${items.length} ready\n`)
+    }
+
+    // Create + poll + publish carousel
+    process.stdout.write('Creating carousel container...\n')
+    const carouselId = await createCarouselContainer(childIds, caption)
+    process.stdout.write(`  Carousel container: ${carouselId}\n`)
+
+    process.stdout.write('Polling carousel container...\n')
+    await pollVideoContainerStatus(carouselId) // use longer timeout for mixed
+
+    process.stdout.write('Publishing carousel...\n')
+    const mediaId = await publishCarousel(carouselId)
+    process.stdout.write(`  Published: ${mediaId}\n`)
+
+    return { success: true, mediaId }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return { success: false, error: message }
+  }
+}
+
+// ============================================================
+// 画像のみカルーセル投稿（既存、後方互換）
+// ============================================================
+
 export async function postInstagramCarousel(
   imageUrls: string[],
   caption: string,
