@@ -33,8 +33,8 @@ on:
     - cron: '0 23 * * *'              # JST 8:00 Daily buzz global AI news
     - cron: '30 4 * * *'              # JST 13:30 Daily buzz Claude Code (shifted from 0 4 to avoid blog-rss collision)
     - cron: '0 11 * * *'              # JST 20:00 Daily buzz AI tech Japan
-    - cron: '0 22 * * 0,2,4,6'        # JST 7:00 Mon,Wed,Fri,Sun Instagram carousel auto-post
-    - cron: '0 22 * * 1,3,5'          # JST 7:00 Tue,Thu,Sat Instagram hybrid carousel auto-post
+    - cron: '45 22 * * 0,2,4,6'        # JST 7:45 Mon,Wed,Fri,Sun Instagram carousel auto-post (shifted from 0 22 to avoid x-engagement-collector collision)
+    - cron: '45 22 * * 1,3,5'          # JST 7:45 Tue,Thu,Sat Instagram hybrid carousel auto-post (shifted from 0 22 to avoid collision)
   workflow_dispatch:
     inputs:
       job:

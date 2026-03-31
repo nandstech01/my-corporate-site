@@ -145,8 +145,8 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '*/15 0-14 * * *': 'anthropic-tweet-reactor',
   '0 23,5,11 * * *': 'viral-ai-repost',
   '30 23,5,11 * * *': 'viral-threads-repost',
-  '0 22 * * 0,2,4,6': 'instagram-carousel-auto-post',
-  '0 22 * * 1,3,5': 'instagram-hybrid-carousel-auto-post',
+  '45 22 * * 0,2,4,6': 'instagram-carousel-auto-post',
+  '45 22 * * 1,3,5': 'instagram-hybrid-carousel-auto-post',
 }
 
 function detectJob(): JobName {
