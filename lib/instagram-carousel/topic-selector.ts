@@ -10,6 +10,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { calculateCharacterOverlap } from '../ai-judge/safety-checks'
 
 // ============================================================
 // Types
@@ -236,20 +237,26 @@ async function getRecentCarouselTopics(): Promise<string[]> {
 
   const { data } = await supabase
     .from('x_post_analytics')
-    .select('post_text')
-    .eq('pattern_used', 'instagram_carousel_v2')
+    .select('post_text, source_url')
+    .in('pattern_used', ['instagram_carousel', 'instagram_carousel_v2', 'instagram_hybrid_carousel'])
     .gte('posted_at', since)
 
-  return (data || []).map((r) => (r.post_text as string).toLowerCase())
+  const topics: string[] = []
+  for (const r of data || []) {
+    topics.push((r.post_text as string).toLowerCase())
+    const srcUrl = r.source_url as string | null
+    if (srcUrl?.startsWith('instagram-carousel:topic:')) {
+      topics.push(srcUrl.replace('instagram-carousel:topic:', '').toLowerCase())
+    }
+  }
+  return topics
 }
 
 function isDuplicate(topic: string, recentTopics: string[]): boolean {
   const topicLower = topic.toLowerCase()
   return recentTopics.some((recent) => {
-    // Simple keyword overlap check
-    const topicWords = topicLower.split(/\s+/)
-    const matchCount = topicWords.filter((w) => w.length > 2 && recent.includes(w)).length
-    return matchCount >= 2
+    if (recent.includes(topicLower)) return true
+    return calculateCharacterOverlap(topicLower, recent) >= 0.25
   })
 }
 
@@ -275,13 +282,15 @@ export async function selectCarouselTopic(): Promise<TopicCandidate> {
     .sort((a, b) => b.score - a.score)
 
   if (allCandidates.length === 0) {
-    // Fallback to evergreen topic
-    const idx = Math.floor(Math.random() * EVERGREEN_TOPICS.length)
-    process.stdout.write(`  No candidates found, using evergreen: ${EVERGREEN_TOPICS[idx]}\n`)
+    // Fallback to evergreen topic with dedup
+    const shuffled = [...EVERGREEN_TOPICS].sort(() => Math.random() - 0.5)
+    const safe = shuffled.find((t) => !isDuplicate(t, recentTopics))
+    const chosen = safe || shuffled[0]
+    process.stdout.write(`  No candidates found, using evergreen: ${chosen}\n`)
     return {
-      topic: EVERGREEN_TOPICS[idx],
+      topic: chosen,
       source: 'blog',
-      score: 30,
+      score: safe ? 30 : 10,
       metadata: {},
     }
   }

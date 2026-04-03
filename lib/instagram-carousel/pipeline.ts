@@ -107,6 +107,7 @@ async function saveAnalytics(
     tweet_id: mediaId,
     tweet_url: `https://www.instagram.com/p/${mediaId}`,
     pattern_used: 'instagram_carousel_v2',
+    source_url: `instagram-carousel:topic:${topic}`,
     posted_at: new Date().toISOString(),
     likes: 0, retweets: 0, replies: 0, impressions: 0, engagement_rate: 0,
   })
