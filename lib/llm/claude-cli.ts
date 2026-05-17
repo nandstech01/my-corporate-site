@@ -77,6 +77,8 @@ async function invokeOnce(
   user: string,
   { system, model, timeoutMs }: Required<Pick<InvokeClaudeOptions, 'model' | 'timeoutMs'>> & { system?: string }
 ): Promise<ClaudeResponse> {
+  // Pass the prompt via stdin (no positional arg) so long prompts don't hit
+  // ARG_MAX limits on the spawn syscall.
   const args: string[] = [
     '-p',
     '--model', model,
@@ -86,7 +88,6 @@ async function invokeOnce(
   if (system) {
     args.push('--append-system-prompt', system)
   }
-  args.push(user)
 
   const start = Date.now()
 
@@ -96,8 +97,12 @@ async function invokeOnce(
         ...process.env,
         CLAUDE_VOICE_HOOK_SUPPRESS: '1',
       },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     })
+
+    // Send the prompt via stdin
+    proc.stdin.on('error', () => null)
+    proc.stdin.end(user)
 
     let stdout = ''
     let stderr = ''
