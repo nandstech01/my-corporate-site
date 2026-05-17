@@ -192,7 +192,7 @@ async function collectBriefingData(): Promise<BriefingData> {
 async function generateActionSuggestion(data: BriefingData): Promise<string> {
   try {
     const Anthropic = (await import('@anthropic-ai/sdk')).default
-    const anthropic = new Anthropic()
+    const anthropic = createAnthropicCompatible()
 
     const context = [
       `昨日のX投稿: ${data.xPosts.count}件、いいね${data.xPosts.likes}、インプレッション${data.xPosts.impressions}`,

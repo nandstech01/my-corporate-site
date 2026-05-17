@@ -5,7 +5,7 @@
  * Sets BUZZ_CATEGORY and delegates to the main script logic.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
@@ -320,7 +320,7 @@ async function generateThreadContent(
   tweets: readonly BuzzTweet[],
 ): Promise<BuzzThreadContent> {
   const config = getCategoryConfig(category)
-  const anthropic = new Anthropic()
+  const anthropic = createAnthropicCompatible()
 
   const categoryLabel =
     category === 'global-ai-news' ? 'グローバルAIニュース' :

@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { z } from 'zod'
 import type { CarouselContent } from './types'
 import type { ResearchContext } from './topic-researcher'
@@ -163,7 +163,7 @@ export async function generateCarouselContent(
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
 
-  const client = new Anthropic({ apiKey })
+  const client = createAnthropicCompatible()
   const researchBlock = research ? buildResearchBlock(research) : ''
 
   const response = await client.messages.create({

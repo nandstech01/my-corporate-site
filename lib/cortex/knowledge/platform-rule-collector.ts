@@ -14,7 +14,7 @@
  *   6. Log to cortex_conversation_log
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../../web-search/brave'
 import type {
@@ -207,7 +207,7 @@ async function analyzeArticles(
 ): Promise<readonly ExtractedRule[]> {
   if (articles.length === 0) return []
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const anthropic = createAnthropicCompatible()
 
   const articleSummaries = articles
     .map((a, i) => {

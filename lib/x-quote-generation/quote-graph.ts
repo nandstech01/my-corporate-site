@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { createClient } from '@supabase/supabase-js'
 import { selectOpinionTemplate } from './opinion-templates'
@@ -128,10 +128,8 @@ type GraphState = typeof QuoteGraphState.State
 // ============================================================
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  // Migrated gpt-5.2 -> Claude Sonnet via claude -p (subscription)
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 async function recallHighPerformerPatterns(): Promise<string> {

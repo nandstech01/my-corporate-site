@@ -8,7 +8,7 @@
  * 4. DB記録
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { createClient } from '@supabase/supabase-js'
 import { AI_JUDGE_MAX_TOKENS, AI_JUDGE_MODEL, TOPIC_RELEVANCE_THRESHOLD } from './config'
 import { runSafetyChecks } from './safety-checks'
@@ -33,7 +33,7 @@ function getSupabase() {
 function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
-  return new Anthropic({ apiKey })
+  return createAnthropicCompatible()
 }
 
 // ============================================================

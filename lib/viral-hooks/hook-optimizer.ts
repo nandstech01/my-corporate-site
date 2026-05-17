@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import OpenAI from 'openai';
+import { createOpenAICompatible } from '@/lib/llm/claude-cli';
 import { VIRAL_HOOK_PATTERNS, type HookPattern } from './hook-templates';
 import { supabase } from '@/lib/supabase/supabase';
 
@@ -35,9 +35,7 @@ export async function detectTargetAudience(
   blogTitle: string,
   blogContent: string
 ): Promise<'general' | 'developer' | 'architect'> {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const openai = createOpenAICompatible();
 
   const prompt = `以下のブログ記事のターゲットオーディエンスを判定してください。
 
@@ -79,9 +77,7 @@ export async function detectTargetAudience(
 export async function selectBestHookPattern(
   input: HookGenerationInput
 ): Promise<HookPattern> {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const openai = createOpenAICompatible();
 
   // ターゲットオーディエンスに合ったパターンを取得
   const candidatePatterns = VIRAL_HOOK_PATTERNS.filter(
@@ -147,9 +143,7 @@ export async function extractHookVariables(
   pattern: HookPattern,
   input: HookGenerationInput
 ): Promise<Record<string, string>> {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const openai = createOpenAICompatible();
 
   const prompt = `以下の情報から、フックパターンの変数を抽出してください。
 
@@ -205,9 +199,7 @@ export async function generateHookText(
   }
   
   // GPT-4oで自然な日本語に最適化
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const openai = createOpenAICompatible();
 
   const prompt = `以下のフックテキストを、より自然でバイラル性の高い日本語に最適化してください。
 

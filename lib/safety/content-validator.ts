@@ -5,7 +5,7 @@
  * factCheckは best-effort: 失敗時はflag追加のみ、ブロックしない。
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import type { PostCandidate } from '../ai-judge/types'
 import type { ContentValidationResult } from './types'
 
@@ -77,7 +77,7 @@ const TECH_MARKERS = [
 function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
-  return new Anthropic({ apiKey })
+  return createAnthropicCompatible()
 }
 
 // ============================================================

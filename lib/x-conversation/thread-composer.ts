@@ -5,7 +5,7 @@
  * 構成: 1st=フック（最重要）, 中間=本論, 最後=CTA/問いかけ
  */
 
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { getTwitterWeightedLength, postThread as postThreadApi, replyToTweet } from '../x-api/client'
 import { X_TWITTER_RULES } from '../prompts/sns/x-twitter'
 
@@ -37,10 +37,7 @@ export interface ThreadComposerOutput {
 // ============================================================
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 const WEIGHTED_LIMIT = 280

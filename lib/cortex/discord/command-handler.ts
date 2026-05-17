@@ -7,7 +7,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import type {
   Platform,
   CortexPlatformRule,
@@ -109,7 +109,7 @@ function getAnthropic(): Anthropic {
     throw new Error('ANTHROPIC_API_KEY is required')
   }
 
-  cachedAnthropic = new Anthropic({ apiKey })
+  cachedAnthropic = createAnthropicCompatible()
   return cachedAnthropic
 }
 

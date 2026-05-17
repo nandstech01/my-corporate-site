@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import type { TrendingStory } from './trending-client'
 
 // ============================================================
@@ -27,10 +27,7 @@ export type TrendingTopicSummary = z.infer<typeof TrendingTopicSummarySchema>
 // ============================================================
 
 function createMiniModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5-mini',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

@@ -8,7 +8,7 @@
 import { config } from 'dotenv'
 config({ path: '.env.local' })
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { createClient } from '@supabase/supabase-js'
 import type { HybridCarouselContent, HybridPipelineResult, CarouselItem, ViralVideoSource } from './types'
 import { selectViralVideo, proxyVideoToSupabase, cleanupVideoFromStorage } from './video-source-selector'
@@ -37,7 +37,7 @@ async function generateHybridContent(
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
 
-  const client = new Anthropic({ apiKey })
+  const client = createAnthropicCompatible()
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',

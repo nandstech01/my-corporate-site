@@ -14,7 +14,7 @@
  *   6. Slack notification with top 3 actionable topics
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../../web-search/brave'
 
@@ -304,7 +304,7 @@ async function analyzeTopicWithClaude(
     return null
   }
 
-  const anthropic = new Anthropic({ apiKey })
+  const anthropic = createAnthropicCompatible()
 
   const researchSummary = researchData
     .map(

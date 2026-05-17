@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { getLinkedInLearnings } from '../slack-bot/proactive/linkedin-learnings'
 
 // ============================================================
@@ -52,10 +52,7 @@ const AnalysisResultSchema = z.object({
 // ============================================================
 
 function createMiniModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5-mini',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

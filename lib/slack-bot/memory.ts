@@ -6,7 +6,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import type {
   SlackConversation,
   SlackBotMemory,
@@ -378,10 +378,7 @@ export async function compactConversationIfNeeded(params: {
     .join('\n')
 
   // LLM でサマリー生成
-  const model = new ChatOpenAI({
-    modelName: 'gpt-5-mini',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  const model = new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 
   const summaryResponse = await model.invoke([
     {
@@ -435,10 +432,7 @@ async function preCompactionMemoryFlush(
 
   if (toolResults.length === 0) return
 
-  const model = new ChatOpenAI({
-    modelName: 'gpt-5-mini',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  const model = new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 
   const extractResponse = await model.invoke([
     {

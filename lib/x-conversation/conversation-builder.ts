@@ -12,7 +12,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import {
   getMyProfile,
   getUserTimeline,
@@ -50,10 +50,7 @@ function getSupabase() {
 }
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================
