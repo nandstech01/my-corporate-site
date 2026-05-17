@@ -27,8 +27,10 @@ async function main(): Promise<void> {
   process.stdout.write(`Posted! ${result.postUrl ?? result.postId}\n`)
 }
 
-main().catch((error) => {
-  const message = error instanceof Error ? error.message : 'Unknown error'
-  process.stderr.write(`Fatal error: ${message}\n`)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    process.stderr.write(`Fatal error: ${message}\n`)
+    process.exit(1)
+  })
