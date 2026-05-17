@@ -15,6 +15,7 @@ import { createClient } from '@supabase/supabase-js'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { LoopAgendaTopic, LoopAgendaPhase, LoopExecutorResult } from '../types'
+import { invokeSubagent, invokeSubagentJson } from '../../llm/claude-cli'
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -1137,6 +1138,249 @@ async function releasePendingPost(
 }
 
 // ============================================================
+// ============================================================
+// Subagent-driven generate handlers
+// ============================================================
+// New handlers that route through .claude/agents/<name>.md via `claude -p`
+// (Mac subscription). Gated by env `CORTEX_USE_SUBAGENTS=true` so existing
+// loop behavior is unaffected when the flag is off.
+
+function subagentsEnabled(): boolean {
+  return process.env.CORTEX_USE_SUBAGENTS === 'true'
+}
+
+interface CriticVerdict {
+  cortexScore: number
+  dimensions: Record<string, number>
+  verdict: 'publish' | 'revise' | 'reject'
+  reasons: string[]
+  suggested_edits: string[]
+}
+
+async function handleBuzzPostGenerate(): Promise<Partial<LoopExecutorResult>> {
+  if (!subagentsEnabled()) {
+    return {
+      response_text: '🚧 buzz_post:generate はフィーチャーフラグ未有効 (CORTEX_USE_SUBAGENTS=false)',
+      actions_taken: ['skipped'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  const supabase = getSupabase()
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: buzzPosts } = await supabase
+    .from('buzz_posts')
+    .select('post_text, author_handle, buzz_score, source_url, platform')
+    .gte('collected_at', since24h)
+    .order('buzz_score', { ascending: false })
+    .limit(3)
+
+  if (!buzzPosts || buzzPosts.length === 0) {
+    return {
+      response_text: '🤷 直近24hにバズソースなし。投稿生成スキップ。',
+      actions_taken: ['no_buzz'],
+      next_action: 'wait',
+    }
+  }
+
+  const top = buzzPosts[0] as {
+    post_text?: string
+    author_handle?: string
+    buzz_score?: number
+    source_url?: string
+    platform?: string
+  }
+  const userPrompt = `次のバズソースから @nands_tech 視点の X 投稿を 1 つ生成してください。
+
+【ソース】
+作者: @${top.author_handle ?? 'unknown'}
+プラットフォーム: ${top.platform ?? 'x'}
+バズスコア: ${(top.buzz_score ?? 0).toFixed(2)}
+本文: ${(top.post_text ?? '').slice(0, 600)}
+URL: ${top.source_url ?? '-'}
+
+【他の参考バズ】
+${buzzPosts.slice(1).map((b, i: number) => {
+  const post = b as { author_handle?: string; post_text?: string }
+  return `${i + 2}. @${post.author_handle ?? '?'}: 「${(post.post_text ?? '').slice(0, 80)}」`
+}).join('\n')}
+
+要件:
+- 1 投稿のみ。候補列挙不要
+- 280 加重文字以内
+- 1 行目で結論かフック（read-to-end が加点）
+- @nands_tech voice（実装してないことは語らない / 要約屋にならない）
+- 出力は投稿本文のみ。前置きなし`
+
+  let postText: string
+  try {
+    const r = await invokeSubagent('cortex-x-writer', userPrompt)
+    postText = r.text.trim()
+  } catch (err) {
+    return {
+      response_text: `❌ cortex-x-writer 呼び出し失敗: ${(err as Error).message}`,
+      actions_taken: ['subagent_failed'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  if (!postText) {
+    return {
+      response_text: '❌ cortex-x-writer が空文字を返した',
+      actions_taken: ['subagent_empty'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  const { data: inserted, error } = await supabase
+    .from('cortex_pending_posts')
+    .insert({
+      platform: 'x',
+      post_text: postText,
+      status: 'pending',
+      source_url: top.source_url ?? null,
+      pattern_used: 'subagent:cortex-x-writer',
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    return {
+      response_text: `❌ cortex_pending_posts insert 失敗: ${error.message}`,
+      actions_taken: ['db_insert_failed'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  const lines = [
+    '✨ subagent 経由で新規投稿生成',
+    '',
+    `■ pending_post id: ${inserted.id}`,
+    `■ pattern_used: subagent:cortex-x-writer`,
+    `■ ソース: @${top.author_handle} (buzz=${(top.buzz_score ?? 0).toFixed(2)})`,
+    '',
+    '■ 生成テキスト:',
+    postText,
+  ]
+
+  return {
+    response_text: lines.join('\n'),
+    actions_taken: ['subagent_invoked', 'post_drafted', 'db_inserted'],
+    next_action: 'execute_auto_post',
+  }
+}
+
+async function handlePostReviewGenerate(): Promise<Partial<LoopExecutorResult>> {
+  if (!subagentsEnabled()) {
+    return {
+      response_text: '🚧 post_review:generate はフィーチャーフラグ未有効 (CORTEX_USE_SUBAGENTS=false)',
+      actions_taken: ['skipped'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  const supabase = getSupabase()
+  const { data: pendings } = await supabase
+    .from('cortex_pending_posts')
+    .select('id, post_text, platform, source_url')
+    .eq('status', 'pending')
+    .eq('platform', 'x')
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  if (!pendings || pendings.length === 0) {
+    return {
+      response_text: 'ℹ️ レビュー対象の pending 投稿なし',
+      actions_taken: ['no_pending'],
+      next_action: 'skip_to_next_topic',
+    }
+  }
+
+  const reviews: Array<{ id: string; verdict: CriticVerdict | { error: string }; postText: string }> = []
+  for (const p of pendings) {
+    const row = p as { id: string; post_text?: string; source_url?: string }
+    try {
+      const verdict = await invokeSubagentJson<CriticVerdict>(
+        'cortex-critic',
+        `次の投稿を採点してください。\n\n${row.post_text ?? ''}\n\nsourceUrl: ${row.source_url ?? '-'}`,
+      )
+      reviews.push({ id: row.id, verdict, postText: row.post_text ?? '' })
+    } catch (err) {
+      reviews.push({ id: row.id, verdict: { error: (err as Error).message }, postText: row.post_text ?? '' })
+    }
+  }
+
+  let approved = 0
+  let rejected = 0
+  for (const r of reviews) {
+    if ('error' in r.verdict) continue
+    if (r.verdict.verdict === 'reject' || r.verdict.cortexScore < 0.5) {
+      await supabase.from('cortex_pending_posts').update({ status: 'rejected' }).eq('id', r.id)
+      rejected++
+    } else {
+      approved++
+    }
+  }
+
+  const lines = [
+    '🔍 cortex-critic レビュー結果',
+    '',
+    `■ レビュー対象: ${pendings.length}件`,
+    `■ approved: ${approved} / rejected: ${rejected}`,
+    '',
+    ...reviews.map((r) => {
+      if ('error' in r.verdict) return `  [${r.id.slice(0, 8)}] ERROR: ${r.verdict.error}`
+      return `  [${r.id.slice(0, 8)}] ${r.verdict.verdict} (score: ${r.verdict.cortexScore.toFixed(2)}) — ${r.verdict.reasons.slice(0, 2).join(' / ')}`
+    }),
+  ]
+
+  return {
+    response_text: lines.join('\n'),
+    actions_taken: ['critic_invoked', 'reviews_processed'],
+    next_action: approved > 0 ? 'execute_auto_post' : 'skip_to_next_topic',
+  }
+}
+
+async function handlePatternOptimizeGenerate(): Promise<Partial<LoopExecutorResult>> {
+  if (!subagentsEnabled()) {
+    return {
+      response_text: '🚧 pattern_optimize:generate はフィーチャーフラグ未有効 (CORTEX_USE_SUBAGENTS=false)',
+      actions_taken: ['skipped'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  const supabase = getSupabase()
+  const { data: topPatterns } = await supabase
+    .from('pattern_performance')
+    .select('pattern_id, platform, successes, failures, avg_engagement')
+    .eq('platform', 'x')
+    .order('successes', { ascending: false })
+    .limit(5)
+
+  let topics
+  try {
+    topics = await invokeSubagentJson<{ topics: Array<Record<string, unknown>> }>(
+      'cortex-researcher',
+      `現在の hook パターン成績トップ5:\n${JSON.stringify(topPatterns ?? [], null, 2)}\n\n次の 24h で投稿するトピック候補を 3-5 件、JSON で返してください。`,
+    )
+  } catch (err) {
+    return {
+      response_text: `❌ cortex-researcher 呼び出し失敗: ${(err as Error).message}`,
+      actions_taken: ['subagent_failed'],
+      next_action: 'manual_handling',
+    }
+  }
+
+  return {
+    response_text: `💡 cortex-researcher 提案\n\n${JSON.stringify(topics, null, 2).slice(0, 1500)}`,
+    actions_taken: ['researcher_invoked'],
+    next_action: 'create_improvement_pr',
+  }
+}
+
+// ============================================================
 // Router
 // ============================================================
 
@@ -1156,6 +1400,10 @@ const handlers: Record<string, Handler> = {
   'blog_draft:execute': handleBlogDraftExecute,
   'blog_review:analyze': handleBlogReviewAnalyze,
   'blog_publish:execute': handleBlogPublishExecute,
+  // Subagent-driven generate phases (gated by CORTEX_USE_SUBAGENTS=true)
+  'buzz_post:generate': handleBuzzPostGenerate,
+  'post_review:generate': handlePostReviewGenerate,
+  'pattern_optimize:generate': handlePatternOptimizeGenerate,
 }
 
 async function main(): Promise<void> {
