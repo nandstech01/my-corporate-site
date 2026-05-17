@@ -11,7 +11,18 @@
 export interface HookPattern {
   id: string;
   name: string;
-  type: 'shock' | 'transformation' | 'pov' | 'curiosity' | 'contradiction' | 'question' | 'numbers' | 'secret';
+  type:
+    | 'shock'
+    | 'transformation'
+    | 'pov'
+    | 'curiosity'
+    | 'contradiction'
+    | 'question'
+    | 'numbers'
+    | 'secret'
+    | 'first-line-punch'
+    | 'save-worthy'
+    | 'dm-shareable';
   template: string;
   variables: string[];
   effectiveness_score: number; // 0.0-1.0
@@ -20,6 +31,11 @@ export interface HookPattern {
   example: string;
   source: string;
   use_cases: string[];
+  // X For You Algorithm Update 2026-05-15 alignment (grox AI scoring).
+  // Optional — newer patterns set these to guide selection on top of effectiveness_score.
+  save_worthiness_score?: number; // 0.0-1.0: likely to be bookmarked
+  read_to_end_score?: number; // 0.0-1.0: likely to be read through (counts as "+" reaction)
+  first_line_punch_score?: number; // 0.0-1.0: 1st line stops the scroll
 }
 
 /**
@@ -324,6 +340,60 @@ export const VIRAL_HOOK_PATTERNS: HookPattern[] = [
     example: '滋賀県が東京よりAI活用で優れてる理由',
     source: 'Regional Pride',
     use_cases: ['地域プライド', '比較', '地方創生']
+  },
+
+  // ========================================
+  // X For You Algorithm Update 2026-05-15 aligned patterns
+  // grox AI scoring favors: read-to-end, saves, DM shares, replies
+  // Penalizes: AI mass-production, baiting, low information density
+  // ========================================
+  {
+    id: 'first-line-conclusion',
+    name: '1行目で結論型',
+    type: 'first-line-punch',
+    template: '{conclusion}。\n\n{evidence}',
+    variables: ['conclusion', 'evidence'],
+    effectiveness_score: 0.90,
+    target_audience: 'all',
+    description: '結論を先頭に置いて即座に注意を引き、続きで根拠を示す',
+    example: 'X APIは月$200で死んだ。\n\n代替はPlaywright session一択。実装3日で動いた。',
+    source: 'X Algorithm 2026-05-15 (read-to-end weighting)',
+    use_cases: ['実装報告', '結論駆動', 'スクロール停止'],
+    first_line_punch_score: 0.95,
+    read_to_end_score: 0.80,
+    save_worthiness_score: 0.60
+  },
+  {
+    id: 'save-worthy-checklist',
+    name: '保存推奨チェックリスト型',
+    type: 'save-worthy',
+    template: '{topic}でやってよかった{n}つ\n\n{list_with_one_line_reasons}',
+    variables: ['topic', 'n', 'list_with_one_line_reasons'],
+    effectiveness_score: 0.88,
+    target_audience: 'developer',
+    description: '番号付き要点リスト。後で見返したくなる構造で保存・DM共有を誘発',
+    example: 'CORTEXを止めずにLLM移行した3つの判断\n1. claude -p経由でAPIを捨てた\n2. Mac runnerで認証を継承した\n3. ハングは process.exit(0) で潰した',
+    source: 'X Algorithm 2026-05-15 (saves + DM weighting)',
+    use_cases: ['ノウハウ整理', '保存誘発', 'リファレンス'],
+    save_worthiness_score: 0.92,
+    read_to_end_score: 0.75,
+    first_line_punch_score: 0.70
+  },
+  {
+    id: 'dm-shareable-insight',
+    name: 'DM共有想起型',
+    type: 'dm-shareable',
+    template: '{specific_role}に共有したくなる話。{insight_one_liner}。{context_2_sentences}',
+    variables: ['specific_role', 'insight_one_liner', 'context_2_sentences'],
+    effectiveness_score: 0.86,
+    target_audience: 'all',
+    description: '「あの人に送りたい」と想起させる対象を明示。1人へのDM共有を狙う',
+    example: 'CTOに送りたい話。X APIが従量課金になった件、Playwright session で完全回避できる。実装の難所はNode hangと cleanup、両方ハマり処方箋あり。',
+    source: 'X Algorithm 2026-05-15 (DM share weighting)',
+    use_cases: ['DM共有誘発', '特定読者への呼びかけ', '一次共有'],
+    save_worthiness_score: 0.78,
+    read_to_end_score: 0.70,
+    first_line_punch_score: 0.85
   }
 ];
 
