@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { INSTAGRAM_RULES } from '../prompts/sns/instagram'
 
@@ -112,10 +112,8 @@ function deriveHeadlineLines(keyPoints: readonly string[]): string[] {
 }
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  // Migrated gpt-5.2 -> Claude Sonnet via claude -p (subscription)
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

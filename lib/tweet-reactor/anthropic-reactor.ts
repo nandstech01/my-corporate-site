@@ -8,7 +8,7 @@
  * Extensible: source_account field allows adding OpenAI, Google etc. later.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
@@ -197,7 +197,7 @@ async function filterUnreactedTweets(
 async function generateReactionContent(
   tweet: SourceTweet,
 ): Promise<ReactionContent> {
-  const anthropic = new Anthropic()
+  const anthropic = createAnthropicCompatible()
 
   const prompt = `あなたはAIスタートアップのCEOです。以下の@AnthropicAIのツイートに対するリアクションスレッドを生成してください。
 

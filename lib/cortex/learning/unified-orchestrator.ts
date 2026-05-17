@@ -6,7 +6,7 @@
  * a single learning cycle. Runs daily after individual engagement learners.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { getSupabase } from '../discord/context-builder'
 import { sendMessage } from '@/lib/slack-bot/slack-client'
 
@@ -309,7 +309,7 @@ async function generateUnifiedInsights(
   readonly platform_specific: UnifiedLearningReport['platform_specific']
   readonly executive_summary: string
 }> {
-  const anthropic = new Anthropic()
+  const anthropic = createAnthropicCompatible()
 
   const prompt = `You are a social media analytics expert. Analyze the following data and produce insights.
 

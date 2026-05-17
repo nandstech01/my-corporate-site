@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import type { Platform } from '../ai-judge/types'
 import { getConstitution } from './platform-constitutions'
 
@@ -63,17 +63,13 @@ const CritiqueResponseSchema = z.object({
 // ============================================================
 
 function createCritiqueModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-4.1-mini',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  // gpt-4.1-mini → Claude Haiku (cheap, fast, used for critique judging)
+  return new ClaudeChatModel({ model: 'claude-haiku-4-5-20251001' })
 }
 
 function createRevisionModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  // gpt-5.2 → Claude Sonnet (revision needs higher quality)
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

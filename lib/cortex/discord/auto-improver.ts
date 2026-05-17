@@ -6,7 +6,7 @@
  * Does NOT directly modify files — creates proposals only.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { sendMessage } from '@/lib/slack-bot/slack-client'
 import { VIRAL_HOOK_PATTERNS } from '@/lib/viral-hooks/hook-templates'
@@ -147,7 +147,7 @@ function getSupabase(): SupabaseClient {
 function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
-  return new Anthropic({ apiKey })
+  return createAnthropicCompatible()
 }
 
 // ============================================================

@@ -8,7 +8,7 @@
  * TopicCandidate → Brave検索3クエリ → ページ内容取得 → Claude要約 → ResearchContext
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { multiSearch } from '../web-search/brave'
 import type { TopicCandidate } from './topic-selector'
 
@@ -84,7 +84,7 @@ async function summarizeResearch(
     }
   }
 
-  const client = new Anthropic({ apiKey })
+  const client = createAnthropicCompatible()
 
   const searchContext = searchResults
     .slice(0, 5)

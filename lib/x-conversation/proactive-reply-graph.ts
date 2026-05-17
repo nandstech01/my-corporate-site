@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
 import { getTwitterWeightedLength } from '../x-api/client'
@@ -105,10 +105,7 @@ type GraphStateType = typeof ProactiveReplyState.State
 // ============================================================
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

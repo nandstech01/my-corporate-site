@@ -5,7 +5,7 @@
  * Uses Claude API to substantially rewrite content for each platform.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import type { CrossPostPlatform, RewrittenArticle } from './types'
 
 // ============================================================
@@ -23,7 +23,7 @@ const CANONICAL_BASE = 'https://nands.tech/posts'
 function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
-  return new Anthropic({ apiKey })
+  return createAnthropicCompatible()
 }
 
 // ============================================================

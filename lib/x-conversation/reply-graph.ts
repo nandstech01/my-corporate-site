@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { selectPatternByBandit } from '../learning/pattern-bandit'
 import { formatVoiceProfileForPrompt } from '../prompts/voice-profile'
@@ -126,10 +126,7 @@ type GraphStateType = typeof ReplyGraphState.State
 // ============================================================
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

@@ -55,7 +55,9 @@ permissions:
 jobs:
   post:
     name: 🐦 Generate & Post
-    runs-on: ubuntu-latest
+    # Mac self-hosted runner — uses Claude Code subscription auth for `claude -p`.
+    # Falls back to ubuntu-latest only if Mac runner is offline (manual swap).
+    runs-on: [self-hosted, macOS, ARM64, nands-cortex]
 
     steps:
       - name: 📥 Checkout code

@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { ChatOpenAI } from '@langchain/openai'
+import { ClaudeChatModel } from '@/lib/llm/claude-cli'
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph'
 import { createClient } from '@supabase/supabase-js'
 import {
@@ -174,10 +174,9 @@ type GraphStateType = typeof PostGraphState.State
 // ============================================================
 
 function createModel() {
-  return new ChatOpenAI({
-    modelName: 'gpt-5.2',
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  // Migrated from ChatOpenAI(gpt-5.2) to Claude CLI (subscription-backed) to
+  // eliminate per-token API costs while preserving prompt + output shape.
+  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
 }
 
 // ============================================================

@@ -16,7 +16,7 @@
  *   6. On approval → quote tweet via X API
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../../web-search/brave'
@@ -157,7 +157,7 @@ async function rankCandidates(
 ): Promise<readonly ViralCandidate[]> {
   if (candidates.length === 0) return []
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const anthropic = createAnthropicCompatible()
 
   const candidateList = candidates
     .map((c, i) => `[${i}] @${c.authorHandle}: ${c.title}\n${c.description}\nURL: ${c.tweetUrl}`)
@@ -198,7 +198,7 @@ ${candidateList}
 async function generateRepostDraft(
   candidate: ViralCandidate,
 ): Promise<RepostDraft> {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const anthropic = createAnthropicCompatible()
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',

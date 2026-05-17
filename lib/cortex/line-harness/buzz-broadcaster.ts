@@ -10,7 +10,7 @@
 
 import { getLineHarnessClientSafe } from './client'
 import { getSupabase } from '../discord/context-builder'
-import Anthropic from '@anthropic-ai/sdk'
+import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
 
 // ============================================================
 // Constants
@@ -65,7 +65,7 @@ function getAnthropic(): Anthropic {
     throw new Error('ANTHROPIC_API_KEY is required')
   }
 
-  cachedAnthropic = new Anthropic({ apiKey })
+  cachedAnthropic = createAnthropicCompatible()
   return cachedAnthropic
 }
 
