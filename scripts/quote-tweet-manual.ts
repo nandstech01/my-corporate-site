@@ -29,7 +29,9 @@ async function main() {
   console.log(`Posted! ${result.tweetUrl}`)
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error('Fatal error:', error)
+    process.exit(1)
+  })

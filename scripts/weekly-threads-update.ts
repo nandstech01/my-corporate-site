@@ -275,7 +275,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((e) => {
-  process.stderr.write(`Fatal: ${e instanceof Error ? e.message : e}\n`)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    process.stderr.write(`Fatal: ${e instanceof Error ? e.message : e}\n`)
+    process.exit(1)
+  })
