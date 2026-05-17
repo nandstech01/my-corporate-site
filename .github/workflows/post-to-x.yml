@@ -109,6 +109,7 @@ jobs:
           # Route through Playwright (Mac self-hosted runner uses session cookies),
           # bypassing the X API pay-per-use charges.
           TWITTER_USE_PLAYWRIGHT: ${{ secrets.TWITTER_USE_PLAYWRIGHT }}
+          CORTEX_USE_SUBAGENTS: ${{ secrets.CORTEX_USE_SUBAGENTS }}
           X_PLAYWRIGHT_SESSION: ${{ secrets.X_PLAYWRIGHT_SESSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
