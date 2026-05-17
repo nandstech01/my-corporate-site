@@ -200,6 +200,141 @@ function sleep(ms: number): Promise<void> {
 }
 
 // ============================================================
+// Subagent invocation
+// ============================================================
+// Reads a `.claude/agents/<name>.md` definition (Claude Code subagent format),
+// extracts the YAML frontmatter (name, description, tools, model) and the body
+// (system prompt), then dispatches the prompt via `invokeClaude`. This lets
+// non-interactive CORTEX scripts (e.g. cron, loop-executor) use the same
+// subagent definitions that Claude Code's Task tool uses interactively.
+
+import { readFile } from 'fs/promises'
+import { resolve as resolvePath } from 'path'
+
+export interface SubagentDefinition {
+  readonly name: string
+  readonly description?: string
+  readonly tools?: string
+  readonly model?: ClaudeModel | string
+  readonly systemPrompt: string
+}
+
+export interface SubagentOptions extends InvokeClaudeOptions {
+  /** If true, parse the response as JSON via parseClaudeJson. */
+  parseJson?: boolean
+  /** Directory holding the agent markdown files. Default: '.claude/agents'. */
+  agentsDir?: string
+  /** Override the model declared in the agent file. */
+  modelOverride?: ClaudeModel
+}
+
+const MODEL_ALIAS: Record<string, ClaudeModel> = {
+  haiku: 'claude-haiku-4-5-20251001',
+  sonnet: 'claude-sonnet-4-6',
+  opus: 'claude-opus-4-7',
+}
+
+function resolveModel(declared?: string, override?: ClaudeModel): ClaudeModel {
+  if (override) return override
+  if (!declared) return DEFAULT_MODEL
+  if (declared in MODEL_ALIAS) return MODEL_ALIAS[declared]
+  return declared as ClaudeModel
+}
+
+/**
+ * Parse a `.claude/agents/<name>.md` file. Format:
+ *
+ *     ---
+ *     name: foo
+ *     description: ...
+ *     tools: Read, Grep
+ *     model: sonnet
+ *     ---
+ *
+ *     # body (system prompt)
+ *     ...
+ */
+export async function loadSubagentDefinition(
+  agentName: string,
+  agentsDir: string = '.claude/agents',
+): Promise<SubagentDefinition> {
+  const filePath = resolvePath(process.cwd(), agentsDir, `${agentName}.md`)
+  let raw: string
+  try {
+    raw = await readFile(filePath, 'utf-8')
+  } catch (err) {
+    throw new Error(
+      `Subagent definition not found: ${filePath} (cwd=${process.cwd()}). ${(err as Error).message}`,
+    )
+  }
+
+  const frontmatterMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/)
+  if (!frontmatterMatch) {
+    throw new Error(`Subagent ${agentName}: missing YAML frontmatter (expected --- … --- at top)`)
+  }
+
+  const yaml = frontmatterMatch[1]
+  const body = frontmatterMatch[2].trim()
+  const fields: Record<string, string> = {}
+  for (const line of yaml.split(/\r?\n/)) {
+    const m = line.match(/^(\w[\w_]*):\s*(.*)$/)
+    if (m) fields[m[1]] = m[2].trim()
+  }
+
+  if (!fields.name) {
+    throw new Error(`Subagent ${agentName}: missing 'name' in frontmatter`)
+  }
+
+  return {
+    name: fields.name,
+    description: fields.description,
+    tools: fields.tools,
+    model: fields.model,
+    systemPrompt: body,
+  }
+}
+
+/**
+ * Invoke a `.claude/agents/<name>.md` subagent as a single-turn call.
+ *
+ * @example
+ *   const { text } = await invokeSubagent('cortex-x-writer', 'Generate a post about CORTEX migration')
+ *
+ * @example  // JSON-returning agent
+ *   const verdict = await invokeSubagent('cortex-critic', postText, { parseJson: true })
+ */
+export async function invokeSubagent(
+  agentName: string,
+  userPrompt: string,
+  options: SubagentOptions = {},
+): Promise<ClaudeResponse> {
+  const def = await loadSubagentDefinition(agentName, options.agentsDir)
+  const model = resolveModel(def.model, options.modelOverride)
+
+  const response = await invokeClaude(userPrompt, {
+    system: def.systemPrompt,
+    model,
+    timeoutMs: options.timeoutMs,
+    retries: options.retries,
+  })
+
+  return response
+}
+
+/**
+ * Same as `invokeSubagent` but parses the response as JSON via `parseClaudeJson`.
+ * Useful for agents whose output spec is a structured object (e.g. cortex-critic).
+ */
+export async function invokeSubagentJson<T = unknown>(
+  agentName: string,
+  userPrompt: string,
+  options: Omit<SubagentOptions, 'parseJson'> = {},
+): Promise<T> {
+  const { text } = await invokeSubagent(agentName, userPrompt, options)
+  return parseClaudeJson<T>(text)
+}
+
+// ============================================================
 // LangChain-compatible adapter
 // ============================================================
 // Mirrors the minimal `ChatOpenAI.invoke(messages)` interface so existing
