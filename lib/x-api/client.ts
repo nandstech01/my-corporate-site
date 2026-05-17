@@ -137,6 +137,7 @@ export interface PostTweetResult {
 export interface PostTweetOptions {
   longForm?: boolean; // Premium長文投稿（280文字制限スキップ）
   mediaIds?: string[]; // メディアID (画像/動画)
+  quoteTweetUrl?: string; // 引用ツイートURL
 }
 
 /**
@@ -444,11 +445,50 @@ export async function postTweet(text: string, options?: PostTweetOptions): Promi
     };
   }
 
+  // Feature flag: TWITTER_USE_PLAYWRIGHT routes through browser automation
+  // instead of the paid X API. Falls back to API only on caller's explicit
+  // request — by default a Playwright failure does NOT trigger paid API calls.
+  const usePlaywright = process.env.TWITTER_USE_PLAYWRIGHT === 'true';
+  if (usePlaywright && !options?.mediaIds?.length && !options?.quoteTweetUrl) {
+    try {
+      const { composeAndPostTweet } = await import('../x-playwright/composers/tweet-composer');
+      const pwResult = await composeAndPostTweet({ text });
+      if (pwResult.success) {
+        return {
+          success: true,
+          tweetId: pwResult.tweetId,
+          tweetUrl: pwResult.tweetUrl,
+        };
+      }
+      // Playwright failed — return the error directly, do NOT auto-fallback
+      // to the paid API.
+      console.error('Playwright post failed:', pwResult.error);
+      return {
+        success: false,
+        error: `Playwright経由の投稿に失敗しました: ${pwResult.error}`,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Playwright post threw:', message);
+      return {
+        success: false,
+        error: `Playwright経由の投稿で例外発生: ${message}`,
+      };
+    }
+  }
+
   try {
     const client = getTwitterClient();
     const tweetParams: Record<string, unknown> = { text };
     if (options?.mediaIds?.length) {
       tweetParams.media = { media_ids: options.mediaIds };
+    }
+    if (options?.quoteTweetUrl) {
+      // Extract tweet ID from URL for X API v2 quote_tweet_id
+      const qtId = options.quoteTweetUrl.split('/status/')[1]?.split(/[?#]/)[0]
+      if (qtId) {
+        tweetParams.quote_tweet_id = qtId;
+      }
     }
     const result = await client.v2.tweet(tweetParams);
 
