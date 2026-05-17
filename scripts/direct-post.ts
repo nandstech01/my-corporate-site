@@ -6,6 +6,7 @@ import { config } from 'dotenv'
 config({ path: '.env.local' })
 
 import { postTweet, isTwitterConfigured } from '../lib/x-api/client'
+import { closePlaywright } from '../lib/x-playwright/browser'
 
 async function main() {
   const text = process.env.POST_TEXT
@@ -24,7 +25,14 @@ async function main() {
   console.log(`Posted! ${result.tweetUrl ?? '(no URL captured)'}`)
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error)
-  process.exit(1)
-})
+main()
+  .then(async () => {
+    // Browser context keeps the Node process alive — explicitly close it.
+    await closePlaywright().catch(() => null)
+    process.exit(0)
+  })
+  .catch(async (error) => {
+    console.error('Fatal error:', error)
+    await closePlaywright().catch(() => null)
+    process.exit(1)
+  })
