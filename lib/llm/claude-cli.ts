@@ -85,6 +85,14 @@ async function invokeOnce(
     '--no-session-persistence',
     '--exclude-dynamic-system-prompt-sections',
   ]
+  // Resilience: when the primary model is overloaded, fall back to another model
+  // instead of exiting 1 and failing the entire cron job (the observed
+  // "claude -p exited 1" failure mode during high-volume periods).
+  // Disable with CLAUDE_CLI_FALLBACK_MODEL=none.
+  const fallbackModel = process.env.CLAUDE_CLI_FALLBACK_MODEL ?? 'claude-sonnet-4-6'
+  if (fallbackModel && fallbackModel !== 'none' && fallbackModel !== model) {
+    args.push('--fallback-model', fallbackModel)
+  }
   if (system) {
     args.push('--append-system-prompt', system)
   }
