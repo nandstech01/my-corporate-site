@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { createOpenAICompatible } from '@/lib/llm/claude-cli';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 import { FragmentVectorizer } from '@/lib/vector/fragment-vectorizer';
 import { HybridSearchSystem } from '@/lib/vector/hybrid-search';
@@ -126,10 +127,12 @@ export async function POST(request: NextRequest) {
     console.log(`🔄 リサーチモデル: ${researchModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'GPT-5.2 🚀'}`);
     console.log(`🔄 生成モデル: ${generationModel === 'deepseek' ? 'DeepSeek V3.2 💰' : 'GPT-5.2 🚀'}`);
     
-    // 🔄 モデルに応じてクライアントとモデル名を選択
-    const useGPT52 = generationModel === 'gpt-5.2';
-    const generationClient = generationModel === 'deepseek' ? deepseekClient : openai;
-    const generationModelName = generationModel === 'deepseek' ? 'deepseek-chat' : 'gpt-5.2';
+    // 🟣 記事生成は claude -p (Claude Opus 4.8) に統一。
+    // サブスク利用で追加料金ゼロ、OpenAI(GPT-5.2)障害・DeepSeekのゲートウェイ超過を回避。
+    // createOpenAICompatible は OpenAI SDK 互換のドロップイン（chat.completions.create を claude -p に委譲）。
+    const useGPT52 = false;
+    const generationClient = createOpenAICompatible();
+    const generationModelName = 'claude-opus-4-8';
 
     // ============================================
     // ステップ1: スクレイピング実行（2クエリ）
@@ -570,7 +573,8 @@ ${formatResearchResults(researchResults2)}
       let completion;
       let retryCount = 0;
       const maxRetries = 1;
-      const timeoutMs = 120000;
+      // claude -p (Opus 4.8) の長文生成に合わせて延長（ローカル実行はゲートウェイ制限なし）
+      const timeoutMs = 280000;
 
       while (retryCount <= maxRetries) {
         try {
@@ -608,10 +612,10 @@ ${formatResearchResults(researchResults2)}
 
           // DeepSeek失敗時はGPT-5 miniにフォールバック
           if (retryCount > maxRetries && generationModel === 'deepseek') {
-            console.log('  🔄 DeepSeek失敗、GPT-5 miniにフォールバック...');
-            modelLabel = 'GPT-5 mini (フォールバック)';
-            currentClient = openai;
-            currentModelName = 'gpt-5-mini';
+            console.log('  🔄 Opus失敗、Claude Sonnetにフォールバック...');
+            modelLabel = 'Claude Sonnet (フォールバック)';
+            currentClient = createOpenAICompatible();
+            currentModelName = 'claude-sonnet-4-6';
             retryCount = 0;
             continue;
           }
