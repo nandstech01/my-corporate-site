@@ -16,6 +16,7 @@ export type ClaudeModel =
   | 'claude-haiku-4-5'
   | 'claude-sonnet-4-6'
   | 'claude-opus-4-7'
+  | 'claude-opus-4-8'
 
 export interface InvokeClaudeOptions {
   /** System prompt appended to Claude Code's default. */
@@ -537,11 +538,22 @@ export function createOpenAICompatible(): {
             .map((m) => (m.role === 'assistant' ? `（前のassistant応答）${m.content}` : m.content))
             .join('\n\n')
 
-          // Default to Haiku for OpenAI calls (typically lighter analysis tasks)
-          const { text } = await invokeClaude(user, {
-            system,
-            model: 'claude-haiku-4-5-20251001',
-          })
+          // 要求モデル名 → Claudeモデルにマップ（既定はHaiku=軽量タスク向け）。
+          // 'opus' を要求した呼び出し（長文ブログ生成等）は Opus 4.8 を使う。
+          const requested = (params.model ?? '').toLowerCase()
+          const model: ClaudeModel = requested.includes('opus')
+            ? 'claude-opus-4-8'
+            : requested.includes('sonnet')
+              ? 'claude-sonnet-4-6'
+              : 'claude-haiku-4-5-20251001'
+          // 長文生成はHaikuの既定120sでは足りないためモデル別に延長
+          const timeoutMs =
+            model === 'claude-opus-4-8'
+              ? 300000
+              : model === 'claude-sonnet-4-6'
+                ? 200000
+                : 120000
+          const { text } = await invokeClaude(user, { system, model, timeoutMs })
 
           return {
             id: `chatcmpl_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
