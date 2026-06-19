@@ -549,9 +549,9 @@ export function createOpenAICompatible(): {
           // 長文生成はHaikuの既定120sでは足りないためモデル別に延長
           const timeoutMs =
             model === 'claude-opus-4-8'
-              ? 300000
+              ? 600000
               : model === 'claude-sonnet-4-6'
-                ? 200000
+                ? 500000
                 : 120000
           const { text } = await invokeClaude(user, { system, model, timeoutMs })
 

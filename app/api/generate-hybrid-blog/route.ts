@@ -565,16 +565,17 @@ ${formatResearchResults(researchResults2)}
       }
     } else {
       // 🔄 DeepSeek で記事生成（フォールバック機能付き）
-      let modelLabel = 'DeepSeek V3.2';
+      let modelLabel = 'Claude Opus 4.8';
       let currentClient = generationClient;
       let currentModelName = generationModelName;
+      let fellBack = false;
       console.log(`\n  🤖 ${modelLabel}で記事生成開始...`);
       
       let completion;
       let retryCount = 0;
       const maxRetries = 1;
       // claude -p (Opus 4.8) の長文生成に合わせて延長（ローカル実行はゲートウェイ制限なし）
-      const timeoutMs = 280000;
+      const timeoutMs = 600000;
 
       while (retryCount <= maxRetries) {
         try {
@@ -611,11 +612,12 @@ ${formatResearchResults(researchResults2)}
           console.error(`  ❌ ${modelLabel} API呼び出しエラー (試行 ${retryCount}):`, error);
 
           // DeepSeek失敗時はGPT-5 miniにフォールバック
-          if (retryCount > maxRetries && generationModel === 'deepseek') {
+          if (retryCount > maxRetries && !fellBack) {
             console.log('  🔄 Opus失敗、Claude Sonnetにフォールバック...');
             modelLabel = 'Claude Sonnet (フォールバック)';
             currentClient = createOpenAICompatible();
             currentModelName = 'claude-sonnet-4-6';
+            fellBack = true;
             retryCount = 0;
             continue;
           }
