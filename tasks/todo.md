@@ -116,8 +116,26 @@
 効果: Xの自動投稿は最大5本/日（内部ゲートで未ヒット時no-op＝自然に2-5本）。
       15分毎廃止でself-hostedランナーのqueued滞留が構造的に解消する見込み。
 
+### 2026-06-19 反映 & Phase 0 診断
+- ✅ PR #15 を squash マージ → main 反映済み（次回スケジュールから新cron/テンプレ稼働）
+- ✅ cron失敗の真因特定: `claude -p exited 1`(stderr空) = サブスク利用枠の枯渇/過負荷。
+     15分毎reactor等の過剰呼び出しが原因 → 今回の投稿量削減で解消。`claude -p` の単体動作は正常確認済み。
+- ✅ 放置pending 3件(2026-03-30の古い3月ニュース)を rejected 化 → pending=0
+- ⏳ ループ sleeping(turn99, 最終2026-05-17): AI-A(Discordボット)起点のため、
+     Discordで「再開」送信 or ボット稼働が必要（コード側では復帰不可）← ユーザー確認事項
+- ⏳ impressions=0: エンゲージ収集の読取経路 or リーチ実態の確認（Phase 3で対応）
+
+### 2026-06-19 Phase 2-5 + 耐性ハーデニング
+- ✅ platform-constitutions.ts をハイブリッド対応化:
+     「煽り表現」→「中身のない煽り」に限定、「絵文字3個以上」→「装飾4個以上(①②③🔴🟡🟢👇🙏は除外)」、
+     X_SHORT 憲法に2系統(実務家口調/バズ構造型)許容を明記、scoringでbookmark5x/RT6x/リプ75-150x反映
+     → 追加バズテンプレが品質ゲートで弾かれず投稿される
+- ✅ claude-cli.ts に --fallback-model 追加(既定sonnet, CLAUDE_CLI_FALLBACK_MODEL=noneで無効)
+     → 過負荷時の `claude -p exited 1` でジョブ全体が落ちるのを回避。実機フラグ動作確認済み
+検証: 実CLI invocation exit 0、local tsc 型エラーなし、憲法スモークOK。
+
 ### 次の一手（未着手）
-- Phase 0残: 失敗cronログ精査・ループsleeping復帰・放置pending(3件,3/30)処理・impressions=0原因特定
-- 反映: 変更はpush後の次回スケジュールから有効（cron変更はmainブランチ反映が前提）
-- Phase 2-5: critique-engine / voice-profile のバズ整合（深い調整）
-- Phase 3: 学習ループ復旧（prediction_accuracy / growth-tracker / フォロワー帰属）
+- 監視: 次回スケジュールで queued 滞留・claude失敗なく回るか
+- Phase 3: 学習ループ復旧（impressions収集 / prediction_accuracy / growth-tracker / フォロワー帰属）
+- Typefully: キー設定で配信層起動
+- ⏳ ループ sleeping 復帰（Discord「再開」= ユーザー作業）
