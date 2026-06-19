@@ -228,6 +228,23 @@ export async function postThread(
     return { success: false, error: 'スレッドセグメントが空です' }
   }
 
+  // Typefully seam: スレッドは Typefully 側でネイティブに扱える。
+  // セグメントを4連続改行で結合して1ドラフトとして送る（threadify不要）。
+  // 無効時 or 失敗時は既存のX API経路にフォールスルー。
+  if (process.env.TYPEFULLY_ENABLED === 'true') {
+    try {
+      const { publishViaTypefully } = await import('../typefully/client')
+      const tf = await publishViaTypefully(segments.join('\n\n\n\n'))
+      if (tf.success) {
+        return tf
+      }
+      console.error('Typefully thread failed, falling through:', tf.error)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error('Typefully thread threw, falling through:', message)
+    }
+  }
+
   try {
     const client = getTwitterClient()
 
@@ -443,6 +460,27 @@ export async function postTweet(text: string, options?: PostTweetOptions): Promi
       success: false,
       error: `投稿テキストが${maxLength}文字を超えています（加重カウント: ${weightedLength}文字、JS文字数: ${text.length}文字）`,
     };
+  }
+
+  // Feature flag: TYPEFULLY_ENABLED routes posting/scheduling through the
+  // Typefully cloud (draft + next-free-slot scheduling + auto-RT/auto-plug),
+  // decoupling posting from the fragile self-hosted runner timing.
+  // Disabled by default (seam only) — until a key is added, this branch is
+  // skipped and existing behavior is unchanged. On Typefully failure we fall
+  // through to the existing Playwright/API path rather than dropping the post.
+  const useTypefully = process.env.TYPEFULLY_ENABLED === 'true';
+  if (useTypefully && !options?.mediaIds?.length && !options?.quoteTweetUrl) {
+    try {
+      const { publishViaTypefully } = await import('../typefully/client');
+      const tf = await publishViaTypefully(text);
+      if (tf.success) {
+        return tf;
+      }
+      console.error('Typefully post failed, falling through:', tf.error);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Typefully post threw, falling through:', message);
+    }
   }
 
   // Feature flag: TWITTER_USE_PLAYWRIGHT routes through browser automation

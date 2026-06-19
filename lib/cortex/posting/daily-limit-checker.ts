@@ -1,6 +1,7 @@
 /**
- * Daily post-limit checker — enforces the CORTEX rule of max 3 posts per
- * platform per JST day. Used as the last gate before publishing.
+ * Daily post-limit checker — enforces the CORTEX rule of max 5 posts per
+ * platform per JST day (絞り込み運用: 質重視で2-5本/日). Used as the last gate
+ * before publishing.
  *
  * Counts posts in `cortex_pending_posts` where `status='posted'` and
  * `posted_at` falls within the current JST day window (05:00 JST → 04:59 JST).
@@ -20,7 +21,7 @@ export interface DailyLimitResult {
   readonly reason?: string
 }
 
-const DEFAULT_DAILY_LIMIT = 3
+const DEFAULT_DAILY_LIMIT = 5
 const JST_OFFSET_HOURS = 9
 const DAILY_RESET_HOUR_JST = 5
 

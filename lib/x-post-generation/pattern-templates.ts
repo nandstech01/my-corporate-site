@@ -292,10 +292,67 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['trend', 'company', 'trending', 'reddit', 'news', 'release'],
     features: ['多層', '深掘り', '構造的'],
     generateDiagram: false
+  },
+  // ========================================
+  // バズ構造テンプレ（日本AIトップアカウント参照・ハイブリッド）
+  // 保存(bookmark)とRTを最大化する構造。煽りすぎず実務家の信頼を保つ。
+  // ========================================
+  {
+    id: 'buzz_save_list',
+    name: '保存版〇選',
+    description: 'ツール/プロンプト/Tipsの番号付きリスト。後で見返したくなる構造で保存を誘発',
+    template: `【保存版】{theme}{n}選
+
+①{item1}：{benefit1}
+②{item2}：{benefit2}
+③{item3}：{benefit3}
+
+{closing_value}
+保存して後で使ってください👇`,
+    category: 'buzz',
+    dataSources: ['trend', 'company', 'trending', 'news', 'release'],
+    features: ['保存誘発', '番号リスト', '高bookmark率'],
+    generateDiagram: false
+  },
+  {
+    id: 'buzz_daily_recap',
+    name: '今日のAI業界まとめ',
+    description: '日次キュレーション。3件のニュースを色分けで要約しRT+保存を両取り',
+    template: `今日のAI業界が激動すぎたので復習を。
+
+🔴 {news1}
+🟡 {news2}
+🟢 {news3}
+
+{outlook_or_takeaway}`,
+    category: 'buzz',
+    dataSources: ['trend', 'trending', 'news', 'release'],
+    features: ['日次まとめ', 'キュレーション', '夜の本命'],
+    generateDiagram: false
+  },
+  {
+    id: 'buzz_breaking',
+    name: '速報・遂に',
+    description: '新モデル/機能/ニュースの速報。発表2時間以内が最も伸びる',
+    template: `【速報】{service}が遂に{what_happened}。
+
+{what_you_can_do}。
+{spec_or_number}。
+
+{impact_on_work}。`,
+    category: 'buzz',
+    dataSources: ['trend', 'company', 'news', 'release', 'trending'],
+    features: ['速報', '一次反応', 'RT最適化'],
+    generateDiagram: false
   }
 ];
 
 // 口調統一ガイドライン
+//
+// 【ハイブリッド方針】実務家の信頼ベースを保ちつつ、日本AIトップアカウント
+// （@masahirochaen 等）のバズ構造を採用する。
+// - buzz_* テンプレ使用時: バズマーカー（【保存版】【速報】等）+ 保存CTAを許可
+// - その他テンプレ: 従来の実務家トーンを維持
 export const TONE_GUIDELINES = {
   // 推奨表現
   good_expressions: [
@@ -311,29 +368,42 @@ export const TONE_GUIDELINES = {
     'ここが意外だった',
   ],
 
-  // 避ける表現
+  // バズマーカー（buzz_* テンプレ / 日本語バズ型フックで使ってよい）
+  // 構造的フックとして許可。連発・乱用はしない（1投稿1ヘッダまで）。
+  buzz_markers: [
+    '【保存版】',
+    '【完全版】',
+    '【速報】',
+    '【朗報】',
+    '遂に',
+    'なんと',
+    '待って。',
+    '保存して後で使ってください',
+    '保存推奨',
+    '〇〇終了のお知らせ',
+    '今日のAI業界',
+  ],
+
+  // 避ける表現（真のAI臭・テンプレ感のあるものだけ。バズ語は禁止しない）
   avoid_expressions: [
     'この技術がもたらす',
     '〜に革命をもたらす',
     '〜という観点から',
     'いかがでしたでしょうか',
     '〜についてご紹介しました',
-    '〜を発表',
-    '〜がリリース',
     '詳細は👉',
-    '知らないと損',
-    '致命的',
-    '今すぐ確認',
   ],
 
   // 基本方針
   principles: [
-    '実務家の思考共有',
-    '教えるのではなく同じ立場から語る',
-    '締め方は断定重視 — 明確な主張・判断で終わらせろ。含みのある余韻もOKだが問いかけは3回に1回まで',
+    '実務家の思考共有がベース。ただしバズ型テンプレ使用時は構造的フックを優先する',
+    'バズマーカー（【保存版】【速報】等）は構造として使ってよいが、中身のない煽りは禁止。必ず具体（数値/ツール名/手順）で裏付ける',
+    'アルゴリズム重み: bookmark=5 / RT=6 / reply=75-150 / like=0.5。保存・RT・リプを誘発する構造を優先',
+    '保存版/リスト型は番号付き①②③で。保存CTA（保存して後で使ってください👇）で締めてよい',
+    '締め方は断定重視 — 明確な主張・判断で終わらせろ。問いかけは3回に1回まで',
     '語尾NG: 「〜なんだよね」「〜だよね」「〜よね」は使うな。言い切れ',
-    'ハッシュタグ0-1個',
-    '絵文字1-3個（🤖 💡 🔥 ⚡ 🎯）'
+    'ハッシュタグ0-2個（バズ型は #AI #生成AI を末尾に置いてよい）',
+    '絵文字: 通常1-3個（🤖 💡 🔥 ⚡ 🎯）。バズ型は①②③🔴🟡🟢👇🙏も可'
   ]
 };
 
