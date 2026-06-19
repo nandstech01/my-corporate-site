@@ -1,31 +1,41 @@
 /**
- * Typefully API クライアント（配信層シーム）
+ * Typefully API クライアント（配信層シーム）— API v2
  *
  * X / Threads / LinkedIn への投稿・スケジュールを Typefully クラウドに委譲するための
  * 差し込み口。投稿タイミングを Typefully に任せることで、self-hosted ランナーの
  * 詰まり（cron が queued で滞留する問題）を構造的に回避する狙い。
  *
- * 【現状】API キー未取得のため既定では無効。
- *   isTypefullyConfigured() === false の間は何もせず、既存の postTweet 挙動を一切壊さない。
- *   キー取得後に下記を .env.local / GitHub Secrets に設定するだけで有効化される（ドロップイン）:
- *     TYPEFULLY_ENABLED=true
- *     TYPEFULLY_API_KEY=<your key>            # Typefully → Settings → API で発行
- *     TYPEFULLY_AUTO_RETWEET=true             # 任意: 自動セルフRT（伸ばしレバー）
- *     TYPEFULLY_AUTO_PLUG=true                # 任意: 伸びた投稿に自動リプ追加
- *     TYPEFULLY_SCHEDULE_DATE=next-free-slot  # 任意: 既定は最適枠に自動配置
+ * 有効化（既定では無効＝既存の postTweet 挙動を一切壊さない）:
+ *   TYPEFULLY_ENABLED=true
+ *   TYPEFULLY_API_KEY=<key>                  # Typefully → Settings → API で発行
+ *   TYPEFULLY_SOCIAL_SET_ID=<id>             # 任意。未指定なら最初の social set を自動使用
+ *   TYPEFULLY_SCHEDULE_DATE=next-free-slot   # 任意。既定は最適枠に自動配置
+ *   TYPEFULLY_PLATFORM=x                     # 任意。投稿先プラットフォーム（既定 x）
  *
- * v1 API: https://api.typefully.com/v1
- *   POST /drafts/                      ヘッダ  X-API-KEY: Bearer <key>
- *     body: { content, threadify, share, "schedule-date", auto_retweet_enabled, auto_plug_enabled }
- *   GET  /drafts/recently-published/
- *   GET  /drafts/recently-scheduled/
- *   GET  /notifications/
+ * ※ v1 (X-API-KEY) は廃止。v2 は Authorization: Bearer + social-set 単位の drafts。
+ * ※ auto-retweet / auto-plug / threadify は v2 では本文パラメータではなく
+ *    アカウント設定として自動適用される。
  *
- * 参考: https://support.typefully.com/en/articles/8718287-typefully-api
+ * v2 API: https://api.typefully.com
+ *   GET  /v2/social-sets                       → { results: [{ id, username, name }], ... }
+ *   POST /v2/social-sets/{social_set_id}/drafts
+ *        body: { platforms: { x: { enabled, posts: [{ text }] } }, draft_title?, share?, publish_at? }
+ *        publish_at: 省略=下書き / "now" / "next-free-slot" / ISO8601
+ *
+ * 参考: https://typefully.com/docs/api
  */
 
 const TYPEFULLY_API_BASE =
-  process.env.TYPEFULLY_API_BASE || 'https://api.typefully.com/v1'
+  process.env.TYPEFULLY_API_BASE || 'https://api.typefully.com'
+
+type TypefullyPlatform = 'x' | 'linkedin' | 'threads' | 'mastodon' | 'bluesky'
+
+function authHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${process.env.TYPEFULLY_API_KEY}`,
+  }
+}
 
 /**
  * Typefully 配信が有効か（キー設定 + 明示フラグの両方が必要）
@@ -36,30 +46,67 @@ export function isTypefullyConfigured(): boolean {
   )
 }
 
+let cachedSocialSetId: string | null = null
+
+/**
+ * 投稿対象の social set ID を解決する。
+ * TYPEFULLY_SOCIAL_SET_ID があればそれを、無ければ最初の social set を使う。
+ */
+export async function resolveSocialSetId(): Promise<string | null> {
+  const fromEnv = process.env.TYPEFULLY_SOCIAL_SET_ID
+  if (fromEnv) return fromEnv
+  if (cachedSocialSetId) return cachedSocialSetId
+
+  try {
+    const res = await fetch(`${TYPEFULLY_API_BASE}/v2/social-sets`, {
+      headers: authHeaders(),
+    })
+    if (!res.ok) {
+      console.error(`Typefully social-sets取得失敗 ${res.status}: ${await res.text().catch(() => '')}`)
+      return null
+    }
+    const data = (await res.json()) as { results?: Array<{ id: number | string }> }
+    const first = data.results?.[0]?.id
+    if (first == null) return null
+    cachedSocialSetId = String(first)
+    return cachedSocialSetId
+  } catch (err) {
+    console.error('Typefully social-sets例外:', err instanceof Error ? err.message : String(err))
+    return null
+  }
+}
+
 export interface TypefullyDraftOptions {
-  /** content を Typefully 側で自動スレッド分割する */
-  threadify?: boolean
+  /** "next-free-slot" / "now" / ISO8601。未指定なら下書き保存（投稿しない） */
+  scheduleDate?: string
   /** share URL を発行する */
   share?: boolean
-  /** "next-free-slot" または ISO8601。未指定なら下書きのまま（投稿しない） */
-  scheduleDate?: string
-  /** 投稿後に自動セルフRT */
-  autoRetweetEnabled?: boolean
-  /** 伸びた投稿へ自動でリプを追加（auto-plug） */
-  autoPlugEnabled?: boolean
+  /** 投稿先プラットフォーム（既定: TYPEFULLY_PLATFORM または 'x'） */
+  platform?: TypefullyPlatform
+  /** 下書きタイトル（管理用） */
+  draftTitle?: string
+  /** social set ID を明示指定（省略時は自動解決） */
+  socialSetId?: string
 }
 
 export interface TypefullyDraftResult {
   success: boolean
   draftId?: string
   shareUrl?: string
-  scheduledDate?: string
   error?: string
 }
 
 /**
+ * content を Typefully のスレッド投稿配列に変換する。
+ * 4連続改行で区切られていれば複数ポスト（スレッド）に分割。
+ */
+function toPosts(content: string): Array<{ text: string }> {
+  const segments = content.split(/\n{4,}/).map((s) => s.trim()).filter(Boolean)
+  return (segments.length > 0 ? segments : [content]).map((text) => ({ text }))
+}
+
+/**
  * Typefully にドラフトを作成（必要ならスケジュール投稿）する。
- * 複数ツイートを1スレッドにする場合は content を 4連続改行で区切るか threadify=true。
  */
 export async function createTypefullyDraft(
   content: string,
@@ -72,29 +119,39 @@ export async function createTypefullyDraft(
         'Typefully未設定（TYPEFULLY_ENABLED / TYPEFULLY_API_KEY）。差し込み口のみ実装済み。',
     }
   }
-
   if (!content || content.trim().length === 0) {
     return { success: false, error: 'contentが空です' }
   }
 
-  try {
-    const body: Record<string, unknown> = { content }
-    if (options?.threadify !== undefined) body.threadify = options.threadify
-    if (options?.share !== undefined) body.share = options.share
-    if (options?.scheduleDate) body['schedule-date'] = options.scheduleDate
-    if (options?.autoRetweetEnabled !== undefined)
-      body.auto_retweet_enabled = options.autoRetweetEnabled
-    if (options?.autoPlugEnabled !== undefined)
-      body.auto_plug_enabled = options.autoPlugEnabled
+  const socialSetId = options?.socialSetId ?? (await resolveSocialSetId())
+  if (!socialSetId) {
+    return { success: false, error: 'social setが解決できません（TYPEFULLY_SOCIAL_SET_ID未設定 or 取得失敗）' }
+  }
 
-    const res = await fetch(`${TYPEFULLY_API_BASE}/drafts/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': `Bearer ${process.env.TYPEFULLY_API_KEY}`,
+  const platform = options?.platform ?? (process.env.TYPEFULLY_PLATFORM as TypefullyPlatform) ?? 'x'
+
+  const body: Record<string, unknown> = {
+    platforms: {
+      [platform]: {
+        enabled: true,
+        posts: toPosts(content),
       },
-      body: JSON.stringify(body),
-    })
+    },
+  }
+  if (options?.draftTitle) body.draft_title = options.draftTitle
+  if (options?.share !== undefined) body.share = options.share
+  // publish_at を省略すると下書き保存（投稿されない）。
+  if (options?.scheduleDate) body.publish_at = options.scheduleDate
+
+  try {
+    const res = await fetch(
+      `${TYPEFULLY_API_BASE}/v2/social-sets/${socialSetId}/drafts`,
+      {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+      },
+    )
 
     if (!res.ok) {
       const text = await res.text().catch(() => '')
@@ -104,14 +161,13 @@ export async function createTypefullyDraft(
     const data = (await res.json()) as {
       id?: number | string
       share_url?: string
-      scheduled_date?: string
+      url?: string
     }
 
     return {
       success: true,
       draftId: data.id != null ? String(data.id) : undefined,
-      shareUrl: data.share_url,
-      scheduledDate: data.scheduled_date,
+      shareUrl: data.share_url ?? data.url,
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -130,7 +186,6 @@ export async function createTypefullyDraft(
  */
 export async function publishViaTypefully(
   text: string,
-  options?: { threadify?: boolean },
 ): Promise<{
   success: boolean
   tweetId?: string
@@ -138,75 +193,16 @@ export async function publishViaTypefully(
   error?: string
 }> {
   const result = await createTypefullyDraft(text, {
-    threadify: options?.threadify ?? false,
     share: true,
     scheduleDate: process.env.TYPEFULLY_SCHEDULE_DATE || 'next-free-slot',
-    autoRetweetEnabled: process.env.TYPEFULLY_AUTO_RETWEET === 'true',
-    autoPlugEnabled: process.env.TYPEFULLY_AUTO_PLUG === 'true',
   })
 
   if (!result.success) {
     return { success: false, error: result.error }
   }
-
   return {
     success: true,
     tweetId: result.draftId,
     tweetUrl: result.shareUrl,
-  }
-}
-
-export interface TypefullyPublishedItem {
-  id: string
-  text?: string
-  twitterUrl?: string
-  publishedOn?: string
-  numTweets?: number
-}
-
-/**
- * 最近公開された投稿を取得（学習バックフィル用の入口）。
- * impressions=0 問題の緩和に向けて、将来 x_post_analytics への取り込みに使う。
- */
-export async function getRecentlyPublished(): Promise<{
-  items: TypefullyPublishedItem[]
-  error?: string
-}> {
-  if (!isTypefullyConfigured()) {
-    return { items: [], error: 'Typefully未設定' }
-  }
-
-  try {
-    const res = await fetch(`${TYPEFULLY_API_BASE}/drafts/recently-published/`, {
-      headers: {
-        'X-API-KEY': `Bearer ${process.env.TYPEFULLY_API_KEY}`,
-      },
-    })
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '')
-      return { items: [], error: `Typefully API ${res.status}: ${text}` }
-    }
-
-    const data = (await res.json()) as Array<{
-      id?: number | string
-      text?: string
-      twitter_url?: string
-      published_on?: string
-      num_tweets?: number
-    }>
-
-    const items = (Array.isArray(data) ? data : []).map((d) => ({
-      id: d.id != null ? String(d.id) : '',
-      text: d.text,
-      twitterUrl: d.twitter_url,
-      publishedOn: d.published_on,
-      numTweets: d.num_tweets,
-    }))
-
-    return { items }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    return { items: [], error: `Typefully recently-published取得で例外: ${message}` }
   }
 }
