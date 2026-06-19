@@ -87,6 +87,8 @@ export interface TypefullyDraftOptions {
   draftTitle?: string
   /** social set ID を明示指定（省略時は自動解決） */
   socialSetId?: string
+  /** 添付メディアID（uploadTypefullyMedia で取得）。先頭ポストに付与 */
+  mediaIds?: string[]
 }
 
 export interface TypefullyDraftResult {
@@ -130,11 +132,18 @@ export async function createTypefullyDraft(
 
   const platform = options?.platform ?? (process.env.TYPEFULLY_PLATFORM as TypefullyPlatform) ?? 'x'
 
+  const basePosts = toPosts(content)
+  const posts = options?.mediaIds?.length
+    ? basePosts.map((p, i) =>
+        i === 0 ? { ...p, media_ids: options.mediaIds } : p,
+      )
+    : basePosts
+
   const body: Record<string, unknown> = {
     platforms: {
       [platform]: {
         enabled: true,
-        posts: toPosts(content),
+        posts,
       },
     },
   }
@@ -144,18 +153,28 @@ export async function createTypefullyDraft(
   if (options?.scheduleDate) body.publish_at = options.scheduleDate
 
   try {
-    const res = await fetch(
-      `${TYPEFULLY_API_BASE}/v2/social-sets/${socialSetId}/drafts`,
-      {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify(body),
-      },
-    )
-
-    if (!res.ok) {
+    // メディアアップロード直後は media が処理中(processing)になることがあるため、
+    // 400 + processing の場合は数秒待って数回リトライする。
+    let res: Response | undefined
+    for (let attempt = 0; attempt < 4; attempt++) {
+      res = await fetch(
+        `${TYPEFULLY_API_BASE}/v2/social-sets/${socialSetId}/drafts`,
+        {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(body),
+        },
+      )
+      if (res.ok) break
       const text = await res.text().catch(() => '')
+      if (res.status === 400 && /processing/i.test(text) && attempt < 3) {
+        await new Promise((r) => setTimeout(r, 4000))
+        continue
+      }
       return { success: false, error: `Typefully API ${res.status}: ${text}` }
+    }
+    if (!res || !res.ok) {
+      return { success: false, error: 'Typefully draft作成に失敗（リトライ上限）' }
     }
 
     const data = (await res.json()) as {
@@ -173,6 +192,64 @@ export async function createTypefullyDraft(
     const message = err instanceof Error ? err.message : String(err)
     console.error('Typefully draft作成エラー:', message)
     return { success: false, error: `Typefully draft作成で例外: ${message}` }
+  }
+}
+
+/**
+ * 画像/メディアを Typefully にアップロードし media_id を返す。
+ * v2フロー: (1) /media/upload で media_id + 署名付きURL取得 (2) 署名URLにrawバイトをPUT。
+ * 取得した media_id は createTypefullyDraft の options.mediaIds に渡す。
+ * 例: Gemini生成図解のbufferをXポストに添付する用途。
+ */
+export async function uploadTypefullyMedia(
+  fileBytes: Uint8Array,
+  fileName: string,
+  socialSetId?: string,
+): Promise<{ mediaId?: string; error?: string }> {
+  if (!isTypefullyConfigured()) {
+    return { error: 'Typefully未設定' }
+  }
+  const ssId = socialSetId ?? (await resolveSocialSetId())
+  if (!ssId) {
+    return { error: 'social setが解決できません' }
+  }
+
+  try {
+    // (1) アップロードURLを取得
+    const initRes = await fetch(
+      `${TYPEFULLY_API_BASE}/v2/social-sets/${ssId}/media/upload`,
+      {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ file_name: fileName }),
+      },
+    )
+    if (!initRes.ok) {
+      const t = await initRes.text().catch(() => '')
+      return { error: `Typefully media/upload ${initRes.status}: ${t}` }
+    }
+    const init = (await initRes.json()) as {
+      media_id?: string
+      upload_url?: string
+    }
+    if (!init.media_id || !init.upload_url) {
+      return { error: 'media_id / upload_url が取得できません' }
+    }
+
+    // (2) 署名付きURLへrawバイトをPUT（余計なヘッダを付けない）
+    const putRes = await fetch(init.upload_url, {
+      method: 'PUT',
+      body: fileBytes as unknown as BodyInit,
+    })
+    if (!putRes.ok) {
+      return { error: `署名URLへのPUT失敗 ${putRes.status}` }
+    }
+
+    return { mediaId: init.media_id }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Typefully media upload例外:', message)
+    return { error: `media upload例外: ${message}` }
   }
 }
 
