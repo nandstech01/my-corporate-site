@@ -344,6 +344,25 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['trend', 'company', 'news', 'release', 'trending'],
     features: ['速報', '一次反応', 'RT最適化'],
     generateDiagram: false
+  },
+  // ========================================
+  // セールス（プレイブック monetization/sales 用・出現は約5%に抑制）
+  // ペイン→ベネフィット→自然なLINE誘導。売り込み感を排除する。
+  // {soft_cta_to_line} には generateLineAddUrl({platform:'x'}) のURLを入れる。
+  // ========================================
+  {
+    id: 'sales_cta_line',
+    name: 'LINE誘導CTA',
+    description: '読者のペイン→ベネフィット→自然なLINE友だち登録誘導。価値提供の延長として送る',
+    template: `{pain_observation}
+
+{benefit_proof}
+
+{soft_cta_to_line}`,
+    category: 'cta',
+    dataSources: ['trend', 'company'],
+    features: ['ペイン共感', 'ベネフィット実証', 'LINEファネル', '低頻度'],
+    generateDiagram: false
   }
 ];
 

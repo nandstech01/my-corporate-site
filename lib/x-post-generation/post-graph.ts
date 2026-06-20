@@ -63,6 +63,10 @@ export interface PostGraphInput {
   topic?: string
   tags?: string[]
   recentPostTexts?: readonly string[]
+  /** プレイブック: 選択を許可するパターンID群（未指定=全パターン） */
+  allowedPatternIds?: readonly string[]
+  /** プレイブック: 生成プロンプトへ注入する運用フォーカス意図 */
+  playbookInstructions?: string
 }
 
 export interface PostGraphOutput {
@@ -104,6 +108,14 @@ const PostGraphState = Annotation.Root({
     default: () => null,
   }),
   recentPostTexts: Annotation<string[] | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  allowedPatternIds: Annotation<string[] | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
+  }),
+  playbookInstructions: Annotation<string | null>({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
@@ -252,7 +264,12 @@ async function selectPattern(state: GraphStateType): Promise<Partial<GraphStateT
   // Try bandit pattern selection first
   let selectedId: string
   try {
-    const allPatternIds = patternTemplates.map((p) => p.id)
+    const allIds = patternTemplates.map((p) => p.id)
+    // プレイブックで許可パターンが指定されていれば、その範囲内でバンディット選択
+    const filtered = state.allowedPatternIds?.length
+      ? allIds.filter((id) => state.allowedPatternIds!.includes(id))
+      : allIds
+    const allPatternIds = filtered.length > 0 ? filtered : allIds
     const banditChoice = await selectPatternByBandit(allPatternIds, 'x')
     const matched = patternTemplates.find((p) => p.id === banditChoice)
     selectedId = matched ? banditChoice : (state.analysis?.recommendedPatternId ?? 'practitioner_take')
@@ -399,6 +416,7 @@ ${isArticle ? '' : X_TWITTER_RULES}
 ${voiceProfile}
 
 ${modeInstructions}
+${state.playbookInstructions ? `\n${state.playbookInstructions}\n` : ''}
 ${trendingSection}
 ${recentPostsSection}
 ${bestPractices}
@@ -834,6 +852,8 @@ export async function generateXPost(
       topic: input.topic ?? null,
       tags: input.tags ?? null,
       recentPostTexts: input.recentPostTexts ? [...input.recentPostTexts] : null,
+      allowedPatternIds: input.allowedPatternIds ? [...input.allowedPatternIds] : null,
+      playbookInstructions: input.playbookInstructions ?? null,
     },
     {
       runName: `x-post-${input.mode}`,
