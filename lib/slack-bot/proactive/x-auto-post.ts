@@ -18,6 +18,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createPendingAction, getRecentXPostTexts, getRecentXSourceUrls, getRecentXMediaUrls } from '../memory'
 import { sendMessage, buildApprovalBlocks } from '../slack-client'
 import { generateXPost } from '../../x-post-generation/post-graph'
+import { selectPlaybookArea, applyPlaybookBias, getPlaybookArea, type PlaybookAreaId } from '../../cortex/playbook/config'
 import { generateQuoteTweet } from '../../x-quote-generation/quote-graph'
 import { fetchMediaForPost } from '../../x-api/media'
 import { retweetPost } from '../../x-api/client'
@@ -623,7 +624,10 @@ const PREVIEW_CHAR_LIMIT = 500
 
 export async function runXAutoPost(): Promise<void> {
   try {
-    await runXAutoPostInner()
+    // プレイブックで今回の運用フォーカス領域を選び、配信重みを領域へ微調整する
+    const area = selectPlaybookArea()
+    process.stdout.write(`X auto-post playbook area: ${area.id} (${area.label})\n`)
+    await runXAutoPostInner(area.id)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     process.stdout.write(`X auto-post critical failure: ${message}\n`)
@@ -639,9 +643,10 @@ export async function runXAutoPost(): Promise<void> {
   }
 }
 
-async function runXAutoPostInner(): Promise<void> {
+async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
   const channel = process.env.SLACK_DEFAULT_CHANNEL
   const userId = process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0]
+  const pbTag = playbookMode ? getPlaybookArea(playbookMode)?.tag : undefined
 
   if (!channel || !userId) {
     throw new Error(
@@ -713,6 +718,11 @@ async function runXAutoPostInner(): Promise<void> {
     weights = await getAdaptiveContentDistribution()
   } catch {
     weights = { ...DEFAULT_WEIGHTS }
+  }
+
+  // プレイブック領域に応じて配信重みを微調整（上書きでなくnudge）
+  if (playbookMode) {
+    weights = applyPlaybookBias(weights, playbookMode)
   }
 
   const roll = Math.random()
@@ -1088,7 +1098,7 @@ async function runXAutoPostInner(): Promise<void> {
         sourceUrl: topCandidate.sourceUrl,
         sourceTitle: topCandidate.title,
         patternUsed: postResult.patternUsed,
-        tags: postResult.tags,
+        tags: pbTag ? [...postResult.tags, pbTag] : postResult.tags,
         mediaIds,
         mediaUrl,
       })
