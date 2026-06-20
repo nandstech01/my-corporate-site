@@ -48,10 +48,10 @@ export const PLAYBOOK_AREAS: readonly PlaybookArea[] = [
   {
     id: 'research',
     label: 'リサーチ・分析',
-    eligiblePatternIds: ['practitioner_take', 'build_log', 'design_decision', 'layered_analysis'],
+    eligiblePatternIds: ['practitioner_take', 'build_log', 'design_decision', 'layered_analysis', 'result_first_bullets', 'curation_take'],
     mode: 'research',
     intentInstruction:
-      'トレンド・競合・バズ要因を実務家視点で言語化する。具体ツール名・数値・一次情報を必ず含め、「なぜ今これが重要か」を一言で刺す。',
+      'トレンド・競合・バズ要因を実務家視点で言語化する。具体ツール名・数値・一次情報を必ず含め、「なぜ今これが重要か」を一言で刺す。結論ファースト→箇条書き→示唆。安易な疑問形で締めない。',
     cadenceWeight: 0.15,
     tag: 'playbook:research',
   },
@@ -68,10 +68,10 @@ export const PLAYBOOK_AREAS: readonly PlaybookArea[] = [
   {
     id: 'buzz',
     label: 'バズポスト生成（核）',
-    eligiblePatternIds: ['buzz_breaking', 'buzz_daily_recap', 'buzz_save_list', 'live_reaction'],
+    eligiblePatternIds: ['buzz_breaking', 'buzz_daily_recap', 'buzz_save_list', 'live_reaction', 'save_manual', 'result_first_bullets'],
     mode: 'research',
     intentInstruction:
-      '1行目で結論/驚きを置きスクロールを止める。保存版リスト・速報・今日のまとめ等で保存とRTを最大化。中身のない煽りは禁止、必ず具体で裏付ける。',
+      '1行目で結論/驚きを置きスクロールを止める。保存版リスト・速報・👇+箇条書き等で保存とRTを最大化。中身のない煽りは禁止、必ず具体で裏付ける。安易な疑問形で締めない（要点/示唆/軽いCTAで締める）。',
     cadenceWeight: 0.18,
     tag: 'playbook:buzz',
   },
@@ -98,7 +98,7 @@ export const PLAYBOOK_AREAS: readonly PlaybookArea[] = [
   {
     id: 'stock',
     label: 'ストックコンテンツ（note/Brain）',
-    eligiblePatternIds: ['future_bet', 'contrarian_view', 'internal_debate', 'failure_story', 'thread_deep_dive'],
+    eligiblePatternIds: ['future_bet', 'contrarian_view', 'internal_debate', 'failure_story', 'thread_deep_dive', 'save_manual', 'curation_take'],
     mode: 'thread',
     intentInstruction:
       '後から見返したくなる体系的な知見をスレッドで。失敗談・深掘り分析でストック型の価値を作り、必要なら長文記事(note)への布石にする。',
@@ -118,7 +118,7 @@ export const PLAYBOOK_AREAS: readonly PlaybookArea[] = [
   {
     id: 'buzz_analysis',
     label: 'バズ分析・再現性（超重要）',
-    eligiblePatternIds: ['live_reaction', 'observation_reaction', 'single_thought'],
+    eligiblePatternIds: ['live_reaction', 'observation_reaction', 'single_thought', 'curation_take', 'result_first_bullets'],
     mode: 'research',
     intentInstruction:
       'なぜ伸びたか/伸びなかったかを構成・心理で分解し、再現できる「型」として言語化する。学びを次の投稿に転用する視点で書く。',
@@ -138,10 +138,10 @@ export const PLAYBOOK_AREAS: readonly PlaybookArea[] = [
   {
     id: 'follower_growth',
     label: 'フォロワー増加',
-    eligiblePatternIds: ['practitioner_take', 'build_log', 'buzz_save_list'],
+    eligiblePatternIds: ['practitioner_take', 'build_log', 'buzz_save_list', 'save_manual', 'result_first_bullets'],
     mode: 'research',
     intentInstruction:
-      'プロフを見て「フォローしたい」と思わせる一貫した専門性・実績の提示。保存される実用知見で新規流入の入口を作る。',
+      'プロフを見て「フォローしたい」と思わせる一貫した専門性・実績の提示。保存される実用知見(保存版マニュアル/結論+箇条書き)で新規流入の入口を作る。安易な疑問形で締めない。',
     cadenceWeight: 0.05,
     tag: 'playbook:follower_growth',
   },

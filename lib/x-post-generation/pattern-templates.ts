@@ -363,6 +363,63 @@ export const patternTemplates: PatternTemplate[] = [
     dataSources: ['trend', 'company'],
     features: ['ペイン共感', 'ベネフィット実証', 'LINEファネル', '低頻度'],
     generateDiagram: false
+  },
+  // ========================================
+  // 高品質バズ構造（日本トップAIアカウントのニュアンスを参考・模倣しすぎない）
+  // 共通原則: 結果/結論ファースト → ・箇条書きで具体 → 出典/示唆/軽いCTAで締める。
+  // 安易な疑問形（〜な人いる？/どう思う？）で締めない。情報密度で勝負。
+  // ========================================
+  {
+    id: 'save_manual',
+    name: '保存版マニュアル型',
+    description: '結果/ベネフィットを先頭に置き👇で要点を箇条書き。保存される実用ノウハウ。締めは要点か軽いCTA(疑問形で締めない)',
+    template: `【保存版】{result_or_benefit}
+
+{one_line_context}👇
+
+・{point1}
+・{point2}
+・{point3}
+
+{takeaway_or_soft_cta}`,
+    category: 'buzz',
+    dataSources: ['trend', 'company', 'release', 'trending'],
+    features: ['保存誘発', '結果ファースト', '箇条書き'],
+    generateDiagram: false
+  },
+  {
+    id: 'result_first_bullets',
+    name: '結論ファースト箇条書き型',
+    description: '1行目に結論/事実を断定で置き、・で具体を3-4点。冷静で密度の高い情報提供。疑問形で締めない',
+    template: `{punchy_conclusion}。
+
+・{point1}
+・{point2}
+・{point3}
+
+{insight_or_implication}`,
+    category: 'analysis',
+    dataSources: ['trend', 'company', 'news', 'release', 'trending', 'reddit'],
+    features: ['結論ファースト', '情報密度', '断定'],
+    generateDiagram: false
+  },
+  {
+    id: 'curation_take',
+    name: 'キュレーション+見解型',
+    description: '価値ある情報をシェアし「要点👇」で整理、自分の視点を一言添え、最後に出典。疑問形で締めない',
+    template: `{what_it_is}。{why_valuable}。
+
+要点👇
+
+■ {point1}
+■ {point2}
+
+{my_take}
+出典: {source}`,
+    category: 'quote',
+    dataSources: ['trend', 'trending', 'news', 'release', 'reddit'],
+    features: ['キュレーション', '見解付与', '出典明記'],
+    generateDiagram: false
   }
 ];
 
@@ -383,8 +440,10 @@ export const TONE_GUIDELINES = {
     '結構使いやすい',
     'これは便利そう',
     '設計判断として',
-    '同じ経験した人いる？',
     'ここが意外だった',
+    '要点はこう',
+    '結論から言うと',
+    '実際に効いたのは',
   ],
 
   // バズマーカー（buzz_* テンプレ / 日本語バズ型フックで使ってよい）
@@ -411,6 +470,12 @@ export const TONE_GUIDELINES = {
     'いかがでしたでしょうか',
     '〜についてご紹介しました',
     '詳細は👉',
+    // 安易な疑問形の締め(AI丸出し・使い回しに見える)は禁止
+    '同じ経験した人いる？',
+    'みんなどうしてる？',
+    '〜な人いる？',
+    'どう思う？',
+    '共感する人いる？',
   ],
 
   // 基本方針
