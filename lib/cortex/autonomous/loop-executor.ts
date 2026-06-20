@@ -415,6 +415,23 @@ async function handlePatternOptimizeAnalyze(): Promise<Partial<LoopExecutorResul
     }
   }
 
+  // 再現性ブリッジ: 高再現性(>=0.7)の型を既存パターンに対応付け、Thompsonバンディットへ「伸びた型」を直接注入
+  let bridged = 0
+  if (viralNew && viralNew.length > 0) {
+    try {
+      const { hookTypeToPatternId } = await import('../playbook/config')
+      const { recordPatternOutcome } = await import('../../learning/pattern-bandit')
+      for (const v of viralNew) {
+        const pid = hookTypeToPatternId(v.hook_type)
+        if (pid) {
+          await recordPatternOutcome(pid, 'x', true, v.replicability_score ?? 0.7)
+          bridged++
+        }
+      }
+      if (bridged > 0) lines.push('', `🔁 再現性ブリッジ: ${bridged}件の伸びた型をバンディットへ反映`)
+    } catch { /* best-effort */ }
+  }
+
   if (improvements.length === 0) {
     lines.push('✅ パターンスコアは実績と整合。改善不要。')
   } else {
@@ -423,7 +440,7 @@ async function handlePatternOptimizeAnalyze(): Promise<Partial<LoopExecutorResul
 
   return {
     response_text: lines.join('\n'),
-    actions_taken: ['パターン実績分析', 'hook-template乖離チェック', 'バイラル分析から新パターン抽出'],
+    actions_taken: ['パターン実績分析', 'hook-template乖離チェック', 'バイラル分析から新パターン抽出', `再現性ブリッジ${bridged}件`],
     next_action: improvements.length > 0 ? 'create_improvement_pr' : 'skip_to_next_topic',
   }
 }
@@ -495,7 +512,7 @@ function bigramOverlap(a: string, b: string): number {
 // Topic completion tracking — prevents repeated execution of the same topic
 // ============================================================
 
-const TOPIC_ROTATION: readonly LoopAgendaTopic[] = ['post_review', 'linkedin_review', 'threads_review', 'buzz_post', 'linkedin_post', 'threads_post', 'blog_research', 'performance', 'pattern_optimize', 'strategy']
+const TOPIC_ROTATION: readonly LoopAgendaTopic[] = ['post_review', 'linkedin_review', 'threads_review', 'buzz_post', 'linkedin_post', 'threads_post', 'blog_research', 'performance', 'pattern_optimize', 'strategy', 'sales_cta', 'stock_content', 'follower_growth']
 
 async function getCompletedTopicsToday(supabase: ReturnType<typeof getSupabase>): Promise<Set<string>> {
   const todayStart = new Date()
@@ -1381,6 +1398,87 @@ async function handlePatternOptimizeGenerate(): Promise<Partial<LoopExecutorResu
 }
 
 // ============================================================
+// Playbook areas (フルファネル運用)
+// ============================================================
+
+async function handleSalesCtaAnalyze(): Promise<Partial<LoopExecutorResult>> {
+  const { getPlaybookArea } = await import('../playbook/config')
+  const area = getPlaybookArea('sales')
+  const lines = [
+    '💰 セールス/CTA フォーカス',
+    '',
+    area?.intentInstruction ?? '',
+    '',
+    '※ sales_cta_line パターンで「ペイン→ベネフィット→自然なLINE誘導」。',
+    '  CTAは funnel-tracker.ts の generateLineAddUrl({platform:\'x\'}) のURLを使用。',
+    '  売り込み感を排除し、低頻度(約5%)で出す。',
+  ]
+  return {
+    response_text: lines.join('\n'),
+    actions_taken: ['セールス方針提示'],
+    next_action: 'generate_post',
+  }
+}
+
+async function handleStockContentAnalyze(): Promise<Partial<LoopExecutorResult>> {
+  const supabase = getSupabase()
+  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: buzz } = await supabase
+    .from('buzz_posts')
+    .select('post_text, buzz_score')
+    .gte('post_date', since7d)
+    .order('buzz_score', { ascending: false })
+    .limit(5)
+  const { getPlaybookArea } = await import('../playbook/config')
+  const area = getPlaybookArea('stock')
+  const lines = ['📚 ストックコンテンツ フォーカス(note/Brain)', '', area?.intentInstruction ?? '', '', '直近バズ(ネタ候補):']
+  for (const b of buzz ?? []) lines.push(`  ・${(b.post_text || '').slice(0, 50)} (score ${b.buzz_score})`)
+  return {
+    response_text: lines.join('\n'),
+    actions_taken: ['ストック方針提示', 'バズからネタ抽出'],
+    next_action: 'skip_to_next_topic',
+  }
+}
+
+async function handleFollowerGrowthAnalyze(): Promise<Partial<LoopExecutorResult>> {
+  const supabase = getSupabase()
+  const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const { data: gm } = await supabase
+    .from('x_growth_metrics')
+    .select('date, followers_count, daily_follower_change')
+    .gte('date', since30d.toISOString().slice(0, 10))
+    .order('date', { ascending: false })
+    .limit(30)
+  let followers = 0
+  try {
+    const { getMyProfile } = await import('../../x-api/client')
+    const p = await getMyProfile()
+    followers = p.followersCount ?? 0
+  } catch { /* best-effort */ }
+  const latest = gm?.[0]
+  const oldest = gm && gm.length > 0 ? gm[gm.length - 1] : undefined
+  const delta = (latest?.followers_count ?? 0) - (oldest?.followers_count ?? 0)
+  const lines = [
+    '👥 フォロワー成長 分析（提案のみ・自動適用しません）',
+    '',
+    `■ 現在フォロワー: ${followers || latest?.followers_count || '?'}`,
+    `■ 30日増減: ${delta >= 0 ? '+' : ''}${delta}`,
+    '',
+    '■ プロフィール最適化提案:',
+    '  - bio冒頭に「誰の何を解決するか」を一文で（専門性＋実績）',
+    '  - 固定ツイートを最も保存された投稿に差し替え',
+    '  - 一貫したテーマ発信で「フォローする理由」を明確化',
+    '',
+    '⚠️ ライブのbio/固定ツイートは自動編集しません。手動でご確認ください。',
+  ]
+  return {
+    response_text: lines.join('\n'),
+    actions_taken: ['フォロワー増減確認', 'プロフ最適化提案'],
+    next_action: 'human_review',
+  }
+}
+
+// ============================================================
 // Router
 // ============================================================
 
@@ -1396,6 +1494,9 @@ const handlers: Record<string, Handler> = {
   'threads_post:analyze': handleThreadsPostAnalyze,
   'pattern_optimize:analyze': handlePatternOptimizeAnalyze,
   'strategy:analyze': handleStrategyAnalyze,
+  'sales_cta:analyze': handleSalesCtaAnalyze,
+  'stock_content:analyze': handleStockContentAnalyze,
+  'follower_growth:analyze': handleFollowerGrowthAnalyze,
   'blog_research:analyze': handleBlogResearchAnalyze,
   'blog_draft:execute': handleBlogDraftExecute,
   'blog_review:analyze': handleBlogReviewAnalyze,
