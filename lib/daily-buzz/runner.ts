@@ -6,7 +6,7 @@
  */
 
 import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { generateNeonThumbnail } from '@/lib/ai-image/openai-image'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
 import { calculateCharacterOverlap } from '../ai-judge/safety-checks'
@@ -409,63 +409,23 @@ async function generateInfographic(
   category: BuzzCategory,
   content: BuzzThreadContent,
 ): Promise<Buffer | null> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY
-  if (!apiKey) {
-    process.stdout.write('[infographic] GOOGLE_AI_API_KEY not set, skipping\n')
-    return null
-  }
-
-  const config = getCategoryConfig(category)
-  const today = new Date()
-  const dateLabel = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`
-
-  const pointsBlock = content.infographicPoints
-    .map((p, i) => `${i + 1}. ${p}`)
-    .join('\n')
-
-  const prompt = `以下の情報を元に、1200x630pxの図解インフォグラフィックを1枚生成してください。
-
-【テーマ】
-${content.infographicTitle}
-
-【内容】
-${pointsBlock}
-
-【デザイン指示】
-- 背景: ダークグラデーション（${config.infographicGradient}）
-- テキスト色: 白 #FFFFFF
-- アクセントカラー: ${config.infographicAccent}
-- 上部タイトル「${content.infographicTitle}」
-- 下部に「${dateLabel}」
-- ゴシック体、太字、視認性最優先
-- クリーン＆モダン
-- 日本語メイン
-- 写真やイラスト不要`
-
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-image-preview' })
+    const result = await generateNeonThumbnail(
+      {
+        title: content.infographicTitle,
+        keywords: content.infographicPoints.slice(0, 5) as string[],
+        theme: `daily buzz infographic: ${category}`,
+        saveBadge: true,
+      },
+      { quality: 'high', size: '1536x1024' },
+    )
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseModalities: ['TEXT', 'IMAGE'],
-        temperature: 0.7,
-        candidateCount: 1,
-        maxOutputTokens: 8192,
-      } as any,
-    })
-
-    const parts = result.response.candidates?.[0]?.content?.parts ?? []
-    for (const part of parts) {
-      const p = part as { inlineData?: { mimeType: string; data: string } }
-      if (p.inlineData?.mimeType?.startsWith('image/')) {
-        return Buffer.from(p.inlineData.data, 'base64')
-      }
+    if (result.error || !result.buffer) {
+      process.stdout.write(`[infographic] OpenAI did not return an image: ${result.error ?? 'no buffer'}\n`)
+      return null
     }
 
-    process.stdout.write('[infographic] Gemini did not return an image\n')
-    return null
+    return result.buffer
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     process.stdout.write(`[infographic] Generation failed: ${msg}\n`)
