@@ -213,7 +213,7 @@ export interface ContentReviewResult {
 // ============================================================
 
 export type LoopSpeaker = 'ai_a' | 'ai_b';
-export type LoopAgendaTopic = 'post_review' | 'buzz_post' | 'performance' | 'pattern_optimize' | 'strategy' | 'linkedin_review' | 'linkedin_post' | 'threads_review' | 'threads_post' | 'blog_research' | 'blog_draft' | 'blog_review' | 'blog_publish';
+export type LoopAgendaTopic = 'post_review' | 'buzz_post' | 'performance' | 'pattern_optimize' | 'strategy' | 'linkedin_review' | 'linkedin_post' | 'threads_review' | 'threads_post' | 'blog_research' | 'blog_draft' | 'blog_review' | 'blog_publish' | 'sales_cta' | 'stock_content' | 'follower_growth';
 export type LoopAgendaPhase = 'analyze' | 'propose' | 'execute' | 'learn' | 'generate';
 export type LoopStatus = 'active' | 'paused' | 'sleeping';
 
