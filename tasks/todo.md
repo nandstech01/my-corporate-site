@@ -134,8 +134,29 @@
      → 過負荷時の `claude -p exited 1` でジョブ全体が落ちるのを回避。実機フラグ動作確認済み
 検証: 実CLI invocation exit 0、local tsc 型エラーなし、憲法スモークOK。
 
-### 次の一手（未着手）
-- 監視: 次回スケジュールで queued 滞留・claude失敗なく回るか
-- Phase 3: 学習ループ復旧（impressions収集 / prediction_accuracy / growth-tracker / フォロワー帰属）
-- Typefully: キー設定で配信層起動
-- ⏳ ループ sleeping 復帰（Discord「再開」= ユーザー作業）
+### 2026-06-19 Phase 3 診断（学習ループ）— コード変更は見送り（正しい判断）
+実データ結論: パイプラインは全結線済み・バグではなく「飢餓」。
+- フォロワー160人(前日比-6), 最高impression=183(通常0-22), avg_ER=0
+- x_growth_metrics 稼働中(69件) / prediction_accuracy 0件 / ai_judge engagement_fetched 0件
+- 原因: ①投稿停止(=修正済) ②リーチほぼゼロ → 学習する材料(エンゲージ)が存在しない
+- 判断: データ0で学習コードを憶測編集しても検証不能＝無意味。リーチが出てから実データでチューニングすべき。
+- ボトルネックは学習コードではなく「リーチ」。リーチのレバー(良コンテンツ×継続×露出)は今回すべて修正済み。
+
+### 監視ポイント（投稿再開後に確認）
+- engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
+- prediction_accuracy が増えるか / impressions が改善するか
+
+### 残（ユーザー作業 or 将来）
+- ⏳ ループ sleeping 復帰（Discord「再開」）
+- ⏳ Typefully キー設定で配信層起動
+- 将来: リーチが出たら学習ループの実データチューニング（プロアクティブ・リプの露出強化等）
+
+### 2026-06-20 運用プレイブック（頭脳）実装 — 完了
+基盤維持・追加のみ。全Phase main反映済。
+- Phase1: lib/cortex/playbook/config.ts（10領域・selectPlaybookArea/formatPlaybookForPrompt/applyPlaybookBias/hookTypeToPatternId）#23
+- Phase3a/4a: post-graph に allowedPatternIds/playbookInstructions、sales_cta_line追加 #24
+- Phase3c/3d/4b: loop-executor に sales_cta/stock_content/follower_growth領域 + 再現性ブリッジ(viral_analysis→bandit) #25
+- Phase3b + 画像: x-auto-post 領域バイアス+タグ、Gemini→OpenAI GPT Image 2差し替え #26
+- Phase2: cortex-autonomous-content タスク + cortex-x-writer.md にプレイブック注入
+- 関連: DeepSeekリサーチ固定/claude -p Opus 4.8ブログ生成/OpenAI画像($0.2/枚)/土日X枠/Typefully配信
+検証: 各Phase tsc型エラーなし、config↔templates整合、Phase0コマンド実動、分布value-first(buzz18%/sales5%)。
