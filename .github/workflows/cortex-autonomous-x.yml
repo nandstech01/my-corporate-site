@@ -1,0 +1,34 @@
+name: CORTEX Autonomous X
+
+# 自己完結のX自動投稿（コレクター/ローカルアプリ非依存）。
+# プレイブック領域選定 → Brave自前リサーチ → generateXPost → Typefully(next-free-slot)。
+on:
+  schedule:
+    - cron: '0 23 * * *'   # JST 8:00
+    - cron: '0 11 * * *'   # JST 20:00
+  workflow_dispatch:
+
+jobs:
+  run:
+    # Mac self-hosted（Typefully投稿のためPlaywright/Python不要の軽量経路）
+    runs-on: [self-hosted, macOS, ARM64, nands-cortex]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx tsx scripts/cortex-autonomous-x.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          TYPEFULLY_ENABLED: ${{ secrets.TYPEFULLY_ENABLED }}
+          TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
+          TYPEFULLY_SOCIAL_SET_ID: ${{ secrets.TYPEFULLY_SOCIAL_SET_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          X_USERNAME: ${{ secrets.X_USERNAME }}
+          LANGCHAIN_TRACING_V2: 'false'

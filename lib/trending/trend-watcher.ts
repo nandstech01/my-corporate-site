@@ -48,9 +48,9 @@ async function fetchBreakingBuzzPosts(): Promise<readonly TrendingOpportunity[]>
 
   const { data, error } = await supabase
     .from('buzz_posts')
-    .select('id, post_text, buzz_score, platform, created_at')
+    .select('id, post_text, buzz_score, platform, post_date')
     .gte('buzz_score', BUZZ_SCORE_THRESHOLD)
-    .gte('created_at', since)
+    .gte('post_date', since)
     .order('buzz_score', { ascending: false })
     .limit(10)
 
@@ -64,7 +64,7 @@ async function fetchBreakingBuzzPosts(): Promise<readonly TrendingOpportunity[]>
   if (!data || data.length === 0) return []
 
   return data.map((row) => {
-    const detectedAt = new Date(row.created_at as string)
+    const detectedAt = new Date(row.post_date as string)
     const score = calculatePriorityScore(
       normalizeScore(row.buzz_score as number, 200, 1000),
       'breaking',
