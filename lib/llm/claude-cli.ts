@@ -72,10 +72,12 @@ export async function invokeClaude(
   // フォールバック: claude -p が使えない実行環境(GitHub Actions runner等、
   // 対話セッションのkeychain認証が無い)向け。課金済みのOpenAIを優先、Anthropicは保険。
   // ローカル対話セッションでは claude -p(無料)が成功するためAPIは呼ばれない。
+  let openAiError: unknown
   if (process.env.OPENAI_API_KEY) {
     try {
       return await invokeViaOpenAiApi(user, { system, model, timeoutMs })
     } catch (apiErr) {
+      openAiError = apiErr
       lastError = apiErr
     }
   }
@@ -86,9 +88,13 @@ export async function invokeClaude(
       lastError = apiErr
     }
   }
-  throw lastError instanceof Error
-    ? lastError
-    : new Error(`invokeClaude failed: ${String(lastError)}`)
+  // OpenAIが本命フォールバック。Anthropicは残高ゼロで死んでいることが多く、その
+  // "credit balance too low" が本来の原因(OpenAI障害)を覆い隠す。OpenAIを試して
+  // 失敗していれば、その実エラーを優先して投げる(デバッグ可能性のため)。
+  const errToThrow = openAiError ?? lastError
+  throw errToThrow instanceof Error
+    ? errToThrow
+    : new Error(`invokeClaude failed: ${String(errToThrow)}`)
 }
 
 /** ClaudeModel → OpenAI テキストモデルの対応（フォールバック用・コスト最適化）。
@@ -103,11 +109,37 @@ function mapToOpenAiModel(model: ClaudeModel): string {
   return 'gpt-4o-mini'
 }
 
+/** OpenAI フォールバックの一時エラー時リトライ回数（429/5xx/ネットワーク/タイムアウト）。 */
+const OPENAI_RETRIES = 2
+
 /**
  * OpenAI Chat Completions 直接呼び出し（claude -p フォールバックの第一候補）。
  * keychain非依存。OPENAI_API_KEY を使用（runner等の常時稼働環境向け）。
+ * 一時エラー(429/5xx/ネットワーク/タイムアウト)は指数バックオフでリトライする。
+ * これが落ちると残高ゼロの Anthropic に落ちてジョブ全体が死ぬため、ここで粘る。
  */
 async function invokeViaOpenAiApi(
+  user: string,
+  { system, model, timeoutMs }: { system?: string; model: ClaudeModel; timeoutMs: number },
+): Promise<ClaudeResponse> {
+  let lastError: unknown
+  for (let attempt = 0; attempt <= OPENAI_RETRIES; attempt++) {
+    try {
+      return await invokeOpenAiOnce(user, { system, model, timeoutMs })
+    } catch (err) {
+      lastError = err
+      // 一時エラーでなければ即座に諦める（400/401/403等のリトライは無意味）
+      if (attempt >= OPENAI_RETRIES || !isTransientOpenAiError(err)) break
+      await sleep(800 * (attempt + 1))
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`OpenAI API failed: ${String(lastError)}`)
+}
+
+/** OpenAI 1回分の呼び出し（リトライ無し）。 */
+async function invokeOpenAiOnce(
   user: string,
   { system, model, timeoutMs }: { system?: string; model: ClaudeModel; timeoutMs: number },
 ): Promise<ClaudeResponse> {
@@ -144,6 +176,16 @@ async function invokeViaOpenAiApi(
   } finally {
     clearTimeout(timer)
   }
+}
+
+/** OpenAI の一時エラー判定（429/5xx/ネットワーク断/タイムアウト/空応答）。 */
+function isTransientOpenAiError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err)
+  if (/OpenAI API (429|5\d\d):/.test(msg)) return true
+  if (/returned empty text/.test(msg)) return true
+  // AbortError(タイムアウト) や fetch のネットワークエラー
+  if (/abort|timed? ?out|ECONN|ENET|EAI_AGAIN|fetch failed|network/i.test(msg)) return true
+  return false
 }
 
 /**
