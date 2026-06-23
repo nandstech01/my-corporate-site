@@ -69,9 +69,65 @@ export async function invokeClaude(
       }
     }
   }
+  // フォールバック: claude -p が使えない実行環境(GitHub Actions runner等、
+  // 対話セッションのkeychain認証が無い)では ANTHROPIC_API_KEY で直接API生成する。
+  // ローカル対話セッションでは claude -p(無料)が成功するためAPIは呼ばれない。
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      return await invokeViaAnthropicApi(user, { system, model, timeoutMs })
+    } catch (apiErr) {
+      lastError = apiErr
+    }
+  }
   throw lastError instanceof Error
     ? lastError
     : new Error(`invokeClaude failed: ${String(lastError)}`)
+}
+
+/**
+ * Anthropic Messages API 直接呼び出し（claude -p フォールバック用）。
+ * keychain非依存。ANTHROPIC_API_KEY を使用（runner等の常時稼働環境向け）。
+ */
+async function invokeViaAnthropicApi(
+  user: string,
+  { system, model, timeoutMs }: { system?: string; model: ClaudeModel; timeoutMs: number },
+): Promise<ClaudeResponse> {
+  const start = Date.now()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY as string,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 8192,
+        ...(system ? { system } : {}),
+        messages: [{ role: 'user', content: user }],
+      }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => '')
+      throw new Error(`Anthropic API ${res.status}: ${t.slice(0, 300)}`)
+    }
+    const data = (await res.json()) as {
+      content?: Array<{ type: string; text?: string }>
+    }
+    const text = (data.content ?? [])
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text ?? '')
+      .join('')
+      .trim()
+    if (!text) throw new Error('Anthropic API returned empty text')
+    return { text, model, durationMs: Date.now() - start }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 async function invokeOnce(
