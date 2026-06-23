@@ -91,9 +91,14 @@ export async function invokeClaude(
     : new Error(`invokeClaude failed: ${String(lastError)}`)
 }
 
-/** ClaudeModel → OpenAI テキストモデルの対応（フォールバック用・全て課金で疎通確認済） */
+/** ClaudeModel → OpenAI テキストモデルの対応（フォールバック用・コスト最適化）。
+ *  月$10上限を守るため安価側に寄せる（X短文は gpt-5-mini/gpt-4o-mini で十分高品質）。
+ *  必要なら CORTEX_OPENAI_STRONG=true で opus→gpt-5.2 に引き上げ可。 */
 function mapToOpenAiModel(model: ClaudeModel): string {
-  if (model === 'claude-opus-4-8' || model === 'claude-opus-4-7') return 'gpt-5.2'
+  const strong = process.env.CORTEX_OPENAI_STRONG === 'true'
+  if (model === 'claude-opus-4-8' || model === 'claude-opus-4-7') {
+    return strong ? 'gpt-5.2' : 'gpt-5-mini'
+  }
   if (model === 'claude-sonnet-4-6') return 'gpt-5-mini'
   return 'gpt-4o-mini'
 }
