@@ -20,11 +20,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-      # claude -p 認証プローブ: runner(gui/501=GUIログインセッション)のキーチェーン
-      # (Claude Code-credentials)で Opus 4.8 が無料動作するか実地確認。失敗してもジョブは継続。
-      # 注: CLAUDE_CODE_OAUTH_TOKEN は渡さない(無効トークンがキーチェーンを上書きして401で殺すため)。
+      # claude -p 認証プローブ: runnerで Opus 4.8 が動くか実地確認。失敗してもジョブは継続。
+      # 検証結果(2026-06-23): runnerジョブcontextはGUIログインセッション(gui/501)でも
+      # Claudeキーチェーンを見られず「Not logged in」。よって headless 認証には
+      # CLAUDE_CODE_OAUTH_TOKEN(claude setup-token で発行する長期トークン)が必須。
       - name: Probe claude -p (Opus 4.8) auth
         continue-on-error: true
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           echo "ping、5字で返答" | /opt/homebrew/bin/claude -p --model claude-opus-4-8 --no-session-persistence \
             && echo "PROBE_CLAUDE_OK" || echo "PROBE_CLAUDE_FAIL"
@@ -37,11 +40,12 @@ jobs:
           TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
           TYPEFULLY_SOCIAL_SET_ID: ${{ secrets.TYPEFULLY_SOCIAL_SET_ID }}
           # 生成は claude -p(Opus 4.8/サブスク無料)を最優先。runnerのPATHに /opt/homebrew/bin が
-          # 無いため絶対パスを明示。キーチェーン認証(GUIセッション)で動く。
+          # 無いため絶対パスを明示。認証は下記の長期OAuthトークン。
           CLAUDE_CLI_BIN: /opt/homebrew/bin/claude
+          # claude setup-token で発行した長期トークン。これが有効なら runner で Opus 4.8 無料生成。
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # OpenAIは claude -p 不可時の保険のみ(PR#34でリトライ済)。
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # 注: ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN は意図的に外した。
-          #   前者=残高ゼロで誤解errの元、後者=無効トークンがキーチェーンを上書きして401。
+          # 注: ANTHROPIC_API_KEY は意図的に外した(残高ゼロで誤解errの元)。
           X_USERNAME: ${{ secrets.X_USERNAME }}
           LANGCHAIN_TRACING_V2: 'false'
