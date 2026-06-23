@@ -261,7 +261,10 @@ async function invokeOnce(
   const start = Date.now()
 
   return new Promise<ClaudeResponse>((resolve, reject) => {
-    const proc = spawn('claude', args, {
+    // runner等でPATHに /opt/homebrew/bin が無いと spawn('claude') が ENOENT で落ちる。
+    // CLAUDE_CLI_BIN で絶対パス指定可能にする(未設定ならPATH解決の 'claude')。
+    const claudeBin = process.env.CLAUDE_CLI_BIN || 'claude'
+    const proc = spawn(claudeBin, args, {
       env: {
         ...process.env,
         CLAUDE_VOICE_HOOK_SUPPRESS: '1',

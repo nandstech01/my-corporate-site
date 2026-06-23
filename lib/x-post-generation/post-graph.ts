@@ -188,7 +188,9 @@ type GraphStateType = typeof PostGraphState.State
 function createModel() {
   // Migrated from ChatOpenAI(gpt-5.2) to Claude CLI (subscription-backed) to
   // eliminate per-token API costs while preserving prompt + output shape.
-  return new ClaudeChatModel({ model: 'claude-sonnet-4-6' })
+  // 品質優先で Opus 4.8 を使用。claude -p(サブスク)経由なら無料・最高品質。
+  // runnerで claude -p が使えない場合のみ OpenAI フォールバック(gpt-5-mini)に降格。
+  return new ClaudeChatModel({ model: 'claude-opus-4-8' })
 }
 
 // ============================================================
