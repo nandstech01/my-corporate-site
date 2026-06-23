@@ -70,8 +70,15 @@ export async function invokeClaude(
     }
   }
   // フォールバック: claude -p が使えない実行環境(GitHub Actions runner等、
-  // 対話セッションのkeychain認証が無い)では ANTHROPIC_API_KEY で直接API生成する。
+  // 対話セッションのkeychain認証が無い)向け。課金済みのOpenAIを優先、Anthropicは保険。
   // ローカル対話セッションでは claude -p(無料)が成功するためAPIは呼ばれない。
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      return await invokeViaOpenAiApi(user, { system, model, timeoutMs })
+    } catch (apiErr) {
+      lastError = apiErr
+    }
+  }
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       return await invokeViaAnthropicApi(user, { system, model, timeoutMs })
@@ -82,6 +89,56 @@ export async function invokeClaude(
   throw lastError instanceof Error
     ? lastError
     : new Error(`invokeClaude failed: ${String(lastError)}`)
+}
+
+/** ClaudeModel → OpenAI テキストモデルの対応（フォールバック用・全て課金で疎通確認済） */
+function mapToOpenAiModel(model: ClaudeModel): string {
+  if (model === 'claude-opus-4-8' || model === 'claude-opus-4-7') return 'gpt-5.2'
+  if (model === 'claude-sonnet-4-6') return 'gpt-5-mini'
+  return 'gpt-4o-mini'
+}
+
+/**
+ * OpenAI Chat Completions 直接呼び出し（claude -p フォールバックの第一候補）。
+ * keychain非依存。OPENAI_API_KEY を使用（runner等の常時稼働環境向け）。
+ */
+async function invokeViaOpenAiApi(
+  user: string,
+  { system, model, timeoutMs }: { system?: string; model: ClaudeModel; timeoutMs: number },
+): Promise<ClaudeResponse> {
+  const start = Date.now()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: mapToOpenAiModel(model),
+        max_completion_tokens: 8192,
+        messages: [
+          ...(system ? [{ role: 'system', content: system }] : []),
+          { role: 'user', content: user },
+        ],
+      }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => '')
+      throw new Error(`OpenAI API ${res.status}: ${t.slice(0, 300)}`)
+    }
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>
+    }
+    const text = (data.choices?.[0]?.message?.content ?? '').trim()
+    if (!text) throw new Error('OpenAI API returned empty text')
+    return { text, model, durationMs: Date.now() - start }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /**
