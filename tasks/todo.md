@@ -142,6 +142,36 @@
 - 判断: データ0で学習コードを憶測編集しても検証不能＝無意味。リーチが出てから実データでチューニングすべき。
 - ボトルネックは学習コードではなく「リーチ」。リーチのレバー(良コンテンツ×継続×露出)は今回すべて修正済み。
 
+### 2026-06-24 Claude Code情報ハブ化（着手）
+目的: フォロワーが伸びない真因=リーチ枯渇(impressions≒0/160人)。観客ゼロ段階のリーチのレバーは
+「Claude Code大手垢への引用RT・リプライ + 公式最新ニュースの波乗り」。ユーザー要望と一致。
+現状の弱点: daily-buzz `claude-code` はX検索だけ(公式changelog未読=教科書化できない)・cronコメントアウトで手動のみ・
+バズ垢の文体を真似る仕組み無し・引用RTはviral-repost(Slack手動/CC非特化/ループ未接続)。
+
+方針(新規大改修ではなく既存claude-codeカテゴリのネタ元と文体を強化):
+- [x] A. lib/cortex/knowledge/claude-code-watcher.ts 新規 — 公式CHANGELOG(GitHub raw)を解析+Braveコミュニティバズ。
+      collectClaudeCodeDigest()で {changelog, community, communityHandles} を返す。実機検証済(2.1.187等を取得)。
+- [x] B. lib/cortex/posting/claude-code-thread.ts 新規 — digest→セルフリプライ解説スレッド生成。
+      公式changelogを教科書の実体に、バズ垢投稿をfew-shotで構造注入(文体は現状維持)。Xアルゴ最適化(メインにリンク無/ハッシュタグ≤2/出典は末尾リプ)。
+      実機検証済: 2.1.187のサンドボックス資格情報遮断をコード例付き3リプで解説するスレッドを生成(投稿せずプレビュー確認)。
+      ※生成品質の注意: settings.jsonの具体値(例 "credentials":"block")はモデル推定が混じりうる→cortexReview/voiceゲート通過後でも公式表記の照合が望ましい。
+- [x] C. daily-buzz/runner.ts runDailyBuzzThread を分岐: category==='claude-code'時は generateClaudeCodeThread()(watcher→教科書スレッド)を使用。
+      それ以外は従来のバズまとめ。画像/dedup/cortexReview/postBuzzThread/analyticsの下流は完全再利用(最小改変)。
+- [x] D. lib/cortex/posting/claude-code-repost.ts 新規 — watcherのCC候補→Claude(haiku)が1件選定+日本語引用文生成→
+      既存ゲート(checkDailyPostLimit('x') + cortexReview)→ quoteTweet() で自動投稿→ savePostAnalytics(source_url/quoted_tweet_id/tags)。
+      Slack承認のviral-repostには非干渉(自己完結)。ドライ検証: CC候補4件(@ClaudeDevs/@Voxyz_ai/@claudeai)取得確認。
+- [x] E. 気合画像 — claude-code解説スレッドは下流共有の generateInfographic で毎回インフォグラフィック画像付き。
+      加えて既存 weekly-x-threads.yml(scripts/weekly-claude-code-update.ts)が週次CCスレッドを別途運用。
+- [x] F. cron再有効化 — slack-bot-cron.yml: daily-buzz-claude-code(JST13:30)コメント解除 + claude-code-repost(JST15:00)新規。
+      scripts/slack-bot-cron.ts: JobName/SCHEDULE_TO_JOB/detectJob/JOB_HANDLERS の4箇所に claude-code-repost を配線 + import追加。
+
+### 2026-06-24 検証結果
+- watcher実機: 公式CHANGELOG 2.1.187/186/185 取得 + コミュニティ垢抽出OK。
+- generator実機: 2.1.187(sandbox資格情報遮断)をコード例付き3リプ解説スレッドに変換(プレビュー・投稿せず)。
+- repostドライラン: 投稿可能なCC候補4件抽出OK(最後のquoteTweetは呼ばず)。
+- tsc: 変更5ファイルに型エラーなし。規約遵守(SNS関連のみ・既存パターン削除なし)。
+- LIVE化: cronは main 反映後に発火(daily-buzz-CC 本日JST13:30 / 引用RT 本日JST15:00)。Brave 429は一時的(cron再取得で吸収)。
+
 ### 監視ポイント（投稿再開後に確認）
 - engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
 - prediction_accuracy が増えるか / impressions が改善するか
@@ -160,3 +190,14 @@
 - Phase2: cortex-autonomous-content タスク + cortex-x-writer.md にプレイブック注入
 - 関連: DeepSeekリサーチ固定/claude -p Opus 4.8ブログ生成/OpenAI画像($0.2/枚)/土日X枠/Typefully配信
 検証: 各Phase tsc型エラーなし、config↔templates整合、Phase0コマンド実動、分布value-first(buzz18%/sales5%)。
+
+### 2026-06-23 cron信頼性修復（PR #34・main反映済）
+実データ状況確認: X投稿は2.5ヶ月停止後の本日復活・ライブ稼働(tweet_id 2069222790964949163 reconcile成功)。
+x_post_analytics=104行/x_growth_metrics=73行は結線済だがimpressions=0(エンゲージ飢餓・リーチ僅少)。
+発見した重大バグ: 自律X cron 3回中2回がFATAL。根因=OpenAIフォールバック(invokeViaOpenAiApi)に
+リトライが無く、429/5xx一時エラーで即・残高ゼロAnthropicに落ち「credit balance too low」で全死。
+- 修正(lib/llm/claude-cli.ts): OpenAIに一時エラー指数バックオフ最大2回リトライ追加。非一時(400/401/403)は即失敗。
+  フォールバック全滅時はOpenAI実エラーを優先送出(Anthropic残高エラーで覆い隠さない)。
+検証: tsc 0エラー。スモークテストで(a)503,503,200→3回リトライ成功 (b)400→1回即失敗+OpenAI実エラー送出 を確認。
+未対応(ユーザー作業): OpenAI使用額はAPIスコープ不足で取得不可→ダッシュボード確認+$10上限設定。
+監視: cortex-autonomous-x.ymlのscheduled実行は未発火(全て手動dispatch)。初の自動発火は本日20:00 JST枠。

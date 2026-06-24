@@ -31,7 +31,8 @@ on:
     # - cron: '0 12 * * *'            # JST 21:00 Viral repost — 廃止(viral-ai-repostに集約)
     - cron: '0 13 * * *'              # JST 22:00 Cross-post engagement collector (daily)
     # - cron: '0 23 * * *'            # JST 8:00 Daily buzz global — 廃止(daily-buzz 3→1集約)
-    # - cron: '30 4 * * *'            # JST 13:30 Daily buzz Claude Code — 廃止(daily-buzz 3→1集約)
+    - cron: '30 4 * * *'             # JST 13:30 Daily buzz Claude Code (公式CHANGELOG教科書スレッド)
+    - cron: '0 6 * * *'              # JST 15:00 Claude Code 引用RT (CC大手垢に絡む・自律ゲート付き)
     - cron: '0 11 * * *'              # JST 20:00 Daily buzz AI tech Japan (1日1本の本命まとめ)
     - cron: '45 22 * * 0,2,4,6'        # JST 7:45 Mon,Wed,Fri,Sun Instagram carousel auto-post (shifted from 0 22 to avoid x-engagement-collector collision)
     - cron: '45 22 * * 1,3,5'          # JST 7:45 Tue,Thu,Sat Instagram hybrid carousel auto-post (shifted from 0 22 to avoid collision)
@@ -73,6 +74,7 @@ on:
           - daily-buzz-global
           - daily-buzz-claude-code
           - daily-buzz-japan
+          - claude-code-repost
           - anthropic-tweet-reactor
           - viral-ai-repost
           - viral-threads-repost

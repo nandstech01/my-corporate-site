@@ -523,22 +523,42 @@ async function postBuzzThread(
 export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> {
   process.stdout.write(`\n=== Daily Buzz Thread: ${category} ===\n`)
 
-  // Step 1: Collect buzz tweets
-  process.stdout.write('[step 1] Collecting buzz tweets...\n')
-  const tweets = await collectBuzzTweets(category)
+  // Step 1-2: Build thread content.
+  // claude-code は公式CHANGELOGベースの「教科書」解説スレッド（watcher→generator）。
+  // それ以外は従来のバズまとめ（他人の投稿をメンションして集約）。
+  let content: BuzzThreadContent
+  if (category === 'claude-code') {
+    process.stdout.write('[step 1-2] Generating Claude Code explainer thread from official changelog...\n')
+    const { generateClaudeCodeThread } = await import('../cortex/posting/claude-code-thread')
+    const generated = await generateClaudeCodeThread()
+    if (!generated || !generated.mainTweet || generated.replies.length === 0) {
+      process.stdout.write('[done] Claude Code thread generation empty. Skipping.\n')
+      return
+    }
+    content = {
+      mainTweet: generated.mainTweet,
+      replies: generated.replies,
+      infographicTitle: generated.infographicTitle,
+      infographicPoints: generated.infographicPoints,
+    }
+  } else {
+    // Step 1: Collect buzz tweets
+    process.stdout.write('[step 1] Collecting buzz tweets...\n')
+    const tweets = await collectBuzzTweets(category)
 
-  if (tweets.length < 3) {
-    process.stdout.write(`[done] Only ${tweets.length} tweet(s) found. Need at least 3. Skipping.\n`)
-    return
-  }
+    if (tweets.length < 3) {
+      process.stdout.write(`[done] Only ${tweets.length} tweet(s) found. Need at least 3. Skipping.\n`)
+      return
+    }
 
-  // Step 2: Generate thread content
-  process.stdout.write('[step 2] Generating thread content...\n')
-  const content = await generateThreadContent(category, tweets)
+    // Step 2: Generate thread content
+    process.stdout.write('[step 2] Generating thread content...\n')
+    content = await generateThreadContent(category, tweets)
 
-  if (!content.mainTweet || content.replies.length === 0) {
-    process.stdout.write('[done] Content generation returned empty. Skipping.\n')
-    return
+    if (!content.mainTweet || content.replies.length === 0) {
+      process.stdout.write('[done] Content generation returned empty. Skipping.\n')
+      return
+    }
   }
 
   // Step 3: Generate infographic
