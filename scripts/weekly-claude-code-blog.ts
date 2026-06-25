@@ -76,9 +76,13 @@ async function generateBlog(spec: BlogTopicSpec): Promise<string | null> {
   const url = `${base}/api/generate-hybrid-blog`
   process.stdout.write(`[cc-blog] Generating via ${url} (topic="${spec.topic}")\n`)
 
+  // 生成は claude -p Opus で実行され、長文(30k字)は ~300秒の壁でタイムアウトしやすい。
+  // 完走させるため記事長を抑えめ(既定12000字)にし、クライアントの待ち時間も延長する。
+  const targetLength = Number(process.env.CC_BLOG_LENGTH || 12000)
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(900_000), // 15分: 既定300秒のfetch中断を回避
     body: JSON.stringify({
       topic: spec.topic,
       targetKeyword: spec.targetKeyword,
@@ -88,6 +92,7 @@ async function generateBlog(spec: BlogTopicSpec): Promise<string | null> {
       scrapeQuery2: spec.scrapeQuery2,
       researchQuery1: spec.researchQuery1,
       researchQuery2: spec.researchQuery2,
+      targetLength,
       generationModel: 'deepseek',
       researchModel: 'deepseek',
       enableH2Diagrams: true,

@@ -254,3 +254,14 @@ x_post_analytics=104行/x_growth_metrics=73行は結線済だがimpressions=0(�
 - [x] cortex-blog-seo SKILL.md 更新: Claude Code回は changelog根拠スペックを使用、公開後にZenn/Qiita/noteへDRY-RUN→本投稿。
 検証: topicモード実機で Claude Code 2.1.191 根拠スペック生成。tsc型エラーなし。
 制約: 生成はローカルNext必須(claude -p/Cloudflare 524回避)=skill経由。crosspostはAPI/GitHub方式で単体可。canonical_urlで自社ブログにSEO集約。
+
+### 2026-06-26 全自動 Claude Code ブログ→クロスポスト パイプライン
+方針: もう手動なし。Claude Code寄せ8割+自社AI2割、公式オレンジバナー、週3(月水金JST8:00)、公開まで全自動、イマイチな時だけ人間が指示。
+app/の生成ルート(変更禁止・不安定・RAG重め)は不使用。自前生成器を lib/cortex/blog/ に新設し claude -p で生成。
+- [x] lib/cortex/blog/: types/topic-bank/prompts/topic-planner/article-generator(チャンク生成)/banner-thumbnail(OpenAIオレンジバナー)/quality-gate/publisher/runner
+- [x] scripts/slack-bot-cron.ts + slack-bot-cron.yml: job 'claude-code-blog'(cron '0 23 * * 0,2,4'=月水金JST8:00)、env(NOTE/DISCORD/GITHUB_TOKEN/CC_BLOG_*)追加
+- [x] 旧 cortex-blog-seo スキルを廃止表記(一本化)
+- [x] 品質ゲートを「構造破綻のみ下書き/それ以外は自動公開(スコアは参考)」に変更 ← 「非公開で止まる」問題の根治
+検証(Stage2 DRY-RUN): 「Claude Codeコスト最適化7つの方法」11028字・①〜⑦+仕組み+まとめ・痛みフック・オレンジバナー生成成功。
+要改善メモ: セクション内のCLAUDE.md例が ## H2 として混入することがある(プロンプトでコードフェンス徹底)。
+安全: CC_BLOG_ENABLED(kill-switch)/CC_BLOG_DRY_RUN。GitHub変数で制御。ZennはCROSS_POST_GITHUB_TOKEN(PAT)要設定(無くてもQiita/note可)。
