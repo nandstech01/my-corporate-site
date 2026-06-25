@@ -488,27 +488,32 @@ export async function savePostAnalytics(params: {
 }): Promise<XPostAnalytics> {
   const supabase = getSupabase()
 
+  // ml_* カラムは x_post_analytics に存在しない（スキーマ未追加）。
+  // 常時 insert すると "Could not find the 'ml_confidence' column" で全保存が失敗するため、
+  // 値が明示指定された時だけ含める（既定では送らない＝保存が通る）。
+  const insertRow: Record<string, unknown> = {
+    tweet_id: params.tweetId,
+    tweet_url: params.tweetUrl ?? null,
+    post_text: params.postText,
+    post_mode: params.postMode ?? null,
+    pattern_used: params.patternUsed ?? null,
+    posted_at: new Date().toISOString(),
+    tags: params.tags ?? null,
+    post_type: params.postType ?? 'original',
+    quoted_tweet_id: params.quotedTweetId ?? null,
+    thread_position: params.threadPosition ?? null,
+    thread_root_id: params.threadRootId ?? null,
+    source_url: params.sourceUrl ?? null,
+    media_url: params.mediaUrl ?? null,
+  }
+  if (params.mlFeatures !== undefined) insertRow.ml_features = params.mlFeatures
+  if (params.mlPrediction !== undefined) insertRow.ml_prediction = params.mlPrediction
+  if (params.mlConfidence !== undefined) insertRow.ml_confidence = params.mlConfidence
+  if (params.mlModelVersion !== undefined) insertRow.ml_model_version = params.mlModelVersion
+
   const { data, error } = await supabase
     .from('x_post_analytics')
-    .insert({
-      tweet_id: params.tweetId,
-      tweet_url: params.tweetUrl ?? null,
-      post_text: params.postText,
-      post_mode: params.postMode ?? null,
-      pattern_used: params.patternUsed ?? null,
-      posted_at: new Date().toISOString(),
-      tags: params.tags ?? null,
-      post_type: params.postType ?? 'original',
-      quoted_tweet_id: params.quotedTweetId ?? null,
-      thread_position: params.threadPosition ?? null,
-      thread_root_id: params.threadRootId ?? null,
-      source_url: params.sourceUrl ?? null,
-      media_url: params.mediaUrl ?? null,
-      ml_features: params.mlFeatures ?? null,
-      ml_prediction: params.mlPrediction ?? null,
-      ml_confidence: params.mlConfidence ?? null,
-      ml_model_version: params.mlModelVersion ?? null,
-    })
+    .insert(insertRow)
     .select()
     .single()
 

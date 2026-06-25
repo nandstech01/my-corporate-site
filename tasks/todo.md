@@ -210,6 +210,13 @@
 - savePostAnalytics が 'ml_confidence' カラム無しで失敗(既存スキーマ不整合・best-effort)。投稿は成功するがdedup記録に影響→要別修正。
 - 画像/ネイティブ引用は X API 有料枠 or Typefullyメディア配線が必要(別タスク)。
 
+### 2026-06-26 画像復活(Typefully経由・追加費用ゼロ) + analytics列bug修正
+- [x] CCスレッドに画像配線: generateInfographic(OpenAI GPT Image) → uploadTypefullyMedia → createTypefullyDraft({mediaIds, next-free-slot})。
+      X API有料枠不要。Typefully未設定/失敗時は postThread(テキスト) にフォールバック。
+- [x] savePostAnalytics(memory.ts): 存在しない ml_* 列を常時insertして全保存失敗 → 値指定時のみ含めるよう修正。
+検証(本番経路で実投稿): CCスレッド https://typefully.com/t/9mqSVz9 (image=true) 成功・analytics保存エラー消失。
+判断: 引用RTは画像でなく引用カード(URL)維持＝信用垢の実投稿を見せる方が社会的証明として強い(画像はカードを潰す)。
+
 ### 監視ポイント（投稿再開後に確認）
 - engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
 - prediction_accuracy が増えるか / impressions が改善するか
