@@ -172,6 +172,21 @@
 - tsc: 変更5ファイルに型エラーなし。規約遵守(SNS関連のみ・既存パターン削除なし)。
 - LIVE化: cronは main 反映後に発火(daily-buzz-CC 本日JST13:30 / 引用RT 本日JST15:00)。Brave 429は一時的(cron再取得で吸収)。
 
+### 2026-06-25 フィードバック対応（古い情報NG/信用リポスト/比重UP/画像）
+ユーザー指摘: ①投稿が古い情報(例 x-auto-postが"Opus 4.6 3番手"=記憶生成の陳腐化) ②claude tag級の最新が取れてない
+③信用あるリポストが無い ④リポスト比重を上げたい(アカウントに信用がないため) ⑤OpenAI画像を添付したい。
+実データ確認: 直近投稿は全て (original) タグ無し=x-auto-post。CC教科書スレッド/引用RTはマージ後未発火(初回JST13:30/15:00)。
+制約判明: X API読取(search/timeline)はクレジット枯渇(CreditsDepleted)。ツイート読取は全系統Braveのみ依存(reactorも)。
+- [x] 信用垢ホワイトリスト lib/cortex/knowledge/credible-accounts.ts (Anthropic公式+claudeai+ClaudeDevs+alexalbert__+swyx+simonw+mckaywrigley)。
+- [x] claude-code-repost を信用垢×鮮度(Brave freshness=pw)×画像に刷新。429リトライ(1.5s×最大3)+間隔1.3s。
+      site:形式はプロフィールページが返るためNG→reactor実績の "x.com <handle> ... status" 形式に修正。
+      著者が信用垢のstatus URLのみ採用。検証: @ClaudeDevs等の直近1週投稿を4件取得確認(投稿せず)。
+- [x] quoteTweet に mediaIds オプション追加(client.ts)。引用RTにOpenAI GPT Image infographicを添付(best-effort)。
+- [x] リバランス: x-auto-post 2→1(JST6:30, 古い情報源を抑制) / claude-code-repost 1→2(JST15:00,19:00, 比重UP)。
+      日次キャップ5は据え置き(gate)。リポスト系(CC引用×2+viral-ai×1)がオリジナル系より厚い構成に。
+検証: tsc型エラーなし。規約遵守(SNS関連のみ・既存パターン削除なし)。
+未対応(別タスク候補): x-auto-postのオリジナル投稿を最新データでgrounding(現状は記憶生成で陳腐化リスク)。
+
 ### 監視ポイント（投稿再開後に確認）
 - engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
 - prediction_accuracy が増えるか / impressions が改善するか
