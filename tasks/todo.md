@@ -185,7 +185,14 @@
 - [x] リバランス: x-auto-post 2→1(JST6:30, 古い情報源を抑制) / claude-code-repost 1→2(JST15:00,19:00, 比重UP)。
       日次キャップ5は据え置き(gate)。リポスト系(CC引用×2+viral-ai×1)がオリジナル系より厚い構成に。
 検証: tsc型エラーなし。規約遵守(SNS関連のみ・既存パターン削除なし)。
-未対応(別タスク候補): x-auto-postのオリジナル投稿を最新データでgrounding(現状は記憶生成で陳腐化リスク)。
+
+### 2026-06-25 x-auto-post 鮮度grounding（古い情報の根治・選択肢A）
+原因: x-auto-postのオリジナルがモデル記憶で型番/スコア/順位を脚色し陳腐化(例 "Opus 4.6 3番手")。
+方式: post-graphは非改変。generateXPostの既存シーム playbookInstructions 経由で鮮度ガードレールを注入(スコープ内=slack-bot/proactive)。
+- [x] buildGroundingInstructions(): 今日の日付 + 公式CHANGELOG検証済み事実(collectClaudeCodeDigest, communityLimit:0でBrave不使用) +
+      「提供事実に無い数値/型番/順位/最新断定は禁止・不確かな最新性は定性的に」のガードレールを生成。
+- [x] research系オリジナル全5経路に注入: 通常(top候補)/trending reactive/trending直接/dedupフォールバック/RSS trigger。
+検証: tsc型エラーなし。changelogのみ取得で429回避。規約遵守。
 
 ### 監視ポイント（投稿再開後に確認）
 - engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
