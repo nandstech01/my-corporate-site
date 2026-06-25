@@ -29,6 +29,7 @@ import { calculateCharacterOverlap } from '../../ai-judge/safety-checks'
 import { uploadMediaToX } from '../../x-api/media'
 import { generateArticleThumbnail } from '../../x-article/thumbnail-generator'
 import { watchTrends } from '../../trending/trend-watcher'
+import { collectClaudeCodeDigest } from '../../cortex/knowledge/claude-code-watcher'
 import type { TrendingOpportunity } from '../../trending/priority-queue'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 
@@ -43,6 +44,39 @@ async function randomDelay(): Promise<void> {
   const delayMin = Math.round(delayMs / 60_000)
   process.stdout.write(`X auto-post: Random delay ${delayMin} min before execution\n`)
   await new Promise((resolve) => setTimeout(resolve, delayMs))
+}
+
+// ============================================================
+// 鮮度グラウンディング（古い情報の投稿を根治）
+// ============================================================
+
+/**
+ * オリジナル投稿が「記憶」から古いバージョン番号・ベンチマーク・順位を
+ * 断定して陳腐化するのを防ぐ。検証済みの最新事実(公式CHANGELOG)を添え、
+ * 提供事実に無い数値・型番・最新断定を禁止するガードレールを返す。
+ * generateXPost の playbookInstructions シーム経由で注入する(post-graph非改変)。
+ */
+async function buildGroundingInstructions(): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10)
+
+  let freshFacts = ''
+  try {
+    const digest = await collectClaudeCodeDigest({ changelogLimit: 3, communityLimit: 0 })
+    if (digest.changelog.length > 0) {
+      freshFacts =
+        '\n## 検証済みの最新事実（Claude Code公式CHANGELOG。最新性の根拠はここだけ）\n' +
+        digest.changelog.map((u) => `- ${u.title}: ${u.summary.slice(0, 160)}`).join('\n') +
+        '\n'
+    }
+  } catch {
+    /* best-effort: 事実が取れなくてもガードレールは効かせる */
+  }
+
+  return `## 鮮度ガードレール（最重要・古い情報の投稿は禁止）
+- 今日は ${today}。
+- 具体的なバージョン番号・ベンチマークのスコア・順位・「最新/最強/世界初」等の断定は、下の検証済み事実に明記がある場合のみ書く。記憶からの数値・型番・順位は書かない。
+- 不確かな最新性は定性的に書く。古い型番（旧モデル名等）を最新であるかのように書かない。
+${freshFacts}`
 }
 
 // ============================================================
@@ -589,11 +623,13 @@ async function generateTrendingPost(
   let trendingRecentTexts: readonly string[] = []
   try { trendingRecentTexts = await getRecentXPostTexts(30) } catch { /* best-effort */ }
 
+  const grounding = await buildGroundingInstructions()
   const postResult = await generateXPost({
     mode: 'research',
     content: opportunity.topic,
     topic: opportunity.topic.slice(0, 100),
     recentPostTexts: trendingRecentTexts,
+    playbookInstructions: grounding,
   })
 
   if (!isAiJudgeEnabled()) {
@@ -678,6 +714,9 @@ async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
     for (const u of pendingImageUrls) allImageUrls.add(u)
     recentImageUrls = allImageUrls
   } catch { /* best-effort */ }
+
+  // 1.2. 鮮度グラウンディング（古い情報を防ぐ・全オリジナル生成に注入）
+  const grounding = await buildGroundingInstructions()
 
   // 1.5. Check for high-priority trending opportunities before content distribution
   const trendingResult = await tryTrendingReactive()
@@ -913,6 +952,7 @@ async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
           mode: 'research',
           content: trendingContent,
           topic: 'tech trends',
+          playbookInstructions: grounding,
         })
 
         // AI Judge 自動投稿モード
@@ -1015,6 +1055,7 @@ async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
               content: trendingContent,
               topic: 'tech trends',
               recentPostTexts: recentTexts,
+              playbookInstructions: grounding,
             })
 
             if (isAiJudgeEnabled()) {
@@ -1057,6 +1098,7 @@ async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
       content: topCandidate.sourceBody,
       topic: topCandidate.title,
       recentPostTexts: recentTexts,
+      playbookInstructions: grounding,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
@@ -1238,11 +1280,13 @@ export async function triggerXPostFromSource(
     ? `${params.title}\n\n${params.description}`
     : params.title
 
+  const grounding = await buildGroundingInstructions()
   const postResult = await generateXPost({
     mode: 'research',
     content,
     topic: params.title,
     recentPostTexts: triggerRecentTexts,
+    playbookInstructions: grounding,
   })
 
   // メディア取得 (best-effort, 画像重複排除あり)
