@@ -12,6 +12,7 @@ import { braveWebSearch } from '../web-search/brave'
 import { calculateCharacterOverlap } from '../ai-judge/safety-checks'
 import { uploadMediaToX } from '../x-api/media'
 import { getTwitterClient, getTwitterWeightedLength, postThread } from '../x-api/client'
+import { createTypefullyDraft, uploadTypefullyMedia, isTypefullyConfigured } from '../typefully/client'
 import { savePostAnalytics, getRecentXPostTexts } from '../slack-bot/memory'
 
 // ============================================================
@@ -592,20 +593,67 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
       process.stdout.write(`[cortex] Review skipped: ${e instanceof Error ? e.message : e}\n`)
     }
 
-    process.stdout.write('[step 4] Posting Claude Code thread via text path (Typefully/Playwright)...\n')
-    const result = await postThread(segments)
-    if (!result.success) {
-      process.stdout.write(`[done] Claude Code thread post failed: ${result.error}\n`)
-      return
+    // 画像(OpenAI GPT Image)を生成し Typefully にアップロードして添付する。
+    // X API有料枠は不要(Typefullyのメディアフロー)。失敗してもテキストで続行。
+    let mediaIds: string[] | undefined
+    try {
+      const imageBuffer = await generateInfographic(category, content)
+      if (imageBuffer) {
+        // アーカイブ(best-effort)
+        try { await uploadToSupabase(imageBuffer, 'buzz-claude-code') } catch { /* best-effort */ }
+        if (isTypefullyConfigured()) {
+          const up = await uploadTypefullyMedia(
+            new Uint8Array(imageBuffer),
+            `claude-code-${Date.now()}.png`,
+          )
+          if (up.mediaId) {
+            mediaIds = [up.mediaId]
+            process.stdout.write('[infographic] Uploaded to Typefully\n')
+          } else {
+            process.stdout.write(`[infographic] Typefully upload skipped: ${up.error}\n`)
+          }
+        }
+      }
+    } catch (e) {
+      process.stdout.write(`[infographic] Skipped: ${e instanceof Error ? e.message : e}\n`)
     }
-    process.stdout.write(`[done] Claude Code thread posted: ${result.tweetUrl}\n`)
+
+    // 投稿: 画像付きは Typefully ドラフト経由、未設定/失敗時はテキストの postThread にフォールバック。
+    process.stdout.write('[step 4] Posting Claude Code thread...\n')
+    let postedUrl: string | undefined
+    let postedId: string | undefined
+    if (isTypefullyConfigured()) {
+      const draft = await createTypefullyDraft(segments.join('\n\n\n\n'), {
+        mediaIds,
+        share: true,
+        scheduleDate: process.env.TYPEFULLY_SCHEDULE_DATE || 'next-free-slot',
+        draftTitle: 'Claude Code update',
+      })
+      if (draft.success) {
+        postedUrl = draft.shareUrl
+        postedId = draft.draftId
+        process.stdout.write(`[done] Posted via Typefully: ${postedUrl} (image=${Boolean(mediaIds)})\n`)
+      } else {
+        process.stdout.write(`[typefully] Draft failed: ${draft.error}. Falling back to postThread.\n`)
+      }
+    }
+    if (!postedUrl) {
+      const result = await postThread(segments)
+      if (!result.success) {
+        process.stdout.write(`[done] Claude Code thread post failed: ${result.error}\n`)
+        return
+      }
+      postedUrl = result.tweetUrl
+      postedId = result.tweetId
+      process.stdout.write(`[done] Posted via text path: ${postedUrl}\n`)
+    }
 
     try {
-      const tid = result.tweetId ?? (result.tweetUrl?.split('/status/')[1] ?? '')
+      const tid = postedId ?? (postedUrl?.split('/status/')[1] ?? postedUrl ?? '')
       if (tid) {
         await savePostAnalytics({
           tweetId: tid,
-          tweetUrl: result.tweetUrl,
+          tweetUrl: postedUrl,
           postText: segments.join('\n---\n'),
           postMode: 'pattern',
           postType: 'thread',
