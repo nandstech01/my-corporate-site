@@ -194,6 +194,7 @@ export async function replyToTweet(
 export async function quoteTweet(
   text: string,
   quotedTweetId: string,
+  options?: { readonly mediaIds?: readonly string[] },
 ): Promise<PostTweetResult> {
   if (!text || text.trim().length === 0) {
     return { success: false, error: '引用テキストが空です' }
@@ -201,10 +202,14 @@ export async function quoteTweet(
 
   try {
     const client = getTwitterClient()
-    const result = await client.v2.tweet({
+    const tweetParams: Record<string, unknown> = {
       text,
       quote_tweet_id: quotedTweetId,
-    })
+    }
+    if (options?.mediaIds?.length) {
+      tweetParams.media = { media_ids: options.mediaIds }
+    }
+    const result = await client.v2.tweet(tweetParams)
 
     return {
       success: true,

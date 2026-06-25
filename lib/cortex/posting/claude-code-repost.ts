@@ -1,25 +1,41 @@
 /**
- * Autonomous Claude Code Quote-RT
+ * Autonomous Claude Code Quote-RT (credible + fresh + image)
  *
- * Reach lever for a small account: engage the Claude Code community by
- * quote-tweeting the best fresh Claude Code post with a Japanese take.
- * This is what actually surfaces us to other people's audiences.
+ * Reach lever for a low-credibility account: borrow authority by quote-tweeting
+ * RECENT posts from a curated list of CREDIBLE Claude Code accounts, with our
+ * own Japanese take and an OpenAI-generated infographic.
  *
- * Claude Code focused (candidates come from claude-code-watcher), runs through
- * the existing gates (daily post limit + cortexReview dedup/freshness), and
- * auto-posts via the X API quote endpoint. Self-contained so it does NOT
- * disturb the Slack-approval viral-repost flow.
+ * Guardrails:
+ *   - Source ONLY from CREDIBLE_CC_ACCOUNTS (never random search hits).
+ *   - Freshness: Brave `freshness: 'pw'` (past week) → no stale info.
+ *   - Existing gates: daily post limit + cortexReview (dedup/freshness/quality).
+ *   - Self-contained; does not touch the Slack-approval viral-repost flow.
  */
 
 import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
+import { generateNeonThumbnail } from '@/lib/ai-image/openai-image'
 import { createClient } from '@supabase/supabase-js'
-import { fetchCommunityBuzz, type ClaudeCodeUpdate } from '../knowledge/claude-code-watcher'
+import { braveWebSearch } from '../../web-search/brave'
+import {
+  CREDIBLE_CC_ACCOUNTS,
+  REPOST_EXCLUDE_HANDLES,
+  credibleAccountQuery,
+} from '../knowledge/credible-accounts'
 import { quoteTweet } from '../../x-api/client'
+import { uploadMediaToX } from '../../x-api/media'
 import { checkDailyPostLimit } from './daily-limit-checker'
 import { savePostAnalytics } from '../../slack-bot/memory'
 
 const RANK_MODEL = 'claude-haiku-4-5-20251001'
-const OWN_HANDLES = new Set(['nands_tech'])
+// How many credible accounts to query per run (Brave rate-limit friendly).
+const ACCOUNTS_PER_RUN = 5
+
+interface RepostCandidate {
+  readonly authorHandle: string
+  readonly sourceUrl: string
+  readonly title: string
+  readonly summary: string
+}
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -28,7 +44,7 @@ function getSupabase() {
   return createClient(url, key)
 }
 
-/** Tweet IDs / source URLs we already quoted recently — never quote twice. */
+/** Source URLs we already quoted recently — never quote twice. */
 async function getRecentRepostUrls(days = 30): Promise<ReadonlySet<string>> {
   const supabase = getSupabase()
   if (!supabase) return new Set()
@@ -46,14 +62,78 @@ function tweetIdFromUrl(url: string): string | null {
   return match ? match[1] : null
 }
 
+function handleFromUrl(url: string): string | null {
+  const match = url.match(/(?:x\.com|twitter\.com)\/([^/]+)\/status/)
+  return match ? match[1].toLowerCase() : null
+}
+
+/** Brave search with 429 backoff (free tier is ~1 req/sec and easily throttled). */
+async function braveWithRetry(query: string) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await braveWebSearch(query, { count: 6, freshness: 'pw' })
+    } catch (e) {
+      if (String(e).includes('429') && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)))
+        continue
+      }
+      throw e
+    }
+  }
+  return []
+}
+
+/**
+ * Collect RECENT posts (past week) from a rotating subset of CREDIBLE accounts.
+ * Credible by construction (whitelist) + fresh by Brave freshness filter.
+ */
+async function collectCredibleFresh(
+  recentUrls: ReadonlySet<string>,
+): Promise<readonly RepostCandidate[]> {
+  // Rotate which credible accounts we query each run (rate-limit friendly).
+  const rotated = [...CREDIBLE_CC_ACCOUNTS].sort(() => Math.random() - 0.5).slice(0, ACCOUNTS_PER_RUN)
+  const seen = new Set<string>()
+  const candidates: RepostCandidate[] = []
+
+  for (const handle of rotated) {
+    try {
+      const results = await braveWithRetry(credibleAccountQuery(handle))
+      for (const r of results) {
+        const isStatus = r.url.includes('/status/')
+        if (!isStatus || seen.has(r.url) || recentUrls.has(r.url)) continue
+        const urlHandle = handleFromUrl(r.url)
+        if (!urlHandle || REPOST_EXCLUDE_HANDLES.has(urlHandle)) continue
+        // Only keep posts actually authored by a credible account.
+        if (!CREDIBLE_CC_ACCOUNTS.includes(urlHandle)) continue
+        seen.add(r.url)
+        candidates.push({
+          authorHandle: urlHandle,
+          sourceUrl: r.url,
+          title: r.title,
+          summary: r.description,
+        })
+      }
+    } catch (e) {
+      process.stdout.write(
+        `[claude-code-repost] query failed @${handle}: ${e instanceof Error ? e.message : String(e)}\n`,
+      )
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1300)) // Brave ~1 req/sec
+  }
+
+  return candidates
+}
+
 interface QuotePick {
   readonly index: number
   readonly quoteText: string
+  readonly imageTitle: string
+  readonly imagePoints: readonly string[]
 }
 
-/** Let Claude pick the single most worth-quoting post and write the JP take. */
+/** Let Claude pick the single most worth-quoting post and write the JP take + image brief. */
 async function pickAndWrite(
-  candidates: readonly ClaudeCodeUpdate[],
+  candidates: readonly RepostCandidate[],
 ): Promise<QuotePick | null> {
   const list = candidates
     .map((c, i) => `[${i}] @${c.authorHandle}: ${c.title}\n${c.summary.slice(0, 200)}`)
@@ -62,19 +142,20 @@ async function pickAndWrite(
   const anthropic = createAnthropicCompatible()
   const response = await anthropic.messages.create({
     model: RANK_MODEL,
-    max_tokens: 600,
+    max_tokens: 700,
     messages: [{
       role: 'user',
       content: `あなたは @nands_tech（Claude Codeを使い倒す実務家エンジニア）。
-以下はClaude Code関連の最近の投稿候補。日本のエンジニアに刺さる1つを選び、引用RT用の日本語コメントを書け。
+以下は信用できるClaude Code関連アカウントの「最近の投稿」候補。日本のエンジニアに最も刺さる1つを選び、引用RT用の日本語コメントを書け。
 
-選定基準: 新しい/具体的/実務で効く。単なる宣伝や既知の話は除外。
+選定基準: 新しい/具体的/実務で効く。古い話・単なる宣伝は除外。
 コメント要件: 「だ・である」調。140字以内。自分の見解や使いどころを一言添える。煽りだけは禁止、具体で裏付ける。元投稿の丸写し禁止。
+画像: 添付インフォグラフィック用に短いタイトルと要点3つも返す。
 
 候補:
 ${list}
 
-出力（JSONのみ）: {"index": 候補番号, "quoteText": "引用コメント"}`,
+出力（JSONのみ）: {"index": 番号, "quoteText": "引用コメント", "imageTitle": "15文字以内", "imagePoints": ["20文字以内", "...", "最大3個"]}`,
     }],
   })
 
@@ -84,16 +165,52 @@ ${list}
   const match = (block?.text ?? '').match(/\{[\s\S]*\}/)
   if (!match) return null
   try {
-    const parsed = JSON.parse(match[0]) as { index?: number; quoteText?: string }
+    const parsed = JSON.parse(match[0]) as {
+      index?: number
+      quoteText?: string
+      imageTitle?: string
+      imagePoints?: unknown[]
+    }
     if (typeof parsed.index !== 'number' || !parsed.quoteText) return null
-    return { index: parsed.index, quoteText: String(parsed.quoteText).trim() }
+    return {
+      index: parsed.index,
+      quoteText: String(parsed.quoteText).trim(),
+      imageTitle: String(parsed.imageTitle ?? 'Claude Code 最新'),
+      imagePoints: Array.isArray(parsed.imagePoints)
+        ? parsed.imagePoints.map((p) => String(p)).slice(0, 3)
+        : [],
+    }
   } catch {
     return null
   }
 }
 
+/** Generate + upload an OpenAI infographic for the quote. Best-effort → null. */
+async function buildImage(pick: QuotePick): Promise<string | null> {
+  try {
+    const result = await generateNeonThumbnail(
+      {
+        title: pick.imageTitle,
+        keywords: pick.imagePoints.length ? [...pick.imagePoints] : ['Claude Code'],
+        theme: 'Claude Code 最新情報 infographic',
+        saveBadge: true,
+      },
+      { quality: 'high', size: '1536x1024' },
+    )
+    if (result.error || !result.buffer) {
+      process.stdout.write(`[claude-code-repost] image skipped: ${result.error ?? 'no buffer'}\n`)
+      return null
+    }
+    const mediaId = await uploadMediaToX(result.buffer, 'image/png')
+    return mediaId
+  } catch (e) {
+    process.stdout.write(`[claude-code-repost] image failed: ${e instanceof Error ? e.message : e}\n`)
+    return null
+  }
+}
+
 export async function runClaudeCodeRepost(): Promise<void> {
-  process.stdout.write('\n=== Claude Code Quote-RT ===\n')
+  process.stdout.write('\n=== Claude Code Quote-RT (credible + fresh) ===\n')
 
   // Gate 1: daily post limit (shared 2-5/day CORTEX cap)
   const limit = await checkDailyPostLimit('x')
@@ -102,26 +219,21 @@ export async function runClaudeCodeRepost(): Promise<void> {
     return
   }
 
-  // Collect fresh Claude Code community posts, drop already-quoted ones.
   const recentUrls = await getRecentRepostUrls(30)
-  const buzz = (await fetchCommunityBuzz(8)).filter((c) => {
-    const id = c.sourceUrl ? tweetIdFromUrl(c.sourceUrl) : null
-    const handle = c.authorHandle?.toLowerCase() ?? ''
-    return Boolean(id) && !recentUrls.has(c.sourceUrl) && handle && !OWN_HANDLES.has(handle)
-  })
-
-  if (buzz.length === 0) {
-    process.stdout.write('[done] No fresh Claude Code posts to quote. Skipping.\n')
+  const candidates = await collectCredibleFresh(recentUrls)
+  if (candidates.length === 0) {
+    process.stdout.write('[done] No fresh credible Claude Code posts. Skipping.\n')
     return
   }
+  process.stdout.write(`[collect] ${candidates.length} credible fresh candidate(s)\n`)
 
-  const pick = await pickAndWrite(buzz)
-  if (!pick || !buzz[pick.index]) {
+  const pick = await pickAndWrite(candidates)
+  if (!pick || !candidates[pick.index]) {
     process.stdout.write('[done] No quotable candidate selected. Skipping.\n')
     return
   }
 
-  const target = buzz[pick.index]
+  const target = candidates[pick.index]
   const tweetId = tweetIdFromUrl(target.sourceUrl)
   if (!tweetId) {
     process.stdout.write('[done] Selected candidate has no tweet id. Skipping.\n')
@@ -141,13 +253,20 @@ export async function runClaudeCodeRepost(): Promise<void> {
     process.stdout.write(`[gate] CORTEX review skipped: ${e instanceof Error ? e.message : e}\n`)
   }
 
-  // Post the quote tweet
-  const result = await quoteTweet(pick.quoteText, tweetId)
+  // Image (OpenAI GPT Image) — best-effort
+  const mediaId = await buildImage(pick)
+
+  // Post the quote tweet (with image when available)
+  const result = await quoteTweet(
+    pick.quoteText,
+    tweetId,
+    mediaId ? { mediaIds: [mediaId] } : undefined,
+  )
   if (!result.success || !result.tweetId) {
     process.stdout.write(`[done] Quote-RT failed: ${result.error}\n`)
     return
   }
-  process.stdout.write(`[done] Quote-RT posted: ${result.tweetUrl}\n`)
+  process.stdout.write(`[done] Quote-RT posted: ${result.tweetUrl} (@${target.authorHandle}, image=${Boolean(mediaId)})\n`)
 
   // Record for analytics + future dedup (source_url)
   try {
