@@ -246,3 +246,11 @@ x_post_analytics=104行/x_growth_metrics=73行は結線済だがimpressions=0(�
 検証: tsc 0エラー。スモークテストで(a)503,503,200→3回リトライ成功 (b)400→1回即失敗+OpenAI実エラー送出 を確認。
 未対応(ユーザー作業): OpenAI使用額はAPIスコープ不足で取得不可→ダッシュボード確認+$10上限設定。
 監視: cortex-autonomous-x.ymlのscheduled実行は未発火(全て手動dispatch)。初の自動発火は本日20:00 JST枠。
+
+### 2026-06-26 Claude Code SEOブログ + Zenn/Qiita/note クロスポスト
+調査結論: 部品は全て既存。ブログ生成(generate-hybrid-blog/Opus+RAG+SEO構造化)・クロスポスト(crossPostArticle: Zenn/Qiita/note・各最適化・canonical_url)・各engagement-collector まで実装済。
+不足は2接続のみ: ①Claude Code最新→ブログ(changelog未使用) ②公開済みブログの自動クロスポスト(手動CLIのみ)。
+- [x] scripts/weekly-claude-code-blog.ts 新規(scripts/weekly-*=許可scope)。modes: topic(changelog根拠スペックJSON)/generate(localhost Next)/crosspost(zenn,qiita,note・DRY_RUN既定)/full。dotenv自己読込+重いmoduleは動的importでcrash回避。
+- [x] cortex-blog-seo SKILL.md 更新: Claude Code回は changelog根拠スペックを使用、公開後にZenn/Qiita/noteへDRY-RUN→本投稿。
+検証: topicモード実機で Claude Code 2.1.191 根拠スペック生成。tsc型エラーなし。
+制約: 生成はローカルNext必須(claude -p/Cloudflare 524回避)=skill経由。crosspostはAPI/GitHub方式で単体可。canonical_urlで自社ブログにSEO集約。
