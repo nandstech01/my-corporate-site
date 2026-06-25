@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../web-search/brave'
 import { calculateCharacterOverlap } from '../ai-judge/safety-checks'
 import { uploadMediaToX } from '../x-api/media'
-import { getTwitterClient, getTwitterWeightedLength } from '../x-api/client'
+import { getTwitterClient, getTwitterWeightedLength, postThread } from '../x-api/client'
 import { savePostAnalytics, getRecentXPostTexts } from '../slack-bot/memory'
 
 // ============================================================
@@ -559,6 +559,63 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
       process.stdout.write('[done] Content generation returned empty. Skipping.\n')
       return
     }
+  }
+
+  // claude-code は稼働中のテキスト経路(postThread→Typefully/Playwright)で投稿する。
+  // 画像/ネイティブ引用は X API 有料枠が必要(現状402 CreditsDepleted)のため、
+  // 確実に出るテキストスレッドを優先する。
+  if (category === 'claude-code') {
+    const segments = [content.mainTweet, ...content.replies].filter((s) => s && s.trim().length > 0)
+
+    // 重複チェック
+    try {
+      const recentTexts = await getRecentXPostTexts(14)
+      const generatedText = segments.join(' ').toLowerCase()
+      for (const recentText of recentTexts) {
+        if (calculateCharacterOverlap(generatedText, recentText.toLowerCase()) >= 0.30) {
+          process.stdout.write('[dedup] Generated thread too similar to recent post. Skipping.\n')
+          return
+        }
+      }
+    } catch { /* best-effort */ }
+
+    // CORTEX review（重複排除 + 鮮度）
+    try {
+      const { cortexReview } = await import('../cortex/review/pre-post-reviewer')
+      const reviewed = await cortexReview(segments.map((s) => ({ text: s, platform: 'x' })))
+      const rejected = reviewed.filter((r) => r.duplicate_of || r.is_stale)
+      if (rejected.length > reviewed.length / 2) {
+        process.stdout.write(`[cortex] ${rejected.length}/${reviewed.length} rejected by CORTEX, skipping\n`)
+        return
+      }
+    } catch (e) {
+      process.stdout.write(`[cortex] Review skipped: ${e instanceof Error ? e.message : e}\n`)
+    }
+
+    process.stdout.write('[step 4] Posting Claude Code thread via text path (Typefully/Playwright)...\n')
+    const result = await postThread(segments)
+    if (!result.success) {
+      process.stdout.write(`[done] Claude Code thread post failed: ${result.error}\n`)
+      return
+    }
+    process.stdout.write(`[done] Claude Code thread posted: ${result.tweetUrl}\n`)
+
+    try {
+      const tid = result.tweetId ?? (result.tweetUrl?.split('/status/')[1] ?? '')
+      if (tid) {
+        await savePostAnalytics({
+          tweetId: tid,
+          tweetUrl: result.tweetUrl,
+          postText: segments.join('\n---\n'),
+          postMode: 'pattern',
+          postType: 'thread',
+          tags: ['daily-buzz', 'claude-code'],
+        })
+      }
+    } catch (e) {
+      process.stdout.write(`[analytics] Failed to save: ${e instanceof Error ? e.message : e}\n`)
+    }
+    return
   }
 
   // Step 3: Generate infographic

@@ -194,6 +194,22 @@
 - [x] research系オリジナル全5経路に注入: 通常(top候補)/trending reactive/trending直接/dedupフォールバック/RSS trigger。
 検証: tsc型エラーなし。changelogのみ取得で429回避。規約遵守。
 
+### 2026-06-26 根本原因: 新ジョブが投稿できていなかった（X API 402）
+診断: cronは発火・成功。だが新ジョブの投稿が0件。実行ログで判明:
+- **X API有料枠が無く 402 CreditsDepleted**。投稿は Playwright/Typefully 経由のテキストのみで稼働(だからx-auto-post原文は出る)。
+- 新ジョブはX API直叩き: CCスレッド=client.v2.tweet(画像付)→402、引用RT=quoteTweet→402。既存daily-buzz-japanも同理由で実は未投稿。
+- 画像/ネイティブ引用RTはX API有料枠が必須(現状不可)。
+修正(稼働中テキスト経路へ載せ替え):
+- [x] daily-buzz claude-code: postBuzzThread(API)をやめ postThread([main,...replies]) 経由に。画像はスキップ。dedup+cortexReview維持。
+- [x] claude-code-repost: quoteTweet(API)をやめ postTweet(quoteText + "\n\n" + sourceUrl)。URLが引用カード化。画像生成削除。
+検証(本番経路でローカル実行・実投稿):
+- CCスレッド → https://typefully.com/t/7KchS7e 投稿成功
+- 引用RT → https://typefully.com/t/FtmNPBg (@alexalbert__) 投稿成功
+注意:
+- Typefully経由は next-free-slot(08/12/14/17/20 JST)スケジュール投稿=即時ではない。体感遅延の一因。
+- savePostAnalytics が 'ml_confidence' カラム無しで失敗(既存スキーマ不整合・best-effort)。投稿は成功するがdedup記録に影響→要別修正。
+- 画像/ネイティブ引用は X API 有料枠 or Typefullyメディア配線が必要(別タスク)。
+
 ### 監視ポイント（投稿再開後に確認）
 - engagement_fetched_at が埋まり始めるか（埋まらなければ learner cron か join に実バグ→実データで特定可能に）
 - prediction_accuracy が増えるか / impressions が改善するか

@@ -13,7 +13,6 @@
  */
 
 import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
-import { generateNeonThumbnail } from '@/lib/ai-image/openai-image'
 import { createClient } from '@supabase/supabase-js'
 import { braveWebSearch } from '../../web-search/brave'
 import {
@@ -21,8 +20,7 @@ import {
   REPOST_EXCLUDE_HANDLES,
   credibleAccountQuery,
 } from '../knowledge/credible-accounts'
-import { quoteTweet } from '../../x-api/client'
-import { uploadMediaToX } from '../../x-api/media'
+import { postTweet } from '../../x-api/client'
 import { checkDailyPostLimit } from './daily-limit-checker'
 import { savePostAnalytics } from '../../slack-bot/memory'
 
@@ -185,30 +183,6 @@ ${list}
   }
 }
 
-/** Generate + upload an OpenAI infographic for the quote. Best-effort → null. */
-async function buildImage(pick: QuotePick): Promise<string | null> {
-  try {
-    const result = await generateNeonThumbnail(
-      {
-        title: pick.imageTitle,
-        keywords: pick.imagePoints.length ? [...pick.imagePoints] : ['Claude Code'],
-        theme: 'Claude Code 最新情報 infographic',
-        saveBadge: true,
-      },
-      { quality: 'high', size: '1536x1024' },
-    )
-    if (result.error || !result.buffer) {
-      process.stdout.write(`[claude-code-repost] image skipped: ${result.error ?? 'no buffer'}\n`)
-      return null
-    }
-    const mediaId = await uploadMediaToX(result.buffer, 'image/png')
-    return mediaId
-  } catch (e) {
-    process.stdout.write(`[claude-code-repost] image failed: ${e instanceof Error ? e.message : e}\n`)
-    return null
-  }
-}
-
 export async function runClaudeCodeRepost(): Promise<void> {
   process.stdout.write('\n=== Claude Code Quote-RT (credible + fresh) ===\n')
 
@@ -253,20 +227,15 @@ export async function runClaudeCodeRepost(): Promise<void> {
     process.stdout.write(`[gate] CORTEX review skipped: ${e instanceof Error ? e.message : e}\n`)
   }
 
-  // Image (OpenAI GPT Image) — best-effort
-  const mediaId = await buildImage(pick)
-
-  // Post the quote tweet (with image when available)
-  const result = await quoteTweet(
-    pick.quoteText,
-    tweetId,
-    mediaId ? { mediaIds: [mediaId] } : undefined,
-  )
+  // 稼働中のテキスト経路(postTweet→Typefully/Playwright)で投稿する。
+  // 引用元URLを本文末尾に置くと引用カードとしてレンダリングされる。
+  // ネイティブ引用RT/画像はX API有料枠が必要(現状402 CreditsDepleted)のため使わない。
+  const result = await postTweet(`${pick.quoteText}\n\n${target.sourceUrl}`)
   if (!result.success || !result.tweetId) {
     process.stdout.write(`[done] Quote-RT failed: ${result.error}\n`)
     return
   }
-  process.stdout.write(`[done] Quote-RT posted: ${result.tweetUrl} (@${target.authorHandle}, image=${Boolean(mediaId)})\n`)
+  process.stdout.write(`[done] Quote-RT posted: ${result.tweetUrl} (@${target.authorHandle})\n`)
 
   // Record for analytics + future dedup (source_url)
   try {
