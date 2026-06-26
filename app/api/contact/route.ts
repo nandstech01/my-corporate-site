@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
+import { recordInquiry } from '@/lib/cortex/metrics/inquiries';
 
 async function appendToSheet(row: any[]) {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
@@ -41,6 +42,9 @@ export async function POST(request: Request) {
       source = 'corporate';
     }
     const mailTo = to || process.env.CONTACT_TO || 'contact@nands.tech';
+
+    // 司令塔ダッシュボード用に Supabase へも記録（best-effort・既存のメール/シートは不変）
+    await recordInquiry({ source: source || 'general-contact', name, email, company, phone, message });
 
     // メールトランスポーターの設定
     const transporter = nodemailer.createTransport({

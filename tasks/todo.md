@@ -281,3 +281,11 @@ kill-switch: GitHub変数 CC_THREADS_ENABLED / CC_THREADS_DRY_RUN。
 - [x] supabase/migrations/20260626_ga4_page_metrics.sql(ユーザー適用)
 検証: tsc型エラーなし。認証未設定でもグレースフル(警告のみ)・planTopic維持・insights空でも壊れない。
 要設定(ユーザー): 行方不明のサービスアカウント探索/再作成→GSC&GA4に閲覧権限→GSC_CREDENTIALS_JSON/GA4_PROPERTY_ID設定→GA4テーブルSQL適用。データ蓄積後に需要予測が効く。
+
+### 2026-06-26 司令塔データ基盤（inquiries導線＋指標API）
+- [x] supabase/migrations/20260626_inquiries.sql 適用(統一問い合わせ表)
+- [x] lib/cortex/metrics/inquiries.ts(recordInquiry best-effort) / command-metrics.ts(本日投稿数/閲覧/問い合わせ+7日トレンド・JST集計)
+- [x] /api/contact に recordInquiry 追記(既存メール/シートは不変・additive)
+- [x] /api/admin/command-metrics GET ルート
+検証: 実データで postsToday=9(X4/blog2/crosspost3)/views7d=320/inquiries=0。tsc OK。
+次: 司令塔ページ(app/admin/command)・cron整理。
