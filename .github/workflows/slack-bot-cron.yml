@@ -12,8 +12,8 @@ on:
     - cron: '0 16 * * *'     # JST 01:00 X engagement learner
     - cron: '0 18 * * *'     # JST 03:00 LinkedIn ML model retrainer
     - cron: '30 18 * * *'     # JST 03:30 X ML model retrainer
-    - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner
-    - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check
+    # - cron: '30 15 * * *'     # JST 00:30 Instagram engagement learner — 無効化(2026-06-26 IGトークン切れ/未使用)
+    # - cron: '0 3 * * *'       # JST 12:00 Instagram story auto-check — 無効化(2026-06-26 IG未使用)
     - cron: '0 4,10,20 * * *'  # JST 13,19,5 Blog RSS monitor
     - cron: '30 21 * * *'  # JST 6:30 X auto-post (1日1回・リポスト比重UPで削減。古い情報源のため抑制)
     - cron: '0 17 * * *'     # JST 02:00 AI Judge calibrator
@@ -38,8 +38,8 @@ on:
     - cron: '0 23 * * 0,2,4'         # JST 月水金 8:00 Claude Code 自動ブログ→Zenn/Qiita/note クロスポスト
     - cron: '30 8 * * *'             # JST 17:30 Claude Code Threads セルフリプライ・スレッド(全自動)
     - cron: '30 22 * * *'            # JST 7:30 SEO収集(GSC+GA4)→需要予測/SEO最適化, 月曜は週次サマリ
-    - cron: '45 22 * * 0,2,4,6'        # JST 7:45 Mon,Wed,Fri,Sun Instagram carousel auto-post (shifted from 0 22 to avoid x-engagement-collector collision)
-    - cron: '45 22 * * 1,3,5'          # JST 7:45 Tue,Thu,Sat Instagram hybrid carousel auto-post (shifted from 0 22 to avoid collision)
+    # - cron: '45 22 * * 0,2,4,6'        # Instagram carousel auto-post — 無効化(2026-06-26 IG未使用)
+    # - cron: '45 22 * * 1,3,5'          # Instagram hybrid carousel auto-post — 無効化(2026-06-26 IG未使用)
   workflow_dispatch:
     inputs:
       job:

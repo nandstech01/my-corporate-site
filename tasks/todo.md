@@ -289,3 +289,8 @@ kill-switch: GitHub変数 CC_THREADS_ENABLED / CC_THREADS_DRY_RUN。
 - [x] /api/admin/command-metrics GET ルート
 検証: 実データで postsToday=9(X4/blog2/crosspost3)/views7d=320/inquiries=0。tsc OK。
 次: 司令塔ページ(app/admin/command)・cron整理。
+
+### 2026-06-26 司令塔ページ + cron整理
+- [x] app/admin/command/page.tsx 新規: ミッションコントロール風(ダーク/フォスファーオレンジ×シアン/Orbitron数値/レーダースイープ/HUD/スキャンライン)。本日投稿/閲覧7日/問い合わせ本日 + 7日トレンド(recharts) + 投稿グリッドレーダー + システムLIVE。30秒ポーリング。75インチ常時表示用。Remotion不使用(Next+framer-motion+recharts)。
+- [x] cron整理(承認: 廃止＋死んでる無効化): Instagram系4cron無効化(slack-bot-cron.yml)、LinkedIn scheduleブロック無効化(linkedin-cron.yml)。viral-repost/daily-buzz-globalは既に停止済。働いてる物は不変。
+検証: tsc型エラーなし。URL: /admin/command
