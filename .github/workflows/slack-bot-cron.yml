@@ -37,6 +37,7 @@ on:
     - cron: '0 11 * * *'              # JST 20:00 Daily buzz AI tech Japan (1日1本の本命まとめ)
     - cron: '0 23 * * 0,2,4'         # JST 月水金 8:00 Claude Code 自動ブログ→Zenn/Qiita/note クロスポスト
     - cron: '30 8 * * *'             # JST 17:30 Claude Code Threads セルフリプライ・スレッド(全自動)
+    - cron: '30 22 * * *'            # JST 7:30 SEO収集(GSC+GA4)→需要予測/SEO最適化, 月曜は週次サマリ
     - cron: '45 22 * * 0,2,4,6'        # JST 7:45 Mon,Wed,Fri,Sun Instagram carousel auto-post (shifted from 0 22 to avoid x-engagement-collector collision)
     - cron: '45 22 * * 1,3,5'          # JST 7:45 Tue,Thu,Sat Instagram hybrid carousel auto-post (shifted from 0 22 to avoid collision)
   workflow_dispatch:
@@ -80,6 +81,7 @@ on:
           - claude-code-repost
           - claude-code-blog
           - claude-code-threads
+          - seo-collect
           - anthropic-tweet-reactor
           - viral-ai-repost
           - viral-threads-repost
@@ -172,5 +174,8 @@ jobs:
           CC_BLOG_DRY_RUN: ${{ vars.CC_BLOG_DRY_RUN }}
           CC_THREADS_ENABLED: ${{ vars.CC_THREADS_ENABLED }}
           CC_THREADS_DRY_RUN: ${{ vars.CC_THREADS_DRY_RUN }}
+          GSC_CREDENTIALS_JSON: ${{ secrets.GSC_CREDENTIALS_JSON }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
           LANGCHAIN_PROJECT: nands-sns-pipeline
 

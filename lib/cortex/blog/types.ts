@@ -16,6 +16,8 @@ export interface TopicPlan {
   readonly changelogFacts: readonly string[]
   /** Optional fresh-angle hints from community buzz. */
   readonly angleHints: readonly string[]
+  /** Real search queries with demand (from GSC) to weave in for SEO. */
+  readonly seoQueries?: readonly string[]
 }
 
 export interface ArticleSection {

@@ -64,6 +64,14 @@ export async function planTopic(): Promise<TopicPlan | null> {
   const changelogFacts = (digest?.changelog ?? []).map((u) => `${u.title}: ${u.summary.slice(0, 180)}`)
   const angleHints = (digest?.community ?? []).slice(0, 3).map((c) => c.title).filter(Boolean)
 
+  // Data-driven SEO/demand signal (graceful empty until GSC data accumulates).
+  let seoQueries: string[] = []
+  try {
+    const { computeSeoInsights } = await import('./insights/seo-insights')
+    const insights = await computeSeoInsights()
+    seoQueries = insights.demandQueries.slice(0, 8)
+  } catch { /* no data yet */ }
+
   // Try up to 8 picks to find a non-duplicate, valid topic.
   for (let attempt = 0; attempt < 8; attempt++) {
     const pool = pickPool()
@@ -84,6 +92,7 @@ export async function planTopic(): Promise<TopicPlan | null> {
       // Only news topics get version-specific facts; how-to stays evergreen-safe.
       changelogFacts: angle.requiresChangelog ? changelogFacts : changelogFacts.slice(0, 1),
       angleHints,
+      seoQueries,
     }
   }
 

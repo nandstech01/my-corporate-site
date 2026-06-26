@@ -272,3 +272,12 @@ ThreadsはネイティブAPIで返信チェーン対応(postThreadsChain・親�
 - [x] cron job 'claude-code-threads'(`30 8 * * *`=JST17:30) + yml + CC_THREADS_* env。Xジョブ・ファイルは一切変更なし
 検証: DRY-RUNで 2.1.191 /rewind 解説スレッド生成成功(全≤500字・バナー付き)。tsc型エラーなし。
 kill-switch: GitHub変数 CC_THREADS_ENABLED / CC_THREADS_DRY_RUN。
+
+### 2026-06-26 GSC+GA4 データ駆動の需要予測&SEO最適化（ブログML）
+ブログの学習シグナル飢餓(gsc_page_metrics=0/GA4未連携/topic-plannerランダム)を解消。CLI/MCPでなくAPI(googleapis+google-auth-library・導入済)でTS実装、既存Mac cronで収集。Python blog-worker非変更。
+- [x] lib/cortex/blog/insights/: types/google-auth(SA認証)/gsc-collector(searchconsole v1→gsc_page_metrics)/ga4-collector(analyticsdata v1beta→ga4_page_metrics)/seo-insights(strike-distance/低CTR/需要上昇/勝ち筋)/runner(日次収集+月曜Discord週次サマリ)
+- [x] topic-planner: GSC demandQueries を seoQueries として注入(CC8割維持・需要駆動)。prompts: 実クエリを見出し/本文へ(SEO品質)
+- [x] cron job 'seo-collect'(`30 22 * * *`=JST7:30) + yml + env(GSC_CREDENTIALS_JSON/GSC_SITE_URL/GA4_PROPERTY_ID)。X/SNS無変更
+- [x] supabase/migrations/20260626_ga4_page_metrics.sql(ユーザー適用)
+検証: tsc型エラーなし。認証未設定でもグレースフル(警告のみ)・planTopic維持・insights空でも壊れない。
+要設定(ユーザー): 行方不明のサービスアカウント探索/再作成→GSC&GA4に閲覧権限→GSC_CREDENTIALS_JSON/GA4_PROPERTY_ID設定→GA4テーブルSQL適用。データ蓄積後に需要予測が効く。

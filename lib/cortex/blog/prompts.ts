@@ -56,7 +56,10 @@ ${plan.targetKeyword}
 ${plan.changelogFacts.length ? plan.changelogFacts.map((f) => `- ${f}`).join('\n') : '(なし: バージョン固有の主張は避ける)'}
 
 ## 参考の切り口(任意)
-${plan.angleHints.length ? plan.angleHints.map((a) => `- ${a}`).join('\n') : '(なし)'}`
+${plan.angleHints.length ? plan.angleHints.map((a) => `- ${a}`).join('\n') : '(なし)'}
+
+## 検索需要のある実クエリ(GSC・あれば自然に見出し/本文へ織り込む＝SEO)
+${plan.seoQueries && plan.seoQueries.length ? plan.seoQueries.map((q) => `- ${q}`).join('\n') : '(データ蓄積前: なし)'}`
 
   return { system, user }
 }
