@@ -30,6 +30,8 @@ import { uploadMediaToX } from '../../x-api/media'
 import { generateArticleThumbnail } from '../../x-article/thumbnail-generator'
 import { watchTrends } from '../../trending/trend-watcher'
 import { collectClaudeCodeDigest } from '../../cortex/knowledge/claude-code-watcher'
+import { createTypefullyDraft, isTypefullyConfigured } from '../../typefully/client'
+import { bannerToTypefullyMedia } from '../../cortex/blog/banner-thumbnail'
 import type { TrendingOpportunity } from '../../trending/priority-queue'
 import type { LinkedInTopicCandidate } from '../../linkedin-source-collector/source-analyzer'
 
@@ -1129,7 +1131,41 @@ async function runXAutoPostInner(playbookMode?: PlaybookAreaId): Promise<void> {
     process.stdout.write('X auto-post: Media fetch failed, proceeding with text only\n')
   }
 
-  // 7. AI Judge 自動投稿 or Slack 承認フロー
+  // 7. 画像付き全自動: Typefully経由でOpenAIバナー画像を添付して配信する。
+  // X API課金枠(402)は使わず、CCスレッドと同じ createTypefullyDraft 経路。失敗時は既存フローにフォールバック。
+  if (isTypefullyConfigured()) {
+    try {
+      const tfMediaId = await bannerToTypefullyMedia(topCandidate.title, 'company-ai')
+      const draft = await createTypefullyDraft(postResult.finalPost, {
+        mediaIds: tfMediaId ? [tfMediaId] : undefined,
+        share: true,
+        scheduleDate: process.env.TYPEFULLY_SCHEDULE_DATE || 'next-free-slot',
+        draftTitle: topCandidate.title,
+      })
+      if (draft.success) {
+        process.stdout.write(
+          `X auto-post: posted via Typefully (image=${Boolean(tfMediaId)}) ${draft.shareUrl}\n`,
+        )
+        try {
+          await savePostAnalytics({
+            tweetId: draft.draftId ?? draft.shareUrl ?? `tf-${Date.now()}`,
+            tweetUrl: draft.shareUrl,
+            postText: postResult.finalPost,
+            postMode: 'pattern',
+            postType: 'original',
+            sourceUrl: topCandidate.sourceUrl,
+            tags: pbTag ? [...postResult.tags, pbTag] : [...postResult.tags],
+          })
+        } catch { /* best-effort */ }
+        return
+      }
+      process.stdout.write(`X auto-post: Typefully draft failed (${draft.error}), falling back\n`)
+    } catch (e) {
+      process.stdout.write(`X auto-post: Typefully image path failed (${e instanceof Error ? e.message : e}), falling back\n`)
+    }
+  }
+
+  // 7b. フォールバック: AI Judge 自動投稿 or Slack 承認フロー
   try {
     // AI Judge 自動投稿モード
     if (isAiJudgeEnabled()) {

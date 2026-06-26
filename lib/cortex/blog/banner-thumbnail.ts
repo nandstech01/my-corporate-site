@@ -32,10 +32,11 @@ function buildPrompt(title: string, kind: ContentKind): string {
   ].join(' ')
 }
 
-export async function generateOrangeBanner(
+/** Render the orange banner as a PNG buffer (no upload). */
+export async function renderBannerBuffer(
   title: string,
   kind: ContentKind,
-): Promise<string | null> {
+): Promise<Buffer | null> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     process.stdout.write('[blog-banner] OPENAI_API_KEY unset — skipping thumbnail\n')
@@ -55,7 +56,41 @@ export async function generateOrangeBanner(
       process.stdout.write('[blog-banner] empty image data\n')
       return null
     }
-    const buffer = Buffer.from(b64, 'base64')
+    return Buffer.from(b64, 'base64')
+  } catch (e) {
+    process.stdout.write(`[blog-banner] render failed: ${e instanceof Error ? e.message : e}\n`)
+    return null
+  }
+}
+
+/** Generate the banner and upload it to Typefully → returns a Typefully media id (for createTypefullyDraft). */
+export async function bannerToTypefullyMedia(
+  title: string,
+  kind: ContentKind,
+): Promise<string | null> {
+  const buffer = await renderBannerBuffer(title, kind)
+  if (!buffer) return null
+  try {
+    const { uploadTypefullyMedia } = await import('../../typefully/client')
+    const { mediaId, error } = await uploadTypefullyMedia(new Uint8Array(buffer), `banner-${Date.now()}.png`)
+    if (!mediaId) {
+      process.stdout.write(`[blog-banner] Typefully upload skipped: ${error}\n`)
+      return null
+    }
+    return mediaId
+  } catch (e) {
+    process.stdout.write(`[blog-banner] Typefully upload failed: ${e instanceof Error ? e.message : e}\n`)
+    return null
+  }
+}
+
+export async function generateOrangeBanner(
+  title: string,
+  kind: ContentKind,
+): Promise<string | null> {
+  const buffer = await renderBannerBuffer(title, kind)
+  if (!buffer) return null
+  try {
 
     const sb = getSupabase()
     if (!sb) return null
