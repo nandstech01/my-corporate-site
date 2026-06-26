@@ -34,6 +34,7 @@ export interface CommandMetrics {
   readonly postsToday: { total: number; x: number; threads: number; blog: number; crosspost: number }
   readonly viewsLatest: { date: string; ga4Sessions: number; gscImpressions: number; gscClicks: number; total: number }
   readonly inquiriesToday: number
+  readonly latestInquiry: { id: string; created_at: string; name: string | null; source: string } | null
   readonly series: {
     days: string[]
     posts: number[]
@@ -65,6 +66,7 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
     postsToday: { total: 0, x: 0, threads: 0, blog: 0, crosspost: 0 },
     viewsLatest: { date: '', ga4Sessions: 0, gscImpressions: 0, gscClicks: 0, total: 0 },
     inquiriesToday: 0,
+    latestInquiry: null,
     series: { days, posts: [0,0,0,0,0,0,0], views: [0,0,0,0,0,0,0], inquiries: [0,0,0,0,0,0,0] },
     totals7d: { posts: 0, views: 0, inquiries: 0 },
     generatedAt,
@@ -88,6 +90,13 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
   const blogRows = (blogR.data ?? []).map((r) => ({ ts: r.published_at as string }))
   const cpRows = (cpR.data ?? []).map((r) => ({ ts: r.posted_at as string }))
   const inqRows = (inqR.data ?? []).map((r) => ({ ts: r.created_at as string }))
+
+  // Latest inquiry (precise new-arrival detection for the dashboard alert)
+  const liR = await sb.from('inquiries').select('id,created_at,name,source').order('created_at', { ascending: false }).limit(1)
+  const li = liR.data?.[0]
+  const latestInquiry = li
+    ? { id: String(li.id), created_at: li.created_at as string, name: (li.name as string) ?? null, source: (li.source as string) ?? 'unknown' }
+    : null
 
   // Per-day post counts (sum of all platforms)
   const xByDay = bucketByDay(xRows, days)
@@ -131,6 +140,7 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
     },
     viewsLatest,
     inquiriesToday: at(inquiriesByDay),
+    latestInquiry,
     series: { days, posts: postsByDay, views: viewsByDay, inquiries: inquiriesByDay },
     totals7d: {
       posts: postsByDay.reduce((a, b) => a + b, 0),
