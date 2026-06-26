@@ -73,6 +73,22 @@ export async function runClaudeCodeThreads(): Promise<void> {
     process.stdout.write('[threads-cc] Threads not configured/enabled. Skipping.\n')
     return
   }
+
+  // トークン失効ガード: 期限14日以内でDiscord警告(秘密は出さない)。
+  // Threadsトークンは約60日で失効するが、cronからGitHub Secretを自動更新できないため、
+  // 失効前に必ず通知して手動再発行(2分)を促す = 二度と無言で死なせない。
+  const expISO = process.env.THREADS_TOKEN_EXPIRES_AT
+  if (expISO) {
+    const days = Math.round((new Date(expISO).getTime() - Date.now()) / 864e5)
+    if (days <= 14) {
+      await notify(
+        '⚠️ Threadsトークン失効間近',
+        `あと${days}日で失効(${expISO.slice(0, 10)})。Meta開発者ページ→該当アプリ→Threads API→「アクセストークンを生成」で再発行し、THREADS_ACCESS_TOKEN(.env.local + GitHub Secret)を更新してください。`,
+        '',
+      )
+    }
+  }
+
   const dryRun = process.env.CC_THREADS_DRY_RUN === 'true'
 
   // Source: same as X (overlap is fine), expression optimized for Threads.
