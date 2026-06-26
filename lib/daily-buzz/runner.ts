@@ -562,10 +562,10 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
     }
   }
 
-  // claude-code は稼働中のテキスト経路(postThread→Typefully/Playwright)で投稿する。
-  // 画像/ネイティブ引用は X API 有料枠が必要(現状402 CreditsDepleted)のため、
-  // 確実に出るテキストスレッドを優先する。
-  if (category === 'claude-code') {
+  // 全カテゴリ共通: 画像は Typefully のメディアフローで添付して投稿する
+  // (X API の媒体アップロード=402 CreditsDepleted を回避)。
+  // Typefully 未設定時のみ、下の X API 直経路にフォールバックする。
+  if (isTypefullyConfigured()) {
     const segments = [content.mainTweet, ...content.replies].filter((s) => s && s.trim().length > 0)
 
     // 重複チェック
@@ -600,11 +600,11 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
       const imageBuffer = await generateInfographic(category, content)
       if (imageBuffer) {
         // アーカイブ(best-effort)
-        try { await uploadToSupabase(imageBuffer, 'buzz-claude-code') } catch { /* best-effort */ }
+        try { await uploadToSupabase(imageBuffer, `buzz-${category}`) } catch { /* best-effort */ }
         if (isTypefullyConfigured()) {
           const up = await uploadTypefullyMedia(
             new Uint8Array(imageBuffer),
-            `claude-code-${Date.now()}.png`,
+            `${category}-${Date.now()}.png`,
           )
           if (up.mediaId) {
             mediaIds = [up.mediaId]
@@ -627,7 +627,7 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
         mediaIds,
         share: true,
         scheduleDate: process.env.TYPEFULLY_SCHEDULE_DATE || 'next-free-slot',
-        draftTitle: 'Claude Code update',
+        draftTitle: `daily-buzz: ${category}`,
       })
       if (draft.success) {
         postedUrl = draft.shareUrl
@@ -657,7 +657,7 @@ export async function runDailyBuzzThread(category: BuzzCategory): Promise<void> 
           postText: segments.join('\n---\n'),
           postMode: 'pattern',
           postType: 'thread',
-          tags: ['daily-buzz', 'claude-code'],
+          tags: ['daily-buzz', category],
         })
       }
     } catch (e) {
