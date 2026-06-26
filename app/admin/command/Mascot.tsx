@@ -1,40 +1,45 @@
 'use client'
 
 /**
- * CORTEX 司令塔 ドットマスコット (NANDS pixel mascot).
- * A simple orange pixel-art creature that lives at the bottom of the command
- * center: it ambiently walks / idles / types / instructs, and REACTS to live
- * data — runs to center + "！" on a new inquiry, celebrates when today's post
+ * CORTEX 司令塔 ドットマスコット — "Obsidian Operator" (NANDS pixel mascot).
+ * A sleek black/gunmetal pixel droid with a glowing cyan scanning visor + a
+ * radar antenna, hovering at the bottom of the command center. It ambiently
+ * glides / hovers / types (holo-keyboard) / instructs, and REACTS to live data
+ * — sprints to center with 「！」 on a new inquiry, celebrates when today's post
  * count rises. Pure additive overlay: never touches the 3D globe / HUD / data.
  *
- * Design is intentionally logo-independent (logo TBD for the "new NANDS"
- * rebrand). The character is defined as a pixel matrix + a few animated limbs
- * in ONE file, so it can be re-skinned later by editing only the matrix/colors.
+ * Deliberately distinct from Claude Code's orange square (black body, cyan
+ * visor instead of dot-eyes, hover instead of feet, only a thin orange rim).
+ * Re-skin via the pixel matrix + COLORS below when the NANDS logo lands.
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationControls } from 'framer-motion'
 
-// ---- character pixel definition (re-skin here when the logo is ready) ----
-const ORANGE = '#E8845C'
-const DARK = '#C96A45'
-const LIGHT = '#F2A07E'
-const EYE = '#1b1410'
+// ---- palette (re-skin here) ----
+const BODY = '#161b26'
+const EDGE = '#0c1018'
+const HI = '#2b3445'
+const RIM = '#E8845C' // thin warm rim — brand nod
+const CYAN = '#38E1D8'
+const CYAN_HI = '#a9f7f0'
 const P = 7 // px per pixel-cell
-const COL: Record<string, string> = { O: ORANGE, D: DARK, L: LIGHT }
+const TOP = 2 * P // headroom for antenna
+const COL: Record<string, string> = { B: BODY, E: EDGE, H: HI, R: RIM }
 
-// body grid is 12 wide × 10 tall; rendered offset by +1 cell so arms sit at x=0/x=13
-const BODY = [
-  '.DDDDDDDDDD.',
-  'DOLLLLLLLLOD',
-  'DOOOOOOOOOOD',
-  'DOOOOOOOOOOD',
-  'DOOOOOOOOOOD',
-  'DOOOOOOOOOOD',
-  'DOOOOOOOOOOD',
-  'DOOOOOOOOOOD',
-  '.DOOOOOOOOD.',
-  '..DDDDDDDD..',
+// body grid 12 wide × 11 tall; rendered offset +1 cell (arms at x=0/x=13).
+const BODY_MATRIX = [
+  '...EEEEEE...',
+  '..EBBBBBBE..',
+  '.EBHHHHHHBE.',
+  'EBBBBBBBBBBE',
+  'EBBBBBBBBBBR',
+  'EBBBBBBBBBBR',
+  'EBBBBBBBBBBR',
+  'EBBBBBBBBBBE',
+  '.EBBBBBBBBE.',
+  '..EBBBBBBE..',
+  '...EEEEEE...',
 ]
 
 type Action = 'idle' | 'walk' | 'type' | 'instruct' | 'celebrate' | 'alert'
@@ -47,21 +52,30 @@ interface MetricsLike {
 
 const css = `
 .cmasc-wrap { position: fixed; bottom: 16px; left: 0; z-index: 30; pointer-events: none; }
-.cmasc { display:block; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(232,132,92,0.45)); pointer-events:auto; cursor:pointer; }
+.cmasc { display:block; filter: drop-shadow(0 7px 9px rgba(0,0,0,0.55)) drop-shadow(0 0 13px rgba(56,225,216,0.5)); pointer-events:auto; cursor:pointer; }
+
 .cmasc .body { transform-box: fill-box; transform-origin: center bottom; }
-.cmasc.a-idle .body, .cmasc.a-instruct .body { animation: cmasc-bob 2.2s ease-in-out infinite; }
-.cmasc.a-walk .body { animation: cmasc-bob .5s ease-in-out infinite; }
-.cmasc.a-type .body { animation: cmasc-bob 1.5s ease-in-out infinite; }
-@keyframes cmasc-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+.cmasc.a-idle .body, .cmasc.a-instruct .body { animation: cmasc-bob 2.6s ease-in-out infinite; }
+.cmasc.a-walk .body { animation: cmasc-bob 1.1s ease-in-out infinite; }
+.cmasc.a-type .body { animation: cmasc-bob 1.8s ease-in-out infinite; }
+@keyframes cmasc-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2.5px)} }
 
 .cmasc-jump { transform-box: fill-box; transform-origin:center bottom; }
 .cmasc.a-celebrate .cmasc-jump, .cmasc.a-alert .cmasc-jump { animation: cmasc-jump .56s cubic-bezier(.3,.7,.4,1) infinite; }
-@keyframes cmasc-jump { 0%{transform:translateY(0)} 32%{transform:translateY(-15px)} 64%{transform:translateY(0)} 100%{transform:translateY(0)} }
+@keyframes cmasc-jump { 0%{transform:translateY(0)} 32%{transform:translateY(-16px)} 64%{transform:translateY(0)} 100%{transform:translateY(0)} }
 
-.cmasc .leg { transform-box: fill-box; transform-origin: center top; }
-.cmasc.a-walk .leg-l { animation: cmasc-step .5s ease-in-out infinite; }
-.cmasc.a-walk .leg-r { animation: cmasc-step .5s ease-in-out infinite .25s; }
-@keyframes cmasc-step { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+.cmasc .lean { transform-box: fill-box; transform-origin: center bottom; transition: transform .22s ease; }
+.cmasc.a-walk .lean { transform: rotate(4.5deg); }
+
+.cmasc .hover-ring { transform-box: fill-box; transform-origin: center; animation: cmasc-hover 2.6s ease-in-out infinite; }
+.cmasc.a-walk .hover-ring { animation-duration: .9s; }
+@keyframes cmasc-hover { 0%,100%{opacity:.3; transform:scaleX(1)} 50%{opacity:.65; transform:scaleX(1.3)} }
+
+.cmasc .visor-scan { transform-box: fill-box; animation: cmasc-scan 2.4s ease-in-out infinite; }
+@keyframes cmasc-scan { 0%{transform:translateX(0)} 50%{transform:translateX(38px)} 100%{transform:translateX(0)} }
+
+.cmasc .ant-tip { transform-box: fill-box; transform-origin: center; animation: cmasc-ant 1.7s ease-in-out infinite; }
+@keyframes cmasc-ant { 0%,100%{opacity:.45; transform:scale(.85)} 50%{opacity:1; transform:scale(1.15)} }
 
 .cmasc .arm { transform-box: fill-box; transform-origin: top center; transition: transform .18s ease; }
 .cmasc.a-type .arm-l { animation: cmasc-tap .26s ease-in-out infinite; }
@@ -71,24 +85,22 @@ const css = `
 .cmasc.a-celebrate .arm-l, .cmasc.a-alert .arm-l { transform: rotate(46deg) translateY(-4px); }
 .cmasc.a-celebrate .arm-r, .cmasc.a-alert .arm-r { transform: rotate(-46deg) translateY(-4px); }
 
-.cmasc-bubble { position:absolute; left:50%; transform:translateX(-50%); bottom:104px; white-space:nowrap;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight:600; font-size:13px; letter-spacing:.06em;
-  color:#fff; background:rgba(7,11,22,0.92); border:1px solid rgba(232,132,92,0.6); border-radius:9px;
-  padding:5px 11px; box-shadow:0 0 22px rgba(232,132,92,0.4); }
+.cmasc-bubble { position:absolute; left:50%; transform:translateX(-50%); bottom:108px; white-space:nowrap;
+  font-family:'IBM Plex Mono', ui-monospace, monospace; font-weight:600; font-size:13px; letter-spacing:.06em;
+  color:#fff; background:rgba(7,11,22,0.92); border:1px solid rgba(56,225,216,0.6); border-radius:9px;
+  padding:5px 11px; box-shadow:0 0 22px rgba(56,225,216,0.4); }
 .cmasc-bubble::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
-  border:6px solid transparent; border-top-color:rgba(232,132,92,0.6); }
-.cmasc-spark { position:absolute; bottom:96px; font-size:14px; color:#F2A07E; text-shadow:0 0 8px #E8845C;
+  border:6px solid transparent; border-top-color:rgba(56,225,216,0.6); }
+.cmasc-spark { position:absolute; bottom:100px; font-size:14px; color:${CYAN_HI}; text-shadow:0 0 8px ${CYAN};
   animation: cmasc-spark 1s ease-out infinite; }
 @keyframes cmasc-spark { 0%{opacity:0; transform:translateY(6px) scale(.6)} 30%{opacity:1} 100%{opacity:0; transform:translateY(-22px) scale(1.1)} }
 
-@media (prefers-reduced-motion: reduce) {
-  .cmasc *, .cmasc { animation: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .cmasc *, .cmasc { animation: none !important; } }
 `
 
 function rectsFromMatrix() {
   const out: { x: number; y: number; c: string }[] = []
-  BODY.forEach((row, r) => {
+  BODY_MATRIX.forEach((row, r) => {
     for (let c = 0; c < row.length; c++) {
       const ch = row[c]
       if (ch !== '.') out.push({ x: (c + 1) * P, y: r * P, c: COL[ch] })
@@ -112,15 +124,15 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
 
   useEffect(() => setMounted(true), [])
 
-  // blink loop
+  // visor "blink" (brief dim)
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>
     const loop = () => {
       setBlink(true)
-      setTimeout(() => setBlink(false), 140)
-      t = setTimeout(loop, 2600 + Math.random() * 3200)
+      setTimeout(() => setBlink(false), 130)
+      t = setTimeout(loop, 2800 + Math.random() * 3400)
     }
-    t = setTimeout(loop, 1800)
+    t = setTimeout(loop, 2000)
     return () => clearTimeout(t)
   }, [])
 
@@ -134,7 +146,7 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
     let alive = true
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
     const W = () => window.innerWidth
-    const M = 70 // edge margin
+    const M = 70
     let x = Math.min(W() - M, 110)
     controls.set({ x })
 
@@ -148,7 +160,7 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
 
     const doReaction = async (r: Reaction) => {
       if (r.kind === 'alert') {
-        await moveTo(W() / 2 - 40, 260, 'easeOut') // sprint to center
+        await moveTo(W() / 2 - 40, 260, 'easeOut')
         setAction('alert'); setBubble('！'); setSparkle(true)
         await wait(3000)
         setBubble(null); setSparkle(false)
@@ -169,7 +181,7 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
         if (roll < 0.5) {
           setAction('walk')
           const dir = Math.random() < 0.5 ? 1 : -1
-          await moveTo(x + dir * (140 + Math.random() * 380), 72)
+          await moveTo(x + dir * (140 + Math.random() * 380), 80)
         } else if (roll < 0.68) {
           setAction('type'); await wait(2600)
         } else if (roll < 0.84) {
@@ -205,59 +217,76 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
 
   if (!mounted) return null
 
-  const W = 14 * P // viewBox width (12 body + 2 arm cols)
-  const H = 13 * P // body 10 + legs ~3
+  const VBW = 14 * P
+  const VBH = TOP + 13 * P
+  const cx = 6.5 * P // body horizontal center
+  const bodyBottom = TOP + 11 * P
 
   return (
     <motion.div className="cmasc-wrap" animate={controls} initial={{ x: 110 }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
-      <div style={{ position: 'relative', width: W, height: H + 110 }}>
+      <div style={{ position: 'relative', width: VBW, height: VBH + 100 }}>
         {bubble && <div className="cmasc-bubble">{bubble}</div>}
         {sparkle && (
           <>
             <span className="cmasc-spark" style={{ left: 6 }}>✦</span>
-            <span className="cmasc-spark" style={{ left: W - 14, animationDelay: '.35s' }}>✧</span>
-            <span className="cmasc-spark" style={{ left: W / 2 - 4, animationDelay: '.6s' }}>✦</span>
+            <span className="cmasc-spark" style={{ left: VBW - 14, animationDelay: '.35s' }}>✧</span>
+            <span className="cmasc-spark" style={{ left: VBW / 2 - 4, animationDelay: '.6s' }}>✦</span>
           </>
         )}
         <svg
           className={`cmasc a-${action}`}
-          width={W * 1.5}
-          height={(H + 6) * 1.5}
-          viewBox={`0 0 ${W} ${H + 6}`}
+          width={VBW * 1.5}
+          height={VBH * 1.5}
+          viewBox={`0 0 ${VBW} ${VBH}`}
           style={{ position: 'absolute', bottom: 0, left: '50%', transform: `translateX(-50%) scaleX(${facing})` }}
           onClick={() => { petKick.current = true }}
           shapeRendering="crispEdges"
         >
+          <defs>
+            <radialGradient id="cmasc-hoverg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={CYAN} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
           <g className="cmasc-jump">
-            {/* legs (animated feet) */}
-            <g className="leg leg-l"><rect x={4 * P} y={10 * P} width={P * 1.7} height={P * 1.7} fill={DARK} /></g>
-            <g className="leg leg-r"><rect x={7.3 * P} y={10 * P} width={P * 1.7} height={P * 1.7} fill={DARK} /></g>
+            <g className="lean">
+              {/* hover glow under the droid (replaces feet) */}
+              <ellipse className="hover-ring" cx={cx} cy={bodyBottom + 5} rx={4.5 * P} ry={1.1 * P} fill="url(#cmasc-hoverg)" />
 
-            {/* arms */}
-            <g className="arm arm-l"><rect x={0} y={4 * P} width={P} height={P * 2.6} rx={1.5} fill={DARK} /></g>
-            <g className="arm arm-r"><rect x={13 * P} y={4 * P} width={P} height={P * 2.6} rx={1.5} fill={DARK} /></g>
+              {/* arms */}
+              <g className="arm arm-l"><rect x={0} y={TOP + 4 * P} width={P} height={P * 2.6} rx={2} fill={EDGE} /><rect x={0} y={TOP + 6.2 * P} width={P} height={P * 0.5} fill={CYAN} /></g>
+              <g className="arm arm-r"><rect x={13 * P} y={TOP + 4 * P} width={P} height={P * 2.6} rx={2} fill={EDGE} /><rect x={13 * P} y={TOP + 6.2 * P} width={P} height={P * 0.5} fill={CYAN} /></g>
 
-            {/* laptop while typing */}
-            {action === 'type' && (
-              <g>
-                <rect x={4.2 * P} y={8.3 * P} width={5.6 * P} height={2.4 * P} rx={1.5} fill="#0c1322" stroke={DARK} strokeWidth={1} />
-                <rect x={4.6 * P} y={8.7 * P} width={4.8 * P} height={1.5 * P} fill="#1f3b4d" />
-              </g>
-            )}
-
-            {/* body */}
-            <g className="body">
-              {BODY_RECTS.map((r, i) => (
-                <rect key={i} x={r.x} y={r.y} width={P} height={P} fill={r.c} />
-              ))}
-              {/* eyes (blink shrinks height) */}
-              {[3.2, 8.0].map((cx, i) => (
-                <g key={i}>
-                  <rect x={cx * P} y={(blink ? 4.9 : 4) * P} width={1.8 * P} height={(blink ? 0.5 : 2) * P} rx={1.5} fill={EYE} />
-                  {!blink && <rect x={(cx + 0.2) * P} y={4.2 * P} width={0.6 * P} height={0.6 * P} fill="#fff" />}
+              {/* holo-keyboard while typing */}
+              {action === 'type' && (
+                <g opacity={0.9}>
+                  <rect x={4.0 * P} y={TOP + 9.0 * P} width={6 * P} height={1.5 * P} rx={2} fill="none" stroke={CYAN} strokeWidth={1} />
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <rect key={i} x={(4.5 + i) * P} y={TOP + 9.4 * P} width={0.7 * P} height={0.7 * P} fill={CYAN} opacity={0.8} />
+                  ))}
                 </g>
-              ))}
+              )}
+
+              {/* antenna (radar beacon) */}
+              <rect x={cx - 1} y={TOP - 1.3 * P} width={2} height={1.3 * P} fill={HI} />
+              <circle className="ant-tip" cx={cx} cy={TOP - 1.5 * P} r={2.6} fill={CYAN_HI} />
+
+              {/* body */}
+              <g className="body">
+                <g transform={`translate(0 ${TOP})`}>
+                  {BODY_RECTS.map((r, i) => (
+                    <rect key={i} x={r.x} y={r.y} width={P} height={P} fill={r.c} />
+                  ))}
+                  {/* cyan scanning visor (replaces dot-eyes) */}
+                  <g opacity={blink ? 0.2 : 1}>
+                    <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#06222a" />
+                    <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.55} />
+                    <rect className="visor-scan" x={2.9 * P} y={4.5 * P} width={1.6 * P} height={1.1 * P} rx={2} fill={CYAN_HI} />
+                  </g>
+                </g>
+              </g>
             </g>
           </g>
         </svg>
