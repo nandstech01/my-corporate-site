@@ -8,21 +8,21 @@
  * — sprints to center with 「！」 on a new inquiry, celebrates when today's post
  * count rises. Pure additive overlay: never touches the 3D globe / HUD / data.
  *
- * Deliberately distinct from Claude Code's orange square (black body, cyan
- * visor instead of dot-eyes, hover instead of feet, only a thin orange rim).
+ * Deliberately distinct from Claude Code's orange square (steel-gray body, cyan
+ * visor instead of dot-eyes, hover instead of feet; cyan × gray × black only).
  * Re-skin via the pixel matrix + COLORS below when the NANDS logo lands.
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationControls } from 'framer-motion'
 
-// ---- palette (re-skin here) ----
-const BODY = '#161b26'
-const EDGE = '#0c1018'
-const HI = '#2b3445'
-const RIM = '#E8845C' // thin warm rim — brand nod
-const CYAN = '#38E1D8'
-const CYAN_HI = '#a9f7f0'
+// ---- palette (re-skin here) — cyan × steel-gray × black, bright ----
+const BODY = '#46586e' // steel gray (brightened from near-black)
+const EDGE = '#28323f' // soft dark outline (not pure black)
+const HI = '#8aa4ba'   // light steel highlight
+const RIM = '#39E7DB'  // cyan rim-light
+const CYAN = '#3df0e6'
+const CYAN_HI = '#cffffb'
 const P = 7 // px per pixel-cell
 const TOP = 2 * P // headroom for antenna
 const COL: Record<string, string> = { B: BODY, E: EDGE, H: HI, R: RIM }
@@ -52,7 +52,7 @@ interface MetricsLike {
 
 const css = `
 .cmasc-wrap { position: fixed; bottom: 16px; left: 0; z-index: 30; pointer-events: none; }
-.cmasc { display:block; filter: drop-shadow(0 7px 9px rgba(0,0,0,0.55)) drop-shadow(0 0 13px rgba(56,225,216,0.5)); pointer-events:auto; cursor:pointer; }
+.cmasc { display:block; filter: drop-shadow(0 5px 7px rgba(0,0,0,0.35)) drop-shadow(0 0 18px rgba(61,240,230,0.65)); pointer-events:auto; cursor:pointer; }
 
 .cmasc .body { transform-box: fill-box; transform-origin: center bottom; }
 .cmasc.a-idle .body, .cmasc.a-instruct .body { animation: cmasc-bob 2.6s ease-in-out infinite; }
@@ -281,8 +281,8 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
                   ))}
                   {/* cyan scanning visor (replaces dot-eyes) */}
                   <g opacity={blink ? 0.2 : 1}>
-                    <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#06222a" />
-                    <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.55} />
+                    <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#0c3a44" />
+                    <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.72} />
                     <rect className="visor-scan" x={2.9 * P} y={4.5 * P} width={1.6 * P} height={1.1 * P} rx={2} fill={CYAN_HI} />
                   </g>
                 </g>
