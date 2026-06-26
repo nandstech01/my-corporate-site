@@ -16,6 +16,7 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } f
 const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: () => null })
 import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
+const EventFeed = dynamic(() => import('./EventFeed'), { ssr: false, loading: () => null })
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -30,6 +31,7 @@ interface Metrics {
   viewsLatest: { date: string; ga4Sessions: number; gscImpressions: number; gscClicks: number; total: number }
   inquiriesToday: number
   latestInquiry: { id: string; created_at: string; name: string | null; source: string } | null
+  recentEvents: Array<{ id: string; type: 'x' | 'threads' | 'blog' | 'crosspost' | 'inquiry'; label: string; sub: string; ts: string; url?: string }>
   series: { days: string[]; posts: number[]; views: number[]; inquiries: number[] }
   totals7d: { posts: number; views: number; inquiries: number }
   generatedAt: string
@@ -164,6 +166,8 @@ export default function CommandCenter() {
       <InquiryAlert latest={m?.latestInquiry ?? null} />
       {/* NANDS pixel mascot — ambient + reacts to live data (additive overlay) */}
       <Mascot metrics={m ?? null} />
+      {/* live activity feed — いま起きたこと (left rail, additive) */}
+      <EventFeed events={m?.recentEvents ?? []} />
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />
