@@ -23,10 +23,6 @@ const HI = '#8aa4ba'   // light steel highlight
 const RIM = '#39E7DB'  // cyan rim-light
 const CYAN = '#3df0e6'
 const CYAN_HI = '#cffffb'
-const EYE = '#11151d'  // dark dot-eyes
-// face style — both kept on purpose. 'eyes' = cute round dot-eyes (default),
-// 'visor' = the cyan scanning visor (the look the user also liked). Flip to switch.
-const FACE: 'eyes' | 'visor' = 'eyes'
 const P = 7 // px per pixel-cell
 const TOP = 2 * P // headroom for antenna
 const COL: Record<string, string> = { B: BODY, E: EDGE, H: HI, R: RIM }
@@ -223,9 +219,8 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
 
   const VBW = 14 * P
   const VBH = TOP + 13 * P
-  const cx = 7 * P // body horizontal center
+  const cx = 6.5 * P // body horizontal center
   const bodyBottom = TOP + 11 * P
-  const happy = action === 'celebrate' || action === 'alert' // happy ^^ eyes on reactions
 
   return (
     <motion.div className="cmasc-wrap" animate={controls} initial={{ x: 110 }}>
@@ -284,40 +279,12 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
                   {BODY_RECTS.map((r, i) => (
                     <rect key={i} x={r.x} y={r.y} width={P} height={P} fill={r.c} />
                   ))}
-                  {/* face — cute dot-eyes (default) or the cyan visor (kept) */}
-                  {FACE === 'eyes' ? (
-                    <g>
-                      {[5.5, 8.5].map((ce, i) => {
-                        if (happy) {
-                          // joyful ^^ closed eyes during reactions
-                          const x0 = (ce - 0.95) * P, x1 = (ce + 0.95) * P
-                          return (
-                            <path key={i} d={`M ${x0} ${5.0 * P} Q ${ce * P} ${3.9 * P} ${x1} ${5.0 * P}`}
-                              stroke={EYE} strokeWidth={2.6} fill="none" strokeLinecap="round" />
-                          )
-                        }
-                        const ew = 1.8 * P, eh = (blink ? 0.5 : 2.2) * P
-                        const ex = ce * P - ew / 2, ey = (blink ? 4.95 : 4.0) * P
-                        return (
-                          <g key={i}>
-                            <rect x={ex} y={ey} width={ew} height={eh} rx={ew / 2} fill={EYE} />
-                            {!blink && <circle cx={ce * P - ew * 0.22} cy={4.5 * P} r={1.7} fill="#fff" />}
-                          </g>
-                        )
-                      })}
-                      {/* tiny smile for 可愛げ */}
-                      {!happy && (
-                        <path d={`M ${5.9 * P} ${6.5 * P} Q ${7 * P} ${7.2 * P} ${8.1 * P} ${6.5 * P}`}
-                          stroke={EYE} strokeWidth={1.7} fill="none" strokeLinecap="round" opacity={0.85} />
-                      )}
-                    </g>
-                  ) : (
-                    <g opacity={blink ? 0.2 : 1}>
-                      <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#0c3a44" />
-                      <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.72} />
-                      <rect className="visor-scan" x={2.9 * P} y={4.5 * P} width={1.6 * P} height={1.1 * P} rx={2} fill={CYAN_HI} />
-                    </g>
-                  )}
+                  {/* cyan scanning visor (replaces dot-eyes) */}
+                  <g opacity={blink ? 0.2 : 1}>
+                    <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#0c3a44" />
+                    <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.72} />
+                    <rect className="visor-scan" x={2.9 * P} y={4.5 * P} width={1.6 * P} height={1.1 * P} rx={2} fill={CYAN_HI} />
+                  </g>
                 </g>
               </g>
             </g>
