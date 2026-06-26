@@ -38,6 +38,7 @@ import { runCrossPostEngagementCollector } from '../lib/cross-post/cross-post-en
 import { runDailyBuzzThread } from '../lib/daily-buzz/runner'
 import { runClaudeCodeRepost } from '../lib/cortex/posting/claude-code-repost'
 import { runClaudeCodeBlog } from '../lib/cortex/blog/runner'
+import { runClaudeCodeThreads } from '../lib/cortex/posting/claude-code-threads'
 import { runAnthropicReactor } from '../lib/tweet-reactor/anthropic-reactor'
 import { runViralAiRepost } from './viral-ai-repost'
 import { runViralThreadsRepost } from './viral-threads-repost'
@@ -106,6 +107,7 @@ type JobName =
   | 'daily-buzz-japan'
   | 'claude-code-repost'
   | 'claude-code-blog'
+  | 'claude-code-threads'
   | 'anthropic-tweet-reactor'
   | 'viral-ai-repost'
   | 'viral-threads-repost'
@@ -149,6 +151,7 @@ const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 6 * * *': 'claude-code-repost',
   '0 10 * * *': 'claude-code-repost',
   '0 23 * * 0,2,4': 'claude-code-blog',
+  '30 8 * * *': 'claude-code-threads',
   '0 4 * * *': 'anthropic-tweet-reactor',
   '0 5 * * *': 'viral-ai-repost',
   '30 5 * * *': 'viral-threads-repost',
@@ -192,6 +195,7 @@ function detectJob(): JobName {
     explicit === 'daily-buzz-japan' ||
     explicit === 'claude-code-repost' ||
     explicit === 'claude-code-blog' ||
+    explicit === 'claude-code-threads' ||
     explicit === 'anthropic-tweet-reactor' ||
     explicit === 'viral-ai-repost' ||
     explicit === 'viral-threads-repost' ||
@@ -400,6 +404,7 @@ const jobRunners: Record<JobName, () => Promise<void>> = {
   'daily-buzz-japan': async () => { await runDailyBuzzThread('ai-tech-japan') },
   'claude-code-repost': runClaudeCodeRepost,
   'claude-code-blog': async () => { await runClaudeCodeBlog() },
+  'claude-code-threads': runClaudeCodeThreads,
   'anthropic-tweet-reactor': runAnthropicReactor,
   'viral-ai-repost': async () => {
     const result = await runViralAiRepost()
