@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/Header';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function AdminLayout({
   children,
@@ -11,6 +12,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // 司令塔は枠なし全画面kiosk（サイドバー/ヘッダー無し・75インチ常時表示用）
+  if (pathname === '/admin/command') {
+    return <>{children}</>;
+  }
 
   return (
     <AuthProvider>

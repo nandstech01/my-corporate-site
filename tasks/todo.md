@@ -294,3 +294,11 @@ kill-switch: GitHub変数 CC_THREADS_ENABLED / CC_THREADS_DRY_RUN。
 - [x] app/admin/command/page.tsx 新規: ミッションコントロール風(ダーク/フォスファーオレンジ×シアン/Orbitron数値/レーダースイープ/HUD/スキャンライン)。本日投稿/閲覧7日/問い合わせ本日 + 7日トレンド(recharts) + 投稿グリッドレーダー + システムLIVE。30秒ポーリング。75インチ常時表示用。Remotion不使用(Next+framer-motion+recharts)。
 - [x] cron整理(承認: 廃止＋死んでる無効化): Instagram系4cron無効化(slack-bot-cron.yml)、LinkedIn scheduleブロック無効化(linkedin-cron.yml)。viral-repost/daily-buzz-globalは既に停止済。働いてる物は不変。
 検証: tsc型エラーなし。URL: /admin/command
+
+### 2026-06-26 司令塔「極」アップグレード(全実装)
+- [x] フルスクリーンkiosk: app/admin/layout.tsx で /admin/command のみ chrome無し
+- [x] リアル地球(両方レイヤー): public/textures/earth-dark.jpg(夜景DL)+public/data/world-110m.json(国境177カ国DL)。GlobeScene: テクスチャSphere+国境lineSegments(geo-lines.ts)+ドット殻+フレネル大気+Tronグリッド床(ShaderMaterial)+Bloom
+- [x] 弧データ連動: postsToday(X/Threads/Blog/Zenn/Qiita/note)→弧の太さ/発光/パルス速度/到達ノード強度
+- [x] 演出: GSAP起動(地球scale/rotation立ち上げ)+グリッド床scan+問い合わせ警報リング
+- [x] 問い合わせ通知: recordInquiryでDiscord即時通知(@here)、system-dev-leadも集約(notify:false二重回避)、command-metrics latestInquiry、inquiry-alert.tsx(リング+WebAudioビープ+トースト+サウンド有効化)
+検証: WebGL実レンダリング(/tmp/command-extreme.png)=フルスクリーン・夜景地球・国境・大気グロー・弧・グリッド床・HUD。recordInquiry→Discord実着信+latestInquiry反映を確認。tsc OK。素材DL失敗時フォールバックあり。

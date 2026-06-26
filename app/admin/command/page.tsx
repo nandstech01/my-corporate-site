@@ -14,6 +14,7 @@ import { Orbitron, IBM_Plex_Mono } from 'next/font/google'
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } from 'recharts'
 
 const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: () => null })
+import InquiryAlert from './inquiry-alert'
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -27,10 +28,13 @@ interface Metrics {
   postsToday: { total: number; x: number; threads: number; blog: number; crosspost: number }
   viewsLatest: { date: string; ga4Sessions: number; gscImpressions: number; gscClicks: number; total: number }
   inquiriesToday: number
+  latestInquiry: { id: string; created_at: string; name: string | null; source: string } | null
   series: { days: string[]; posts: number[]; views: number[]; inquiries: number[] }
   totals7d: { posts: number; views: number; inquiries: number }
   generatedAt: string
 }
+
+const EMPTY_POSTS = { total: 0, x: 0, threads: 0, blog: 0, crosspost: 0 }
 
 function Count({ value, dur = 1000 }: { value: number; dur?: number }) {
   const [n, setN] = useState(0)
@@ -152,8 +156,11 @@ export default function CommandCenter() {
   const days = m?.series.days ?? []
   return (
     <div className={`relative min-h-screen w-full overflow-hidden text-slate-200 ${mono.className}`} style={{ background: '#05070d' }}>
-      {/* 3D globe background */}
-      <div className="fixed inset-0 z-0"><GlobeScene /></div>
+      {/* 3D globe background (arcs react to today's post volume) */}
+      <div className="fixed inset-0 z-0"><GlobeScene posts={m?.postsToday ?? EMPTY_POSTS} /></div>
+
+      {/* inquiry alert (ring + beep + toast on new arrival) */}
+      <InquiryAlert latest={m?.latestInquiry ?? null} />
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />

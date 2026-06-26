@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { notifyNewLead } from '@/lib/lead-pipeline/notify'
+import { recordInquiry } from '@/lib/cortex/metrics/inquiries'
 
 const leadSchema = z.object({
   answers: z.record(z.unknown()).optional(),
@@ -91,6 +92,12 @@ export async function POST(request: Request) {
     if (dbError) {
       throw new Error(`Database error: ${dbError.message}`)
     }
+
+    // 司令塔の「問い合わせ件数」に集約(Discord通知は下の notifyNewLead が担うので notify:false)
+    await recordInquiry(
+      { source: 'system-dev', email: data.email, company: row.industry || undefined, message: row.system_overview || undefined, meta: { serviceType: data.serviceType, leadTier: data.leadTier } },
+      { notify: false },
+    )
 
     try {
       await notifyNewLead({
