@@ -23,7 +23,8 @@ interface QueryAgg {
   priorImp: number // 7-14d ago
 }
 
-const MIN_IMP = 20 // ignore noise
+// Small-site calibrated. Raise these as traffic grows. (Override with SEO_MIN_IMP.)
+const MIN_IMP = Number(process.env.SEO_MIN_IMP || 3)
 
 export async function computeSeoInsights(): Promise<SeoInsights> {
   const generatedAt = new Date().toISOString()
@@ -72,25 +73,25 @@ export async function computeSeoInsights(): Promise<SeoInsights> {
       opportunities.push({
         kind: 'strike_distance', query: a.query, pagePath: a.pagePath,
         impressions: a.impressions, position, ctr,
-        score: Math.min(1, (a.impressions / 200) * (1 - Math.abs(position - 8) / 20)),
+        score: Math.min(1, (a.impressions / 20) * (1 - Math.abs(position - 8) / 20)),
         reason: `順位${position.toFixed(1)}位・imp${a.impressions}＝上位化の好機`,
       })
     }
     // low CTR at decent position = タイトル/メタ改善
-    if (position <= 10 && ctr < 0.02 && a.impressions >= 50) {
+    if (position <= 10 && ctr < 0.02 && a.impressions >= 8) {
       opportunities.push({
         kind: 'low_ctr', query: a.query, pagePath: a.pagePath,
         impressions: a.impressions, position, ctr,
-        score: Math.min(1, a.impressions / 300),
+        score: Math.min(1, a.impressions / 30),
         reason: `順位${position.toFixed(1)}位なのにCTR${(ctr * 100).toFixed(1)}%＝タイトル改善余地`,
       })
     }
     // rising demand = 需要予測（伸びるテーマ）
-    if (a.recentImp > a.priorImp * 1.5 && a.recentImp >= 30) {
+    if (a.recentImp > a.priorImp * 1.5 && a.recentImp >= 5) {
       opportunities.push({
         kind: 'rising_demand', query: a.query, pagePath: null,
         impressions: a.impressions, position, ctr,
-        score: Math.min(1, a.recentImp / 200),
+        score: Math.min(1, a.recentImp / 20),
         reason: `直近impが${a.priorImp}→${a.recentImp}に上昇＝需要増`,
       })
     }
