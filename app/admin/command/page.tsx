@@ -15,6 +15,7 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } f
 
 const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: () => null })
 import InquiryAlert from './inquiry-alert'
+const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -161,6 +162,8 @@ export default function CommandCenter() {
 
       {/* inquiry alert (ring + beep + toast on new arrival) */}
       <InquiryAlert latest={m?.latestInquiry ?? null} />
+      {/* NANDS pixel mascot — ambient + reacts to live data (additive overlay) */}
+      <Mascot metrics={m ?? null} />
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />
