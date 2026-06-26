@@ -58,7 +58,10 @@ export async function collectGsc(daysAgo = 3): Promise<{ pages: number; date: st
     for (const r of rows) {
       const pageUrl = r.keys?.[0] ?? ''
       const query = r.keys?.[1] ?? ''
-      const path = pageUrl.replace(SITE_URL, '')
+      // Works for both domain (sc-domain:) and URL-prefix properties:
+      // the `page` dimension is always a full URL → take the pathname.
+      let path: string
+      try { path = new URL(pageUrl).pathname } catch { path = pageUrl.replace(SITE_URL, '') }
       if (!path.startsWith('/posts/')) continue
 
       const cur =
