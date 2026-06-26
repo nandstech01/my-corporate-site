@@ -265,3 +265,10 @@ app/の生成ルート(変更禁止・不安定・RAG重め)は不使用。自�
 検証(Stage2 DRY-RUN): 「Claude Codeコスト最適化7つの方法」11028字・①〜⑦+仕組み+まとめ・痛みフック・オレンジバナー生成成功。
 要改善メモ: セクション内のCLAUDE.md例が ## H2 として混入することがある(プロンプトでコードフェンス徹底)。
 安全: CC_BLOG_ENABLED(kill-switch)/CC_BLOG_DRY_RUN。GitHub変数で制御。ZennはCROSS_POST_GITHUB_TOKEN(PAT)要設定(無くてもQiita/note可)。
+
+### 2026-06-26 Threads セルフリプライ・スレッド 全自動（Xは無傷）
+ThreadsはネイティブAPIで返信チェーン対応(postThreadsChain・親に画像可)。認証セット済(TOKEN/USER_ID/POSTING_ENABLED)。
+- [x] lib/cortex/posting/claude-code-threads.ts: 同ソース(collectClaudeCodeDigest)・Threads最適化表現(ストーリー/≤480字/ハッシュタグ無/教育的)・親＋返信3-5・バナー画像・cortexReview(threads)ゲート・Discord通知
+- [x] cron job 'claude-code-threads'(`30 8 * * *`=JST17:30) + yml + CC_THREADS_* env。Xジョブ・ファイルは一切変更なし
+検証: DRY-RUNで 2.1.191 /rewind 解説スレッド生成成功(全≤500字・バナー付き)。tsc型エラーなし。
+kill-switch: GitHub変数 CC_THREADS_ENABLED / CC_THREADS_DRY_RUN。
