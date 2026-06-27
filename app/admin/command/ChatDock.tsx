@@ -56,7 +56,7 @@ export default function ChatDock({
           {/* floating LINE-style conversation across the center (私=左 / キャラ=右) */}
           <div
             key="convo"
-            style={{ position: 'fixed', left: 0, right: '24vw', top: '15vh', bottom: 196, zIndex: 47, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 12, padding: '0 4vw', pointerEvents: 'none', overflow: 'hidden' }}
+            style={{ position: 'fixed', left: 0, right: '22vw', top: '14vh', bottom: '44vh', zIndex: 47, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 12, padding: '0 4vw', pointerEvents: 'none', overflow: 'hidden' }}
           >
             <AnimatePresence initial={false}>
               {recent.map((msg, i) => {
@@ -105,7 +105,7 @@ export default function ChatDock({
           <motion.div
             key="input"
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 14 }}
-            style={{ position: 'fixed', left: '50%', bottom: 132, transform: 'translateX(-50%)', width: 'min(560px, 56vw)', zIndex: 48, display: 'flex', gap: 8, pointerEvents: 'auto' }}
+            style={{ position: 'fixed', left: '50%', bottom: '37vh', transform: 'translateX(-50%)', width: 'min(620px, 60vw)', zIndex: 48, display: 'flex', gap: 8, pointerEvents: 'auto' }}
           >
             <input
               value={draft}
