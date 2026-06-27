@@ -10,11 +10,11 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type Ev = { kind: 'text' | 'tool' | 'system' | 'result' | 'raw'; text: string }
-type Status = 'idle' | 'running' | 'done' | 'error'
+type Status = 'idle' | 'running' | 'awaiting' | 'done' | 'error'
 const CYAN = '#38E1D8'
 const GREEN = '#3DDC91'
 
-const STATUS_LABEL: Record<Status, string> = { idle: '待機', running: '実行中', done: '完了', error: 'エラー' }
+const STATUS_LABEL: Record<Status, string> = { idle: '待機', running: '実行中', awaiting: '待機・追加指示OK', done: '完了', error: 'エラー' }
 
 function Corner({ pos }: { pos: string }) {
   const base: React.CSSProperties = { position: 'absolute', width: 16, height: 16, borderColor: `${CYAN}99` }
@@ -63,7 +63,7 @@ export default function ExecConsole({
           style={{ position: 'fixed', right: 26, bottom: 86, zIndex: 48, display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 24, border: `1px solid ${CYAN}55`, background: 'rgba(6,10,18,0.85)', backdropFilter: 'blur(10px)', color: '#cfe0ee', fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, cursor: 'pointer', boxShadow: `0 0 26px ${CYAN}33` }}
         >
           <span className={running ? 'animate-pulse' : ''} style={{ width: 8, height: 8, borderRadius: '50%', background: running ? CYAN : GREEN, boxShadow: `0 0 10px ${running ? CYAN : GREEN}` }} />
-          CLAUDE CODE {running ? `実行中… ${elapsed}s` : '完了 ▸ 結果を見る'}
+          CLAUDE CODE {running ? `実行中… ${elapsed}s` : status === 'awaiting' ? '待機・追加指示OK ▸ 開く' : '完了 ▸ 結果を見る'}
         </motion.button>
       )}
 

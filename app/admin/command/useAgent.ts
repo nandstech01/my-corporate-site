@@ -1,15 +1,16 @@
 'use client'
 
 /**
- * 司令塔 行動エンジン client (Phase 3A/3B)。本物のローカルClaude Codeを起動し
- * (SSE)、近未来コンソールにストリーム表示。動き出したら自動で最小化(裏チップ)へ。
- * 完了で onResult に最終結果を渡す(キャラが要約音声＋会話に表示)。
+ * 司令塔 行動エンジン client (Phase 3A/3B/3C)。本物のローカルClaude Codeを起動し
+ * (SSE)、近未来コンソールにストリーム表示。動き出したら自動で裏チップへ最小化。
+ * セッションは生きたまま(stdin開放)＝実行中に say() で割り込み指示できる。
+ * 各ターン完了(turn)で onResult に結果を渡す(キャラが要約音声＋会話表示)。
  */
 
 import { useCallback, useRef, useState } from 'react'
 
 export interface AgentEvent { kind: 'text' | 'tool' | 'system' | 'result' | 'raw'; text: string }
-export type AgentStatus = 'idle' | 'running' | 'done' | 'error'
+export type AgentStatus = 'idle' | 'running' | 'awaiting' | 'done' | 'error'
 
 function parseLine(line: string): AgentEvent[] {
   try {
@@ -39,6 +40,7 @@ export function useAgent(opts?: { onResult?: (text: string) => void }) {
   const cbRef = useRef(opts)
   cbRef.current = opts
   const running = status === 'running'
+  const live = status === 'running' || status === 'awaiting'
 
   const stop = useCallback(async () => {
     const id = runIdRef.current
@@ -48,13 +50,21 @@ export function useAgent(opts?: { onResult?: (text: string) => void }) {
     setStatus('done')
   }, [])
 
+  /** Inject a follow-up instruction into the live session (割り込み). */
+  const say = useCallback(async (text: string) => {
+    const id = runIdRef.current
+    if (!id || !text.trim()) return
+    setEvents((e) => [...e, { kind: 'system', text: `▶ ${text}` }])
+    setStatus('running')
+    try { await fetch('/api/admin/agent/say', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ runId: id, text }) }) } catch { /* ignore */ }
+  }, [])
+
   const run = useCallback(async (task: string, perm: string) => {
-    if (!task.trim() || running) return
+    if (!task.trim() || live) return
     setEvents([{ kind: 'system', text: `▶ ${task}` }])
     setOpen(true); setMinimized(false); setStatus('running')
-    let result = ''
-    let minimized = false
-    const autoMin = setTimeout(() => { if (!minimized) { minimized = true; setMinimized(true) } }, 6500)
+    let mini = false
+    const autoMin = setTimeout(() => { if (!mini) { mini = true; setMinimized(true) } }, 6500)
     try {
       const res = await fetch('/api/admin/agent/run', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -77,16 +87,16 @@ export function useAgent(opts?: { onResult?: (text: string) => void }) {
         for (const part of parts) {
           const mm = part.match(/^data: (.*)$/s)
           if (!mm) continue
-          let evt: { type?: string; runId?: string; line?: string; message?: string }
+          let evt: { type?: string; runId?: string; line?: string; message?: string; result?: string }
           try { evt = JSON.parse(mm[1]) } catch { continue }
           if (evt.type === 'run') runIdRef.current = evt.runId ?? null
           else if (evt.type === 'line' && evt.line) {
             const evs = parseLine(evt.line)
             if (evs.length) setEvents((e) => [...e, ...evs])
-            // first tool use → minimize to background chip
-            if (!minimized && evs.some((x) => x.kind === 'tool')) { minimized = true; setMinimized(true) }
-            const r = evs.find((x) => x.kind === 'result')
-            if (r) result = r.text
+            if (!mini && evs.some((x) => x.kind === 'tool')) { mini = true; setMinimized(true) }
+          } else if (evt.type === 'turn') {
+            setStatus('awaiting') // turn done; session alive for follow-ups
+            if (evt.result) cbRef.current?.onResult?.(evt.result)
           } else if (evt.type === 'error') {
             setEvents((e) => [...e, { kind: 'system', text: `エラー: ${evt.message ?? ''}` }])
           }
@@ -97,9 +107,8 @@ export function useAgent(opts?: { onResult?: (text: string) => void }) {
     } finally {
       clearTimeout(autoMin)
       setStatus((s) => (s === 'error' ? 'error' : 'done'))
-      if (result) cbRef.current?.onResult?.(result)
     }
-  }, [running])
+  }, [live])
 
-  return { run, stop, status, running, events, open, setOpen, minimized, setMinimized }
+  return { run, say, stop, status, running, live, events, open, setOpen, minimized, setMinimized }
 }

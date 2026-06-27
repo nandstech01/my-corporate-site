@@ -10,7 +10,7 @@ import { useCallback, useRef, useState } from 'react'
 
 export interface ChatMsg { role: 'user' | 'assistant'; content: string }
 
-export function useChat(opts: { speak: (t: string) => void; onAct: (task: string, perm: string) => void }) {
+export function useChat(opts: { speak: (t: string) => void; onAct: (task: string, perm: string) => void; onStopLive: () => void; isLive: () => boolean }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [busy, setBusy] = useState(false)
@@ -27,6 +27,8 @@ export function useChat(opts: { speak: (t: string) => void; onAct: (task: string
     const content = text.trim()
     if (!content || busy) return
     apply([...messagesRef.current, { role: 'user', content }])
+    // 割り込み: a Claude Code run is live → stop it, then route the new instruction.
+    if (cbRef.current.isLive()) cbRef.current.onStopLive()
     setBusy(true)
     try {
       const r = await fetch('/api/admin/command-chat', {

@@ -169,7 +169,12 @@ export default function CommandCenter() {
       voice.speak(s.slice(0, 200))
     },
   })
-  const chat = useChat({ speak: voice.speak, onAct: (task, perm) => agent.run(task, perm) })
+  const chat = useChat({
+    speak: voice.speak,
+    onAct: (task, perm) => agent.run(task, perm),
+    onStopLive: () => agent.stop(),
+    isLive: () => agent.live,
+  })
   chatBridge.current = { pushAssistant: chat.pushAssistant }
   // engaging the chat (a user gesture) unlocks audio + turns the character voice on
   const openChat = () => { chat.setOpen(true); voice.unlock(); voice.setMuted(false) }
@@ -248,7 +253,7 @@ export default function CommandCenter() {
         onMinimize={() => agent.setMinimized(true)}
         onExpand={() => agent.setMinimized(false)}
         onStop={agent.stop}
-        onClose={() => { agent.setOpen(false); agent.setMinimized(false) }}
+        onClose={() => { if (agent.live) agent.stop(); agent.setOpen(false); agent.setMinimized(false) }}
       />
       {/* character voice toggle (first click unlocks kiosk audio) */}
       <button

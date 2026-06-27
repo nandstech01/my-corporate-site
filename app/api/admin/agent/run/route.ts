@@ -1,5 +1,5 @@
 import { isLocalCommandCenter } from '@/lib/command-center/local-guard'
-import { startAgent, finishAudit, unregister } from '@/lib/command-center/agent-runtime'
+import { startAgent, finishAudit, unregister, touchRun } from '@/lib/command-center/agent-runtime'
 import { recallKnowledge, distillAndSave } from '@/lib/command-center/knowledge'
 
 export const runtime = 'nodejs'
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
 
       let buf = ''
       child.stdout.on('data', (d: Buffer) => {
+        touchRun(runId) //活動中はアイドル終了させない(長時間タスクのkill/割り込み切れ防止)
         buf += d.toString()
         const lines = buf.split('\n')
         buf = lines.pop() || ''
@@ -54,7 +55,10 @@ export async function POST(req: Request) {
           full += line + '\n'
           try {
             const j = JSON.parse(line) as { type?: string; result?: unknown }
-            if (j.type === 'result' && typeof j.result === 'string') resultText = j.result
+            if (j.type === 'result' && typeof j.result === 'string') {
+              resultText = j.result
+              send({ type: 'turn', result: j.result }) // a turn finished; session stays alive for 割り込み
+            }
           } catch { /* not json */ }
           send({ type: 'line', line })
         }
