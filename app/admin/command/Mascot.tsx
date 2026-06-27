@@ -121,7 +121,7 @@ function rectsFromMatrix() {
 }
 const BODY_RECTS = rectsFromMatrix()
 
-export default function Mascot({ metrics, news, speaking, caption }: { metrics: MetricsLike | null; news?: NewsLike | null; speaking?: boolean; caption?: string | null }) {
+export default function Mascot({ metrics, news, speaking, caption, working }: { metrics: MetricsLike | null; news?: NewsLike | null; speaking?: boolean; caption?: string | null; working?: boolean }) {
   const controls = useAnimationControls()
   const [action, setAction] = useState<Action>('idle')
   const [facing, setFacing] = useState<1 | -1>(1)
@@ -134,6 +134,8 @@ export default function Mascot({ metrics, news, speaking, caption }: { metrics: 
   const petKick = useRef(false)
   const speakingRef = useRef(false)
   useEffect(() => { speakingRef.current = !!speaking }, [speaking])
+  const workingRef = useRef(false)
+  useEffect(() => { workingRef.current = !!working }, [working])
 
   useEffect(() => setMounted(true), [])
 
@@ -189,6 +191,7 @@ export default function Mascot({ metrics, news, speaking, caption }: { metrics: 
     const run = async () => {
       while (alive) {
         if (speakingRef.current) { setAction('speak'); await wait(160); continue }
+        if (workingRef.current) { setAction('type'); await wait(200); continue } // Claude Code working
         if (petKick.current) { petKick.current = false; await doReaction({ kind: 'hop' }); continue }
         if (reaction.current) { const r = reaction.current; reaction.current = null; await doReaction(r); continue }
         const roll = Math.random()
