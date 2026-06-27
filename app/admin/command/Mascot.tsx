@@ -50,6 +50,11 @@ interface MetricsLike {
   latestInquiry: { id: string } | null
 }
 
+interface NewsLike {
+  version: string | null
+  isNew: boolean
+}
+
 const css = `
 .cmasc-wrap { position: fixed; bottom: 16px; left: 0; z-index: 30; pointer-events: none; }
 .cmasc { display:block; filter: drop-shadow(0 5px 7px rgba(0,0,0,0.35)) drop-shadow(0 0 18px rgba(61,240,230,0.65)); pointer-events:auto; cursor:pointer; }
@@ -110,7 +115,7 @@ function rectsFromMatrix() {
 }
 const BODY_RECTS = rectsFromMatrix()
 
-export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
+export default function Mascot({ metrics, news }: { metrics: MetricsLike | null; news?: NewsLike | null }) {
   const controls = useAnimationControls()
   const [action, setAction] = useState<Action>('idle')
   const [facing, setFacing] = useState<1 | -1>(1)
@@ -214,6 +219,18 @@ export default function Mascot({ metrics }: { metrics: MetricsLike | null }) {
     if (prevPosts.current != null && posts > prevPosts.current) reaction.current = { kind: 'celebrate', text: '投稿完了！' }
     prevPosts.current = posts
   }, [metrics])
+
+  // ---- official Claude Code news: excited reaction when a new version appears ----
+  const seenNews = useRef(false)
+  const prevVer = useRef<string | null>(null)
+  useEffect(() => {
+    if (!news) return
+    if (!seenNews.current) { seenNews.current = true; prevVer.current = news.version; return }
+    if (news.isNew && news.version && news.version !== prevVer.current) {
+      prevVer.current = news.version
+      reaction.current = { kind: 'celebrate', text: '公式新着！' }
+    }
+  }, [news])
 
   if (!mounted) return null
 

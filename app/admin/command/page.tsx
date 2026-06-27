@@ -17,6 +17,7 @@ const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: 
 import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
 const EventFeed = dynamic(() => import('./EventFeed'), { ssr: false, loading: () => null })
+const IntelPanel = dynamic(() => import('./IntelPanel'), { ssr: false, loading: () => null })
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -34,6 +35,13 @@ interface Metrics {
   recentEvents: Array<{ id: string; type: 'x' | 'threads' | 'blog' | 'crosspost' | 'inquiry'; label: string; sub: string; ts: string; url?: string }>
   series: { days: string[]; posts: number[]; views: number[]; inquiries: number[] }
   totals7d: { posts: number; views: number; inquiries: number }
+  generatedAt: string
+}
+
+interface Intel {
+  cronHealth: Array<{ name: string; label: string; lastSuccess: string | null; ageHours: number | null; status: 'healthy' | 'stale' | 'unknown' }>
+  nextAction: { topOpportunity: { kind: string; query: string; reason: string; score: number } | null; pendingPosts: number; demandQueries: string[] }
+  claudeCodeNews: { version: string | null; title: string; summary: string; sourceUrl: string; isNew: boolean } | null
   generatedAt: string
 }
 
@@ -139,6 +147,7 @@ const SYSTEMS = ['X', 'Threads', 'Blog', 'Zenn', 'Qiita', 'note', 'GSC', 'GA4', 
 
 export default function CommandCenter() {
   const [m, setM] = useState<Metrics | null>(null)
+  const [intel, setIntel] = useState<Intel | null>(null)
   const [clock, setClock] = useState('')
   const [ago, setAgo] = useState(0)
 
@@ -150,6 +159,14 @@ export default function CommandCenter() {
     const poll = setInterval(load, 30_000)
     const a = setInterval(() => setAgo((s) => s + 1), 1000)
     return () => { clearInterval(poll); clearInterval(a) }
+  }, [])
+  useEffect(() => {
+    const load = async () => {
+      try { const r = await fetch('/api/admin/command-intel', { cache: 'no-store' }); if (r.ok) setIntel(await r.json()) } catch { /* keep */ }
+    }
+    load()
+    const poll = setInterval(load, 60_000)
+    return () => clearInterval(poll)
   }, [])
   useEffect(() => {
     const t = setInterval(() => setClock(new Date(Date.now() + 9 * 3600_000).toISOString().slice(11, 19)), 1000)
@@ -164,10 +181,12 @@ export default function CommandCenter() {
 
       {/* inquiry alert (ring + beep + toast on new arrival) */}
       <InquiryAlert latest={m?.latestInquiry ?? null} />
-      {/* NANDS pixel mascot — ambient + reacts to live data (additive overlay) */}
-      <Mascot metrics={m ?? null} />
+      {/* NANDS pixel mascot — ambient + reacts to live data + official news (additive overlay) */}
+      <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} />
       {/* live activity feed — いま起きたこと (left rail, additive) */}
       <EventFeed events={m?.recentEvents ?? []} />
+      {/* intel right rail — official news / next action / cron health (additive) */}
+      <IntelPanel intel={intel} />
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />
