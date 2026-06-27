@@ -1,5 +1,6 @@
 import { isLocalCommandCenter } from '@/lib/command-center/local-guard'
 import { startAgent, finishAudit, unregister } from '@/lib/command-center/agent-runtime'
+import { recallKnowledge, distillAndSave } from '@/lib/command-center/knowledge'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,9 +24,16 @@ export async function POST(req: Request) {
   }
   if (!prompt) return new Response('empty prompt', { status: 400 })
 
-  const { runId, child } = startAgent(prompt)
+  // recall learned preferences → inject as context so the assistant "knows me"
+  const ctx = await recallKnowledge().catch(() => '')
+  const augmented = ctx
+    ? `[これまでに学習したオーナー(私)の方針・嗜好]\n${ctx}\n\n[依頼]\n${prompt}`
+    : prompt
+
+  const { runId, child } = startAgent(augmented)
   const enc = new TextEncoder()
   let full = ''
+  let resultText = ''
 
   const stream = new ReadableStream({
     start(controller) {
@@ -42,6 +50,10 @@ export async function POST(req: Request) {
         for (const line of lines) {
           if (!line.trim()) continue
           full += line + '\n'
+          try {
+            const j = JSON.parse(line) as { type?: string; result?: unknown }
+            if (j.type === 'result' && typeof j.result === 'string') resultText = j.result
+          } catch { /* not json */ }
           send({ type: 'line', line })
         }
       })
@@ -50,6 +62,7 @@ export async function POST(req: Request) {
         if (buf.trim()) { full += buf; send({ type: 'line', line: buf }) }
         send({ type: 'done', code })
         finishAudit(runId, full, code)
+        void distillAndSave(prompt, resultText) // learn from this exchange (best-effort)
         unregister(runId)
         try { controller.close() } catch { /* ignore */ }
       })
