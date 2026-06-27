@@ -154,6 +154,8 @@ export default function CommandCenter() {
   const [ago, setAgo] = useState(0)
   const voice = useVoice()
   const chat = useChat({ speak: voice.speak })
+  // engaging the chat (a user gesture) unlocks audio + turns the character voice on
+  const openChat = () => { chat.setOpen(true); voice.unlock(); voice.setMuted(false) }
   const seenNewsRef = useRef(false)
   const prevNewsVer = useRef<string | null>(null)
 
@@ -202,10 +204,10 @@ export default function CommandCenter() {
         <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} speaking={voice.speaking} caption={voice.caption} />
       )}
       {/* mic — talk to the character; opens the chat dock */}
-      <MicButton onActivate={() => chat.setOpen(true)} onTranscript={(t) => chat.send(t)} busy={chat.busy} />
+      <MicButton onActivate={openChat} onTranscript={(t) => chat.send(t)} busy={chat.busy} />
       {/* open-chat affordance (works without a mic too) */}
       {!chat.open && (
-        <button onClick={() => chat.setOpen(true)} aria-label="CORTEXと話す"
+        <button onClick={openChat} aria-label="CORTEXと話す"
           className="fixed z-40 rounded-full backdrop-blur"
           style={{ left: 'calc(50% + 46px)', bottom: 82, width: 38, height: 38, border: `1px solid ${CYAN}55`, color: CYAN, background: 'rgba(7,11,22,0.8)', fontSize: 16 }}>
           💬
