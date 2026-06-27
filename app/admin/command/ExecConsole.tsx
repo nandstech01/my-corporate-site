@@ -60,7 +60,7 @@ export default function ExecConsole({
           key="chip"
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
           onClick={onExpand}
-          style={{ position: 'fixed', right: 26, bottom: 26, zIndex: 48, display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 24, border: `1px solid ${CYAN}55`, background: 'rgba(6,10,18,0.85)', backdropFilter: 'blur(10px)', color: '#cfe0ee', fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, cursor: 'pointer', boxShadow: `0 0 26px ${CYAN}33` }}
+          style={{ position: 'fixed', right: 26, bottom: 86, zIndex: 48, display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 24, border: `1px solid ${CYAN}55`, background: 'rgba(6,10,18,0.85)', backdropFilter: 'blur(10px)', color: '#cfe0ee', fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, cursor: 'pointer', boxShadow: `0 0 26px ${CYAN}33` }}
         >
           <span className={running ? 'animate-pulse' : ''} style={{ width: 8, height: 8, borderRadius: '50%', background: running ? CYAN : GREEN, boxShadow: `0 0 10px ${running ? CYAN : GREEN}` }} />
           CLAUDE CODE {running ? `実行中… ${elapsed}s` : '完了 ▸ 結果を見る'}

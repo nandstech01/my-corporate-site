@@ -45,10 +45,12 @@ export interface AgentHandle {
   child: ChildProcessWithoutNullStreams
 }
 
-export type PermMode = 'plan' | 'acceptEdits' | 'bypassPermissions'
+export type PermMode = 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions'
 
-/** Start a Claude Code run with the given permission mode; caller wires stdout to SSE. */
-export function startAgent(prompt: string, perm: PermMode = 'plan'): AgentHandle {
+/** Start a Claude Code run with the given permission mode; caller wires stdout to SSE.
+ *  'default' = read-only tools auto-allowed (Read/Grep), writes blocked — good for
+ *  investigate-and-answer. 'plan' only proposes a plan. */
+export function startAgent(prompt: string, perm: PermMode = 'default'): AgentHandle {
   const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   const bin = process.env.CLAUDE_CLI_BIN || 'claude'
   const args = ['-p', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--permission-mode', perm]

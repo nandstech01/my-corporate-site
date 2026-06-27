@@ -16,11 +16,11 @@ export async function POST(req: Request) {
   }
 
   let prompt = ''
-  let perm: 'plan' | 'acceptEdits' | 'bypassPermissions' = 'plan'
+  let perm: 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions' = 'default'
   try {
     const body = (await req.json()) as { prompt?: string; perm?: string }
     prompt = (body.prompt ?? '').trim()
-    if (body.perm === 'acceptEdits' || body.perm === 'bypassPermissions' || body.perm === 'plan') perm = body.perm
+    if (body.perm === 'acceptEdits' || body.perm === 'bypassPermissions' || body.perm === 'plan' || body.perm === 'default') perm = body.perm
   } catch {
     return new Response('bad request', { status: 400 })
   }

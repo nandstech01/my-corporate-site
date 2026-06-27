@@ -159,7 +159,12 @@ export default function CommandCenter() {
   const chatBridge = useRef<{ pushAssistant: (t: string) => void } | null>(null)
   const agent = useAgent({
     onResult: (t) => {
-      const s = t.length > 240 ? `${t.slice(0, 240)}…` : t
+      const clean = (t || '')
+        .replace(/\*\*/g, '')
+        .replace(/(^|\n)\s*#{1,6}\s*/g, '$1')
+        .replace(/(^|\n)\s*[-*]\s+/g, '$1・')
+        .trim()
+      const s = clean.length > 280 ? `${clean.slice(0, 280)}…` : clean
       chatBridge.current?.pushAssistant(s)
       voice.speak(s.slice(0, 200))
     },

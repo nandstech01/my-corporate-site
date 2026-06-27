@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     `- 近況/雑談/質問/数値確認 = "chat"。会話で答える(reply)。\n` +
     `- ファイル/コード/コマンド/調査/実装/修正などの「作業依頼」 = "act"。本物のClaude Codeを起動する。\n` +
     `  - act時: say(着手の一言, 例「了解、READMEを読んで要点まとめるね」), task(Claude Codeへの具体的な実行指示・日本語可), perm を決める。\n` +
-    `  - perm: 調査・読み取り・確認だけ = "plan" / ファイル編集や実装 = "acceptEdits" / 全部任せる明示があれば = "bypassPermissions"。迷ったら "plan"。\n\n` +
+    `  - perm: 調査・読み取り・ファイルを見て答える = "default"(読み取り専用ツールは自動許可・回答する) / 「計画を立てて」と明示 = "plan"(提案のみ) / ファイル編集・実装・修正 = "acceptEdits" / 全部任せる明示 = "bypassPermissions"。迷ったら "default"。\n\n` +
     `【chatのreply 数字ルール（厳守）】\n` +
     `- 数値は下の[データ]に明示された値だけを使う。書かれていない数字は作らない・概算しない。\n` +
     `- 指標(投稿数/閲覧数/問い合わせ数)を混同しない。単位もデータ通り。無い項目は「データなし」と言う。\n` +
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     if (match) { try { parsed = JSON.parse(match[0]) } catch { /* fall through */ } }
 
     if (parsed.mode === 'act' && parsed.task) {
-      const perm = parsed.perm === 'acceptEdits' || parsed.perm === 'bypassPermissions' ? parsed.perm : 'plan'
+      const perm = ['default', 'plan', 'acceptEdits', 'bypassPermissions'].includes(parsed.perm || '') ? parsed.perm : 'default'
       const say = plain(parsed.say || '了解、やります。')
       void distillAndSave(lastUser, say)
       return NextResponse.json({ mode: 'act', say, task: parsed.task, perm })
