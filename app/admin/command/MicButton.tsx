@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const CYAN = '#38E1D8'
 
-export default function MicButton({ onTranscript, busy }: { onTranscript: (t: string) => void; busy?: boolean }) {
+export default function MicButton({ onTranscript, onActivate, busy }: { onTranscript: (t: string) => void; onActivate?: () => void; busy?: boolean }) {
   const [supported, setSupported] = useState(true)
   const [listening, setListening] = useState(false)
   const recRef = useRef<unknown>(null)
@@ -78,6 +78,7 @@ export default function MicButton({ onTranscript, busy }: { onTranscript: (t: st
     rec.onerror = () => { setListening(false); stopAmp() }
     recRef.current = rec
     setListening(true)
+    onActivate?.()
     void startAmp()
     try { rec.start() } catch { setListening(false); stopAmp() }
   }

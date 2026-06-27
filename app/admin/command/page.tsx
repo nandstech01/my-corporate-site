@@ -16,12 +16,10 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } f
 const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: () => null })
 import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
-const EventFeed = dynamic(() => import('./EventFeed'), { ssr: false, loading: () => null })
-const IntelPanel = dynamic(() => import('./IntelPanel'), { ssr: false, loading: () => null })
 const MicButton = dynamic(() => import('./MicButton'), { ssr: false, loading: () => null })
-const AgentPopup = dynamic(() => import('./AgentPopup'), { ssr: false, loading: () => null })
+const ChatDock = dynamic(() => import('./ChatDock'), { ssr: false, loading: () => null })
 import { useVoice } from './useVoice'
-import { useAgent } from './useAgent'
+import { useChat } from './useChat'
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -155,7 +153,7 @@ export default function CommandCenter() {
   const [clock, setClock] = useState('')
   const [ago, setAgo] = useState(0)
   const voice = useVoice()
-  const agent = useAgent({ onResult: (t) => voice.speak(t.slice(0, 160)) })
+  const chat = useChat({ speak: voice.speak })
   const seenNewsRef = useRef(false)
   const prevNewsVer = useRef<string | null>(null)
 
@@ -199,15 +197,29 @@ export default function CommandCenter() {
 
       {/* inquiry alert (ring + beep + toast on new arrival) */}
       <InquiryAlert latest={m?.latestInquiry ?? null} />
-      {/* NANDS pixel mascot — ambient + reacts to live data + official news (additive overlay) */}
-      <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} speaking={voice.speaking} caption={voice.caption} working={agent.running} />
-      {/* live activity feed — いま起きたこと (left rail, additive) */}
-      <EventFeed events={m?.recentEvents ?? []} />
-      {/* intel right rail — official news / next action / cron health (additive) */}
-      <IntelPanel intel={intel} />
-      {/* mic (local-only voice → Claude Code) + agent popup */}
-      <MicButton onTranscript={(t) => agent.run(t)} busy={agent.running} />
-      <AgentPopup open={agent.open} running={agent.running} events={agent.events} onStop={agent.stop} onClose={() => agent.setOpen(false)} />
+      {/* roaming pixel mascot — hidden while the chat dock (big character) is open */}
+      {!chat.open && (
+        <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} speaking={voice.speaking} caption={voice.caption} />
+      )}
+      {/* mic — talk to the character; opens the chat dock */}
+      <MicButton onActivate={() => chat.setOpen(true)} onTranscript={(t) => chat.send(t)} busy={chat.busy} />
+      {/* open-chat affordance (works without a mic too) */}
+      {!chat.open && (
+        <button onClick={() => chat.setOpen(true)} aria-label="CORTEXと話す"
+          className="fixed z-40 rounded-full backdrop-blur"
+          style={{ left: 'calc(50% + 46px)', bottom: 82, width: 38, height: 38, border: `1px solid ${CYAN}55`, color: CYAN, background: 'rgba(7,11,22,0.8)', fontSize: 16 }}>
+          💬
+        </button>
+      )}
+      {/* chat dock — enlarged character (left) + LINE-style conversation (voice + text) */}
+      <ChatDock
+        open={chat.open}
+        messages={chat.messages}
+        busy={chat.busy}
+        speaking={voice.speaking}
+        onSend={chat.send}
+        onClose={() => chat.setOpen(false)}
+      />
       {/* character voice toggle (first click unlocks kiosk audio) */}
       <button
         onClick={() => {
