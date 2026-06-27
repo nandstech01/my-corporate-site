@@ -45,11 +45,13 @@ export interface AgentHandle {
   child: ChildProcessWithoutNullStreams
 }
 
-/** Start a full-auto Claude Code run; caller wires child stdout/stderr to SSE. */
-export function startAgent(prompt: string): AgentHandle {
+export type PermMode = 'plan' | 'acceptEdits' | 'bypassPermissions'
+
+/** Start a Claude Code run with the given permission mode; caller wires stdout to SSE. */
+export function startAgent(prompt: string, perm: PermMode = 'plan'): AgentHandle {
   const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   const bin = process.env.CLAUDE_CLI_BIN || 'claude'
-  const args = ['-p', '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions']
+  const args = ['-p', '--output-format', 'stream-json', '--include-partial-messages', '--verbose', '--permission-mode', perm]
   const child = spawn(bin, args, {
     cwd: process.env.AGENT_CWD || process.cwd(),
     env: { ...process.env, CLAUDE_VOICE_HOOK_SUPPRESS: '1' },

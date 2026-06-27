@@ -18,8 +18,10 @@ import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
 const MicButton = dynamic(() => import('./MicButton'), { ssr: false, loading: () => null })
 const ChatDock = dynamic(() => import('./ChatDock'), { ssr: false, loading: () => null })
+const ExecConsole = dynamic(() => import('./ExecConsole'), { ssr: false, loading: () => null })
 import { useVoice } from './useVoice'
 import { useChat } from './useChat'
+import { useAgent } from './useAgent'
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -153,7 +155,17 @@ export default function CommandCenter() {
   const [clock, setClock] = useState('')
   const [ago, setAgo] = useState(0)
   const voice = useVoice()
-  const chat = useChat({ speak: voice.speak })
+  // agent (本物のClaude Code) and chat reference each other → bridge via a ref
+  const chatBridge = useRef<{ pushAssistant: (t: string) => void } | null>(null)
+  const agent = useAgent({
+    onResult: (t) => {
+      const s = t.length > 240 ? `${t.slice(0, 240)}…` : t
+      chatBridge.current?.pushAssistant(s)
+      voice.speak(s.slice(0, 200))
+    },
+  })
+  const chat = useChat({ speak: voice.speak, onAct: (task, perm) => agent.run(task, perm) })
+  chatBridge.current = { pushAssistant: chat.pushAssistant }
   // engaging the chat (a user gesture) unlocks audio + turns the character voice on
   const openChat = () => { chat.setOpen(true); voice.unlock(); voice.setMuted(false) }
   const seenNewsRef = useRef(false)
@@ -221,6 +233,17 @@ export default function CommandCenter() {
         speaking={voice.speaking}
         onSend={chat.send}
         onClose={() => chat.setOpen(false)}
+      />
+      {/* Claude Code 実行コンソール (近未来・ローカル限定) */}
+      <ExecConsole
+        open={agent.open}
+        status={agent.status}
+        events={agent.events}
+        minimized={agent.minimized}
+        onMinimize={() => agent.setMinimized(true)}
+        onExpand={() => agent.setMinimized(false)}
+        onStop={agent.stop}
+        onClose={() => { agent.setOpen(false); agent.setMinimized(false) }}
       />
       {/* character voice toggle (first click unlocks kiosk audio) */}
       <button

@@ -50,29 +50,41 @@ export async function POST(req: Request) {
   ])
 
   const system =
-    `あなたはNANDSの司令塔に常駐するAI相棒「CORTEX」。オーナー(私)の相棒として、SNS自動運用の近況報告や相談に、LINEのチャットのように親しみやすく簡潔に答える(2〜4文、長くしない)。絵文字は控えめに可。\n\n` +
-    `【数字ルール（厳守）】\n` +
-    `- 数値は下の[データ]に明示された値だけを使う。書かれていない数字は決して作らない・概算しない。\n` +
-    `- 各数値は[データ]のラベルと正確に対応させる。指標(投稿数/閲覧数/問い合わせ数)を絶対に混同しない。単位(件など)もデータ通りに。\n` +
-    `- 該当データが無い項目は「データなし」と正直に言う。1つの文の中で違う指標の数字を混ぜない。\n` +
-    `- 「閲覧数」はGA4セッション＋GSC表示回数の合算であり、問い合わせ数とは無関係。閲覧数を聞かれたら原則この合計で答える。\n` +
-    `- 装飾記号やマークダウン(**、#、- 等)は使わず、プレーンな日本語の文章で話す（箇条書きが必要なら「・」を文中で使う程度）。\n\n` +
+    `あなたはNANDSの司令塔に常駐するAI相棒「CORTEX」。あなた自身がClaude Code。オーナー(私)の発話を1回で判定し、JSONだけを返す。\n\n` +
+    `【判定】\n` +
+    `- 近況/雑談/質問/数値確認 = "chat"。会話で答える(reply)。\n` +
+    `- ファイル/コード/コマンド/調査/実装/修正などの「作業依頼」 = "act"。本物のClaude Codeを起動する。\n` +
+    `  - act時: say(着手の一言, 例「了解、READMEを読んで要点まとめるね」), task(Claude Codeへの具体的な実行指示・日本語可), perm を決める。\n` +
+    `  - perm: 調査・読み取り・確認だけ = "plan" / ファイル編集や実装 = "acceptEdits" / 全部任せる明示があれば = "bypassPermissions"。迷ったら "plan"。\n\n` +
+    `【chatのreply 数字ルール（厳守）】\n` +
+    `- 数値は下の[データ]に明示された値だけを使う。書かれていない数字は作らない・概算しない。\n` +
+    `- 指標(投稿数/閲覧数/問い合わせ数)を混同しない。単位もデータ通り。無い項目は「データなし」と言う。\n` +
+    `- 「閲覧数」はGA4セッション＋GSC表示回数の合算。装飾記号やマークダウンは使わずプレーンな日本語。簡潔に2〜4文。\n\n` +
+    `【出力】次のJSONのみ(前後に何も付けない): {"mode":"chat"|"act","reply":"chat時の返答","say":"act時の一言","task":"act時の実行指示","perm":"plan|acceptEdits|bypassPermissions"}\n\n` +
     `[データ]\n${buildContext(m, intel)}\n\n[学習済みの私(オーナー)の方針]\n${mem || '(まだなし)'}`
 
   const convo = messages.map((x) => `${x.role === 'user' ? '私' : 'CORTEX'}: ${x.content}`).join('\n')
-  const prompt = `${convo}\nCORTEX:`
+  const prompt = `${convo}\n\n上記の最後の「私」の発話を判定し、JSONのみ出力:`
+
+  const plain = (s: string) => (s || '').replace(/\*\*/g, '').replace(/(^|\n)\s*#{1,6}\s*/g, '$1').trim()
 
   try {
     const { text } = await invokeClaude(prompt, { system, timeoutMs: 60_000, retries: 1 })
-    // Bubbles render plain text → strip any markdown the model emits (**, #, leading -).
-    const clean = (text || '')
-      .replace(/\*\*/g, '')
-      .replace(/(^|\n)\s*#{1,6}\s*/g, '$1')
-      .replace(/(^|\n)\s*[-*]\s+/g, '$1・')
-      .trim()
-    const reply = clean || 'うまく聞き取れませんでした。もう一度お願いします。'
+    // Parse the router JSON (tolerate code fences / surrounding prose).
+    let parsed: { mode?: string; reply?: string; say?: string; task?: string; perm?: string } = {}
+    const match = (text || '').match(/\{[\s\S]*\}/)
+    if (match) { try { parsed = JSON.parse(match[0]) } catch { /* fall through */ } }
+
+    if (parsed.mode === 'act' && parsed.task) {
+      const perm = parsed.perm === 'acceptEdits' || parsed.perm === 'bypassPermissions' ? parsed.perm : 'plan'
+      const say = plain(parsed.say || '了解、やります。')
+      void distillAndSave(lastUser, say)
+      return NextResponse.json({ mode: 'act', say, task: parsed.task, perm })
+    }
+
+    const reply = plain(parsed.reply || text) || 'うまく聞き取れませんでした。もう一度お願いします。'
     void distillAndSave(lastUser, reply)
-    return NextResponse.json({ reply })
+    return NextResponse.json({ mode: 'chat', reply })
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'chat failed' }, { status: 500 })
   }

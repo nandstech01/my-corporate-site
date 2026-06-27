@@ -16,9 +16,11 @@ export async function POST(req: Request) {
   }
 
   let prompt = ''
+  let perm: 'plan' | 'acceptEdits' | 'bypassPermissions' = 'plan'
   try {
-    const body = (await req.json()) as { prompt?: string }
+    const body = (await req.json()) as { prompt?: string; perm?: string }
     prompt = (body.prompt ?? '').trim()
+    if (body.perm === 'acceptEdits' || body.perm === 'bypassPermissions' || body.perm === 'plan') perm = body.perm
   } catch {
     return new Response('bad request', { status: 400 })
   }
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
     ? `[これまでに学習したオーナー(私)の方針・嗜好]\n${ctx}\n\n[依頼]\n${prompt}`
     : prompt
 
-  const { runId, child } = startAgent(augmented)
+  const { runId, child } = startAgent(augmented, perm)
   const enc = new TextEncoder()
   let full = ''
   let resultText = ''
