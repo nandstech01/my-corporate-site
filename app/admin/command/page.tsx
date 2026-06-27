@@ -18,6 +18,7 @@ import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
 const EventFeed = dynamic(() => import('./EventFeed'), { ssr: false, loading: () => null })
 const IntelPanel = dynamic(() => import('./IntelPanel'), { ssr: false, loading: () => null })
+import { useVoice } from './useVoice'
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -150,6 +151,9 @@ export default function CommandCenter() {
   const [intel, setIntel] = useState<Intel | null>(null)
   const [clock, setClock] = useState('')
   const [ago, setAgo] = useState(0)
+  const voice = useVoice()
+  const seenNewsRef = useRef(false)
+  const prevNewsVer = useRef<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -168,6 +172,16 @@ export default function CommandCenter() {
     const poll = setInterval(load, 60_000)
     return () => clearInterval(poll)
   }, [])
+  // announce official Claude Code news aloud when a new version appears
+  useEffect(() => {
+    const news = intel?.claudeCodeNews
+    if (!news) return
+    if (!seenNewsRef.current) { seenNewsRef.current = true; prevNewsVer.current = news.version; return }
+    if (news.isNew && news.version && news.version !== prevNewsVer.current) {
+      prevNewsVer.current = news.version
+      voice.speak(`公式新着です。${news.title}。日本最速で配信予定です。`)
+    }
+  }, [intel, voice])
   useEffect(() => {
     const t = setInterval(() => setClock(new Date(Date.now() + 9 * 3600_000).toISOString().slice(11, 19)), 1000)
     return () => clearInterval(t)
@@ -182,11 +196,22 @@ export default function CommandCenter() {
       {/* inquiry alert (ring + beep + toast on new arrival) */}
       <InquiryAlert latest={m?.latestInquiry ?? null} />
       {/* NANDS pixel mascot — ambient + reacts to live data + official news (additive overlay) */}
-      <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} />
+      <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} speaking={voice.speaking} caption={voice.caption} />
       {/* live activity feed — いま起きたこと (left rail, additive) */}
       <EventFeed events={m?.recentEvents ?? []} />
       {/* intel right rail — official news / next action / cron health (additive) */}
       <IntelPanel intel={intel} />
+      {/* character voice toggle (first click unlocks kiosk audio) */}
+      <button
+        onClick={() => {
+          if (voice.muted) { voice.unlock(); voice.setMuted(false); voice.speak('司令塔、起動しました。') }
+          else voice.setMuted(true)
+        }}
+        className="fixed bottom-5 left-5 z-50 px-4 py-2 rounded-full text-sm border backdrop-blur"
+        style={{ borderColor: voice.muted ? 'rgba(148,163,184,0.4)' : `${CYAN}80`, color: voice.muted ? '#94a3b8' : CYAN, background: 'rgba(7,11,22,0.8)' }}
+      >
+        {voice.muted ? '🔇 キャラの声 OFF' : '🔊 キャラの声 ON'}
+      </button>
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />

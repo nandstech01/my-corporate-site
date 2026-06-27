@@ -42,7 +42,7 @@ const BODY_MATRIX = [
   '...EEEEEE...',
 ]
 
-type Action = 'idle' | 'walk' | 'type' | 'instruct' | 'celebrate' | 'alert'
+type Action = 'idle' | 'walk' | 'type' | 'instruct' | 'celebrate' | 'alert' | 'speak'
 type Reaction = { kind: 'alert' | 'celebrate' | 'hop'; text?: string }
 
 interface MetricsLike {
@@ -78,6 +78,12 @@ const css = `
 
 .cmasc .visor-scan { transform-box: fill-box; animation: cmasc-scan 2.4s ease-in-out infinite; }
 @keyframes cmasc-scan { 0%{transform:translateX(0)} 50%{transform:translateX(38px)} 100%{transform:translateX(0)} }
+
+/* talking: visor flickers fast + quicker bob, as if speaking */
+.cmasc.a-speak .visor-scan { animation: cmasc-scan .5s ease-in-out infinite; }
+.cmasc.a-speak .visor-mid { animation: cmasc-talk .22s ease-in-out infinite; }
+.cmasc.a-speak .body { animation: cmasc-bob .42s ease-in-out infinite; }
+@keyframes cmasc-talk { 0%,100%{opacity:.45} 50%{opacity:1} }
 
 .cmasc .ant-tip { transform-box: fill-box; transform-origin: center; animation: cmasc-ant 1.7s ease-in-out infinite; }
 @keyframes cmasc-ant { 0%,100%{opacity:.45; transform:scale(.85)} 50%{opacity:1; transform:scale(1.15)} }
@@ -115,7 +121,7 @@ function rectsFromMatrix() {
 }
 const BODY_RECTS = rectsFromMatrix()
 
-export default function Mascot({ metrics, news }: { metrics: MetricsLike | null; news?: NewsLike | null }) {
+export default function Mascot({ metrics, news, speaking, caption }: { metrics: MetricsLike | null; news?: NewsLike | null; speaking?: boolean; caption?: string | null }) {
   const controls = useAnimationControls()
   const [action, setAction] = useState<Action>('idle')
   const [facing, setFacing] = useState<1 | -1>(1)
@@ -126,6 +132,8 @@ export default function Mascot({ metrics, news }: { metrics: MetricsLike | null;
 
   const reaction = useRef<Reaction | null>(null)
   const petKick = useRef(false)
+  const speakingRef = useRef(false)
+  useEffect(() => { speakingRef.current = !!speaking }, [speaking])
 
   useEffect(() => setMounted(true), [])
 
@@ -180,6 +188,7 @@ export default function Mascot({ metrics, news }: { metrics: MetricsLike | null;
 
     const run = async () => {
       while (alive) {
+        if (speakingRef.current) { setAction('speak'); await wait(160); continue }
         if (petKick.current) { petKick.current = false; await doReaction({ kind: 'hop' }); continue }
         if (reaction.current) { const r = reaction.current; reaction.current = null; await doReaction(r); continue }
         const roll = Math.random()
@@ -243,7 +252,11 @@ export default function Mascot({ metrics, news }: { metrics: MetricsLike | null;
     <motion.div className="cmasc-wrap" animate={controls} initial={{ x: 110 }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <div style={{ position: 'relative', width: VBW, height: VBH + 100 }}>
-        {bubble && <div className="cmasc-bubble">{bubble}</div>}
+        {(() => {
+          const sp = speaking && caption ? (caption.length > 24 ? `${caption.slice(0, 24)}…` : caption) : null
+          const shown = sp ?? bubble
+          return shown ? <div className="cmasc-bubble">{shown}</div> : null
+        })()}
         {sparkle && (
           <>
             <span className="cmasc-spark" style={{ left: 6 }}>✦</span>
@@ -299,7 +312,7 @@ export default function Mascot({ metrics, news }: { metrics: MetricsLike | null;
                   {/* cyan scanning visor (replaces dot-eyes) */}
                   <g opacity={blink ? 0.2 : 1}>
                     <rect x={2.5 * P} y={4.3 * P} width={8 * P} height={1.5 * P} rx={3} fill="#0c3a44" />
-                    <rect x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.72} />
+                    <rect className="visor-mid" x={2.7 * P} y={4.5 * P} width={7.6 * P} height={1.1 * P} rx={3} fill={CYAN} opacity={0.72} />
                     <rect className="visor-scan" x={2.9 * P} y={4.5 * P} width={1.6 * P} height={1.1 * P} rx={2} fill={CYAN_HI} />
                   </g>
                 </g>
