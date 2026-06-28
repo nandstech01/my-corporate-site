@@ -80,3 +80,6 @@ venv*/
 
 # Jobs node_modules
 jobs/*/node_modules/
+
+# 認証情報（誤コミット防止）
+secrets/
