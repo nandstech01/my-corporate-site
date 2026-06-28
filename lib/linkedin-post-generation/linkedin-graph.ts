@@ -294,7 +294,8 @@ async function researchPrimarySources(
 async function generateCandidates(
   state: GraphStateType,
 ): Promise<Partial<GraphStateType>> {
-  const model = createModel()
+  // 候補生成は品質最優先でXと同じ Opus 4.8 を使う（採点/批評は軽量モデルのまま）。
+  const model = new ClaudeChatModel({ model: 'claude-opus-4-8' })
 
   const template = linkedInTemplates.find((t) => t.id === state.selectedTemplateId)
   const templateInfo = template
@@ -341,6 +342,13 @@ async function generateCandidates(
 
   const voiceProfile = formatVoiceProfileForPrompt('linkedin')
 
+  // 締めの型を生成のたびに確率で固定する（LLM任せだと疑問形に偏りAI感が出るため）。
+  // 80%は「問いかけで終わらせない」、20%だけ問いかけを許可。定型疑問は常に禁止。
+  const allowQuestionEnding = Math.random() < 0.2
+  const closingDirective = allowQuestionEnding
+    ? '- 締めは自由（観点の言い切り／現場目線の一言／余韻／問いかけのいずれか）。ただし「〜と思いませんか？」「皆さんはどうですか？」等の定型疑問は禁止'
+    : '- この投稿は【問いかけで終わらせない】。末尾に疑問符（？）を置かず、観点の言い切り・現場目線の一言・余韻のいずれかで締めること'
+
   const response = await model.invoke([
     {
       role: 'system' as const,
@@ -364,7 +372,9 @@ ${japanAngleHint}${learningsHint}${buzzInsightHint}${ragHint}${researchHint}
 - 各候補は1000-1500文字目標
 - 原典帰属を必ず含める
 - 日本市場への示唆を必ず含める
-- 「です・ます」調で統一`,
+- 「です・ます」調で統一
+${closingDirective}
+- 3候補すべてで締めの型を変える（同じ締め方を繰り返さない）`,
     },
     {
       role: 'user' as const,
@@ -418,7 +428,7 @@ async function scoreCandidates(
 2. sourceAttribution: 原典への正確な帰属があるか
 3. japanRelevance: 日本市場への示唆の深さ・具体性
 4. lengthFit: 文字数適合度（目標1000-1500文字、800-2000文字許容）
-5. discussionPotential: 議論を生む力（問いかけがあるか、コメントしたくなるか）
+5. discussionPotential: コメントしたくなる力（締めは問いかけ"または"観点の言い切り"のどちらでもよい。定型疑問の連発やテンプレ感はむしろ減点）
 
 JSON配列のみ出力:
 [

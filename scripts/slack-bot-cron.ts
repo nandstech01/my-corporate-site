@@ -118,9 +118,9 @@ type JobName =
 
 const SCHEDULE_TO_JOB: Record<string, JobName> = {
   '0 0 * * *': 'daily-suggestion',
-  '0 23,7 * * *': 'linkedin-auto-post',
+  '23 23 * * *': 'linkedin-auto-post',
   '0 1 * * 1': 'weekly-report',
-  '0 21,5,13 * * *': 'linkedin-source-collector',
+  '0 22 * * *': 'linkedin-source-collector',
   '0 2 * * *': 'trending-collector',
   '0 7 * * *': 'trending-collector',
   '0 14 * * *': 'trending-collector',
