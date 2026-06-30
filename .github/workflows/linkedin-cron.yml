@@ -1,11 +1,10 @@
 name: LinkedIn Cron Jobs
 
 on:
-  # スケジュール無効化(2026-06-26): LinkedInトークン切れ/未使用のため自動実行を停止。
-  # 再開時は下記2行のコメントを外す。手動実行(workflow_dispatch)は引き続き可能。
-  # schedule:
-  #   - cron: '0 23,7 * * *'       # JST 8,16 LinkedIn auto-post (2x/day)
-  #   - cron: '0 21,5,13 * * *'    # JST 6,14,22 LinkedIn source collector (1日3回)
+  # 2026-06-29 再開: トークン更新済み。1日1回投稿(実時刻はジッターで変動=スパム対策)。
+  schedule:
+    - cron: '23 23 * * *'    # JST 8:23 LinkedIn auto-post (1日1回・実時刻はジッターで0-18分変動)
+    - cron: '0 22 * * *'     # JST 7:00 LinkedIn source collector (1日1回・学習ループ用)
   workflow_dispatch:
     inputs:
       job:
@@ -21,7 +20,7 @@ jobs:
     # Mac self-hosted runner for `claude -p` subscription auth.
     # Roll back: change to `ubuntu-latest` and ensure ANTHROPIC_API_KEY in Secrets.
     runs-on: [self-hosted, macOS, ARM64, nands-cortex]
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,6 +43,11 @@ jobs:
           "$PYTHON_BIN" -m pip install --upgrade pip
           "$PYTHON_BIN" -m pip install -r services/linkedin-ml/requirements.txt -r services/x-ml/requirements.txt
           "$PYTHON_BIN" -c "import xgboost, sklearn, fugashi; print('ML dependencies OK')"
+      - name: Anti-spam jitter (auto-post only; varies the actual post minute by 0-18min)
+        run: |
+          if [ "${{ github.event.schedule }}" = '23 23 * * *' ]; then
+            D=$(( RANDOM % 1080 )); echo "post jitter ${D}s"; sleep "$D"
+          fi
       - run: npx tsx scripts/slack-bot-cron.ts
         env:
           CRON_JOB: ${{ github.event.inputs.job || 'auto' }}
