@@ -268,15 +268,17 @@ async function researchPrimarySources(
         ).join('\n')
       : null
 
-    // Cache result
+    // Cache result (best-effort — PostgrestBuilder has no .catch until awaited)
     if (formatted && sb) {
-      await sb.from('slack_bot_memory').insert({
-        user_id: 'system-pipeline',
-        memory_type: 'fact' as const,
-        content: `research_cache:${topic.slice(0, 30)}`,
-        context: { type: 'research_cache', topic: topic.slice(0, 50), research_results: formatted },
-        importance: 0.3,
-      }).catch(() => {})
+      try {
+        await sb.from('slack_bot_memory').insert({
+          user_id: 'system-pipeline',
+          memory_type: 'fact' as const,
+          content: `research_cache:${topic.slice(0, 30)}`,
+          context: { type: 'research_cache', topic: topic.slice(0, 50), research_results: formatted },
+          importance: 0.3,
+        })
+      } catch { /* cache failure must not block generation */ }
     }
 
     process.stdout.write(`LinkedIn research: ${research.searchResults.length} results found\n`)

@@ -35,6 +35,14 @@ export interface CommandMetrics {
   readonly viewsLatest: { date: string; ga4Sessions: number; gscImpressions: number; gscClicks: number; total: number }
   readonly inquiriesToday: number
   readonly latestInquiry: { id: string; created_at: string; name: string | null; source: string } | null
+  readonly recentEvents: Array<{
+    id: string
+    type: 'x' | 'threads' | 'blog' | 'crosspost' | 'inquiry'
+    label: string
+    sub: string
+    ts: string
+    url?: string
+  }>
   readonly series: {
     days: string[]
     posts: number[]
@@ -67,6 +75,7 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
     viewsLatest: { date: '', ga4Sessions: 0, gscImpressions: 0, gscClicks: 0, total: 0 },
     inquiriesToday: 0,
     latestInquiry: null,
+    recentEvents: [],
     series: { days, posts: [0,0,0,0,0,0,0], views: [0,0,0,0,0,0,0], inquiries: [0,0,0,0,0,0,0] },
     totals7d: { posts: 0, views: 0, inquiries: 0 },
     generatedAt,
@@ -76,13 +85,13 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
 
   // Posts (last ~8d) across platforms
   const [xR, thR, blogR, cpR, gaR, gscR, inqR] = await Promise.all([
-    sb.from('x_post_analytics').select('posted_at').gte('posted_at', sinceISO),
-    sb.from('threads_post_analytics').select('posted_at').gte('posted_at', sinceISO),
-    sb.from('posts').select('published_at').eq('status', 'published').gte('published_at', sinceISO),
-    sb.from('cross_post_analytics').select('posted_at,status').eq('status', 'posted').gte('posted_at', sinceISO),
+    sb.from('x_post_analytics').select('posted_at,post_text,tweet_url').gte('posted_at', sinceISO),
+    sb.from('threads_post_analytics').select('posted_at,post_text,post_url').gte('posted_at', sinceISO),
+    sb.from('posts').select('published_at,title,slug').eq('status', 'published').gte('published_at', sinceISO),
+    sb.from('cross_post_analytics').select('posted_at,status,platform,external_url').eq('status', 'posted').gte('posted_at', sinceISO),
     sb.from('ga4_page_metrics').select('date,sessions').gte('date', sinceDate),
     sb.from('gsc_page_metrics').select('date,impressions,clicks').gte('date', sinceDate),
-    sb.from('inquiries').select('created_at').gte('created_at', sinceISO),
+    sb.from('inquiries').select('created_at,source,name').gte('created_at', sinceISO),
   ])
 
   const xRows = (xR.data ?? []).map((r) => ({ ts: r.posted_at as string }))
@@ -133,6 +142,20 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
   const idxToday = days.indexOf(today)
   const at = (arr: number[]) => (idxToday >= 0 ? arr[idxToday] : 0)
 
+  // Recent activity feed — "いま起きたこと" (newest first, mixed across channels)
+  const snippet = (s: unknown, n = 46): string => {
+    const t = String(s ?? '').replace(/\s+/g, ' ').trim()
+    return t.length > n ? `${t.slice(0, n)}…` : t
+  }
+  type Ev = CommandMetrics['recentEvents'][number]
+  const recentEvents: Ev[] = [
+    ...((xR.data ?? []) as Array<Record<string, unknown>>).map((r, i): Ev => ({ id: `x-${r.posted_at}-${i}`, type: 'x', label: snippet(r.post_text) || 'X投稿を公開', sub: 'X', ts: String(r.posted_at), url: (r.tweet_url as string) || undefined })),
+    ...((thR.data ?? []) as Array<Record<string, unknown>>).map((r, i): Ev => ({ id: `th-${r.posted_at}-${i}`, type: 'threads', label: snippet(r.post_text) || 'Threadsスレッド公開', sub: 'Threads', ts: String(r.posted_at), url: (r.post_url as string) || undefined })),
+    ...((blogR.data ?? []) as Array<Record<string, unknown>>).map((r, i): Ev => ({ id: `blog-${r.published_at}-${i}`, type: 'blog', label: snippet(r.title) || 'ブログ公開', sub: 'ブログ公開', ts: String(r.published_at), url: r.slug ? `/blog/${r.slug}` : undefined })),
+    ...((cpR.data ?? []) as Array<Record<string, unknown>>).map((r, i): Ev => ({ id: `cp-${r.posted_at}-${i}`, type: 'crosspost', label: `${r.platform ?? 'クロス'}へ展開`, sub: 'クロス投稿', ts: String(r.posted_at), url: (r.external_url as string) || undefined })),
+    ...((inqR.data ?? []) as Array<Record<string, unknown>>).map((r, i): Ev => ({ id: `inq-${r.created_at}-${i}`, type: 'inquiry', label: '問い合わせ着信', sub: String(r.name || r.source || '匿名'), ts: String(r.created_at) })),
+  ].filter((e) => e.ts && e.ts !== 'null').sort((a, b) => (a.ts < b.ts ? 1 : -1)).slice(0, 16)
+
   return {
     today,
     postsToday: {
@@ -141,6 +164,7 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
     viewsLatest,
     inquiriesToday: at(inquiriesByDay),
     latestInquiry,
+    recentEvents,
     series: { days, posts: postsByDay, views: viewsByDay, inquiries: inquiriesByDay },
     totals7d: {
       posts: postsByDay.reduce((a, b) => a + b, 0),

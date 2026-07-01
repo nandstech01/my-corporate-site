@@ -5,7 +5,7 @@
  * 1日1件まで。
  */
 
-import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
+import { createAnthropicCompatible, parseClaudeJson } from '@/lib/llm/claude-cli'
 import { createClient } from '@supabase/supabase-js'
 import { AI_JUDGE_MODEL, AI_JUDGE_MAX_TOKENS } from './config'
 import { notifyBlogAutoGeneration } from './slack-notifier'
@@ -35,9 +35,8 @@ function getSupabase() {
 // Anthropic Client
 // ============================================================
 
-function getAnthropic(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
+function getAnthropic() {
+  // claude-cli adapter — subscription-backed, no API key / balance required
   return createAnthropicCompatible()
 }
 
@@ -84,7 +83,7 @@ function isAiRelevant(title: string, topic?: string): boolean {
 // Claude Tool Definition
 // ============================================================
 
-const SUBMIT_BLOG_VERDICT_TOOL: Anthropic.Messages.Tool = {
+const SUBMIT_BLOG_VERDICT_TOOL = {
   name: 'submit_blog_verdict',
   description: 'Submit the evaluation verdict for the blog topic',
   input_schema: {
@@ -141,7 +140,7 @@ nands.techはAI/LLM/自動化に特化した技術メディアです。
 3. ソースの信頼性
 4. ブログ記事としての適切性
 
-submit_blog_verdict ツールを使って評価結果を返してください。`
+評価結果は指定のJSON形式のみで返してください。`
 
   const userPrompt = [
     `ソースタイトル: ${topic.source_title}`,
@@ -152,35 +151,37 @@ submit_blog_verdict ツールを使って評価結果を返してください。
     `バズスコア: ${topic.buzz_score}/100`,
     '',
     'このトピックでブログ記事を自動生成すべきか評価してください。',
+    '',
+    `【出力形式（厳守）】次のJSON Schemaに合致するJSONオブジェクトのみを出力すること。前後に説明文・コードフェンスを付けない。`,
+    JSON.stringify(SUBMIT_BLOG_VERDICT_TOOL.input_schema),
   ].join('\n')
 
+  // claude-cli adapter: tool_use非対応のためJSONテキストで受ける
   const response = await anthropic.messages.create({
     model: AI_JUDGE_MODEL,
     max_tokens: AI_JUDGE_MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
-    tools: [SUBMIT_BLOG_VERDICT_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_blog_verdict' },
   })
 
-  const toolUseBlock = response.content.find(
-    (block): block is Anthropic.Messages.ToolUseBlock => block.type === 'tool_use',
-  )
-
-  if (!toolUseBlock || toolUseBlock.name !== 'submit_blog_verdict') {
-    throw new Error('Claude did not return a submit_blog_verdict tool call')
+  const textBlock = response.content.find((b) => b.type === 'text')
+  if (!textBlock?.text) {
+    throw new Error('Claude returned no text for blog verdict')
   }
-
-  const input = toolUseBlock.input as {
+  const input = parseClaudeJson<{
     decision: 'approve' | 'reject'
     confidence: number
     reasons: string[]
+  }>(textBlock.text)
+
+  if (input.decision !== 'approve' && input.decision !== 'reject') {
+    throw new Error(`Invalid blog verdict decision: ${String(input.decision)}`)
   }
 
   return {
     decision: input.decision,
     confidence: Math.max(0, Math.min(1, input.confidence)),
-    reasons: input.reasons,
+    reasons: input.reasons ?? [],
   }
 }
 
