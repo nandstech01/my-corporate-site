@@ -112,7 +112,7 @@ async function collectBuzzPosts(): Promise<readonly ThreadsSourceCandidate[]> {
     const { data, error } = await supabase
       .from('buzz_posts')
       .select('*')
-      .gte('created_at', oneDayAgo)
+      .gte('collected_at', oneDayAgo)
       .gte('relevance_score', 0.3)
       .order('buzz_score', { ascending: false })
       .limit(10)
@@ -123,7 +123,7 @@ async function collectBuzzPosts(): Promise<readonly ThreadsSourceCandidate[]> {
     }
 
     return (data ?? []).map((row: any) => {
-      const createdAt = new Date(row.created_at)
+      const createdAt = new Date(row.collected_at)
       const hoursAgo = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60)
 
       return {

@@ -30,25 +30,24 @@ export async function scrapeTweetMetrics(
     // The first tweet element on the status page is the main tweet
     const tweetEl = page.locator('[data-testid="tweet"]').first()
 
+    // NOTE: no inner function declarations here — tsx/esbuild (keepNames)
+    // wraps named in-page functions with a __name() helper that doesn't exist
+    // in the browser context ("__name is not defined" broke every scrape).
     const metricsData = await tweetEl.evaluate((el) => {
-      const likeBtn = el.querySelector('[data-testid="like"]') ?? el.querySelector('[data-testid="unlike"]')
-      const retweetBtn = el.querySelector('[data-testid="retweet"]') ?? el.querySelector('[data-testid="unretweet"]')
-      const replyBtn = el.querySelector('[data-testid="reply"]')
-      const bookmarkBtn = el.querySelector('[data-testid="bookmark"]') ?? el.querySelector('[data-testid="removeBookmark"]')
-
-      function extractCount(btn: Element | null): number {
-        if (!btn) return 0
-        const aria = btn.getAttribute('aria-label') ?? ''
-        const match = aria.match(/([\d,]+)/)
-        return match ? parseInt(match[1].replace(/,/g, ''), 10) : 0
+      const pairs: Array<[string, string | null]> = [
+        ['[data-testid="like"]', '[data-testid="unlike"]'],
+        ['[data-testid="retweet"]', '[data-testid="unretweet"]'],
+        ['[data-testid="reply"]', null],
+        ['[data-testid="bookmark"]', '[data-testid="removeBookmark"]'],
+      ]
+      const counts: number[] = []
+      for (const [a, b] of pairs) {
+        const btn = el.querySelector(a) || (b ? el.querySelector(b) : null)
+        const aria = btn ? btn.getAttribute('aria-label') || '' : ''
+        const m = aria.match(/([\d,]+)/)
+        counts.push(m ? parseInt(m[1].replace(/,/g, ''), 10) : 0)
       }
-
-      return {
-        likes: extractCount(likeBtn),
-        retweets: extractCount(retweetBtn),
-        replies: extractCount(replyBtn),
-        bookmarks: extractCount(bookmarkBtn),
-      }
+      return { likes: counts[0], retweets: counts[1], replies: counts[2], bookmarks: counts[3] }
     })
 
     return {
