@@ -78,12 +78,8 @@ const MIN_LIKES = 500
 // ---------------------------------------------------------------------------
 
 // Fallback templates (used only when API fails)
-const FALLBACK_TEMPLATES = [
-  'これはチェックしておいた方がいい',
-  '海外で話題になってるこれ、地味にすごい',
-  'お、これは面白い展開',
-  'ほんとこの進化スピードえぐいな',
-] as const
+// Fallback: skip posting rather than post generic text
+const FALLBACK_TEMPLATES: readonly string[] = []
 
 async function fetchRecentComments(): Promise<readonly string[]> {
   try {
@@ -141,10 +137,11 @@ ${tweet.text}
 Twitter投稿なので日本語は最大120文字まで（これにURLが追加される）。絶対に120文字を超えるな。
 
 ## 文章スタイル（ランダムに選べ）
-以下の3パターンからランダムに1つ選んでコメントを書け:
-A) 短い反応型（1〜2文、60文字以内）— 直感的な感想やツッコミ
-B) 解説型（2〜3文、120文字以内）— 何が起きているか、なぜ重要かを簡潔に説明
-C) 考察型（1〜2文、100文字以内）— 技術的な意味合いや業界への影響を分析
+以下の2パターンからランダムに1つ選んでコメントを書け:
+A) 解説型（2〜3文、120文字以内）— 何が起きているか、なぜ重要かを簡潔に説明。具体的な数字や技術名を入れる
+B) 考察型（1〜2文、100文字以内）— 技術的な意味合いや業界への影響を分析。自分の視点を入れる
+
+※ 絶対に「感想だけ」で終わるな。1つ以上の具体的情報（数字、技術名、比較）を含めること
 ${recentBlock}
 
 ${voiceProfile}
@@ -168,9 +165,8 @@ ${voiceProfile}
     process.stderr.write(`[generateComment] API error, falling back: ${err}\n`)
   }
 
-  // Fallback to simple template
-  const seed = new Date().getHours() + tweet.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
-  return FALLBACK_TEMPLATES[seed % FALLBACK_TEMPLATES.length]
+  // No fallback — skip posting rather than post generic text
+  return ''
 }
 
 // ---------------------------------------------------------------------------
@@ -312,6 +308,17 @@ export async function runViralAiRepost(dryRun = false): Promise<{ success: boole
 
   const best = viralTweets[0]
   const comment = await generateComment(best)
+
+  if (!comment) {
+    return { success: false, error: 'コメント生成失敗（フォールバック無効化済み）' }
+  }
+
+  // Quality gate: reject generic one-liners
+  const commentOnly = comment.replace(/https?:\/\/[^\s)>\]]+/g, '').trim()
+  const GENERIC_PATTERNS = [/^(これ見た|海外でバズ|えっ、|おおー|やばい|すごい|ここまで来た|ついにこの|マジか)/, /^.{0,15}[…。？！]+$/]
+  if (commentOnly.length < 30 || GENERIC_PATTERNS.some(p => p.test(commentOnly))) {
+    return { success: false, error: `品質ゲート不通過: コメントが短すぎるか汎用的 (${commentOnly.length}文字: "${commentOnly.slice(0, 40)}...")` }
+  }
 
   const textWithoutUrl = comment + '\n\n'
   const urlWeight = 23
