@@ -1,12 +1,34 @@
-import { notFound } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { cache } from 'react'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { RefreshCw } from 'lucide-react'
 import MarkdownContent from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
 // 🆕 YouTubeショート動画スライダー
 import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
+import Breadcrumbs from '@/app/components/common/Breadcrumbs'
+import { AutoTOCSystem, type TOCItem } from '@/lib/structured-data/auto-toc-system'
+import { HowToFAQSchemaSystem, type QuestionAnswerPair } from '@/lib/structured-data/howto-faq-schema'
+import { cleanFaqText } from '../_lib/faq-clean'
+import {
+  AUTHOR,
+  ORGANIZATION,
+  SITE_URL,
+  decodePostSlug,
+  organizationNode,
+  organizationRef,
+  personNode,
+  personRef,
+  postUrl,
+  toJsonLdScript,
+} from '@/lib/structured-data/site-entities'
+import {
+  getPublicSupabase,
+  getPublishedPostBySlug,
+  type PublishedPost,
+} from '@/app/posts/_lib/public-client'
 
 // 関連情報抽出関数
 interface RelatedInfoLink {
@@ -17,7 +39,7 @@ interface RelatedInfoLink {
 
 function extractRelatedInfo(content: string): RelatedInfoLink[] {
   let relatedInfoSection = content.match(/###\s*📚\s*関連情報[\s\S]*?(?=\n##|\n---|\n$)/i);
-  
+
   if (!relatedInfoSection) {
     const altPattern = content.match(/📚\s*関連情報[\s\S]*$/i);
     if (!altPattern) return [];
@@ -39,61 +61,11 @@ function extractRelatedInfo(content: string): RelatedInfoLink[] {
   }
   return result;
 }
-import Script from 'next/script'
-import Breadcrumbs from '@/app/components/common/Breadcrumbs'
-import { RefreshCw } from 'lucide-react'
-import { UnifiedStructuredDataSystem } from '@/lib/structured-data'
-import { AutoTOCSystem } from '@/lib/structured-data/auto-toc-system'
-import { HowToFAQSchemaSystem } from '@/lib/structured-data/howto-faq-schema'
-import { HARADA_KENJI_PROFILE, AuthorTrustSystem } from '@/lib/structured-data/author-trust-system'
-// 🆕 YouTubeショート動画4大AI検索エンジン最適化
-import { generateAIOptimizedYouTubeShortSchema, type YouTubeShortEntity } from '@/lib/structured-data/youtube-short-schema'
-import type { YouTubeShortInfo } from '@/lib/youtube/youtube-data-api'
 
 // BreadcrumbItemの型定義
 interface BreadcrumbItem {
   name: string;
   path: string;
-}
-
-// 型定義
-interface Post {
-  id: number | string
-  title: string
-  content: string
-  slug: string
-  business_id?: number
-  category_id?: number
-  thumbnail_url?: string
-  featured_image?: string
-  meta_description?: string
-  meta_keywords?: string[]
-  canonical_url?: string
-  status: string
-  published_at: string
-  created_at: string
-  updated_at: string
-  author_id?: number
-  section_id?: number
-  categories?: any[]
-  excerpt?: string
-  tags?: string[]
-  seo_keywords?: string[]
-  youtube_script_id?: number | null
-}
-
-// YouTube動画情報の型定義
-interface YouTubeScriptInfo {
-  id: number
-  youtube_video_id: string | null
-  youtube_url: string | null
-  script_title: string
-  script_hook: string
-  thumbnail_url: string | null
-  embed_url: string | null
-  status: string
-  fragment_id?: string | null  // 🆕 Fragment ID（ディープリンク用）
-  complete_uri?: string | null  // 🆕 Complete URI（ベクトルリンク用）
 }
 
 interface PageProps {
@@ -102,132 +74,327 @@ interface PageProps {
   }
 }
 
-// 🚀 記事取得（ISR最適化 - キャッシュなしでISR十分）
-async function getPost(slug: string): Promise<Post | null> {
-  const supabase = createClient()
-  
-  // URLデコードを安全に実行
-  let decodedSlug: string;
-  try {
-    decodedSlug = decodeURIComponent(slug);
-  } catch (error) {
-    console.error('❌ URL decode error:', error);
-    decodedSlug = slug;
+// 🚀 ISR（Incremental Static Regeneration）設定
+// 記事・動画とも cookie を使わない anon クライアント (app/posts/_lib/public-client.ts) で取得するので静的再生成が効く
+export const revalidate = 300 // 5分間隔でISR実行
+
+/**
+ * 公開済み記事を slug の完全一致で取得する (posts → chatgpt_posts)。部分一致で別の記事を返すことはしない。
+ * generateMetadata とページ本体で同じリクエスト内の結果を共有する。DB エラーは throw (ISR が 404 をキャッシュしないように)。
+ */
+const getPost = cache(getPublishedPostBySlug)
+
+// ---------------------------------------------------------------------------
+// YouTube 動画 (company_youtube_shorts)
+// ---------------------------------------------------------------------------
+
+/** ページで使う列だけを取る (embedding などの重い列は取らない) */
+const VIDEO_COLUMNS: string =
+  'id,content_type,youtube_video_id,youtube_url,script_title,title,script_hook,description,fragment_id,complete_uri,published_at,youtube_uploaded_at,created_at,duration_seconds'
+
+interface VideoRow {
+  id: number
+  content_type: string
+  youtube_video_id: string
+  youtube_url: string | null
+  script_title: string | null
+  title: string | null
+  script_hook: string | null
+  description: string | null
+  fragment_id: string | null
+  complete_uri: string | null
+  published_at: string | null
+  youtube_uploaded_at: string | null
+  created_at: string | null
+  duration_seconds: number | null
+}
+
+type VideoRowRaw = Omit<VideoRow, 'youtube_video_id'> & { youtube_video_id: string | null }
+
+interface PageVideos {
+  /** 本文上部に埋め込む中尺動画 (この記事に紐づくもの) */
+  medium: VideoRow | null
+  /** スライダーに出すショート: この記事に紐づくもの + 3 件に満たなければ最新ショートで補完 (補完分は表示だけ) */
+  sliderShorts: VideoRow[]
+  /** 構造化データに載せる動画 = この記事に実際に紐づき、ページに表示されるものだけ */
+  linked: VideoRow[]
+}
+
+const SLIDER_SIZE = 3
+
+/** YouTube の動画 ID は 11 文字。company_youtube_shorts は anon から書き込めるため、形式の合わない行は使わない */
+const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/
+const YOUTUBE_URL = /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//
+
+function hasValidVideoId(row: VideoRowRaw): row is VideoRow {
+  return typeof row.youtube_video_id === 'string' && YOUTUBE_VIDEO_ID.test(row.youtube_video_id)
+}
+
+/**
+ * この記事に紐づく公開済み動画。related_blog_post_id は posts.id への外部キー (fk_blog_post) なので、
+ * chatgpt_posts の記事には id が重なっても紐づけない。
+ * 動画は記事の付属物なので、取得に失敗しても記事は出す (空配列)。
+ */
+async function fetchLinkedVideos(post: PublishedPost): Promise<VideoRow[]> {
+  if (post.source !== 'posts') return []
+
+  const { data, error } = await getPublicSupabase()
+    .from('company_youtube_shorts')
+    .select(VIDEO_COLUMNS)
+    .eq('related_blog_post_id', post.id)
+    .eq('status', 'published')
+    .order('id', { ascending: true })
+
+  if (error) {
+    console.error('⚠️ 紐づくYouTube動画の取得エラー:', error.message)
+    return []
   }
-  
-  try {
-    const isLongSlug = decodedSlug.length > 50 || slug.length > 100;
-    
-    // まず正確なslugで検索（新しいpostsテーブル）
-    let { data: newPost, error: newError } = await supabase
-      .from('posts')
-      .select('*, youtube_script_id')
-      .eq('status', 'published')
-      .eq('slug', decodedSlug)
-      .single()
-    
-    if (newError && newError.code !== 'PGRST116') {
-      console.error('❌ postsテーブル検索エラー:', newError)
-    }
-    
-    if (newPost) {
-      return newPost
-    }
-    
-    // 新しいテーブルで見つからない場合、古いテーブルを検索
-    let { data: oldPost, error: oldError } = await supabase
-      .from('chatgpt_posts')
-      .select('*')
-      .eq('status', 'published')
-      .eq('slug', decodedSlug)
-      .single()
-    
-    if (oldError && oldError.code !== 'PGRST116') {
-      console.error('❌ chatgpt_postsテーブル検索エラー:', oldError)
-    }
-    
-    if (oldPost) {
-      return oldPost
-    }
-    
-    // 長いslugの場合は部分検索を実行
-    if (isLongSlug) {
-      const { data: partialResults } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('status', 'published')
-        .or(`slug.ilike.%${decodedSlug.substring(0, 40)}%,slug.ilike.%${slug.substring(0, 40)}%`)
-        .limit(5)
-      
-      if (partialResults && partialResults.length > 0) {
-        return partialResults[0]
-      }
-    }
-    
-    return null
-    
-  } catch (error) {
-    console.error('❌ getPost完全失敗:', error)
-    return null
+  return ((data ?? []) as unknown as VideoRowRaw[]).filter(hasValidVideoId)
+}
+
+/** スライダーの埋め草用の最新ショート。表示だけに使い、構造化データには載せない */
+async function fetchLatestShorts(excludeIds: readonly number[], limit: number): Promise<VideoRow[]> {
+  if (limit <= 0) return []
+
+  let query = getPublicSupabase()
+    .from('company_youtube_shorts')
+    .select(VIDEO_COLUMNS)
+    .eq('content_type', 'youtube-short')
+    .eq('status', 'published')
+    .not('youtube_video_id', 'is', null)
+  if (excludeIds.length > 0) {
+    query = query.not('id', 'in', `(${excludeIds.join(',')})`)
+  }
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(limit)
+
+  if (error) {
+    console.error('⚠️ 最新ショート動画の取得エラー:', error.message)
+    return []
+  }
+  return ((data ?? []) as unknown as VideoRowRaw[]).filter(hasValidVideoId)
+}
+
+async function getPageVideos(post: PublishedPost): Promise<PageVideos> {
+  const linkedVideos = await fetchLinkedVideos(post)
+  const medium = linkedVideos.find((video) => video.content_type === 'youtube-medium') ?? null
+  const linkedShorts = linkedVideos
+    .filter((video) => video.content_type === 'youtube-short')
+    .slice(0, SLIDER_SIZE)
+  const latestShorts = await fetchLatestShorts(
+    linkedShorts.map((video) => video.id),
+    SLIDER_SIZE - linkedShorts.length
+  )
+
+  return {
+    medium,
+    sliderShorts: [...linkedShorts, ...latestShorts],
+    linked: medium ? [medium, ...linkedShorts] : linkedShorts,
   }
 }
 
-// フォールバック検索関数
-async function performFallbackSearch(supabase: any, decodedSlug: string): Promise<Post | null> {
-  try {
-    console.log('🔄 フォールバック: 全記事検索を実行');
-    const { data: allPosts, error: allError } = await supabase
-      .from('chatgpt_posts')
-      .select(`
-        *,
-        categories:category_id(name, slug)
-      `)
-      .eq('status', 'published');
-    
-    if (allError) {
-      console.error('全記事取得エラー:', allError);
-      return null;
-    }
-    
-    // JavaScriptで完全一致検索
-    const matchedPost = allPosts?.find((post: any) => post.slug === decodedSlug);
-    if (matchedPost) {
-      console.log('✅ フォールバック検索で記事を発見');
-      return matchedPost;
-    }
-      
-  } catch (fallbackError) {
-    console.error('フォールバック検索エラー:', fallbackError);
+function toSliderVideo(video: VideoRow, fallbackTitle: string): YouTubeShortVideo {
+  const videoId = video.youtube_video_id
+  return {
+    id: video.id,
+    videoId,
+    // href に使うので YouTube の https URL 以外は動画 ID から組み立てる
+    url: video.youtube_url && YOUTUBE_URL.test(video.youtube_url)
+      ? video.youtube_url
+      : `https://youtube.com/shorts/${videoId}`,
+    embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
+    title: video.script_title || fallbackTitle,
+    hookText: video.script_hook ?? undefined,
+    fragmentId: video.fragment_id ?? '',
+    completeUri: video.complete_uri ?? undefined,
   }
-  
-  return null;
+}
+
+// ---------------------------------------------------------------------------
+// メタデータと構造化データの共通部品
+// ---------------------------------------------------------------------------
+
+function postDescription(post: PublishedPost): string {
+  return post.meta_description || post.excerpt || `${post.content.substring(0, 160)}...`
+}
+
+function postKeywords(post: PublishedPost): string[] {
+  return post.meta_keywords || post.seo_keywords || []
+}
+
+/** 記事画像の絶対 URL。http(s) はそのまま、/ 始まりはサイト内、それ以外は Storage の public パス */
+function resolveImageUrl(path: string | null | undefined): string {
+  if (!path) return `${SITE_URL}/images/default-post.jpg`
+  if (/^https?:\/\//.test(path)) return path
+  if (path.startsWith('/')) return `${SITE_URL}${path}`
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`
+}
+
+/** 目次ツリーを表示順 (深さ優先) の 1 列にする */
+function flattenToc(toc: readonly TOCItem[]): TOCItem[] {
+  return toc.flatMap((item) => [item, ...flattenToc(item.children ?? [])])
+}
+
+/**
+ * 本文に明示された見出し ID ({#id} または id="id") か。
+ * 明示がない見出しは、目次 (auto-toc-system) と本文 (MarkdownContent) で ID の作り方が違い
+ * (日本語を残す / 落とす)、ページ上に同じ id の要素が無いことがある
+ */
+function hasExplicitAnchor(content: string, id: string): boolean {
+  return content.includes(`{#${id}}`) || content.includes(`id="${id}"`)
+}
+
+/**
+ * 目次の見出しを hasPart の WebPageElement にする。ページ上に実在するアンカーだけを載せる。
+ * @id / url の # は 1 つ (TOCItem.anchor は "#id" なので使わない)
+ */
+function sectionNodes(toc: readonly TOCItem[], content: string, articleUrl: string) {
+  const seen = new Set<string>()
+  const nodes: Array<{ '@type': 'WebPageElement'; '@id': string; name: string; url: string; position: number }> = []
+  for (const item of flattenToc(toc)) {
+    // 本文中の # (h1) は MarkdownContent が描画しない (ページの h1 は id="main-title" のみ) ので載せない
+    if (item.level === 1 && item.id !== 'main-title') continue
+    if (!item.id || seen.has(item.id) || !hasExplicitAnchor(content, item.id)) continue
+    seen.add(item.id)
+    const url = `${articleUrl}#${encodeURIComponent(item.id)}`
+    nodes.push({ '@type': 'WebPageElement', '@id': url, name: item.title, url, position: nodes.length + 1 })
+  }
+  return nodes
+}
+
+/** この記事に紐づく YouTube 動画の最小限の VideoObject (再生数や評価などの派生値は載せない) */
+function videoNode(video: VideoRow, articleUrl: string, fallbackTitle: string) {
+  const videoId = video.youtube_video_id
+  const name = video.script_title || video.title || fallbackTitle
+  const duration = video.duration_seconds && video.duration_seconds > 0
+    ? `PT${Math.round(video.duration_seconds)}S`
+    : undefined
+
+  return {
+    '@type': 'VideoObject' as const,
+    '@id': `${articleUrl}#video-${videoId}`,
+    name,
+    description: video.description || video.script_hook || name,
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    uploadDate: video.youtube_uploaded_at ?? video.published_at ?? video.created_at ?? undefined,
+    duration,
+    embedUrl: `https://www.youtube.com/embed/${videoId}`,
+    url: `https://www.youtube.com/watch?v=${videoId}`,
+  }
+}
+
+interface ArticleJsonLdInput {
+  post: PublishedPost
+  articleUrl: string
+  toc: readonly TOCItem[]
+  faqs: readonly QuestionAnswerPair[]
+  videos: readonly VideoRow[]
+}
+
+/**
+ * 記事ページの JSON-LD (1 つの @graph)。
+ * BlogPosting / BreadcrumbList / Person / Organization と、この記事に実際に紐づく動画の VideoObject だけを出す。
+ * Person と Organization は site-entities の単一定義を 1 回だけ置き、ほかからは @id で参照する。
+ */
+function buildArticleJsonLd({ post, articleUrl, toc, faqs, videos }: ArticleJsonLdInput) {
+  const datePublished = post.published_at ?? post.created_at
+  const keywords = postKeywords(post)
+  const breadcrumbId = `${articleUrl}#breadcrumb`
+  const sections = sectionNodes(toc, post.content, articleUrl)
+  const videoNodes = videos.map((video) => videoNode(video, articleUrl, post.title))
+
+  const blogPosting = {
+    '@type': 'BlogPosting',
+    '@id': `${articleUrl}#article`,
+    headline: post.title,
+    description: postDescription(post),
+    image: {
+      '@type': 'ImageObject',
+      url: resolveImageUrl(post.thumbnail_url || post.featured_image),
+    },
+    datePublished,
+    dateModified: post.updated_at ?? datePublished,
+    author: personRef(),
+    publisher: organizationRef(),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+      url: articleUrl,
+      name: post.title,
+      inLanguage: 'ja',
+      isPartOf: { '@id': `${SITE_URL}/#website` },
+      breadcrumb: { '@id': breadcrumbId },
+    },
+    inLanguage: 'ja',
+    isAccessibleForFree: true,
+    ...(keywords.length > 0 ? { keywords } : {}),
+    ...(videoNodes.length > 0 ? { video: videoNodes.map((node) => ({ '@id': node['@id'] })) } : {}),
+    ...(sections.length > 0 ? { hasPart: sections } : {}),
+    // AIO LLMO: FAQ（本文から自動抽出）
+    ...(faqs.length > 0
+      ? {
+          mainEntity: faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: faq.answer,
+              author: personRef(),
+            },
+          })),
+        }
+      : {}),
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', 'h2'],
+    },
+  }
+
+  const breadcrumbList = {
+    '@type': 'BreadcrumbList',
+    '@id': breadcrumbId,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: '記事一覧', item: `${SITE_URL}/posts` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: articleUrl },
+    ],
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [blogPosting, breadcrumbList, personNode(), organizationNode(), ...videoNodes],
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const post = await getPost(params.slug)
-  
+
   if (!post) {
+    // 社名は layout の title.template が付ける
     return {
-      title: '記事が見つかりません | 株式会社エヌアンドエス',
+      title: '記事が見つかりません',
       description: 'お探しの記事が見つかりませんでした。'
     }
   }
-  
+
   const title = post.title
-  const description = post.meta_description || post.excerpt || `${post.content.substring(0, 160)}...`
-  const keywords = post.meta_keywords || post.seo_keywords || []
-  const imageUrl = post.thumbnail_url || post.featured_image || '/images/default-post.jpg'
-  const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${imageUrl}`
-  
+  const description = postDescription(post)
+  const keywords = postKeywords(post)
+  const fullImageUrl = resolveImageUrl(post.thumbnail_url || post.featured_image)
+  // canonical / og:url はリクエストの slug ではなく記事の slug から作る
+  const articleUrl = postUrl(post.slug)
+  const publishedTime = post.published_at ?? post.created_at
+
   return {
-    title: `${title} | 株式会社エヌアンドエス`,
+    // 社名は layout の title.template (`%s | 株式会社エヌアンドエス`) が付けるので、ここでは付けない
+    title,
     description,
     keywords: keywords.join(', '),
+    authors: [{ name: AUTHOR.name, url: AUTHOR.url }],
     openGraph: {
-      title: `${title} | 株式会社エヌアンドエス`,
+      title: `${title} | ${ORGANIZATION.name}`,
       description,
       type: 'article',
-      url: `https://nands.tech/posts/${params.slug}`,
+      url: articleUrl,
       images: [
         {
           url: fullImageUrl,
@@ -236,823 +403,92 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           alt: title
         }
       ],
-      siteName: '株式会社エヌアンドエス',
+      siteName: ORGANIZATION.name,
       locale: 'ja_JP',
-      publishedTime: post.published_at,
-      modifiedTime: post.updated_at,
-      authors: ['株式会社エヌアンドエス'],
+      publishedTime,
+      modifiedTime: post.updated_at ?? undefined,
+      authors: [AUTHOR.url],
       tags: ['AI', 'ビジネス', 'テクノロジー', ...keywords].filter(Boolean)
     },
     twitter: {
       card: 'summary_large_image',
       site: '@nands_tech',
       creator: '@nands_tech',
-      title: `${title} | 株式会社エヌアンドエス`,
+      title: `${title} | ${ORGANIZATION.name}`,
       description,
       images: [fullImageUrl]
     },
     alternates: {
-      canonical: `https://nands.tech/posts/${params.slug}`
+      canonical: articleUrl
     }
   }
 }
-
-// 🚀 ISR（Incremental Static Regeneration）設定
-// 本番環境でのSupabase+SSG問題を回避するため、一時的にISRのみ使用
-export const revalidate = 300 // 5分間隔でISR実行
-
-// 🚨 一時的にSSGを無効化 - generateStaticParamsをコメントアウト
-// 本番環境でのSupabase cookiesエラーを回避
-/*
-export async function generateStaticParams() {
-  const supabase = createClient()
-  
-  try {
-    console.log('🔄 SSG: 記事一覧を取得中...')
-    
-    // postsテーブルから公開済み記事のslugを取得
-    const { data: newPosts, error: newPostsError } = await supabase
-      .from('posts')
-      .select('slug')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-    
-    if (newPostsError) {
-      console.error('❌ SSG: postsテーブル取得エラー:', newPostsError)
-    }
-    
-    // chatgpt_postsテーブルから公開済み記事のslugを取得
-    const { data: oldPosts, error: oldPostsError } = await supabase
-      .from('chatgpt_posts')
-      .select('slug')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-    
-    if (oldPostsError) {
-      console.error('❌ SSG: chatgpt_postsテーブル取得エラー:', oldPostsError)
-    }
-    
-    // 安全にslugを結合（nullチェック追加）
-    const allSlugs = [
-      ...(newPosts || []).filter(post => post.slug).map(post => ({ slug: post.slug })),
-      ...(oldPosts || []).filter(post => post.slug).map(post => ({ slug: post.slug }))
-    ]
-    
-    // 重複するslugを除去
-    const uniqueSlugs = allSlugs.filter((item, index, self) => 
-      index === self.findIndex(t => t.slug === item.slug)
-    )
-    
-    console.log(`✅ SSG: ${uniqueSlugs.length}件の記事をビルド時に静的生成`)
-    console.log('📋 SSG対象記事:', uniqueSlugs.slice(0, 5).map(item => item.slug))
-    
-    return uniqueSlugs
-    
-  } catch (error) {
-    console.error('❌ SSG: generateStaticParams完全失敗:', error)
-    // エラー時は空配列を返して本番ビルドを続行
-    return []
-  }
-}
-*/
 
 export default async function PostPage({ params }: PageProps) {
   const post = await getPost(params.slug)
-  
+
   if (!post) {
     notFound()
   }
-  
-  // 🎬 YouTube動画情報を取得（中尺動画 + ショート動画スライダー）
-  let youtubeScript: YouTubeScriptInfo | null = null  // 中尺動画（サムネの代わり）
-  let youtubeAIOptimizedSchema: any = null // 中尺動画の4大AI検索エンジン最適化Schema
-  
-  // 🆕 ショート動画スライダー用
-  let youtubeShortVideos: YouTubeShortVideo[] = []
-  let youtubeShortSchemas: any[] = []
-  
-  // ★ 記事IDで関連する全てのYouTube台本を取得
-  if (post.id) {
-    try {
-      const supabase = createClient()
-      const { data: allScripts, error } = await supabase
-        .from('company_youtube_shorts')
-        .select('*')
-        .eq('related_blog_post_id', post.id)
-        .eq('status', 'published')
-      
-      if (allScripts && !error && allScripts.length > 0) {
-        // ★ 中尺動画とショート動画を分離
-        const mediumScript = allScripts.find((s: any) => s.content_type === 'youtube-medium' && s.youtube_video_id)
-        const shortScripts = allScripts.filter((s: any) => s.content_type === 'youtube-short' && s.youtube_video_id)
-        
-        console.log('📊 YouTube動画取得結果:', {
-          medium: mediumScript ? `あり（ID: ${mediumScript.youtube_video_id}）` : 'なし',
-          shorts: shortScripts.length > 0 ? `${shortScripts.length}件` : 'なし'
-        })
-        
-        // 🎬 中尺動画の処理（既存ロジック維持）
-        if (mediumScript) {
-          youtubeScript = {
-            id: mediumScript.id,
-            youtube_video_id: mediumScript.youtube_video_id,
-            youtube_url: mediumScript.youtube_url,
-            script_title: mediumScript.script_title,
-            script_hook: mediumScript.script_hook,
-            thumbnail_url: mediumScript.thumbnail_url,
-            embed_url: mediumScript.embed_url,
-            status: mediumScript.status,
-            fragment_id: mediumScript.fragment_id,
-            complete_uri: mediumScript.complete_uri
-          } as YouTubeScriptInfo
-          
-          console.log('✅ 中尺動画情報取得成功:', youtubeScript.script_title)
-          
-          // 中尺動画の4大AI検索エンジン最適化Schema生成
-          try {
-            const shortInfo: YouTubeShortInfo = {
-              videoId: mediumScript.youtube_video_id || '',
-              title: mediumScript.script_title || '',
-              description: mediumScript.description || mediumScript.content || '',
-              publishedAt: mediumScript.published_at || mediumScript.created_at,
-              thumbnailUrl: mediumScript.thumbnail_url || '',
-              duration: `PT${mediumScript.script_duration_seconds || 130}S`,
-              durationSeconds: mediumScript.script_duration_seconds || 130,
-              viewCount: mediumScript.view_count || 0,
-              likeCount: mediumScript.like_count || 0,
-              commentCount: mediumScript.comment_count || 0,
-              tags: mediumScript.tags || [],
-              videoUrl: mediumScript.youtube_url,
-              embedUrl: mediumScript.embed_url || `https://www.youtube.com/embed/${mediumScript.youtube_video_id}`,
-              shortUrl: mediumScript.youtube_url,
-              contentForEmbedding: mediumScript.content_for_embedding || mediumScript.content || ''
-            }
-            
-            const entity: YouTubeShortEntity = {
-              fragmentId: mediumScript.fragment_id || '',
-              completeUri: mediumScript.complete_uri || '',
-              videoId: mediumScript.youtube_video_id || '',
-              title: mediumScript.script_title || '',
-              description: mediumScript.description || mediumScript.content || '',
-              category: mediumScript.category || 'ai-technology',
-              tags: mediumScript.tags || [],
-              targetQueries: mediumScript.target_queries || [],
-              relatedEntities: mediumScript.related_entities || [],
-              relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
-              relatedBlogPostSlug: params.slug,
-              relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
-              viralityScore: mediumScript.virality_score,
-              targetEmotion: mediumScript.target_emotion,
-              hookType: mediumScript.hook_type
-            }
-            
-            console.log('🔗 中尺動画 Fragment ID:', entity.fragmentId || '❌ 未設定')
-            console.log('🔗 中尺動画 Complete URI:', entity.completeUri || '❌ 未設定')
-            
-            youtubeAIOptimizedSchema = generateAIOptimizedYouTubeShortSchema(
-              shortInfo,
-              entity,
-              `https://nands.tech/posts/${params.slug}`
-            )
-            
-            console.log('🎯 中尺動画の4大AI検索エンジン最適化Schema生成成功')
-          } catch (schemaError) {
-            console.error('⚠️ 中尺動画Schema生成エラー:', schemaError)
-          }
-        }
-        
-        // 📱 ショート動画スライダーの処理（関連動画 + 最新動画で3件表示）
-        // Step 1: 関連ショート動画を取得
-        let displayShorts: any[] = shortScripts.slice(0, 3)
-        const relatedShortIds = shortScripts.map((s: any) => s.id)
-        
-        console.log('📱 関連ショート動画:', displayShorts.length, '件')
-        
-        // Step 2: 3件に満たない場合、最新のショート動画を追加取得
-        if (displayShorts.length < 3) {
-          const neededCount = 3 - displayShorts.length
-          console.log('📱 最新ショート動画を', neededCount, '件追加取得します')
-          
-          const { data: latestShorts, error: latestError } = await supabase
-            .from('company_youtube_shorts')
-            .select('*')
-            .eq('content_type', 'youtube-short')
-            .eq('status', 'published')
-            .not('youtube_video_id', 'is', null)
-            .not('id', 'in', `(${relatedShortIds.join(',')})`)
-            .order('created_at', { ascending: false })
-            .limit(neededCount)
-          
-          if (latestShorts && !latestError) {
-            displayShorts = [...displayShorts, ...latestShorts]
-            console.log('📱 最新ショート動画追加後:', displayShorts.length, '件')
-          }
-        }
-        
-        if (displayShorts.length > 0) {
-          youtubeShortVideos = displayShorts.map((s: any) => ({
-            id: s.id,
-            videoId: s.youtube_video_id,
-            url: s.youtube_url || `https://youtube.com/shorts/${s.youtube_video_id}`,
-            embedUrl: `https://www.youtube-nocookie.com/embed/${s.youtube_video_id}`,
-            title: s.script_title || post.title,
-            hookText: s.script_hook,
-            fragmentId: s.fragment_id,
-            completeUri: s.complete_uri
-          }))
-          
-          console.log('📱 ショート動画スライダー合計:', youtubeShortVideos.length, '件')
-          
-          // 各ショート動画のSchema生成
-          for (const shortData of displayShorts) {
-            try {
-              const shortInfo: YouTubeShortInfo = {
-                videoId: shortData.youtube_video_id || '',
-                title: shortData.script_title || '',
-                description: shortData.description || shortData.content || '',
-                publishedAt: shortData.published_at || shortData.created_at,
-                thumbnailUrl: shortData.thumbnail_url || '',
-                duration: `PT${shortData.script_duration_seconds || 30}S`,
-                durationSeconds: shortData.script_duration_seconds || 30,
-                viewCount: shortData.view_count || 0,
-                likeCount: shortData.like_count || 0,
-                commentCount: shortData.comment_count || 0,
-                tags: shortData.tags || [],
-                videoUrl: shortData.youtube_url,
-                embedUrl: `https://www.youtube-nocookie.com/embed/${shortData.youtube_video_id}`,
-                shortUrl: shortData.youtube_url,
-                contentForEmbedding: shortData.content_for_embedding || shortData.content || ''
-              }
-              
-              const entity: YouTubeShortEntity = {
-                fragmentId: shortData.fragment_id || '',
-                completeUri: shortData.complete_uri || '',
-                videoId: shortData.youtube_video_id || '',
-                title: shortData.script_title || '',
-                description: shortData.description || shortData.content || '',
-                category: shortData.category || 'ai-technology',
-                tags: shortData.tags || [],
-                targetQueries: shortData.target_queries || [],
-                relatedEntities: shortData.related_entities || [],
-                relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
-                relatedBlogPostSlug: params.slug,
-                relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
-                viralityScore: shortData.virality_score,
-                targetEmotion: shortData.target_emotion,
-                hookType: shortData.hook_type
-              }
-              
-              const shortSchema = generateAIOptimizedYouTubeShortSchema(
-                shortInfo,
-                entity,
-                `https://nands.tech/posts/${params.slug}`
-              )
-              
-              youtubeShortSchemas.push(shortSchema)
-              console.log('🔗 ショート動画 Fragment ID:', entity.fragmentId)
-            } catch (schemaError) {
-              console.error('⚠️ ショート動画Schema生成エラー:', schemaError)
-            }
-          }
-          
-          console.log('📱 ショート動画Schema生成完了:', youtubeShortSchemas.length, '件')
-        }
-      }
-      
-      // 📱 関連動画が0件の場合でも最新ショート動画を3件取得
-      if (youtubeShortVideos.length === 0) {
-        console.log('📱 関連ショート動画なし。最新ショート動画を3件取得します')
-        
-        const { data: latestShorts, error: latestError } = await supabase
-          .from('company_youtube_shorts')
-          .select('*')
-          .eq('content_type', 'youtube-short')
-          .eq('status', 'published')
-          .not('youtube_video_id', 'is', null)
-          .order('created_at', { ascending: false })
-          .limit(3)
-        
-        if (latestShorts && !latestError && latestShorts.length > 0) {
-          youtubeShortVideos = latestShorts.map((s: any) => ({
-            id: s.id,
-            videoId: s.youtube_video_id,
-            url: s.youtube_url || `https://youtube.com/shorts/${s.youtube_video_id}`,
-            embedUrl: `https://www.youtube-nocookie.com/embed/${s.youtube_video_id}`,
-            title: s.script_title || post.title,
-            hookText: s.script_hook,
-            fragmentId: s.fragment_id,
-            completeUri: s.complete_uri
-          }))
-          
-          console.log('📱 最新ショート動画取得:', youtubeShortVideos.length, '件')
-          
-          // Schema生成
-          for (const shortData of latestShorts) {
-            try {
-              const shortInfo: YouTubeShortInfo = {
-                videoId: shortData.youtube_video_id || '',
-                title: shortData.script_title || '',
-                description: shortData.description || shortData.content || '',
-                publishedAt: shortData.published_at || shortData.created_at,
-                thumbnailUrl: shortData.thumbnail_url || '',
-                duration: `PT${shortData.script_duration_seconds || 30}S`,
-                durationSeconds: shortData.script_duration_seconds || 30,
-                viewCount: shortData.view_count || 0,
-                likeCount: shortData.like_count || 0,
-                commentCount: shortData.comment_count || 0,
-                tags: shortData.tags || [],
-                videoUrl: shortData.youtube_url,
-                embedUrl: `https://www.youtube-nocookie.com/embed/${shortData.youtube_video_id}`,
-                shortUrl: shortData.youtube_url,
-                contentForEmbedding: shortData.content_for_embedding || shortData.content || ''
-              }
-              
-              const entity: YouTubeShortEntity = {
-                fragmentId: shortData.fragment_id || '',
-                completeUri: shortData.complete_uri || '',
-                videoId: shortData.youtube_video_id || '',
-                title: shortData.script_title || '',
-                description: shortData.description || shortData.content || '',
-                category: shortData.category || 'ai-technology',
-                tags: shortData.tags || [],
-                targetQueries: shortData.target_queries || [],
-                relatedEntities: shortData.related_entities || [],
-                relatedBlogPostId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
-                relatedBlogPostSlug: params.slug,
-                relatedBlogPostUrl: `https://nands.tech/posts/${params.slug}`,
-                viralityScore: shortData.virality_score,
-                targetEmotion: shortData.target_emotion,
-                hookType: shortData.hook_type
-              }
-              
-              const shortSchema = generateAIOptimizedYouTubeShortSchema(
-                shortInfo,
-                entity,
-                `https://nands.tech/posts/${params.slug}`
-              )
-              
-              youtubeShortSchemas.push(shortSchema)
-            } catch (schemaError) {
-              console.error('⚠️ 最新ショート動画Schema生成エラー:', schemaError)
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('⚠️ YouTube動画情報取得エラー:', error)
-      // エラーは無視して記事は表示
-    }
+
+  // canonical は記事の slug。別の表記で届いたリクエストは正規の URL へ 308 で寄せる
+  if (decodePostSlug(params.slug) !== post.slug) {
+    permanentRedirect(`/posts/${encodeURIComponent(post.slug)}`)
   }
-  
-  // Mike King理論準拠: 統合構造化データシステム初期化
-  const structuredDataSystem = new UnifiedStructuredDataSystem('https://nands.tech')
+
+  const articleUrl = postUrl(post.slug)
+
+  // 🎬 YouTube動画（中尺動画 + ショート動画スライダー）
+  const videos = await getPageVideos(post)
+  const youtubeScript = videos.medium // 中尺動画（サムネの代わり）
+  const youtubeShortVideos: YouTubeShortVideo[] = videos.sliderShorts.map((video) =>
+    toSliderVideo(video, post.title)
+  )
+
+  // 記事内容からTOC抽出（見出し分析）
   const autoTOCSystem = new AutoTOCSystem({
     minLevel: 1,  // H1から含める
     maxLevel: 3   // H3まで含める
   })
-  const howToFAQSystem = new HowToFAQSchemaSystem()
-
-  // 記事内容からTOC抽出（見出し分析）
   const tocData = autoTOCSystem.generateTOCFromHTML(post.content)
-  console.log('🔧 generateTOCFromHTML結果:', tocData);
-  console.log('📋 tocData.toc:', tocData.toc);
-  const hasFragmentIds = tocData.toc.length > 0
 
   // 関連情報抽出
   const relatedInfo = extractRelatedInfo(post.content)
 
-  // 記事内容からFAQ・HOW TO自動抽出
-  const faqData = howToFAQSystem.extractFAQFromContent(post.content)
-  const howToData = howToFAQSystem.extractHowToFromContent(post.content, post.title)
+  // 記事内容からFAQ自動抽出（構造化データ用）
+  // 抽出結果は Markdown の残骸を掃除し、質問か回答が空になったものは載せない
+  const faqData = new HowToFAQSchemaSystem()
+    .extractFAQFromContent(post.content)
+    .map((faq) => ({ ...faq, question: cleanFaqText(faq.question), answer: cleanFaqText(faq.answer) }))
+    .filter((faq) => faq.question.length > 0 && faq.answer.length > 0)
 
-  // 🎯 ベクトルブログ専用: 動的FAQ Fragment IDエンティティ生成
-  const dynamicBlogSchema = faqData.length > 0 ? structuredDataSystem.generateBlogPageSchemaWithDynamicFAQs({
-    path: `/posts/${params.slug}`,
-    title: post.title,
-    description: post.meta_description || post.excerpt || '',
-    slug: params.slug,
-    postId: typeof post.id === 'number' ? post.id : parseInt(String(post.id)),
-    content: post.content,
-    lastModified: post.updated_at,
-    faqItems: faqData.map((faq: any, index: number) => ({
-      question: faq.question,
-      answer: faq.answer,
-      index: index
-    })),
-    toc: tocData.toc.map((item: any) => ({
-      id: item.anchor || item.id,
-      title: item.title,
-      level: item.level,
-      anchor: item.anchor || item.id
-    }))
-  }) : null
-
-  // パンくずリスト構造化データ
+  // パンくずリスト（表示用。BreadcrumbList の JSON-LD はページの @graph で出す）
   const breadcrumbItems: BreadcrumbItem[] = [
-    { name: '記事一覧', path: '/posts' }
-  ];
-  
-  if (post.categories && post.categories.length > 0) {
-    breadcrumbItems.push({ 
-      name: post.categories[0].name, 
-      path: `/categories/${post.categories[0].slug}` 
-    });
-  }
-  
-  breadcrumbItems.push({ name: post.title, path: `/posts/${params.slug}` });
+    { name: '記事一覧', path: '/posts' },
+    { name: post.title, path: `/posts/${encodeURIComponent(post.slug)}` }
+  ]
 
-  // BreadcrumbList構造化データ
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": breadcrumbItems.map((item, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "name": item.name,
-      "item": `https://nands.tech${item.path}`
-    }))
-  }
-
-  // 著者情報（Google E-E-A-T準拠・ORCID対応・sameAs統合）
-  const authorTrustSystem = new AuthorTrustSystem()
-  const authorSchema = authorTrustSystem.generateAuthorSchema()
-
-  // Mike King理論準拠: BlogPosting + hasPart + AIO LLMO最適化（Google 2024年ガイドライン対応）
-  const enhancedStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "@id": `https://nands.tech/posts/${params.slug}#article`,
-    "headline": post.title,
-    "alternativeHeadline": post.meta_description || `${post.content.substring(0, 100)}...`,
-    "description": post.meta_description || post.excerpt || `${post.content.substring(0, 160)}...`,
-    "abstract": post.meta_description || post.excerpt || `${post.content.substring(0, 200)}...`,
-    "image": {
-      "@type": "ImageObject",
-      "url": post.thumbnail_url || post.featured_image || "https://nands.tech/images/default-post.jpg",
-      "width": 1200,
-      "height": 630,
-      "caption": post.title,
-      "alt": post.title
-    },
-    
-    // YouTube動画を関連メディアとして統合
-    ...(youtubeAIOptimizedSchema && {
-      "associatedMedia": {
-        "@type": "VideoObject",
-        "@id": youtubeAIOptimizedSchema["@id"],
-        "name": youtubeAIOptimizedSchema.name,
-        "description": youtubeAIOptimizedSchema.description,
-        "thumbnailUrl": youtubeAIOptimizedSchema.thumbnailUrl,
-        "contentUrl": youtubeAIOptimizedSchema.contentUrl,
-        "embedUrl": youtubeAIOptimizedSchema.embedUrl,
-        "uploadDate": youtubeAIOptimizedSchema.uploadDate,
-        "duration": youtubeAIOptimizedSchema.duration
-      }
-    }),
-    
-    // 著者情報強化（E-E-A-T対策）
-    "author": authorSchema,
-    "publisher": {
-      "@type": "Organization",
-      "@id": "https://nands.tech/#organization",
-      "name": "株式会社エヌアンドエス",
-      "legalName": "株式会社エヌアンドエス",
-      "url": "https://nands.tech",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://nands.tech/logo.png",
-        "width": 600,
-        "height": 60
-      },
-      "foundingDate": "2008",
-      "description": "Mike King理論準拠のレリバンスエンジニアリング実装企業。AI技術コンサルティング、退職代行サービス、生成AI最適化を提供。",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "皇子が丘２丁目10-25-3004号",
-        "addressLocality": "大津市",
-        "addressRegion": "滋賀県",
-        "postalCode": "520-0025",
-        "addressCountry": "JP"
-      },
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "email": "contact@nands.tech",
-        "contactType": "customer service",
-        "availableLanguage": ["Japanese", "English"]
-      },
-      "areaServed": {
-        "@type": "Country",
-        "name": "日本"
-      },
-      "serviceArea": {
-        "@type": "Country",
-        "name": "日本"
-      }
-    },
-    
-    // 日時情報
-    "datePublished": post.published_at,
-    "dateModified": post.updated_at || post.published_at,
-    "dateCreated": post.created_at,
-    
-    // ページ情報
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://nands.tech/posts/${params.slug}`,
-      "url": `https://nands.tech/posts/${params.slug}`,
-      "name": post.title,
-      "description": post.meta_description || post.excerpt,
-      "inLanguage": "ja-JP",
-      "isPartOf": {
-        "@type": "WebSite",
-        "@id": "https://nands.tech/#website",
-        "name": "株式会社エヌアンドエス"
-      }
-    },
-
-    // SEO & トピカルカバレッジ
-    "keywords": post.meta_keywords || post.seo_keywords || [],
-    "about": [
-      {
-        "@type": "Thing",
-        "name": post.categories?.[0]?.name || "AI・ビジネス・テクノロジー"
-      },
-      // YouTube動画のトピック統合
-      ...(youtubeAIOptimizedSchema ? [{
-        "@type": "Thing",
-        "name": "動画コンテンツ",
-        "url": youtubeAIOptimizedSchema.contentUrl
-      }] : [])
-    ],
-    "mentions": [
-      {
-        "@type": "Organization",
-        "name": "OpenAI",
-        "sameAs": "https://openai.com"
-      },
-      {
-        "@type": "Organization", 
-        "name": "ChatGPT",
-        "sameAs": "https://chat.openai.com"
-      },
-      // YouTube中尺動画エンティティ統合（ベクトルリンク化済み）
-      ...(youtubeAIOptimizedSchema ? [{
-        "@type": "VideoObject",
-        "@id": youtubeAIOptimizedSchema["@id"],
-        "name": youtubeAIOptimizedSchema.name,
-        "url": youtubeAIOptimizedSchema.contentUrl,
-        "sameAs": youtubeAIOptimizedSchema.embedUrl
-      }] : []),
-      // 📱 YouTubeショート動画エンティティ統合（ベクトルリンク化済み）
-      ...youtubeShortSchemas.map((shortSchema: any) => ({
-        "@type": "VideoObject",
-        "@id": shortSchema["@id"],
-        "name": shortSchema.name,
-        "url": shortSchema.contentUrl,
-        "sameAs": shortSchema.embedUrl
-      }))
-    ],
-
-    // 言語・地域情報
-    "inLanguage": "ja-JP",
-    "contentLocation": {
-      "@type": "Place",
-      "name": "日本"
-    },
-    "spatialCoverage": {
-      "@type": "Place", 
-      "name": "日本"
-    },
-
-    // カテゴリ・セクション
-    "articleSection": post.categories?.[0]?.name || "記事",
-    "genre": "Business Technology",
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Business Professional",
-      "geographicArea": {
-        "@type": "Place",
-        "name": "日本"
-      }
-    },
-
-    // Word Count & Reading Time
-    "wordCount": post.content.split(/\s+/).length,
-    "timeRequired": `PT${Math.ceil(post.content.split(/\s+/).length / 200)}M`,
-
-    // Mike King理論: hasPartスキーマ（GEO最適化 + YouTube動画統合）
-    ...(hasFragmentIds && {
-      "hasPart": [
-        // TOCセクション
-        ...tocData.toc.map((item: any, index: number) => ({
-          "@type": "WebPageElement",
-          "@id": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
-          "name": item.title,
-          "description": `${post.title}の第${index + 1}セクション: ${item.title}`,
-          "url": `https://nands.tech/posts/${params.slug}#${item.anchor || item.id}`,
-          "position": index + 1,
-          "mainContentOfPage": false,
-          "speakable": {
-            "@type": "SpeakableSpecification",
-            "cssSelector": [`#${item.anchor || item.id}`]
-          }
-        })),
-        // YouTube中尺動画セクション（ベクトルリンク化済み）
-        ...(youtubeAIOptimizedSchema ? [{
-          "@type": "VideoObject",
-          "@id": youtubeAIOptimizedSchema["@id"],
-          "name": youtubeAIOptimizedSchema.name,
-          "description": youtubeAIOptimizedSchema.description,
-          "thumbnailUrl": youtubeAIOptimizedSchema.thumbnailUrl,
-          "uploadDate": youtubeAIOptimizedSchema.uploadDate,
-          "duration": youtubeAIOptimizedSchema.duration,
-          "contentUrl": youtubeAIOptimizedSchema.contentUrl,
-          "embedUrl": youtubeAIOptimizedSchema.embedUrl,
-          "position": tocData.toc.length + 1,
-          "mainContentOfPage": false,
-          "isPartOf": {
-            "@type": "Article",
-            "@id": `https://nands.tech/posts/${params.slug}#article`
-          }
-        }] : []),
-        // 📱 YouTubeショート動画スライダー（新規追加・ベクトルリンク化済み）
-        ...youtubeShortSchemas.map((shortSchema: any, index: number) => ({
-          "@type": "VideoObject",
-          "@id": shortSchema["@id"],
-          "name": shortSchema.name,
-          "description": shortSchema.description,
-          "thumbnailUrl": shortSchema.thumbnailUrl,
-          "uploadDate": shortSchema.uploadDate,
-          "duration": shortSchema.duration || "PT30S",
-          "contentUrl": shortSchema.contentUrl,
-          "embedUrl": shortSchema.embedUrl,
-          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1) + index,
-          "mainContentOfPage": false,
-          "mentions": {
-            "@type": "Article",
-            "@id": `https://nands.tech/posts/${params.slug}#article`
-          }
-        })),
-        // 著者セクション（E-E-A-T最適化・ベクトルリンク化）
-        {
-          "@type": "Person",
-          "@id": `https://nands.tech/posts/${params.slug}#author-profile`,
-          "name": authorSchema.name,
-          "jobTitle": authorSchema.jobTitle,
-          "description": authorSchema.description,
-          "url": `https://nands.tech/posts/${params.slug}#author-profile`,
-          "position": tocData.toc.length + (youtubeAIOptimizedSchema ? 2 : 1) + youtubeShortSchemas.length,
-          "mainContentOfPage": false,
-          "isPartOf": {
-            "@type": "Article",
-            "@id": `https://nands.tech/posts/${params.slug}#article`
-          }
-        }
-      ]
-    }),
-
-    // AIO LLMO: FAQ構造化データ（自動抽出）
-    ...(faqData.length > 0 && {
-      "mainEntity": faqData.map((faq: any) => ({
-        "@type": "Question",
-        "name": faq.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": faq.answer,
-          "author": {
-            "@type": "Person",
-            "name": "原田賢治"
-          }
-        }
-      }))
-    }),
-
-    // Google音声検索最適化
-    "speakable": {
-      "@type": "SpeakableSpecification",
-      "cssSelector": ["h1", "h2", ".faq-section"]
-    },
-
-    // Googleニュース最適化
-    "isAccessibleForFree": true,
-    "isPartOf": {
-      "@type": "WebSite",
-      "@id": "https://nands.tech/#website"
-    }
-  }
-
-  // HowTo構造化データ - 削除済み
-  // Note: Google 2024-2025でHowToリッチリザルトを廃止。一般サイトでの使用は推奨されない
-  const howToSchema = null
-
-  // 関連情報を抽出する関数
-  interface RelatedInfoLink {
-    title: string;
-    url: string;
-    type: 'related' | 'faq';
-  }
-
-  function extractRelatedInfo(content: string): RelatedInfoLink[] {
-    let relatedInfoSection = content.match(/###\s*📚\s*関連情報[\s\S]*?(?=\n##|\n---|\n$)/i);
-    if (!relatedInfoSection) {
-      const altPattern = content.match(/📚\s*関連情報[\s\S]*$/i);
-      if (!altPattern) return [];
-      relatedInfoSection = altPattern;
-    }
-
-    const links = relatedInfoSection[0].match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/g);
-    if (!links) return [];
-
-    const result: RelatedInfoLink[] = [];
-    for (const link of links) {
-      const match = link.match(/\d+\.\s*\[([^\]]+)\]\(([^)]+)\)/);
-      if (match) {
-        const title = match[1];
-        const url = match[2];
-        const type: 'related' | 'faq' = title.includes('よくある質問') ? 'faq' : 'related';
-        result.push({ title, url, type });
-      }
-    }
-    return result;
-  }
+  const jsonLd = buildArticleJsonLd({
+    post,
+    articleUrl,
+    toc: tocData.toc,
+    faqs: faqData,
+    videos: videos.linked,
+  })
 
   return (
     <div className="container mx-auto px-4 py-8 bg-white dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
-      {/* Mike King理論準拠: 統合構造化データ */}
-      <Script
-        id="structured-data-article"
+      {/* 構造化データ: 1 つの @graph を素の <script> で出す（JS を実行しないクローラにも届くよう HTML に含める） */}
+      <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(enhancedStructuredData) }}
-      />
-      
-      <Script
-        id="structured-data-breadcrumb"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-
-      <Script
-        id="structured-data-author"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(authorSchema) }}
-      />
-
-      {howToSchema && (
-        <Script
-          id="structured-data-howto"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
-        />
-      )}
-
-      {/* 🎯 動的FAQ Fragment ID構造化データ */}
-      {dynamicBlogSchema && (
-        <Script
-          id="structured-data-dynamic-faq"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(dynamicBlogSchema) }}
-        />
-      )}
-      
-      {/* 🆕 YouTubeショート動画の4大AI検索エンジン最適化Schema */}
-      {youtubeAIOptimizedSchema && (
-        <Script
-          id="youtube-ai-optimized-schema"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(youtubeAIOptimizedSchema) }}
-        />
-      )}
-
-      {/* 🚀 Fragment Feed API Discovery - AI引用最適化 */}
-      <link
-        rel="alternate"
-        type="application/json"
-        href={`/api/posts/${params.slug}/fragments`}
-        title={`${post.title} - Fragment Feed`}
-      />
-      <meta
-        name="fragment-feed"
-        content={`/api/posts/${params.slug}/fragments`}
-      />
-      <meta
-        name="ai-optimization"
-        content="mike-king-theory,relevance-engineering,dynamic-fragment-ids"
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(jsonLd) }}
       />
 
       <div className="mt-16">
-        <Breadcrumbs customItems={breadcrumbItems} />
+        <Breadcrumbs customItems={breadcrumbItems} withSchema={false} />
       </div>
-      
-      <article className="max-w-4xl mx-auto">
-        {/* カテゴリタグ */}
-        {post.categories && post.categories.length > 0 && (
-          <div className="mb-4">
-            <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm font-medium">
-              {post.categories[0].name}
-            </span>
-          </div>
-        )}
 
+      <article className="max-w-4xl mx-auto">
         {/* 記事タイトル - Fragment ID対応 */}
         <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{post.title}</h1>
         
@@ -1235,7 +671,7 @@ export default async function PostPage({ params }: PageProps) {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">原田賢治</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">代表取締役・AI技術責任者</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{AUTHOR.jobTitle}</p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。
                 15年以上のAI・システム開発経験を持ち、全国で企業のDX・AI活用、退職代行サービスを支援。
@@ -1275,7 +711,7 @@ export default async function PostPage({ params }: PageProps) {
                   LinkedIn
                 </a>
                 <a 
-                  href="/about" 
+                  href={AUTHOR.url.replace(SITE_URL, '')} 
                   className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg text-sm font-medium"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
