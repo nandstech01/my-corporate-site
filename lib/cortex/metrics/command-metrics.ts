@@ -54,6 +54,16 @@ function bucketByDay(rows: { ts: string | null }[], days: string[]): number[] {
   return days.map((d) => map.get(d) ?? 0)
 }
 
+/**
+ * このAPIは公開ダッシュボードから認証なしで読まれるため、問い合わせ者名は先頭1文字だけ返す。
+ */
+export function maskName(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+  return `${Array.from(trimmed)[0]}＊＊ 様`
+}
+
 export async function computeCommandMetrics(): Promise<CommandMetrics> {
   const generatedAt = new Date().toISOString()
   const today = todayJst()
@@ -95,7 +105,7 @@ export async function computeCommandMetrics(): Promise<CommandMetrics> {
   const liR = await sb.from('inquiries').select('id,created_at,name,source').order('created_at', { ascending: false }).limit(1)
   const li = liR.data?.[0]
   const latestInquiry = li
-    ? { id: String(li.id), created_at: li.created_at as string, name: (li.name as string) ?? null, source: (li.source as string) ?? 'unknown' }
+    ? { id: String(li.id), created_at: li.created_at as string, name: maskName(li.name), source: (li.source as string) ?? 'unknown' }
     : null
 
   // Per-day post counts (sum of all platforms)
