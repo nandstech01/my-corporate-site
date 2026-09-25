@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAttribution, readGaClientId } from '@/lib/cortex/metrics/attribution'
+import { parseAttribution, readGaClientId, readGaSessionId } from '@/lib/cortex/metrics/attribution'
 
 const cookie = (obj: Record<string, string>) => `foo=1; nands_ft=${encodeURIComponent(JSON.stringify(obj))}; bar=2`
 
@@ -28,5 +28,18 @@ describe('readGaClientId', () => {
   })
   it('returns null when absent', () => {
     expect(readGaClientId('x=1')).toBeNull()
+  })
+})
+
+describe('readGaSessionId', () => {
+  it('reads the new GS2 format', () => {
+    expect(readGaSessionId('_ga_GLG263SVMM=GS2.1.s1790356706$o3$g1$t1790356800$j0$l0$h0', 'G-GLG263SVMM')).toBe('1790356706')
+  })
+  it('reads the old GS1 format', () => {
+    expect(readGaSessionId('x=1; _ga_GLG263SVMM=GS1.1.1700000000.3.1.1700000100.0.0.0', 'G-GLG263SVMM')).toBe('1700000000')
+  })
+  it('returns null for another property or no cookie', () => {
+    expect(readGaSessionId('_ga_OTHER=GS2.1.s1$o1', 'G-GLG263SVMM')).toBeNull()
+    expect(readGaSessionId(null, 'G-GLG263SVMM')).toBeNull()
   })
 })

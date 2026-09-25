@@ -41,7 +41,11 @@ export async function POST(request: Request) {
       message = String(form.get('message') || '');
       source = 'corporate';
     }
-    const mailTo = to || process.env.CONTACT_TO || 'contact@nands.tech';
+    // 送信先はリクエストで任意指定させない (任意宛先へのメール送信＝スパムの踏み台になるため)。
+    // 許可リストにある宛先だけ受け付け、それ以外は既定の宛先に送る。
+    const defaultTo = process.env.CONTACT_TO || 'contact@nands.tech';
+    const allowedTo = new Set([defaultTo, 'contact@nands.tech']);
+    const mailTo = to && allowedTo.has(to.trim().toLowerCase()) ? to.trim().toLowerCase() : defaultTo;
 
     // 司令塔ダッシュボード用に Supabase へも記録（best-effort・既存のメール/シートは不変）
     await recordInquiry({ source: source || 'general-contact', name, email, company, phone, message, cookieHeader: request.headers.get('cookie') });
