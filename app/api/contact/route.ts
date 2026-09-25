@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const mailTo = to || process.env.CONTACT_TO || 'contact@nands.tech';
 
     // 司令塔ダッシュボード用に Supabase へも記録（best-effort・既存のメール/シートは不変）
-    await recordInquiry({ source: source || 'general-contact', name, email, company, phone, message });
+    await recordInquiry({ source: source || 'general-contact', name, email, company, phone, message, cookieHeader: request.headers.get('cookie') });
 
     // メールトランスポーターの設定
     const transporter = nodemailer.createTransport({

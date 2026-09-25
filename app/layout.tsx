@@ -256,6 +256,20 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         
+        {/* 問い合わせの流入元 (first-touch) を 90 日 cookie に 1 度だけ記録 → lib/cortex/metrics/attribution.ts が読む */}
+        <Script id="first-touch" strategy="afterInteractive">
+          {`
+            try {
+              if (!/(^|; )nands_ft=/.test(document.cookie)) {
+                var q = new URLSearchParams(location.search);
+                var ref = document.referrer && new URL(document.referrer).host !== location.host ? document.referrer : '';
+                var ft = { p: location.pathname, r: ref.slice(0, 300), us: q.get('utm_source') || '', um: q.get('utm_medium') || '', uc: q.get('utm_campaign') || '' };
+                document.cookie = 'nands_ft=' + encodeURIComponent(JSON.stringify(ft)) + '; path=/; max-age=7776000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+              }
+            } catch (e) {}
+          `}
+        </Script>
+
         {/* Google Analytics - 本番環境のみ */}
         {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_GA_ID && (
           <>
