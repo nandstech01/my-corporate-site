@@ -10,7 +10,7 @@ export async function GET() {
     const companyInfo = {
       name: '株式会社エヌアンドエス',
       name_en: 'N&S Co., Ltd.',
-      founded: 2020,
+      founded: 2008, // 2008-04 設立 (site-entities.ts の ORGANIZATION.foundingDate)
       ceo: '原田賢治',
       description: 'レリバンスエンジニアリング・AI技術分野の専門企業',
       mission: 'AI技術とレリバンスエンジニアリングで企業のDXを支援',
@@ -60,8 +60,10 @@ export async function GET() {
         email: 'info@nands.tech',
         website: 'https://nands.tech',
         social: {
-          github: 'https://github.com/nands-tech',
-          linkedin: 'https://linkedin.com/company/nands-tech'
+          // 会社のものと確認できたアカウントだけ (正本は lib/structured-data/site-entities.ts の ORGANIZATION.sameAs)
+          x: 'https://x.com/NANDS_AI',
+          github: 'https://github.com/nandstech01',
+          linkedin: 'https://www.linkedin.com/company/nands-tech'
         }
       },
       business_model: {

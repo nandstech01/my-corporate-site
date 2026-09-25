@@ -244,7 +244,7 @@ export async function runGrowthTracker(): Promise<void> {
   process.stdout.write('Growth Tracker: Starting\n')
 
   // 1. Get current profile metrics (Playwright first, API fallback)
-  const myUsername = process.env.X_USERNAME ?? 'nands_tech'
+  const myUsername = process.env.X_USERNAME ?? 'NANDS_AI'
   let profileData: {
     followersCount: number
     followingCount: number

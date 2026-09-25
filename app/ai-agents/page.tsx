@@ -12,6 +12,7 @@ import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration';
+import { SITE_URL, organizationRef } from '@/lib/structured-data/site-entities';
 
 // メタデータ（SEO強化）
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     title: 'AIエージェント開発・カスタマイズ | Mastra Framework',
     description: 'Mastra Framework・ChatGPT・Claude等最新AI技術によるインテリジェントエージェント開発',
     type: 'website',
-    url: 'https://nands.jp/ai-agents',
+    url: `${SITE_URL}/ai-agents`,
     images: [
       {
         url: '/images/ai-agents/ai-agents-hero.jpg',
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     images: ['/images/ai-agents/ai-agents-hero.jpg']
   },
   alternates: {
-    canonical: 'https://nands.jp/ai-agents'
+    canonical: `${SITE_URL}/ai-agents`
   }
 };
 
@@ -272,9 +273,7 @@ export default async function AIAgentsPage() {
                 "description": "Mastra Framework・Function Calling・Tool Use・ベクトルRAG統合開発"
               }
             },
-            "provider": {
-              "@id": "https://nands.jp/#organization"
-            },
+            "provider": organizationRef(),
             "featureList": [
               "Mastra Framework統合",
               "ChatGPT Function Calling",

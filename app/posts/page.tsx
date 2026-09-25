@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@nands_tech',
-    creator: '@nands_tech',
+    site: '@NANDS_AI',
+    creator: '@NANDS_AI',
     title: '記事一覧 | 株式会社エヌアンドエス',
     description: PAGE_DESCRIPTION,
     images: ['/images/default-og-image.jpg'],

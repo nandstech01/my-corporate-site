@@ -4,7 +4,6 @@
  * 
  * 拡張内容:
  * - AI透明性システム
- * - 企業認証統合
  * - 助成金対応システム
  * - 最新プロパティ統合
  */
@@ -22,17 +21,16 @@ import {
 } from './entity-relationships';
 import {
   IPTCDigitalSourceType,
-  CertificationSchema,
   GovernmentServiceSchema,
   GovernmentBenefitsType,
   DigitalPlatformType,
   Schema16LatestOrganization,
   Schema16LatestService,
   createAIServiceTransparency,
-  createJapaneseCertifications,
   createJapaneseGovernmentBenefits,
   generateLatestOrganizationSchema
 } from './schema-org-latest';
+import { ORGANIZATION } from './site-entities';
 
 // =============================================================================
 // Schema.org 16.0+ 拡張統合データ型
@@ -44,13 +42,6 @@ export interface Schema16UnifiedPageData extends UnifiedPageData {
     digitalSourceTypes: IPTCDigitalSourceType[];
     transparencyStatement: string;
     contentCreationProcess: string[];
-  };
-  
-  // 企業認証システム
-  certificationSystem?: {
-    activeCertifications: CertificationSchema[];
-    certificationCount: number;
-    certificationTypes: string[];
   };
   
   // 助成金対応システム
@@ -88,7 +79,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
     
     // Schema.org 16.0+ 拡張データを生成
     const aiTransparencySchema = this.generateAITransparencySchema();
-    const certificationSystem = this.generateCertificationSystem();
     const governmentBenefitsSystem = this.generateGovernmentBenefitsSystem();
     const latestOrganizationSchema = this.generateLatestOrganizationSchema();
     const latestServiceSchemas = this.generateLatestServiceSchemas();
@@ -97,7 +87,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
     return {
       ...baseData,
       aiTransparencySchema,
-      certificationSystem,
       governmentBenefitsSystem,
       latestOrganizationSchema,
       latestServiceSchemas,
@@ -120,19 +109,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
         '人間による最終確認・品質保証',
         '継続的な改善とフィードバック反映'
       ]
-    };
-  }
-
-  /**
-   * 企業認証システム生成
-   */
-  private generateCertificationSystem() {
-    const activeCertifications = createJapaneseCertifications(ORGANIZATION_ENTITY['@id']);
-    
-    return {
-      activeCertifications,
-      certificationCount: activeCertifications.length,
-      certificationTypes: activeCertifications.map(cert => cert.name)
     };
   }
 
@@ -160,7 +136,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
   private generateLatestOrganizationSchema(): Schema16LatestOrganization {
     return generateLatestOrganizationSchema(ORGANIZATION_ENTITY, {
       includeAITransparency: true,
-      includeCertifications: true,
       includeGovernmentBenefits: true
     });
   }
@@ -170,7 +145,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
    */
   private generateLatestServiceSchemas(): Schema16LatestService[] {
     return SERVICE_ENTITIES.map(service => {
-      const certifications = createJapaneseCertifications(service['@id']);
       const governmentBenefits = createJapaneseGovernmentBenefits();
       
       return {
@@ -182,7 +156,6 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
         provider: { '@id': ORGANIZATION_ENTITY['@id'] },
         
         // 最新Schema.org拡張
-        hasCertification: certifications,
         governmentBenefitsInfo: governmentBenefits,
         availableOnDevice: [
           DigitalPlatformType.GENERIC_WEB,
@@ -258,7 +231,7 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       '@id': data.latestOrganizationSchema?.['@id'] || 'https://nands.tech/#organization',
-      name: data.latestOrganizationSchema?.name || 'エヌアンドエス株式会社',
+      name: data.latestOrganizationSchema?.name || ORGANIZATION.name,
       description: data.latestOrganizationSchema?.description || 'AI・システム開発・リスキリング研修のエヌアンドエス'
     };
 
@@ -267,17 +240,11 @@ export class Schema16UnifiedIntegrationSystem extends UnifiedIntegrationSystem {
       // AI透明性
       digitalSourceType: data.aiTransparencySchema?.digitalSourceTypes,
       
-      // 企業認証
-      hasCertification: data.certificationSystem?.activeCertifications,
-      
-      // 助成金対応
-      providesGovernmentService: data.governmentBenefitsSystem?.availableBenefits,
-      
+      // 助成金 (providesGovernmentService) と japaneseEnterpriseFeatures は出さない。
+      // 助成金は当社が提供する行政サービスではなく、補助率・法令準拠の宣言にも根拠がないため
+
       // プラットフォーム対応
-      targetPlatform: data.platformSupport?.supportedPlatforms,
-      
-      // 日本企業特化プロパティ
-      japaneseEnterpriseFeatures: data.latestOrganizationSchema?.japaneseEnterpriseFeatures
+      targetPlatform: data.platformSupport?.supportedPlatforms
     };
 
     return {

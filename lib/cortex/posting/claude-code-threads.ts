@@ -29,7 +29,7 @@ interface ThreadsThread {
 }
 
 function buildPrompt(facts: readonly string[], angle: string): { system: string; user: string } {
-  const system = `あなたは @nands_tech。Claude Codeを毎日使う実務家エンジニアで、Threads向けに「保存したくなる解説スレッド」を書く。
+  const system = `あなたは @NANDS_AI。Claude Codeを毎日使う実務家エンジニアで、Threads向けに「保存したくなる解説スレッド」を書く。
 Threadsは X とは別物。最適化ルール:
 - 1投稿あたり最大${MAX_LEN}文字（厳守）。親＋返信3〜5本のセルフリプライ・スレッド。
 - ストーリー性(起承転結)＋教育的・丁寧。煽りすぎNG。ハッシュタグは使わない(Threadsでは不要)。

@@ -120,11 +120,11 @@ async function assessOpportunity(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech（AI実務家）のブランドコンサルタントです。
+      content: `あなたは@NANDS_AI（AI実務家）のブランドコンサルタントです。
 以下のツイートに対して「プロアクティブに返信すべきか」を評価してください。
 
 ## 評価基準
-1. brandFit (0-10): @nands_techのAI実務家ブランドに合うか
+1. brandFit (0-10): @NANDS_AIのAI実務家ブランドに合うか
 2. topicRelevance (0-10): AI/テック/実務の話題との関連性
 3. visibilityScore (0-10): 返信による露出・成長効果
 
@@ -205,7 +205,7 @@ async function generateReplyCandidate(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。他人のツイートに自然に参加する返信を1つ作成。
+      content: `あなたは@NANDS_AI。他人のツイートに自然に参加する返信を1つ作成。
 
 ${voiceProfile}
 
@@ -259,7 +259,7 @@ async function scoreReply(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはX返信の品質評価者です。@nands_tech（AI実務家）が他人の会話にプロアクティブに参加する返信として適切か評価してください。
+      content: `あなたはX返信の品質評価者です。@NANDS_AI（AI実務家）が他人の会話にプロアクティブに参加する返信として適切か評価してください。
 
 5基準で評価。各0-10点。
 

@@ -131,6 +131,7 @@ const TermsPage = () => {
     "url": "https://nands.tech/terms",
     "provider": {
       "@type": "Organization",
+      "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス",
       "url": "https://nands.tech",
       "telephone": "0120-407-638",

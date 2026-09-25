@@ -1,7 +1,7 @@
 // Phase 4: Trust Layer & Click-Recovery - 著者プロフィール・Trust Signalsシステム
 // 原田賢治代表の実績に基づく信頼性構築
 
-import { AUTHOR } from './site-entities';
+import { AUTHOR, ORGANIZATION } from './site-entities';
 
 export interface AuthorProfile {
   '@type': 'Person';
@@ -95,9 +95,9 @@ export interface TrustSignals {
  */
 export const HARADA_KENJI_PROFILE: AuthorProfile = {
   '@type': 'Person',
-  '@id': 'https://nands.tech/author/harada-kenji',
+  '@id': AUTHOR.id,
   name: '原田賢治',
-  jobTitle: '代表取締役・システム開発者',
+  jobTitle: AUTHOR.jobTitle,
   worksFor: {
     '@type': 'Organization',
     '@id': 'https://nands.tech/#organization',
@@ -280,7 +280,8 @@ export class AuthorTrustSystem {
       '@type': 'Organization',
       '@id': this.authorProfile.worksFor['@id'],
       name: this.authorProfile.worksFor.name,
-      foundingDate: this.trustSignals.organizationTrust.foundedYear.toString(),
+      // 同じ #organization に別の設立日を書かない (正本は site-entities.ts)
+      foundingDate: ORGANIZATION.foundingDate,
       numberOfEmployees: {
         '@type': 'QuantitativeValue',
         value: this.trustSignals.organizationTrust.employeeCount

@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@nands_tech',
-    creator: '@nands_tech',
+    site: '@NANDS_AI',
+    creator: '@NANDS_AI',
   },
   alternates: {
     canonical: 'https://nands.tech/reskilling'

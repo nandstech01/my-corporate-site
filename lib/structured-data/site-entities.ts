@@ -63,7 +63,16 @@ export const ORGANIZATION = {
   },
   /** 表示用の 1 行住所 (llms.txt など) */
   addressText: '〒520-0025 滋賀県大津市皇子が丘2丁目10-25-3004号',
-  sameAs: ['https://x.com/NANDS_AI', 'https://github.com/nandstech01'] as readonly string[],
+  /**
+   * 会社のものと確認できたアカウントだけ。LinkedIn は 2026-09-26 にページの JSON-LD
+   * (Organization "NANDS", sameAs https://nands.tech/) で確認。
+   * Facebook の「nands.tech」と GitHub の「nands-tech」は別人のアカウントなので入れない。
+   */
+  sameAs: [
+    'https://x.com/NANDS_AI',
+    'https://github.com/nandstech01',
+    'https://www.linkedin.com/company/nands-tech',
+  ] as readonly string[],
 } as const
 
 export function personRef(): JsonLdRef {

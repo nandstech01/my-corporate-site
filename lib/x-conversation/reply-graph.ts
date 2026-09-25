@@ -242,7 +242,7 @@ async function generateReplyCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下のルールに従い、返信候補を3つ作成。
+      content: `あなたは@NANDS_AI。以下のルールに従い、返信候補を3つ作成。
 
 ## 返信タイプ
 ${replyTypeInstruction}
@@ -308,7 +308,7 @@ async function scoreReplyCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはX返信の品質評価者です。@nands_tech（AI実務家）の返信として適切か評価してください。
+      content: `あなたはX返信の品質評価者です。@NANDS_AI（AI実務家）の返信として適切か評価してください。
 以下の候補を5基準で評価してください。各0-10点。
 
 基準:

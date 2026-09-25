@@ -15,6 +15,7 @@ import FeaturePreviewSection from '@/components/common/FeaturePreviewSection';
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration';
+import { SITE_URL } from '@/lib/structured-data/site-entities';
 
 // メタデータ（SEO強化）
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     title: 'HR支援・人事DXソリューション',
     description: '13法令準拠RAGシステムと労働組合連携による包括的HR支援サービス',
     type: 'website',
-    url: 'https://nands.jp/hr-solutions',
+    url: `${SITE_URL}/hr-solutions`,
     images: [
       {
         url: '/images/hr-solutions/hr-hero.jpg',
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     images: ['/images/hr-solutions/hr-hero.jpg']
   },
   alternates: {
-    canonical: 'https://nands.jp/hr-solutions'
+    canonical: `${SITE_URL}/hr-solutions`
   }
 };
 

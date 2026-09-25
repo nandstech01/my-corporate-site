@@ -1,6 +1,8 @@
 // Mike King理論準拠: 統一エンティティ関係性システム
 // Relevance Engineering (RE) 基盤実装
 
+import { AUTHOR, ORGANIZATION } from './site-entities';
+
 export interface EntityRelationship {
   '@id': string;
   '@type': string;
@@ -105,11 +107,8 @@ export const ORGANIZATION_ENTITY: EntityRelationship = {
     'https://nands.tech/corporate#service',
     'https://nands.tech/hr-solutions#service'
   ],
-  sameAs: [
-    'https://taishoku-anshin-daiko.com/',
-    'https://twitter.com/nands_tech',
-    'https://www.linkedin.com/company/nands-tech'
-  ]
+  // 会社アカウントの正本は site-entities (同じ @id に別の sameAs を並べない)
+  sameAs: [...ORGANIZATION.sameAs]
 };
 
 /**
@@ -718,9 +717,9 @@ export const SERVICE_ENTITIES: ServiceEntity[] = [
     name: 'セキュリティ対策FAQ（/faqページFragment ID）',
     serviceType: 'FragmentAnchor',
     provider: { '@id': 'https://nands.tech/#organization' },
-    knowsAbout: ['セキュリティ対策', 'ISO27001', 'データ暗号化', 'AES-256', 'アクセス制御', 'GDPR', '個人情報保護法'],
+    knowsAbout: ['セキュリティ対策', 'データ暗号化', 'AES-256', 'アクセス制御', 'GDPR', '個人情報保護法'],
     relatedTo: ['https://nands.tech/system-development#security', 'https://nands.tech/faq#tech'],
-    mentions: ['ISO27001', 'セキュリティ', 'GDPR', '個人情報保護']
+    mentions: ['セキュリティ', 'GDPR', '個人情報保護']
   } as ServiceEntity,
   {
     '@id': 'https://nands.tech/faq#faq-tech-4',
@@ -1309,7 +1308,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     '@type': 'AboutPage',
     name: '代表LinkedIn - 原田賢治個人アカウント',
     pageType: 'PersonalSocialMediaSection',
-    provider: { '@id': 'https://nands.tech/author/harada-kenji' },
+    provider: { '@id': AUTHOR.id },
     knowsAbout: [
       '原田賢治LinkedIn',
       'B2B専門性',
@@ -1329,7 +1328,7 @@ export const COMPANY_PAGE_ENTITIES: CompanyPageEntity[] = [
     relatedTo: [
       'https://nands.tech/about#company-message',
       'https://nands.tech/about#company-official-x',
-      'https://nands.tech/author/harada-kenji',
+      AUTHOR.id,
       'https://nands.tech/#organization',
       'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/'
     ],

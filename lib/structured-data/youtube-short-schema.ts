@@ -19,6 +19,7 @@
 
 import type { YouTubeShortInfo } from '../youtube/youtube-data-api';
 import { AI_SEARCH_ENGINE_CONFIGS } from './ai-search-optimization';
+import { ORGANIZATION, organizationRef } from './site-entities';
 
 /**
  * YouTubeショート動画のエンティティ情報
@@ -116,30 +117,29 @@ export function generateYouTubeShortSchema(
       }
     ],
     
-    // 著者情報（株式会社エヌアンドエス）
+    // 著者情報（株式会社エヌアンドエス）。事実は site-entities.ts の正本を使う
+    // (YouTube チャンネルは代表個人のアカウントなので会社の sameAs には入れない)
     author: {
       '@type': 'Organization',
-      name: '株式会社エヌアンドエス',
-      url: baseUrl,
+      ...organizationRef(),
+      name: ORGANIZATION.name,
+      url: ORGANIZATION.url,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/images/logo.png`
+        url: ORGANIZATION.logo
       },
-      sameAs: [
-        'https://www.youtube.com/@kenjiharada_ai_site',
-        'https://twitter.com/nands_tech',
-        'https://www.facebook.com/nands.tech'
-      ]
+      sameAs: [...ORGANIZATION.sameAs]
     },
     
     // 発行者情報
     publisher: {
       '@type': 'Organization',
-      name: '株式会社エヌアンドエス',
-      url: baseUrl,
+      ...organizationRef(),
+      name: ORGANIZATION.name,
+      url: ORGANIZATION.url,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/images/logo.png`
+        url: ORGANIZATION.logo
       }
     },
     

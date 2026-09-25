@@ -36,8 +36,6 @@ import YouTubeShortsSection from '@/app/components/portal/YouTubeShortsSection'
 import {
   IPTCDigitalSourceType,
   createAIServiceTransparency,
-  createJapaneseCertifications,
-  createJapaneseGovernmentBenefits,
   generateLatestOrganizationSchema
 } from '@/lib/structured-data/schema-org-latest';
 
@@ -50,6 +48,7 @@ import {
 
 // 著者信頼性システム（原田賢治プロフィール）
 import { AuthorTrustSystem, HARADA_KENJI_PROFILE, NANDS_TRUST_SIGNALS } from '@/lib/structured-data/author-trust-system';
+import { AUTHOR, ORGANIZATION, organizationNode } from '@/lib/structured-data/site-entities';
 
 // キャッシュシステムは一時的にコメントアウト
 // import { getFastAIEnhancedPageData } from '@/lib/cache/ai-enhanced-cache'
@@ -67,8 +66,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@nands_tech',
-    creator: '@nands_tech',
+    site: '@NANDS_AI',
+    creator: '@NANDS_AI',
   },
   alternates: {
     canonical: 'https://nands.tech'
@@ -517,21 +516,12 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@graph": [
       // 【1】LocalBusiness + Organization統合スキーマ（AI Overviews最適化）
+      // 名称・住所・電話・設立年月・ロゴ・創業者・sameAs は site-entities.ts の正本をそのまま使い、
+      // レイアウトが全ページに出す #organization と食い違わないようにする。ここではトップ固有の情報だけを足す
       {
+        ...organizationNode(),
         "@type": ["LocalBusiness", "Organization"],
-        "@id": "https://nands.tech/#organization",
-      "name": "株式会社エヌアンドエス",
-        "legalName": "株式会社エヌアンドエス", 
-        "alternateName": ["NANDS", "エヌアンドエス", "N&S"],
         "description": "滋賀県大津市を拠点とする総合人材支援・生成AIリスキリング研修企業。Mike King理論準拠のレリバンスエンジニアリング実装、Google AI Overviews最適化、LLMO対策の専門企業として関西地方を中心に全国展開。",
-      "url": "https://nands.tech",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://nands.tech/images/logo.svg",
-          "width": 600,
-          "height": 60,
-          "alt": "株式会社エヌアンドエス ロゴ"
-        },
         "image": {
           "@type": "ImageObject", 
           "url": "https://nands.tech/images/ogp.jpg",
@@ -540,15 +530,7 @@ export default async function Home() {
           "alt": "株式会社エヌアンドエス 総合人材支援・生成AIリスキリング研修"
         },
         
-        // 【LocalBusiness完全最適化】滋賀県大津市地域企業
-      "address": {
-        "@type": "PostalAddress",
-          "streetAddress": "皇子が丘２丁目10-25-3004号",
-          "addressLocality": "大津市",
-        "addressRegion": "滋賀県",
-          "postalCode": "520-0025",
-          "addressCountry": "JP"
-        },
+        // 【LocalBusiness完全最適化】滋賀県大津市地域企業 (住所は organizationNode() の address)
         "geo": {
           "@type": "GeoCoordinates",
           "latitude": "35.0116",
@@ -578,36 +560,9 @@ export default async function Home() {
           }
         ],
         
-        // 【創業者・代表情報】E-E-A-T強化
-        "founder": {
-          "@type": "Person",
-          "name": "原田賢治",
-          "jobTitle": "代表取締役CEO",
-          "description": "生成AI・レリバンスエンジニアリング・退職代行サービスの専門家。15年以上の実務経験。",
-          "sameAs": [
-            "https://orcid.org/0009-0007-2241-9100",
-            "https://x.com/NANDS_AI", 
-            "https://www.linkedin.com/in/賢治-原田-77a4b7353/"
-          ],
-          "worksFor": {
-            "@id": "https://nands.tech/#organization"
-          },
-          "hasCredential": [
-            {
-              "@type": "EducationalOccupationalCredential",
-              "name": "生成AI・プロンプトエンジニアリング",
-              "credentialCategory": "専門技術資格"
-            },
-            {
-              "@type": "EducationalOccupationalCredential", 
-              "name": "退職代行サービス運営",
-              "credentialCategory": "実務経験15年以上"
-            }
-          ]
-        },
-        
-        // 【企業基本情報】
-        "foundingDate": "2008",
+        // 【創業者・代表情報】founder は organizationNode() の personRef() (著者ページの Person と同じ @id)
+
+        // 【企業基本情報】設立年月は organizationNode() の foundingDate
         "numberOfEmployees": {
           "@type": "QuantitativeValue",
           "value": "1-10"
@@ -684,13 +639,7 @@ export default async function Home() {
           }
         ],
         
-        // 【外部リンク】信頼性強化
-        "sameAs": [
-          "https://x.com/NANDS_AI",
-          "https://www.linkedin.com/company/nands-tech",
-          "https://www.facebook.com/nands.tech",
-          "https://github.com/nands-tech"
-        ],
+        // 【外部リンク】sameAs は organizationNode() の ORGANIZATION.sameAs (会社のものと確認できたアカウントだけ)
         
         // 【サービスカタログ】AI Overviews最適化
         "hasOfferCatalog": {
@@ -896,7 +845,7 @@ export default async function Home() {
             "author": {
               "@type": "Person",
               "name": "原田賢治",
-              "@id": "https://nands.tech/#founder"
+              "@id": AUTHOR.id
             },
             "publisher": {
               "@id": "https://nands.tech/#organization"
@@ -1009,7 +958,7 @@ export default async function Home() {
           "author": {
             "@type": "Person",
             "name": "原田賢治",
-            "@id": "https://nands.tech/#founder"
+            "@id": AUTHOR.id
           }
         }))
       }] : [])
@@ -1020,14 +969,14 @@ export default async function Home() {
   const latestOrganizationSchema = generateLatestOrganizationSchema(
     {
       '@id': 'https://nands.tech/#organization',
-      name: 'エヌアンドエス株式会社',
+      name: ORGANIZATION.name,
       description: 'AI・システム開発・リスキリング研修で企業のDXを支援',
       url: 'https://nands.tech'
     },
     {
       includeAITransparency: true,
-      includeCertifications: true,
-      includeGovernmentBenefits: true
+      // 助成金 (GovernmentService) は当社が提供する行政サービスではないので出さない
+      includeGovernmentBenefits: false
     }
   );
 
@@ -1035,20 +984,6 @@ export default async function Home() {
   const aiTransparencyStatement = {
     digitalSourceTypes: createAIServiceTransparency(),
     statement: '当社サービスはAI技術を活用していますが、人間の専門知識と品質管理を重視しています。'
-  };
-
-  // 助成金情報の追加
-  const subsidyInformation = {
-    humanResourcesDevelopment: {
-      name: '人材開発支援助成金',
-      coverage: '最大80%補助',
-      description: 'リスキリング研修費用の大部分を助成金でカバー可能'
-    },
-    itIntroduction: {
-      name: 'IT導入補助金',
-      coverage: '最大75%補助',
-      description: 'システム開発・AI導入費用を大幅に削減'
-    }
   };
 
   // Mike King理論完全準拠 - 高度なFragment ID最適化スキーマ（GEO・LLMO・AIO対策）
@@ -1219,7 +1154,7 @@ export default async function Home() {
                 digitalSourceType: aiTransparencyStatement.digitalSourceTypes,
                 author: {
                   '@type': 'Person',
-                  '@id': 'https://nands.tech/author/harada-kenji'
+                  '@id': AUTHOR.id
                 },
                 publisher: {
                   '@type': 'Organization', 

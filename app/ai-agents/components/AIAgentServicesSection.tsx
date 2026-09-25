@@ -310,7 +310,7 @@ export default function AIAgentServicesSection() {
               </div>
               <h4 className="text-lg font-semibold text-gray-900 mb-2">エンタープライズセキュリティ</h4>
               <p className="text-gray-600 text-sm">
-                ISO27001・SOC2準拠の包括的セキュリティ体制。
+                包括的セキュリティ体制。
                 ゼロトラスト・アーキテクチャで機密データを完全保護
               </p>
             </div>

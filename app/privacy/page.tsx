@@ -103,6 +103,7 @@ const PrivacyPage = () => {
     "url": "https://nands.tech/privacy",
     "provider": {
       "@type": "Organization",
+      "@id": "https://nands.tech/#organization",
       "name": "株式会社エヌアンドエス",
       "url": "https://nands.tech",
       "telephone": "0120-407-638",

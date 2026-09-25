@@ -1208,7 +1208,7 @@ async function handleBuzzPostGenerate(): Promise<Partial<LoopExecutorResult>> {
     source_url?: string
     platform?: string
   }
-  const userPrompt = `次のバズソースから @nands_tech 視点の X 投稿を 1 つ生成してください。
+  const userPrompt = `次のバズソースから @NANDS_AI 視点の X 投稿を 1 つ生成してください。
 
 【ソース】
 作者: @${top.author_handle ?? 'unknown'}
@@ -1227,7 +1227,7 @@ ${buzzPosts.slice(1).map((b, i: number) => {
 - 1 投稿のみ。候補列挙不要
 - 280 加重文字以内
 - 1 行目で結論かフック（read-to-end が加点）
-- @nands_tech voice（実装してないことは語らない / 要約屋にならない）
+- @NANDS_AI voice（実装してないことは語らない / 要約屋にならない）
 - 出力は投稿本文のみ。前置きなし`
 
   let postText: string

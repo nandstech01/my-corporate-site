@@ -35,11 +35,13 @@ export default function PostsGridSSR({ initialPosts }: { initialPosts: Post[] })
           "description": post.excerpt,
           "author": {
             "@type": "Organization",
+            "@id": "https://nands.tech/#organization",
             "name": "株式会社エヌアンドエス",
             "url": "https://nands.tech"
           },
           "publisher": {
             "@type": "Organization",
+            "@id": "https://nands.tech/#organization",
             "name": "株式会社エヌアンドエス"
           },
           "mainEntityOfPage": {

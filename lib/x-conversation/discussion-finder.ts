@@ -64,7 +64,7 @@ const AI_TOPIC_KEYWORDS = [
 export async function findRelevantDiscussions(): Promise<readonly DiscussionCandidate[]> {
   const supabase = getSupabase()
   const cutoff = new Date(Date.now() - MAX_AGE_HOURS * 60 * 60 * 1000).toISOString()
-  const myUsername = process.env.X_USERNAME ?? 'nands_tech'
+  const myUsername = process.env.X_USERNAME ?? 'NANDS_AI'
 
   // 1. Query buzz_posts for active discussions
   const { data: buzzPosts } = await supabase

@@ -37,6 +37,7 @@ import {
   generateEnhancedSameAs,
   type PotentialActionSchema
 } from './schema-org-latest';
+import { ORGANIZATION } from './site-entities';
 
 // =============================================================================
 // 完全統合AI検索最適化データ型
@@ -180,7 +181,7 @@ export class CompleteAIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedI
     const organizationEntity = {
       '@id': 'https://nands.tech/#organization',
       '@type': 'Organization',
-      name: 'エヌアンドエス株式会社',
+      name: ORGANIZATION.name,
       knowsAbout: [],
       relatedTo: [],
       sameAs: [],
@@ -512,10 +513,8 @@ export class CompleteAIEnhancedUnifiedIntegrationSystem extends Schema16UnifiedI
       },
       
       // ナレッジグラフ統合
-      knowledgeGraphMetrics: data.enhancedAIOptimization.knowledgeGraphIntegration,
-      
-      // 日本企業特化
-      japaneseEnterpriseOptimization: data.schema16PlusIntegration?.japaneseEnterpriseFeatures
+      knowledgeGraphMetrics: data.enhancedAIOptimization.knowledgeGraphIntegration
+      // japaneseEnterpriseFeatures (助成金連携・法令準拠の自己宣言) は根拠がないため出力しない
     } : {};
     
     return {

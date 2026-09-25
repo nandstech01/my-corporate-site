@@ -184,7 +184,7 @@ async function analyzeContent(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_techのThreads投稿設計者です。
+      content: `あなたは@NANDS_AIのThreads投稿設計者です。
 与えられたコンテンツを分析し、以下のJSON形式で結果を返してください。
 
 利用可能なパターンID:
@@ -398,7 +398,7 @@ ${learnings.highPerformerSummary}`
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下のルールに従い、Threads向け投稿を3候補作成。
+      content: `あなたは@NANDS_AI。以下のルールに従い、Threads向け投稿を3候補作成。
 
 ## Threadsプラットフォームルール
 - 500文字以内（厳守）
@@ -483,7 +483,7 @@ async function scoreCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはThreads投稿の品質評価者です。@nands_tech（AI実務家）の投稿として適切か評価してください。
+      content: `あなたはThreads投稿の品質評価者です。@NANDS_AI（AI実務家）の投稿として適切か評価してください。
 以下の候補を5基準で評価してください。各0-10点。
 
 基準:

@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     title: '法人向けAIリスキリング研修・業務効率化支援 | 株式会社エヌアンドエス',
     description: '株式会社エヌアンドエスの法人向けAIリスキリング研修・業務効率化支援サービス。生成AIを活用した業務改善、DX推進、人材育成を通じて企業の競争力を高めます。Mike King理論準拠のレリバンスエンジニアリング、GEO（Generative Engine Optimization）対応で、AI検索エンジンでの発見性も強化。',
     images: ['/images/corporate-ogp.jpg'],
-    site: '@nands_tech',
-    creator: '@nands_tech',
+    site: '@NANDS_AI',
+    creator: '@NANDS_AI',
   },
   alternates: {
     canonical: 'https://nands.tech/corporate',

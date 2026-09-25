@@ -6,6 +6,8 @@ import Footer from '../src/components/common/Footer';
 import AIDetectionTracker from '../components/common/AIDetectionTracker';
 import Script from 'next/script';
 import type { ReactNode } from 'react';
+import { toJsonLdScript } from '@/lib/structured-data/site-entities';
+import { buildSiteGraph } from '@/lib/structured-data/site-graph';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
     description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。',
-    url: 'https://nands.tech',
+    // url は置かない。ここに置くと自前の openGraph を持たない全ページの og:url がトップになる
     siteName: '株式会社エヌアンドエス',
     images: [
       {
@@ -56,16 +58,11 @@ export const metadata: Metadata = {
     title: '株式会社エヌアンドエス | 総合人材支援・生成AIリスキリング研修',
     description: '株式会社エヌアンドエスは、生成AIを活用したリスキリング研修やキャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合人材支援企業です。',
     images: ['/images/default-og-image.jpg'],
-    site: '@nands_tech',
-    creator: '@nands_tech',
+    site: '@NANDS_AI',
+    creator: '@NANDS_AI',
   },
-  alternates: {
-    canonical: 'https://nands.tech',
-    languages: {
-      'ja-JP': 'https://nands.tech',
-      'en-US': 'https://nands.tech/en'
-    }
-  },
+  // alternates.canonical は置かない。ルートに置くと canonical を持たない全ページ (404 を含む) が
+  // トップページを正規 URL と宣言してしまう。canonical は各ページの metadata で自分の URL を出す
   keywords: '総合人材支援,キャリアコンサルティング,生成AI研修,リスキリング,人材育成,キャリア支援,退職支援,エヌアンドエス,NANDS,転職支援,ChatGPT,AI活用,人材開発',
   robots: {
     index: true,
@@ -123,50 +120,6 @@ export default function RootLayout({
 }): JSX.Element {
   // 開発環境かどうかを判定
   const isDev = process.env.NODE_ENV === 'development';
-  
-  // 組織の構造化データ
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "株式会社エヌアンドエス",
-    "alternateName": "N&S",
-    "url": "https://nands.tech",
-    "logo": "https://nands.tech/images/logo.png",
-    "description": "滋賀県を拠点とする総合人材支援・生成AIリスキリング研修企業。生成AI活用のリスキリング研修から、キャリアコンサルティング、退職支援まで、全ての働く人の「次のステージ」をサポートする総合キャリア支援企業です。",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "皇子が丘２丁目10-25-3004号",
-      "addressLocality": "大津市",
-      "addressRegion": "滋賀県",
-      "postalCode": "520-0025",
-      "addressCountry": "JP"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+81-120-407-638",
-      "contactType": "customer service",
-      "email": "contact@nands.tech",
-      "availableLanguage": ["日本語"],
-      "areaServed": ["JP", "関西地方", "滋賀県"]
-    },
-    "sameAs": [
-      "https://twitter.com/nands_tech",
-      "https://www.facebook.com/nands.tech",
-      "https://www.linkedin.com/company/nands-tech"
-    ],
-    "foundingDate": "2008",
-    "founders": [
-      {
-        "@type": "Person",
-        "name": "代表取締役"
-      }
-    ],
-    "numberOfEmployees": {
-      "@type": "QuantitativeValue",
-      "value": "10-50"
-    },
-    "slogan": "次のステージへ"
-  };
 
   return (
     <html lang="ja">
@@ -224,11 +177,6 @@ export default function RootLayout({
           </>
         )}
         
-        {/* Hreflang タグ - 多言語サポート */}
-        <link rel="alternate" hrefLang="ja" href="https://nands.tech" />
-        <link rel="alternate" hrefLang="ja-jp" href="https://nands.tech" />
-        <link rel="alternate" hrefLang="x-default" href="https://nands.tech" />
-        
         {/* Security Headers - 本番環境用 (開発環境ではHTTPヘッダーで制御) */}
         {process.env.NODE_ENV === 'production' && (
           <>
@@ -249,11 +197,10 @@ export default function RootLayout({
         {/* AI引用自動検出トラッカー */}
         <AIDetectionTracker />
         
-        {/* 組織情報の構造化データ */}
-        <Script
-          id="organization-schema"
+        {/* 全ページ共通の構造化データ (Organization + WebSite)。next/script だと生 HTML に出ないため素の script */}
+        <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: toJsonLdScript(buildSiteGraph()) }}
         />
         
         {/* 問い合わせの流入元 (first-touch) を 90 日 cookie に 1 度だけ記録 → lib/cortex/metrics/attribution.ts が読む */}

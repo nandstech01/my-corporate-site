@@ -1,5 +1,5 @@
 /**
- * ボイスプロファイル — @nands_tech の口調定義
+ * ボイスプロファイル — @NANDS_AI の口調定義
  *
  * X / Threads 両パイプラインから参照される一元管理ファイル。
  * AI臭を排除し、参考記事のカジュアルな語り口を再現する。
@@ -204,7 +204,7 @@ export function formatVoiceProfileForPrompt(mode: 'short' | 'article' | 'linkedi
       .map((ex, i) => `--- 例${i + 1} ---\n${ex}`)
       .join('\n\n')
 
-    return `## ブランドボイス（LinkedIn — @nands_tech）
+    return `## ブランドボイス（LinkedIn — @NANDS_AI）
 
 ### 署名表現（自然に0-3個/投稿で使え。プロフェッショナルだが堅すぎない語り口）
 ${shuffled.map((e) => `「${e}」`).join('、')}
@@ -247,7 +247,7 @@ ${examplesFormatted}`
       .map((ex, i) => `--- 例${i + 1} ---\n${ex}`)
       .join('\n\n')
 
-    return `## ブランドボイス（Threads — @nands_tech）
+    return `## ブランドボイス（Threads — @NANDS_AI）
 
 ### 署名表現（自然に0-3個/投稿で使え。余韻を残す語り口）
 ${shuffled.map((e) => `「${e}」`).join('、')}
@@ -290,7 +290,7 @@ ${examplesFormatted}`
     .sort(() => Math.random() - 0.5)
     .slice(0, endingSampleCount)
 
-  return `## ボイスプロファイル（@nands_tech の口調）
+  return `## ボイスプロファイル（@NANDS_AI の口調）
 
 ### 署名表現（自然に0-3個/投稿で使え。使わない投稿もあっていい）
 ${shuffled.map((e) => `「${e}」`).join('、')}

@@ -12,6 +12,7 @@ import TableOfContents from '@/components/common/TableOfContents'
 
 // Mike King理論準拠: 統一レリバンスエンジニアリング統合（本丸）
 import { generateUnifiedPageData, PageContext, SemanticLinksComponent, TOCComponent } from '@/lib/structured-data/unified-integration'
+import { SITE_URL } from '@/lib/structured-data/site-entities'
 
 // メタデータ（SEO強化）
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     title: 'AIO対策・GEO・レリバンスエンジニアリング | Mike King理論準拠',
     description: 'Mike King理論準拠のレリバンスエンジニアリング専門サービス。GEO・Topical Coverage・Fragment ID最適化でAI検索上位表示を実現',
     type: 'website',
-    url: 'https://nands.jp/aio-seo',
+    url: `${SITE_URL}/aio-seo`,
     images: [
       {
         url: '/images/aio-seo/mike-king-relevance-engineering.jpg',
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     images: ['/images/aio-seo/mike-king-relevance-engineering.jpg']
   },
   alternates: {
-    canonical: 'https://nands.jp/aio-seo'
+    canonical: `${SITE_URL}/aio-seo`
   }
 }
 

@@ -88,9 +88,13 @@ describe('entity nodes', () => {
     const org = organizationNode()
     expect(person.sameAs).toContain('https://orcid.org/0009-0007-2241-9100')
     expect(person.sameAs).toHaveLength(6)
-    expect(org.sameAs).toEqual(['https://x.com/NANDS_AI', 'https://github.com/nandstech01'])
+    expect(org.sameAs).toEqual([
+      'https://x.com/NANDS_AI',
+      'https://github.com/nandstech01',
+      'https://www.linkedin.com/company/nands-tech',
+    ])
     const all = [...person.sameAs, ...org.sameAs].join(' ')
-    expect(all).not.toMatch(/github\.com\/nands-tech|nands_tech/i)
+    expect(all).not.toMatch(/github\.com\/nands-tech|facebook\.com\/nands\.tech|nands_tech/i)
     expect(person.sameAs.some((u) => org.sameAs.includes(u))).toBe(false)
   })
 

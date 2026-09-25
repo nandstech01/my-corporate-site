@@ -25,7 +25,7 @@ const ANTI_FABRICATION = `
 `.trim()
 
 export function buildOutlinePrompt(plan: TopicPlan): { system: string; user: string } {
-  const system = `あなたは @nands_tech が運営する技術ブログ(nands.tech)の編集者兼ライター。
+  const system = `あなたは @NANDS_AI が運営する技術ブログ(nands.tech)の編集者兼ライター。
 日本のエンジニア/AI活用層に刺さる、保存したくなる実用記事の「設計図(JSON)」を作る。
 ${STYLE_DNA}
 ${ANTI_FABRICATION}
