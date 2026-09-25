@@ -25,7 +25,7 @@ export const CREDIBLE_CC_ACCOUNTS: readonly string[] = [
 
 /** Accounts whose posts we never quote (our own + obvious noise handles). */
 export const REPOST_EXCLUDE_HANDLES: ReadonlySet<string> = new Set([
-  'nands_tech',
+  'nands_ai',
   'i',
   'home',
 ])

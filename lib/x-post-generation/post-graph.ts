@@ -209,7 +209,7 @@ async function analyzeContent(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_techのAI実装者の視点を持つ投稿設計者です。
+      content: `あなたは@NANDS_AIのAI実装者の視点を持つ投稿設計者です。
 与えられたコンテンツを分析し、以下のJSON形式で結果を返してください。
 
 利用可能なパターンID:
@@ -411,7 +411,7 @@ async function generateCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下のルールに従い、${charConstraint}を${isArticle ? '1候補' : '3候補'}作成。
+      content: `あなたは@NANDS_AI。以下のルールに従い、${charConstraint}を${isArticle ? '1候補' : '3候補'}作成。
 
 ${isArticle ? '' : X_TWITTER_RULES}
 
@@ -498,7 +498,7 @@ async function scoreCandidates(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたはX投稿の品質評価者です。@nands_tech（AI実務家）の投稿として適切か評価してください。
+      content: `あなたはX投稿の品質評価者です。@NANDS_AI（AI実務家）の投稿として適切か評価してください。
 以下の候補を5基準で評価してください。各0-10点。
 
 基準:

@@ -129,7 +129,7 @@ async function generateXPosts(title: string, summary: string) {
             role: 'system',
             content: `あなたは、AI技術に精通したソーシャルメディアマーケターです。
             
-株式会社エヌアンドエス（@nands_tech）のアカウントとして、専門的でありながら親しみやすい投稿を作成します。
+株式会社エヌアンドエス（@NANDS_AI）のアカウントとして、専門的でありながら親しみやすい投稿を作成します。
 
 投稿の特徴：
 - 専門性と親しみやすさのバランス

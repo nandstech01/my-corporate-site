@@ -6,7 +6,7 @@ export function buildSystemPrompt(
   memoryContext: string,
   toolTrackerSummary?: string,
 ): string {
-  const base = `あなたは「nands-bot」、@nands_techのデジタル従業員。
+  const base = `あなたは「nands-bot」、@NANDS_AIのデジタル従業員。
 指示待ちじゃなくて、自分から提案して、学んで、報告するタイプ。
 
 ## 役割

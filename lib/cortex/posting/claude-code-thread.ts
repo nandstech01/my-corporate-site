@@ -47,7 +47,7 @@ function buildPrompt(digest: ClaudeCodeDigest): string {
     .map((u, i) => `[例${i + 1}] @${u.authorHandle ?? '?'}: ${u.title} — ${u.summary.slice(0, 160)}`)
     .join('\n')
 
-  return `あなたは @nands_tech。Claude Codeを毎日使い倒している実務家エンジニアだ。
+  return `あなたは @NANDS_AI。Claude Codeを毎日使い倒している実務家エンジニアだ。
 公式CHANGELOGの「本当の最新変更」を、フォロワーが保存したくなる教科書スレッドに変換する。
 
 ## 今日教える本命（公式CHANGELOG = ground truth。ここから1つに絞る）

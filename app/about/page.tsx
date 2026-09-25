@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import TableOfContents from '@/components/common/TableOfContents';
+import { AUTHOR } from '@/lib/structured-data/site-entities';
 import type { TOCItem } from '@/components/common/TableOfContents';
 
 // 新しいコンポーネントをインポート
@@ -304,7 +305,7 @@ export default function AboutPage() {
                       "url": "https://nands.tech/about#representative-linkedin",
                       "about": {
                         "@type": "Person",
-                        "@id": "https://nands.tech/author/harada-kenji"
+                        "@id": AUTHOR.id
                       },
                       "mentions": ["LinkedIn", "原田賢治", "B2B専門性", "業界インサイト", "経営視点", "レリバンスエンジニアリング"],
                       "sameAs": ["https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/"],

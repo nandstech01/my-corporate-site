@@ -6,6 +6,7 @@ import Link from 'next/link'
 import MarkdownContent from '@/components/blog/MarkdownContent'
 import Script from 'next/script'
 import Breadcrumbs from '@/app/components/common/Breadcrumbs'
+import { ORGANIZATION, SITE_URL, decodePostSlug, organizationRef } from '@/lib/structured-data/site-entities'
 
 // BreadcrumbItemの型定義
 interface BreadcrumbItem {
@@ -17,6 +18,11 @@ type Props = {
   params: {
     slug: string
   }
+}
+
+/** この記事ページ自身の URL (nands.tech)。params.slug はエンコード済みでも生でも同じ結果になる */
+function chatgptPostUrl(slug: string): string {
+  return `${SITE_URL}/special/chatgpt/${encodeURIComponent(decodePostSlug(slug))}`
 }
 
 // 動的メタデータ生成
@@ -58,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${post.title} | ChatGPT特集`,
       description: post.excerpt || `${sectionName}のChatGPT活用術とビジネス応用について詳しく解説します。`,
       type: 'article',
-      url: `https://nands.jp/special/chatgpt/${params.slug}`,
+      url: chatgptPostUrl(params.slug),
       images: [
         {
           url: fullImageUrl,
@@ -76,14 +82,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      site: '@nands_tech',
-      creator: '@nands_tech',
+      site: '@NANDS_AI',
+      creator: '@NANDS_AI',
       title: `${post.title} | ChatGPT特集`,
       description: post.excerpt || `${sectionName}のChatGPT活用術とビジネス応用について詳しく解説します。`,
       images: [fullImageUrl]
     },
     alternates: {
-      canonical: `https://nands.jp/special/chatgpt/${params.slug}`
+      canonical: chatgptPostUrl(params.slug)
     }
   }
 }
@@ -116,22 +122,24 @@ export default async function ChatGPTArticlePage({ params }: Props) {
     "image": post.thumbnail_url || post.featured_image || "/images/default-post.jpg",
     "author": {
       "@type": "Organization",
-      "name": "株式会社エヌアンドエス",
-      "url": "https://nands.jp"
+      ...organizationRef(),
+      "name": ORGANIZATION.name,
+      "url": ORGANIZATION.url
     },
     "publisher": {
       "@type": "Organization",
-      "name": "株式会社エヌアンドエス",
+      ...organizationRef(),
+      "name": ORGANIZATION.name,
       "logo": {
         "@type": "ImageObject",
-        "url": "https://nands.jp/logo.png"
+        "url": ORGANIZATION.logo
       }
     },
     "datePublished": post.created_at,
     "dateModified": post.updated_at || post.created_at,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://nands.jp/special/chatgpt/${params.slug}`
+      "@id": chatgptPostUrl(params.slug)
     },
     "keywords": post.seo_keywords || [],
     "articleSection": post.section?.[0]?.name || "ChatGPT特集",

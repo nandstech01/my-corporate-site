@@ -66,7 +66,7 @@ async function generateReply(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。自分の投稿に対するリプライに返信する。
+      content: `あなたは@NANDS_AI。自分の投稿に対するリプライに返信する。
 
 ## ルール
 - 日本語120文字以内（CJK=2カウント、280カウント上限）
@@ -101,7 +101,7 @@ async function generateFollowUp(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。高パフォーマンスだった自分の投稿にフォローアップを追加する。
+      content: `あなたは@NANDS_AI。高パフォーマンスだった自分の投稿にフォローアップを追加する。
 
 ## ルール
 - 日本語120文字以内（CJK=2カウント、280カウント上限）
@@ -204,7 +204,7 @@ export async function runConversationBuilder(): Promise<void> {
   process.stdout.write('Conversation Builder: Starting\n')
 
   // 1. Get own profile (Playwright first, API fallback)
-  const myUsername = process.env.X_USERNAME ?? 'nands_tech'
+  const myUsername = process.env.X_USERNAME ?? 'NANDS_AI'
   let myUserId: string | undefined
 
   // Try Playwright for profile

@@ -86,7 +86,7 @@ export async function composeThread(
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下のコンテンツを${segmentCount}セグメントのスレッドにする。
+      content: `あなたは@NANDS_AI。以下のコンテンツを${segmentCount}セグメントのスレッドにする。
 
 ${X_TWITTER_RULES}
 

@@ -71,32 +71,6 @@ export const metadata: Metadata = {
   },
 }
 
-// 構造化データ
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: '株式会社エヌアンドエス',
-  url: 'https://nands.tech',
-  logo: 'https://nands.tech/logo.png',
-  sameAs: [
-    'https://twitter.com/nands_tech',
-    'https://www.linkedin.com/company/nands-tech'
-  ],
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '0120-407-638',
-    contactType: 'customer service',
-    availableLanguage: 'Japanese'
-  },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: '皇子が丘２丁目10−25−3004号',
-    addressLocality: '大津市',
-    addressRegion: '滋賀県',
-    addressCountry: 'JP'
-  }
-}
-
 // Corporateページと同等の記事型
 type Post = {
   id: string;
@@ -274,11 +248,7 @@ export default async function LPPage() {
 
   return (
     <>
-      {/* Organization スキーマ（既存 jsonLd を出力） */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd, null, 2) }}
-      />
+      {/* Organization はレイアウトが全ページに出す (#organization)。ここで @id なしの別ノードを重ねない */}
 
       {/* 🚀 条件付きScript読み込み（開発環境では軽量化） */}
       {process.env.NODE_ENV === 'production' && (

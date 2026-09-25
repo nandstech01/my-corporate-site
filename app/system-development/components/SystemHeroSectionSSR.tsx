@@ -110,6 +110,7 @@ function StructuredDataScript() {
       "description": "業界最速・最安値のAIシステム開発",
       "provider": {
         "@type": "Organization",
+        "@id": "https://nands.tech/#organization",
         "name": "株式会社エヌアンドエス"
       },
       "hasOfferCatalog": {

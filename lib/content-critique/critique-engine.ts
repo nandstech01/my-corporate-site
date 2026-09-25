@@ -106,7 +106,7 @@ export async function critiquePost(params: {
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_techのSNS投稿品質クリティックです。
+      content: `あなたは@NANDS_AIのSNS投稿品質クリティックです。
 以下の品質憲法に基づき、投稿を厳密に評価してください。
 
 ## 品質憲法（${platform} - ${mode}）
@@ -206,7 +206,7 @@ export async function revisePost(params: {
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下の弱点を修正した改訂版を作成してください。
+      content: `あなたは@NANDS_AI。以下の弱点を修正した改訂版を作成してください。
 
 ## 品質憲法（${platform} - ${mode}）
 ${principlesText}

@@ -214,7 +214,7 @@ async function formOpinion(state: GraphState): Promise<Partial<GraphState>> {
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。AI実務家として独自意見を形成する。
+      content: `あなたは@NANDS_AI。AI実務家として独自意見を形成する。
 
 ## 意見形成アプローチ: ${template.name}
 ${template.promptGuidance}
@@ -260,7 +260,7 @@ async function generateCandidates(state: GraphState): Promise<Partial<GraphState
   const response = await model.invoke([
     {
       role: 'system' as const,
-      content: `あなたは@nands_tech。以下の意見を元に引用RT本文を3候補作成。
+      content: `あなたは@NANDS_AI。以下の意見を元に引用RT本文を3候補作成。
 
 ${X_TWITTER_RULES}
 

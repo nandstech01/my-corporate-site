@@ -68,6 +68,7 @@ import { validateJsonLd, type ValidationResult } from './validation-system';
 import { HasPartSchemaSystem, type HasPartSchema } from './haspart-schema-system';
 import { type TOCItem } from './auto-toc-system';
 import { HARADA_KENJI_PROFILE, type AuthorProfile } from './author-trust-system';
+import { AUTHOR } from './site-entities';
 
 /**
  * 統合構造化データ生成システム
@@ -447,7 +448,7 @@ export class UnifiedStructuredDataSystem {
           "url": `${pageUrl}#faq-${index + 1}`,
           "author": {
             "@type": "Person",
-            "@id": `${this.baseUrl}/author/harada-kenji`,
+            "@id": AUTHOR.id,
             "name": "原田賢治"
           }
         },

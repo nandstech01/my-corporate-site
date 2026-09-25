@@ -9,6 +9,8 @@
  * - 最新Organization/Service プロパティ
  */
 
+import { AUTHOR, ORGANIZATION } from './site-entities';
+
 // =============================================================================
 // IPTC Digital Source Enumeration (Schema.org 24.0+)
 // AI生成コンテンツの透明性確保
@@ -113,7 +115,8 @@ export enum GovernmentBenefitsType {
 
 export interface GovernmentServiceSchema {
   '@type': 'GovernmentService';
-  '@id': string;
+  /** 省庁自身の URL 以外で @id を作らない (存在しない政府ドメインの @id を使っていたため削除) */
+  '@id'?: string;
   name: string;
   description: string;
   
@@ -438,7 +441,7 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
       provider: {
         '@type': 'Organization',
         '@id': 'https://nands.tech/#organization',
-        name: 'エヌアンドエス株式会社',
+        name: ORGANIZATION.name,
         url: 'https://nands.tech'
       },
       offers: {
@@ -466,8 +469,8 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
           instructor: {
             '@type': 'Person',
             name: '原田賢治',
-            '@id': 'https://nands.tech/#founder',
-            jobTitle: '代表取締役・AI技術コンサルタント'
+            '@id': AUTHOR.id,
+            jobTitle: AUTHOR.jobTitle
           },
           location: {
             '@type': 'VirtualLocation',
@@ -565,12 +568,12 @@ export const JAPANESE_ENTERPRISE_ACTIONS: PotentialActionSchema[] = [
       author: {
         '@type': 'Organization',
         '@id': 'https://nands.tech/#organization',
-        name: 'エヌアンドエス株式会社'
+        name: ORGANIZATION.name
       },
       publisher: {
         '@type': 'Organization',
         '@id': 'https://nands.tech/#organization',
-        name: 'エヌアンドエス株式会社'
+        name: ORGANIZATION.name
       },
       inLanguage: 'ja-JP',
       isAccessibleForFree: true,
@@ -812,7 +815,7 @@ export function generateEnhancedPotentialActions(
           provider: {
             '@type': 'Organization',
             '@id': 'https://nands.tech/#organization',
-            name: 'エヌアンドエス株式会社',
+            name: ORGANIZATION.name,
             url: 'https://nands.tech'
           },
           offers: {
@@ -832,8 +835,8 @@ export function generateEnhancedPotentialActions(
               instructor: {
                 '@type': 'Person',
                 name: '原田賢治',
-                '@id': 'https://nands.tech/#founder',
-                jobTitle: '代表取締役・AI技術コンサルタント'
+                '@id': AUTHOR.id,
+                jobTitle: AUTHOR.jobTitle
               },
               location: {
                 '@type': 'VirtualLocation',
@@ -988,46 +991,9 @@ export function createAIServiceTransparency(): IPTCDigitalSourceType[] {
   ];
 }
 
-/**
- * 日本の主要企業認証を生成
- */
-export function createJapaneseCertifications(organizationId: string): CertificationSchema[] {
-  return [
-    {
-      '@type': 'Certification',
-      '@id': `${organizationId}#iso27001`,
-      name: 'ISO 27001 情報セキュリティマネジメントシステム',
-      certificationStatus: 'https://schema.org/CertificationActive',
-      issuedBy: {
-        '@type': 'Organization',
-        name: 'ISO（国際標準化機構）',
-        url: 'https://www.iso.org/'
-      },
-      about: {
-        '@type': 'Organization',
-        '@id': organizationId
-      },
-      certificationLevel: 'ISO 27001:2013',
-      applicableLocation: '日本国内'
-    },
-    {
-      '@type': 'Certification',
-      '@id': `${organizationId}#privacy-mark`,
-      name: 'プライバシーマーク認定',
-      certificationStatus: 'https://schema.org/CertificationActive',
-      issuedBy: {
-        '@type': 'Organization',
-        name: '一般財団法人日本情報経済社会推進協会（JIPDEC）',
-        url: 'https://www.jipdec.or.jp/'
-      },
-      about: {
-        '@type': 'Organization',
-        '@id': organizationId
-      },
-      applicableLocation: '日本国内'
-    }
-  ];
-}
+// 企業認証 (hasCertification) は出力しない。ISO/IEC 27001 (ISMS) とプライバシーマークは
+// 2026-09-26 に ISMS-AC と JIPDEC の公式検索で登録がないことを確認した (法人番号 2160001004065)。
+// 取得したら、登録番号と審査機関を確認できる形で追加する。
 
 /**
  * 助成金対応サービスを生成
@@ -1036,7 +1002,6 @@ export function createJapaneseGovernmentBenefits(): GovernmentServiceSchema[] {
   return [
     {
       '@type': 'GovernmentService',
-      '@id': 'https://gov.japan#human-resources-development-subsidy',
       name: '人材開発支援助成金',
       description: 'リスキリング研修の費用を最大80%補助する助成金制度',
       provider: {
@@ -1062,7 +1027,6 @@ export function createJapaneseGovernmentBenefits(): GovernmentServiceSchema[] {
     },
     {
       '@type': 'GovernmentService',
-      '@id': 'https://gov.japan#it-introduction-subsidy',
       name: 'IT導入補助金',
       description: 'ITツール導入による業務効率化・売上向上を支援する補助金',
       provider: {
@@ -1096,7 +1060,6 @@ export function generateLatestOrganizationSchema(
   baseOrg: any,
   options: {
     includeAITransparency?: boolean;
-    includeCertifications?: boolean;
     includeGovernmentBenefits?: boolean;
   } = {}
 ): Schema16LatestOrganization {
@@ -1114,51 +1077,13 @@ export function generateLatestOrganizationSchema(
     latest.digitalSourceType = createAIServiceTransparency();
   }
 
-  // 企業認証
-  if (options.includeCertifications) {
-    latest.hasCertification = createJapaneseCertifications(baseOrg['@id']);
-  }
-
   // 助成金対応
   if (options.includeGovernmentBenefits) {
     latest.providesGovernmentService = createJapaneseGovernmentBenefits();
   }
 
-  // 日本企業特化機能
-  latest.japaneseEnterpriseFeatures = {
-    subsidySupport: {
-      humanResourcesDevelopment: {
-        enabled: true,
-        coverageRate: 80,
-        maxAmount: 1000000
-      },
-      itIntroduction: {
-        enabled: true,
-        coverageRate: 75,
-        maxAmount: 4500000
-      },
-      manufacturing: {
-        enabled: false,
-        coverageRate: 66
-      },
-      smallBusinessSustainability: {
-        enabled: true,
-        coverageRate: 66,
-        maxAmount: 2000000
-      }
-    },
-    legalCompliance: {
-      personalInformationProtection: true,
-      cybersecurityCompliance: true,
-      aiEthicsCompliance: true,
-      accessibilityCompliance: true
-    },
-    regionalSupport: {
-      nationwide: true,
-      remoteSupport: true,
-      focusAreas: ['東京都', '関東地方', '全国']
-    }
-  };
+  // japaneseEnterpriseFeatures (独自プロパティ) は出力しない。助成金の補助率や法令準拠を
+  // 当社の属性として宣言していたが、根拠がなく schema.org にも存在しないため削除した。
 
   return latest;
 } 

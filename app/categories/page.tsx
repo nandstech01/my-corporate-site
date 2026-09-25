@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SITE_URL, organizationRef } from '@/lib/structured-data/site-entities';
 
 // カテゴリー別の設定（個別ページと共通化）
 const categoryConfig: Record<string, {
@@ -117,7 +118,7 @@ export const metadata: Metadata = {
     title: '業界別AIソリューション | カテゴリ一覧',
     description: '各業界に特化したAI導入支援・リスキリング研修・業務効率化ソリューション',
     type: 'website',
-    url: 'https://nands.jp/categories',
+    url: `${SITE_URL}/categories`,
     images: [
       {
         url: '/images/categories/categories-hero.jpg',
@@ -134,7 +135,7 @@ export const metadata: Metadata = {
     images: ['/images/categories/categories-hero.jpg']
   },
   alternates: {
-    canonical: 'https://nands.jp/categories'
+    canonical: `${SITE_URL}/categories`
   }
 };
 
@@ -376,22 +377,18 @@ export default async function CategoriesPage() {
             "@type": "CollectionPage",
             "name": "業界別AIソリューション",
             "description": "各業界に特化したAI導入支援・リスキリング研修・業務効率化ソリューション",
-            "url": "https://nands.jp/categories",
+            "url": `${SITE_URL}/categories`,
             "mainEntity": {
               "@type": "ItemList",
               "itemListElement": categories.map((category, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
-                "url": `https://nands.jp/categories/${category.slug}`,
+                "url": `${SITE_URL}/categories/${category.slug}`,
                 "name": category.name,
                 "description": category.description || categoryConfig[category.slug]?.concept
               }))
             },
-            "provider": {
-              "@type": "Organization",
-              "name": "株式会社エヌアンドエス",
-              "url": "https://nands.jp"
-            }
+            "provider": organizationRef()
           })
         }}
       />

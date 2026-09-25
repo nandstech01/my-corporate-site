@@ -430,5 +430,5 @@ Bot: できたよ〜確認してみて :eyes:
 User: [Approve をクリック]
 
 Bot: :white_check_mark: Posted to X!
-     https://x.com/nands_tech/status/123456789
+     https://x.com/NANDS_AI/status/123456789
 ```

@@ -143,7 +143,7 @@ async function pickAndWrite(
     max_tokens: 700,
     messages: [{
       role: 'user',
-      content: `あなたは @nands_tech（Claude Codeを使い倒す実務家エンジニア）。
+      content: `あなたは @NANDS_AI（Claude Codeを使い倒す実務家エンジニア）。
 以下は信用できるClaude Code関連アカウントの「最近の投稿」候補。日本のエンジニアに最も刺さる1つを選び、引用RT用の日本語コメントを書け。
 
 選定基準: 新しい/具体的/実務で効く。古い話・単なる宣伝は除外。

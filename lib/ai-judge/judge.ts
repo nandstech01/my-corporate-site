@@ -267,7 +267,7 @@ nands.techはAI/LLM/自動化に特化した技術メディアです。
 
 加えて、以下の5次元で0-10点のスコアも返せ（dimensionsフィールド）:
 - hookStrength: 冒頭のフック力（スクロールを止める力）
-- voiceAuthenticity: @nands_techらしい実務家の声か
+- voiceAuthenticity: @NANDS_AIらしい実務家の声か
 - engagementTrigger: リプライ・RT・ブックマークを誘発する力
 - platformFit: ${platform}のアルゴリズム・文化への適合度
 - factualGrounding: 事実・実体験に基づいているか
