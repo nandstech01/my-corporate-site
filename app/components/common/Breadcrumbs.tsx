@@ -14,12 +14,15 @@ interface BreadcrumbsProps {
   items?: BreadcrumbItem[];
   customItems?: BreadcrumbItem[];
   homeIcon?: boolean;
+  /** false のとき BreadcrumbList の JSON-LD を出さない (ページ側の @graph で出す場合) */
+  withSchema?: boolean;
 }
 
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ 
   items = [], 
   customItems = [],
-  homeIcon = true
+  homeIcon = true,
+  withSchema = true
 }) => {
   const pathname = usePathname() || '';
   const breadcrumbItems: BreadcrumbItem[] = [];
@@ -80,11 +83,13 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 
   return (
     <>
-      <Script
-        id="breadcrumbs-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      {withSchema && (
+        <Script
+          id="breadcrumbs-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
       <nav aria-label="パンくずリスト" className="py-3 text-sm mb-4">
         <ol className="flex flex-wrap items-center">
           {breadcrumbItems.map((item, index) => {

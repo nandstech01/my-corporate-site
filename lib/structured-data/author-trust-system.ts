@@ -1,6 +1,8 @@
 // Phase 4: Trust Layer & Click-Recovery - 著者プロフィール・Trust Signalsシステム
 // 原田賢治代表の実績に基づく信頼性構築
 
+import { AUTHOR } from './site-entities';
+
 export interface AuthorProfile {
   '@type': 'Person';
   '@id': string;
@@ -176,33 +178,18 @@ export const HARADA_KENJI_PROFILE: AuthorProfile = {
       description: '株式会社エヌアンドエス公式X（Twitter）アカウント - AI技術動向・サービス情報・業界インサイト発信'
     },
     {
-      platform: 'GitHub',
-      url: 'https://github.com/nands-tech',
-      verified: false,
-      description: '株式会社エヌアンドエス技術リポジトリ'
-    },
-    {
       platform: 'LinkedIn',
       url: 'https://linkedin.com/company/nands-tech',
       verified: false,
       description: '株式会社エヌアンドエス公式'
     }
   ],
-  // 実際のプロフィール（正直ベース）
-  personalSocialMedia: [
-    {
-      platform: 'YouTube',
-      url: 'https://www.youtube.com/@kenjiharada_ai_site',
-      verified: false,
-      description: '原田賢治公式YouTubeチャンネル - AI技術解説・実践事例・システム開発情報を動画で発信'
-    },
-    {
-      platform: 'LinkedIn',
-      url: 'https://www.linkedin.com/in/%E8%B3%A2%E6%B2%BB-%E5%8E%9F%E7%94%B0-77a4b7353/',
-      verified: false,
-      description: '原田賢治 - 株式会社エヌアンドエス代表取締役 - B2B専門性・業界インサイト・経営視点発信'
-    }
-  ],
+  // 本人のアカウント（正本は site-entities.ts の AUTHOR.profiles）
+  personalSocialMedia: AUTHOR.profiles.map(profile => ({
+    platform: profile.label,
+    url: profile.url,
+    verified: false
+  })),
   image: 'https://nands.tech/images/author/harada-kenji.jpg',
   url: 'https://nands.tech/author/harada-kenji'
 };
@@ -275,12 +262,9 @@ export class AuthorTrustSystem {
       // Note: achievementsは外部受賞ではなく自社実績のためAwardスキーマ不使用
       // Google guidelines: Award should only be used for externally recognized achievements
       // 代わりにknowsAboutで技術領域として表現
-      sameAs: [
-        // 実際の個人プロフィール（存在する場合のみ）
-        ...(this.authorProfile.personalSocialMedia?.map(social => social.url) || []),
-        // 会社のソーシャルメディア（関連情報として）
-        ...this.authorProfile.socialMedia.map(social => social.url)
-      ].filter(url => url), // 空の値を除外
+      // 本人のアカウントだけ。会社アカウント(socialMedia)を混ぜると Person＝会社 の宣言になるため入れない
+      sameAs: (this.authorProfile.personalSocialMedia?.map(social => social.url) || [])
+        .filter(url => url), // 空の値を除外
       image: this.authorProfile.image,
       url: this.authorProfile.url,
       alumniOf: this.authorProfile.alumniOf
