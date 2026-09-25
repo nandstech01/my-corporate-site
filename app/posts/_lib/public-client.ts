@@ -214,12 +214,24 @@ export function mergePublishedPosts(
  * 公開済み記事の一覧 (posts + chatgpt_posts、slug で重複排除、公開日の新しい順)。
  * 公開日の並べ替えに published_at ?? created_at が要るため全件を取ってから limit で切る (現状 124 件)。
  */
+/** next build の最中か。ビルド時の DB エラーでデプロイ全体を落とさないために使う */
+export function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build'
+}
+
 export async function listPublishedPosts(
   options: { limit?: number } = {}
 ): Promise<PublishedPostSummary[]> {
-  const [postsRows, chatgptRows] = await Promise.all([
-    fetchSummaryRows('posts'),
-    fetchSummaryRows('chatgpt_posts'),
-  ])
-  return mergePublishedPosts(postsRows, chatgptRows, options.limit)
+  try {
+    const [postsRows, chatgptRows] = await Promise.all([
+      fetchSummaryRows('posts'),
+      fetchSummaryRows('chatgpt_posts'),
+    ])
+    return mergePublishedPosts(postsRows, chatgptRows, options.limit)
+  } catch (error) {
+    // 実行時は throw (直前の正常なページを出し続ける)。ビルド時だけは空で通し、最初の再生成で埋める
+    if (!isBuildPhase()) throw error
+    console.warn('[public-client] ビルド時の記事一覧取得に失敗したため空で続行します:', error instanceof Error ? error.message : error)
+    return []
+  }
 }

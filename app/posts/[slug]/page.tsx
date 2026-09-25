@@ -78,6 +78,12 @@ interface PageProps {
 // 記事・動画とも cookie を使わない anon クライアント (app/posts/_lib/public-client.ts) で取得するので静的再生成が効く
 export const revalidate = 300 // 5分間隔でISR実行
 
+// Next 14 では revalidate だけだと動的ルートは ISR にならない (毎回 SSR・no-store)。
+// 空配列を返すとビルド時には何も作らず、各記事を初回アクセス時に生成して 300 秒キャッシュする
+export async function generateStaticParams() {
+  return []
+}
+
 /**
  * 公開済み記事を slug の完全一致で取得する (posts → chatgpt_posts)。部分一致で別の記事を返すことはしない。
  * generateMetadata とページ本体で同じリクエスト内の結果を共有する。DB エラーは throw (ISR が 404 をキャッシュしないように)。
@@ -223,7 +229,7 @@ function postKeywords(post: PublishedPost): string[] {
 
 /** 記事画像の絶対 URL。http(s) はそのまま、/ 始まりはサイト内、それ以外は Storage の public パス */
 function resolveImageUrl(path: string | null | undefined): string {
-  if (!path) return `${SITE_URL}/images/default-post.jpg`
+  if (!path) return `${SITE_URL}/images/default-og-image.jpg`
   if (/^https?:\/\//.test(path)) return path
   if (path.startsWith('/')) return `${SITE_URL}${path}`
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`

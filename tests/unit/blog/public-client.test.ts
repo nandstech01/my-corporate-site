@@ -110,3 +110,4 @@ describe('mergePublishedPosts', () => {
     expect(JSON.stringify(posts)).toBe(before)
   })
 })
+

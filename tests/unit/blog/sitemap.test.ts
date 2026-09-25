@@ -4,9 +4,11 @@ import type { PublishedPostSummary } from '@/app/posts/_lib/public-client'
 const db = vi.hoisted(() => ({
   posts: [] as PublishedPostSummary[],
   categories: { data: [] as { slug: string | null; updated_at: string | null }[] | null, error: null as { message: string } | null },
+  buildPhase: false,
 }))
 
 vi.mock('@/app/posts/_lib/public-client', () => ({
+  isBuildPhase: () => db.buildPhase,
   listPublishedPosts: vi.fn(async () => db.posts),
   getPublicSupabase: () => ({
     from: (table: string) => {
@@ -109,7 +111,17 @@ describe('sitemap', () => {
   })
 
   it('throws on a database error so ISR keeps serving the last good sitemap', async () => {
+    db.buildPhase = false
     db.categories = { data: null, error: { message: 'boom' } }
     await expect(sitemap()).rejects.toThrow('boom')
+  })
+
+  it('does not fail the build on a database error (categories are left out until the next regeneration)', async () => {
+    db.buildPhase = true
+    db.categories = { data: null, error: { message: 'boom' } }
+    const urls = (await sitemap()).map((e) => e.url)
+    expect(urls.some((u) => u.includes('/categories/'))).toBe(false)
+    expect(urls).toContain('https://nands.tech/posts')
+    db.buildPhase = false
   })
 })

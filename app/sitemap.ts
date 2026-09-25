@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getPublicSupabase, listPublishedPosts } from '@/app/posts/_lib/public-client';
+import { getPublicSupabase, isBuildPhase, listPublishedPosts } from '@/app/posts/_lib/public-client';
 import { latestDate, parseDate, postLastModified } from '@/app/posts/_lib/syndication';
 import { AUTHOR, SITE_URL, postUrl } from '@/lib/structured-data/site-entities';
 
@@ -21,6 +21,10 @@ async function fetchCategoryPages(baseUrl: string): Promise<MetadataRoute.Sitema
     .order('id', { ascending: true });
 
   if (error) {
+    if (isBuildPhase()) {
+      console.warn(`[sitemap] ビルド時の categories 取得に失敗したため省略します: ${error.message}`);
+      return [];
+    }
     throw new Error(`categories の取得に失敗しました: ${error.message}`);
   }
 

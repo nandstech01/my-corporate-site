@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     description: PAGE_DESCRIPTION,
     url: PAGE_URL,
     siteName: '株式会社エヌアンドエス',
-    images: ['/images/blog-ogp.jpg'],
+    images: ['/images/default-og-image.jpg'],
     type: 'website',
     locale: 'ja_JP',
   },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     creator: '@nands_tech',
     title: '記事一覧 | 株式会社エヌアンドエス',
     description: PAGE_DESCRIPTION,
-    images: ['/images/blog-ogp.jpg'],
+    images: ['/images/default-og-image.jpg'],
   },
   alternates: {
     canonical: PAGE_URL,
