@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
     // 司令塔の「問い合わせ件数」に集約(Discord通知は下の notifyNewLead が担うので notify:false)
     await recordInquiry(
-      { source: 'system-dev', email: data.email, company: row.industry || undefined, message: row.system_overview || undefined, meta: { serviceType: data.serviceType, leadTier: data.leadTier } },
+      { source: 'system-dev', email: data.email, company: row.industry || undefined, message: row.system_overview || undefined, meta: { serviceType: data.serviceType, leadTier: data.leadTier }, cookieHeader: request.headers.get('cookie') },
       { notify: false },
     )
 

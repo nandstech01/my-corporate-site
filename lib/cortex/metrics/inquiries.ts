@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { parseAttribution, sendGa4LeadEvent } from './attribution'
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -21,6 +22,13 @@ export interface InquiryInput {
   readonly phone?: string
   readonly message?: string
   readonly meta?: Record<string, unknown>
+  /** リクエストの Cookie ヘッダ。first-touch 流入元の記録と GA4 generate_lead 送信に使う */
+  readonly cookieHeader?: string | null
+}
+
+function channelLine(cookieHeader: string | null | undefined): string {
+  const a = parseAttribution(cookieHeader ?? null)
+  return `${a.ai_engine ?? a.channel}${a.landing_path ? ` → ${a.landing_path}` : ''}`
 }
 
 /** Instant Discord alert when an inquiry arrives (best-effort, no PII beyond name/company). */
@@ -36,7 +44,7 @@ async function notifyInquiry(input: InquiryInput): Promise<void> {
         content: '@here',
         embeds: [{
           title: '🟢 問い合わせ着信',
-          description: `**${input.company || '—'}** / ${input.name || '—'}\nsource: ${input.source ?? 'general-contact'}\n${jst} JST`,
+          description: `**${input.company || '—'}** / ${input.name || '—'}\nsource: ${input.source ?? 'general-contact'}\n流入: ${channelLine(input.cookieHeader)}\n${jst} JST`,
           color: 0x3ddc91,
           footer: { text: 'CORTEX 司令塔 by NANDS' },
         }],
@@ -56,7 +64,9 @@ export async function recordInquiry(input: InquiryInput, opts: { notify?: boolea
   try {
     const sb = getSupabase()
     if (sb) {
+      const attribution = parseAttribution(input.cookieHeader ?? null)
       await sb.from('inquiries').insert({
+        ...attribution,
         source: input.source ?? 'general-contact',
         name: input.name ?? null,
         email: input.email ?? null,
@@ -69,5 +79,6 @@ export async function recordInquiry(input: InquiryInput, opts: { notify?: boolea
   } catch (e) {
     console.error('recordInquiry insert failed (non-blocking):', e instanceof Error ? e.message : e)
   }
+  await sendGa4LeadEvent(input.cookieHeader ?? null, input.source ?? 'general-contact')
   if (opts.notify !== false) await notifyInquiry(input)
 }
