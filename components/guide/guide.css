@@ -420,6 +420,11 @@
   padding-bottom: 56px;
 }
 
+/* スマホで目次を折りたたむ <details> (PC では出さない) */
+.guide-toc__fold {
+  display: none;
+}
+
 .guide-toc__title {
   margin: 0;
   font-size: 15px;
@@ -1779,6 +1784,12 @@ body:has(.guide-page) [data-footer-cta] {
   }
   .guide-crumbs .guide-frame {
     padding-top: calc(var(--g-header) + 8px);
+    padding-bottom: 4px;
+  }
+  .guide-page .guide-crumbs nav {
+    margin-bottom: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
   .guide-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1789,7 +1800,7 @@ body:has(.guide-page) [data-footer-cta] {
   }
   .guide-rail[aria-hidden] {
     gap: 10px;
-    padding: 18px var(--g-pl) 14px;
+    padding: 12px var(--g-pl) 10px;
     border-bottom: 1px solid var(--g-rule);
   }
   .guide-rail__num,
@@ -1800,7 +1811,7 @@ body:has(.guide-page) [data-footer-cta] {
     display: none;
   }
   .guide-main {
-    padding: 28px var(--g-pr) 64px var(--g-pl);
+    padding: 22px var(--g-pr) 64px var(--g-pl);
   }
   .guide-section[data-kind='cta'] .guide-main,
   .guide-rail:empty + .guide-main {
@@ -1809,7 +1820,7 @@ body:has(.guide-page) [data-footer-cta] {
 
   /* 表紙は短く (390px で最初の節まで早く届く): 余白と答えの行を詰め、コマンドの出力は答えの下に小さく */
   .guide-hero__text {
-    padding: 28px var(--g-pl) 24px;
+    padding: 20px var(--g-pl) 20px;
   }
   .guide-hero__title {
     font-size: 42px;
@@ -1832,15 +1843,15 @@ body:has(.guide-page) [data-footer-cta] {
     line-height: 1.65;
   }
   .guide-hero__answer {
-    margin-top: 20px;
+    margin-top: 16px;
   }
   .guide-hero__answer-line {
-    padding: 9px 0;
-    font-size: 15px;
-    line-height: 1.7;
+    padding: 8px 0;
+    font-size: 14.5px;
+    line-height: 1.65;
   }
   .guide-hero__aside {
-    padding: 16px var(--g-pl) 18px;
+    padding: 14px var(--g-pl) 16px;
   }
   .guide-term__screen {
     padding: 10px 12px 11px;
@@ -1851,43 +1862,90 @@ body:has(.guide-page) [data-footer-cta] {
     margin-top: 6px;
   }
   .guide-term__caption {
-    margin-top: 8px;
-    font-size: 12px;
+    margin-top: 6px;
+    font-size: 11.5px;
     line-height: 1.6;
   }
 
+  /* このページについて: 短い行に詰める (最終更新・書いた人を 1 行、AI の使い方と検証の環境をそれぞれ 1〜2 行) */
   .guide-meta__list {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 16px;
+    row-gap: 2px;
+    padding: 10px var(--g-pl) 11px;
   }
-  .guide-meta__cell,
-  .guide-meta__cell:first-child {
-    display: grid;
-    grid-template-columns: 6.5em minmax(0, 1fr);
-    column-gap: 8px;
-    padding: 8px var(--g-pl) 9px;
-    border-left: 0;
-    border-top: 1px solid var(--g-rule);
+  .guide-meta__list .guide-meta__cell {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
   }
-  .guide-meta__cell:first-child {
-    border-top: 0;
+  .guide-meta__list .guide-meta__cell:nth-child(n + 3) {
+    flex-basis: 100%;
   }
   .guide-meta__cell dt {
-    font-size: 12.5px;
-    line-height: 1.7;
-  }
-  .guide-meta__cell dd {
-    margin: 0;
-    font-size: 13.5px;
+    flex: none;
+    font-size: 11.5px;
     line-height: 1.6;
   }
+  .guide-meta__cell dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .guide-meta__role {
+    display: inline;
+    margin-left: 4px;
+    font-size: 12px;
+  }
 
-  /* 目次は全部を出したまま、行の間を詰める */
+  /* 目次は閉じた <details> の「目次 (節の数)」に折りたたむ (GuideToc)。一覧は開いたときだけ */
   .guide-toc .guide-rail {
-    padding-top: 20px;
-    padding-bottom: 0;
+    display: none;
   }
   .guide-toc__main {
-    padding-top: 8px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .guide-toc__fold {
+    display: block;
+  }
+  .guide-toc__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    list-style: none;
+    cursor: pointer;
+  }
+  .guide-toc__summary::-webkit-details-marker {
+    display: none;
+  }
+  .guide-toc__summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 4px 0;
+    border-right: 2px solid var(--g-ink-2);
+    border-bottom: 2px solid var(--g-ink-2);
+    transform: rotate(45deg);
+  }
+  .guide-toc__fold[open] .guide-toc__summary::after {
+    margin-bottom: -4px;
+    transform: rotate(-135deg);
+  }
+  .guide-toc__fold:not([open]) + .guide-toc__list {
+    display: none;
+  }
+  .guide-toc__fold[open] + .guide-toc__list {
     padding-bottom: 22px;
   }
   .guide-toc__list {

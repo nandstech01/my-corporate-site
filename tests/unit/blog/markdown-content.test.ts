@@ -205,6 +205,15 @@ describe('見本のガイドをページの部品で描く', () => {
     expect(html).toContain('# 手元で動く MCP サーバー (stdio)')
   })
 
+  it('スマホ用の折りたたみ: 閉じた <details> の「目次 (h2 の数)」のすぐ後ろに一覧が 1 つだけ (一覧を二重に描かない)', () => {
+    const nav = html.slice(html.indexOf('<nav class="guide-band guide-toc"'), html.indexOf('</nav>'))
+    expect(nav).toMatch(
+      /<details class="guide-toc__fold"><summary class="guide-toc__summary">目次 \(7\)<\/summary><\/details><ol class="guide-toc__list">/
+    )
+    expect(nav).not.toContain('<details class="guide-toc__fold" open')
+    expect((nav.match(/<ol class="guide-toc__list">/g) ?? []).length).toBe(1)
+  })
+
   it('本文は h2 ごとの区画。左の列は目次と同じ番号 + h2 から作った短い名前。出典の一覧の後ろの相談はページを締める独立した区画 (見出しは h2)', () => {
     const sections = Array.from(html.matchAll(/<section class="guide-band guide-section"([^>]*)>/g), (m) => m[1])
     expect(sections).toHaveLength(8)
