@@ -5,6 +5,7 @@
  * 描き方 (FlowDiagram): 箱と文字は HTML、線だけ SVG。どちらもここで決めた同じ座標から描くので、
  * 線は必ず箱の実際の縁から出て縁に入る。文字は 1 行ずつ nowrap で描くので、ブラウザが別の位置で折り返さない。
  *
+ * - 箱の高さは図の中ですべて同じ (いちばん文字の多い箱に合わせ、文字は上下の真ん中)
  * - 段 = そのノードに届く最長の経路。段の中は親の位置の重心で並べる (交差を減らす)
  * - 向き: lr = 段を左から右へ (PC の広い図) / tb = 段を上から下へ (スマホ、または段が多い図)
  * - 線は段の間の隙間だけを通り、出どころごとに別の通り道 (lane) を使う。2 段以上飛ぶ線は外側の通路を回す
@@ -253,11 +254,12 @@ export function layoutFlow(block: DiagramBlock, variant: FlowVariant): FlowLayou
   let crossTotal = 0
   let primaryTotal = 0
 
+  // 箱の高さは図の中ですべて同じ (いちばん文字の多い箱に合わせる)。文字は箱の上下の真ん中 (CSS)
   if (!lr) {
+    const cv = Math.max(...order.flatMap((row, layer) => row.map((id) => measure(id, tbBoxWidth(layer))))) + m.padY * 2
     let v = MARGIN
     order.forEach((row, layer) => {
       const cu = tbBoxWidth(layer)
-      const cv = Math.max(...row.map((id) => measure(id, cu))) + m.padY * 2
       const rowW = row.length * cu + (row.length - 1) * GAP_CROSS
       const left = MARGIN + Math.floor((tbUsable - rowW) / 2)
       row.forEach((id, index) => boxes.set(id, { u: left + index * (cu + GAP_CROSS), v, cu, cv }))
@@ -272,12 +274,10 @@ export function layoutFlow(block: DiagramBlock, variant: FlowVariant): FlowLayou
     const cv = Math.min(MAX_BOX_LR, Math.floor((width - MARGIN * 2 - gaps) / layerCount))
     const used = layerCount * cv + gaps
     let v = MARGIN + Math.floor((width - MARGIN * 2 - used) / 2)
-    const columns = order.map((row) => {
-      const cu = Math.max(...row.map((id) => measure(id, cv))) + m.padY * 2
-      return { row, cu, span: row.length * cu + (row.length - 1) * GAP_CROSS_LR }
-    })
+    const cu = Math.max(...ids.map((id) => measure(id, cv))) + m.padY * 2
+    const columns = order.map((row) => ({ row, span: row.length * cu + (row.length - 1) * GAP_CROSS_LR }))
     const tallest = Math.max(...columns.map((column) => column.span))
-    columns.forEach(({ row, cu, span }, layer) => {
+    columns.forEach(({ row, span }, layer) => {
       const top = MARGIN + (tallest - span) / 2
       row.forEach((id, index) => boxes.set(id, { u: top + index * (cu + GAP_CROSS_LR), v, cu, cv }))
       layerStart.push(v)

@@ -89,6 +89,11 @@ function expectClean(layout: FlowLayout) {
   layout.nodes.forEach((a, i) =>
     layout.nodes.slice(i + 1).forEach((b) => expect(intersects(a, b), `${a.id} と ${b.id} が重なる`).toBe(false))
   )
+  // 箱の高さは図の中ですべて同じ (いちばん文字の多い箱に合わせる)
+  const heights = new Set(layout.nodes.map((node) => node.h))
+  expect(heights.size, `箱の高さがそろわない ${[...heights].join(', ')}`).toBe(1)
+  const tallestText = Math.max(...layout.nodes.map((node) => node.label.length * m.labelLine + node.sub.length * m.subLine))
+  expect(layout.nodes[0].h).toBeCloseTo(tallestText + m.padY * 2, 1)
 
   for (const edge of layout.edges) {
     expect(onEdge(edge.points[0], byId.get(edge.from)!), `${edge.from}→${edge.to} の始点`).toBe(true)

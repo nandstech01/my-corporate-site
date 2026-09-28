@@ -310,6 +310,10 @@ describe('相談の導線の置き場所 (区画の中か、独立した区画�
     expect(html).toContain('data-kind="cta"')
     expect(html).toContain('<h2 class="guide-cta__title" id="guide-consult">')
     expect(html.indexOf('data-guide-block="changelog"')).toBeLessThan(html.indexOf('data-kind="cta"'))
+    // 左の列はほかの区画と同じく名前を出す (目次に載らないので番号は付けない)
+    expect(html).toMatch(
+      /<section class="guide-band guide-section" data-kind="cta"><div class="guide-frame guide-grid"><div class="guide-rail" aria-hidden="true"><span class="guide-rail__label">相談<\/span><\/div>/
+    )
   })
 
   it('見出しの下に無い相談も独立した区画。本文の見出しが guide-consult を使っていれば、区画の h2 には id を付けない', () => {

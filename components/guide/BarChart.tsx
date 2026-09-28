@@ -9,7 +9,7 @@ export const VALUE_FONT = 15
 const VALUE_GAP = 8
 
 export interface ChartScale {
-  /** 棒の 100% に当たる値 */
+  /** 棒の 100% に当たる値 = 最後の目盛り (最大値以上) */
   readonly max: number
   /** 目盛りの値 (0 から) */
   readonly ticks: readonly number[]
@@ -39,7 +39,8 @@ export function chartScale(block: ChartBlock): ChartScale {
   const values = block.rows.map((row) => formatValue(row.value, block.unit, digits))
   const largest = Math.max(...block.rows.map((row) => row.value))
   const step = niceStep(largest / 4)
-  const max = largest > 0 ? largest : 1
+  // 最後の目盛りは最大値以上 (最大値を切り上げた目盛り)。いちばん長い棒も格子の中に収まる ($2.93 → $3)
+  const max = largest > 0 ? Number((Math.ceil(largest / step - 1e-9) * step).toPrecision(12)) : 1
   const ticks: number[] = []
   for (let tick = 0; tick <= max + 1e-9; tick += step) ticks.push(Number(tick.toPrecision(12)))
   const usd = unitKind(block.unit) === 'usd'

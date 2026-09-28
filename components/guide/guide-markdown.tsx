@@ -2,7 +2,8 @@
  * ガイド (category_tags に guide) の本文の描き方 (react-markdown の部品の対応表と rehype の処理)。
  * 通常の記事の描き方 (components/blog/MarkdownContent の buildComponents) には影響しない。
  *
- * - 本文を h2 ごとの区画 (section) に分け、左の列 (rail) に節の番号と短い名前 (h2 から作る) を置く。番号は目次 (GuideToc) と同じ
+ * - 本文を h2 ごとの区画 (section) に分け、左の列 (rail) に節の番号と短い名前 (h2 から作る) を置く。番号は目次 (GuideToc) と同じ。
+ *   独立した相談の区画は番号なしで「相談」
  * - ```nands-cta は置かれた区画の中に描く (その区画の h2 が見出し。導線は見出しを増やさない)。
  *   独立した区画 (導線の題を h2、id guide-consult) にするのは、どの節にも属さない相談だけ:
  *   最初の h2 より前にある相談と、本文の最後の相談のうち、その節が「h2 + 段落 + 相談」(相談を紹介する節) ではないもの
@@ -91,9 +92,13 @@ function phraseChildren(text: string): ElementContent[] {
   )
 }
 
-function rail(number: number, label: string): Element {
+/** 独立した相談の区画の左の列の名前 (目次に載らないので番号は付けない) */
+export const CONSULT_RAIL_LABEL = '相談'
+
+/** 左の列 (番号と短い名前)。number が null なら名前だけ (独立した相談の区画) */
+function rail(number: number | null, label: string): Element {
   return element('div', { className: ['guide-rail'], ariaHidden: 'true' }, [
-    element('span', { className: ['guide-rail__num'] }, [{ type: 'text', value: String(number) }]),
+    ...(number === null ? [] : [element('span', { className: ['guide-rail__num'] }, [{ type: 'text', value: String(number) }])]),
     ...(label ? [element('span', { className: ['guide-rail__label'] }, phraseChildren(label))] : []),
   ])
 }
@@ -165,7 +170,7 @@ export function rehypeGuideSections() {
       if (cta) {
         const anchor = headingIds.has(CONSULT_ANCHOR) ? {} : { dataAnchor: CONSULT_ANCHOR }
         const placed = element('pre', { ...cta.properties, dataPlacement: 'end', ...anchor }, cta.children)
-        out.push(band(element('div', { className: ['guide-rail'] }, []), [placed], { dataKind: 'cta' }))
+        out.push(band(rail(null, CONSULT_RAIL_LABEL), [placed], { dataKind: 'cta' }))
       }
       return out
     })

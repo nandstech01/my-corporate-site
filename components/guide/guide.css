@@ -1807,8 +1807,9 @@ body:has(.guide-page) [data-footer-cta] {
     padding-top: 40px;
   }
 
+  /* 表紙は短く (390px で最初の節まで早く届く): 余白と答えの行を詰め、コマンドの出力は答えの下に小さく */
   .guide-hero__text {
-    padding: 40px var(--g-pl) 36px;
+    padding: 28px var(--g-pl) 24px;
   }
   .guide-hero__title {
     font-size: 42px;
@@ -1826,20 +1827,33 @@ body:has(.guide-page) [data-footer-cta] {
     line-height: 1.6;
   }
   .guide-hero__lead {
-    font-size: 16.5px;
+    margin-top: 12px;
+    font-size: 15.5px;
+    line-height: 1.65;
   }
   .guide-hero__answer {
-    margin-top: 28px;
+    margin-top: 20px;
   }
   .guide-hero__answer-line {
-    font-size: 16px;
+    padding: 9px 0;
+    font-size: 15px;
+    line-height: 1.7;
   }
   .guide-hero__aside {
-    padding: 28px var(--g-pl) 30px;
+    padding: 16px var(--g-pl) 18px;
   }
   .guide-term__screen {
-    padding: 14px 14px 16px;
-    font-size: 11.5px;
+    padding: 10px 12px 11px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .guide-term__cmd:not([data-first]) {
+    margin-top: 6px;
+  }
+  .guide-term__caption {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.6;
   }
 
   .guide-meta__list {
@@ -1850,7 +1864,7 @@ body:has(.guide-page) [data-footer-cta] {
     display: grid;
     grid-template-columns: 6.5em minmax(0, 1fr);
     column-gap: 8px;
-    padding: 12px var(--g-pl) 13px;
+    padding: 8px var(--g-pl) 9px;
     border-left: 0;
     border-top: 1px solid var(--g-rule);
   }
@@ -1863,22 +1877,33 @@ body:has(.guide-page) [data-footer-cta] {
   }
   .guide-meta__cell dd {
     margin: 0;
-    font-size: 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
   }
 
+  /* 目次は全部を出したまま、行の間を詰める */
   .guide-toc .guide-rail {
-    padding-top: 28px;
+    padding-top: 20px;
     padding-bottom: 0;
   }
   .guide-toc__main {
     padding-top: 8px;
-    padding-bottom: 32px;
+    padding-bottom: 22px;
   }
   .guide-toc__list {
     columns: 1;
   }
   .guide-toc__link {
-    font-size: 15.5px;
+    padding: 6px 0;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .guide-toc__sublist {
+    margin: -2px 0 6px;
+  }
+  .guide-toc__sublist .guide-toc__link {
+    padding: 2px 0;
+    font-size: 13.5px;
   }
 
   .guide-h2 {

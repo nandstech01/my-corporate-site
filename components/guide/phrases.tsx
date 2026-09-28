@@ -28,7 +28,8 @@ const MAX_BOUND_LATIN = 20
  * 2. 英数字や閉じ括弧の後の空白 + ひらがな (Claude Code は / MCP で)
  * 3. 大文字で始まる語 + (大文字で始まる語 | 数字) の並び (Claude Code / Opus 5.5 / Claude Code 2.1.283)。長すぎる並びはつながない
  * 4. 製品名 + 版 (Opus 5.5・Fable 5.1) は、並びが長くても必ずつなぐ
- * 5. 空白で囲んだダッシュ (Claude Opus 5.5 - Claude Platform Docs) は後ろの語につなぐ (行末に - を残さない。語の途中のハイフンに見えるため)
+ * 5. 空白で囲んだダッシュ (Claude Opus 5.5 - Claude Platform Docs) は前の語につなぐ (行頭に - を置かない。箇条書きの印に見えるため)。
+ *    折れるのはダッシュの後ろの空白だけなので、行末のダッシュは空白の前にあり、語の途中のハイフン (claude-opus) には見えない
  * 6. 数字 / 英字の単位 ($4 / MTok) はつなぐ
  */
 export function bindSpaces(text: string): string {
@@ -41,7 +42,7 @@ export function bindSpaces(text: string): string {
     run.length <= MAX_BOUND_LATIN ? run.replace(/ /g, NBSP) : run
   )
   out = out.replace(/\b([A-Z][A-Za-z]*) (\d[\d.]*)(?![\d.]*[A-Za-z])/g, `$1${NBSP}$2`)
-  out = out.replace(/(\S) ([-\u2013\u2014]) (?=\S)/g, `$1 $2${NBSP}`)
+  out = out.replace(/(\S) ([-\u2013\u2014]) (?=\S)/g, `$1${NBSP}$2 `)
   out = out.replace(/(\d)[ \u00a0]\/ (?=[A-Za-z])/g, `$1${NBSP}/${NBSP}`)
   return out
 }

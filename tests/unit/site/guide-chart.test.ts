@@ -25,12 +25,28 @@ const block = chartSchema.parse({
 describe('横棒グラフ (HTML の表を棒の形に描く)', () => {
   const html = renderToStaticMarkup(React.createElement(BarChart, { block }))
 
-  it('目盛りは 1・2・5 × 10 のべき乗の間隔で 0 から最大値まで。棒の基準は最大値', () => {
+  it('目盛りは 1・2・5 × 10 のべき乗の間隔で 0 から、最大値を切り上げた目盛りまで。棒の基準は最後の目盛り', () => {
     const scale = chartScale(block)
-    expect(scale.max).toBe(1234.5)
-    expect(scale.ticks).toEqual([0, 500, 1000])
-    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 62 }] })).ticks).toEqual([0, 20, 40, 60])
+    expect(scale.max).toBe(1500)
+    expect(scale.ticks).toEqual([0, 500, 1000, 1500])
+    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 62 }] })).ticks).toEqual([0, 20, 40, 60, 80])
+    // 最大値がちょうど目盛りなら、その目盛りで終わる (余分な目盛りを足さない)
+    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 60 }] })).ticks).toEqual([0, 20, 40, 60])
+    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 0.3 }] })).ticks).toEqual([0, 0.1, 0.2, 0.3])
     expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 0 }] })).max).toBe(1)
+  })
+
+  it('いちばん長い棒も格子の中 (最後の目盛り ≥ 最大値)。費用の図の $2.93 は $3 の線の内側', () => {
+    for (const values of [[0.5, 0.57, 2.93], [31, 62, 150], [0.49, 0.62], [12], [1234.5, 7], [99.9, 100.1]]) {
+      const scale = chartScale(chartSchema.parse({ title: 't', unit: 'ドル', rows: values.map((value, i) => ({ label: `r${i}`, value })) }))
+      const largest = Math.max(...values)
+      expect(scale.ticks[scale.ticks.length - 1]).toBe(scale.max)
+      expect(scale.max).toBeGreaterThanOrEqual(largest)
+      // 目盛りは 3〜6 本 (0 を含む)。格子が細かすぎず粗すぎない
+      expect(scale.ticks.length).toBeGreaterThanOrEqual(3)
+      expect(scale.ticks.length).toBeLessThanOrEqual(6)
+    }
+    expect(chartScale(chartSchema.parse({ title: 't', unit: 'ドル', rows: [{ label: 'a', value: 2.93 }] })).max).toBe(3)
   })
 
   it('値の文字は棒の右の予約した余白に入る (いちばん長い値の幅 + 間隔)。本文の表と同じ「31 秒」の書き方', () => {
@@ -75,7 +91,7 @@ describe('横棒グラフ (HTML の表を棒の形に描く)', () => {
     })
     const scale = chartScale(usd)
     expect(scale.values).toEqual(['$0.50', '$0.57', '$2.93'])
-    expect(scale.tickLabels).toEqual(['$0', '$1', '$2'])
+    expect(scale.tickLabels).toEqual(['$0', '$1', '$2', '$3'])
     expect(chartScale(chartSchema.parse({ title: 't', unit: 'USD', rows: [{ label: 'a', value: 20 }] })).values).toEqual(['$20'])
     expect(chartScale(chartSchema.parse({ title: 't', unit: '%', rows: [{ label: 'a', value: 45 }] })).values).toEqual(['45%'])
   })

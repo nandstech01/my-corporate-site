@@ -80,8 +80,10 @@ describe('改行しない空白 (製品名・数字 + 単位・助詞の前)', (
     ['claude mcp add', 'claude mcp add'],
     // 製品名 + 版は並びが長くてもつなぐ
     ['Introducing Claude Opus 5.5 (Anthropic)', `Introducing Claude Opus${NBSP}5.5 (Anthropic)`],
-    // 空白で囲んだダッシュは後ろの語につなぐ (行末に - を残さない)
-    ['Claude Opus 5.5 - Claude Platform Docs', `Claude${NBSP}Opus${NBSP}5.5 -${NBSP}Claude${NBSP}Platform${NBSP}Docs`],
+    // 空白で囲んだダッシュは前の語につなぐ (行頭に - を置かない。折れるのはダッシュの後ろだけ)
+    ['Claude Opus 5.5 - Claude Platform Docs', `Claude${NBSP}Opus${NBSP}5.5${NBSP}- Claude${NBSP}Platform${NBSP}Docs`],
+    ['Choosing the right model - Claude Platform Docs', `Choosing the right model${NBSP}- Claude${NBSP}Platform${NBSP}Docs`],
+    ['当社の実測 — 2026 年版', `当社の実測${NBSP}— 2026${NBSP}年版`],
     // 数字 / 英字の単位
     ['入力 $4 / MTok', `入力 $4${NBSP}/${NBSP}MTok`],
   ])('%s', (input, expected) => {
