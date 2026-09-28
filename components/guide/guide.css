@@ -1,0 +1,114 @@
+/*
+ * ガイド (完全保存版) の部品の仮スタイル。
+ * 見た目のデザインは別の段 (デザインシステムと型) で決める。ここは読める最小限の配置だけ:
+ * 色は currentColor と薄い枠線だけ、装飾 (グラデーション・影・角丸の強調) は入れない。
+ * マークアップのクラス名 (.guide-*) と data-* 属性は固定の差し込み口。デザイン時はこのファイルを差し替える。
+ * .guide-* 以外の要素には触れない (既存の記事の見た目を変えない)。
+ */
+
+.guide-hero,
+.guide-toc,
+.guide-stats,
+.guide-chart,
+.guide-diagram,
+.guide-callout,
+.guide-decide,
+.guide-changelog,
+.guide-sources,
+.guide-cta {
+  --guide-rule: rgb(127 127 127 / 0.35);
+  --guide-muted: rgb(127 127 127 / 0.9);
+  margin: 2rem 0;
+}
+
+/* hero */
+.guide-hero__title { font-size: 1.5rem; font-weight: 700; line-height: 1.4; margin: 0 0 1rem; }
+.guide-hero__answer { border-left: 3px solid var(--guide-rule); padding-left: 1rem; margin: 0 0 1rem; }
+.guide-hero__answer-label { font-size: 0.875rem; font-weight: 700; margin: 0 0 0.25rem; }
+.guide-hero__answer-line { margin: 0 0 0.25rem; line-height: 1.8; }
+.guide-hero__meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; font-size: 0.875rem; margin: 0 0 1rem; }
+.guide-hero__meta-item { display: flex; gap: 0.5rem; }
+.guide-hero__meta dt { color: var(--guide-muted); }
+.guide-hero__meta dd { margin: 0; }
+.guide-hero__media { margin: 0; }
+.guide-hero__image { display: block; width: 100%; height: auto; }
+
+/* toc */
+.guide-toc { border: 1px solid var(--guide-rule); padding: 1rem 1.25rem; }
+.guide-toc__title { font-weight: 700; margin: 0 0 0.5rem; }
+.guide-toc__list,
+.guide-toc__sublist { list-style: decimal; margin: 0; padding-left: 1.5rem; }
+.guide-toc__sublist { list-style: disc; }
+.guide-toc__item { margin: 0.25rem 0; }
+.guide-toc__link { text-decoration: underline; text-underline-offset: 2px; }
+
+/* stats */
+.guide-stats__caption { font-weight: 700; margin-bottom: 0.5rem; }
+.guide-stats__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin: 0; }
+.guide-stats__item { border: 1px solid var(--guide-rule); padding: 0.75rem; }
+.guide-stats__label { font-size: 0.875rem; color: var(--guide-muted); }
+.guide-stats__value { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0 0; }
+.guide-stats__note { font-size: 0.8125rem; margin: 0.25rem 0 0; }
+
+/* chart / diagram (SVG は currentColor で描く) */
+.guide-chart,
+.guide-diagram { margin-left: 0; margin-right: 0; }
+.guide-chart__title,
+.guide-diagram__title { font-weight: 700; margin-bottom: 0.5rem; }
+.guide-chart__svg,
+.guide-diagram__svg { display: block; width: 100%; height: auto; max-width: 640px; overflow: visible; }
+.guide-chart__bar { opacity: 0.55; }
+.guide-chart__table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 0.75rem; }
+.guide-chart__table caption { text-align: left; font-size: 0.8125rem; color: var(--guide-muted); }
+.guide-chart__table th,
+.guide-chart__table td { border-bottom: 1px solid var(--guide-rule); padding: 0.25rem 0.5rem; text-align: left; }
+.guide-chart__source { font-size: 0.8125rem; color: var(--guide-muted); margin-top: 0.25rem; }
+.guide-diagram__box { stroke-opacity: 0.5; }
+.guide-diagram__edge path { stroke-opacity: 0.7; }
+.guide-diagram__sub,
+.guide-diagram__edge-label { opacity: 0.8; }
+.guide-diagram__axis { stroke-opacity: 0.4; }
+
+/* callout */
+.guide-callout { border: 1px solid var(--guide-rule); padding: 0.75rem 1rem; }
+.guide-callout__title { font-weight: 700; margin: 0 0 0.25rem; display: flex; gap: 0.5rem; }
+.guide-callout__body { margin: 0.25rem 0 0; }
+
+/* decide */
+.guide-decide { border: 1px solid var(--guide-rule); padding: 1rem; }
+.guide-decide__title,
+.guide-decide__question { font-weight: 700; margin: 0 0 0.5rem; }
+.guide-decide__option { margin: 0.25rem 0 0.25rem 0; }
+.guide-decide__option > .guide-decide__node,
+.guide-decide__option > .guide-decide__result { margin: 0.5rem 0 0.5rem 1.25rem; }
+.guide-decide__label { cursor: pointer; }
+.guide-decide__result-body,
+.guide-decide__result-link { margin-left: 0.5rem; }
+.guide-decide__summary { border-top: 1px solid var(--guide-rule); margin-top: 1rem; padding-top: 0.75rem; }
+.guide-decide__summary-title { font-weight: 700; margin: 0 0 0.25rem; }
+
+/* changelog / sources */
+.guide-changelog,
+.guide-sources { padding-left: 1.5rem; }
+.guide-changelog { list-style: none; padding-left: 0; }
+.guide-changelog__entry,
+.guide-sources__item { margin: 0.5rem 0; }
+.guide-changelog__date { font-weight: 700; margin-right: 0.75rem; }
+.guide-changelog__basis,
+.guide-sources__publisher,
+.guide-sources__accessed { display: inline-block; margin-left: 0.5rem; font-size: 0.875rem; color: var(--guide-muted); }
+
+/* cta + form */
+.guide-cta { border: 1px solid var(--guide-rule); padding: 1rem 1.25rem; }
+.guide-cta__title { font-weight: 700; margin: 0 0 0.25rem; }
+.guide-cta__body { margin: 0 0 0.75rem; }
+.guide-cta__button,
+.guide-form__submit { display: inline-block; border: 1px solid currentColor; padding: 0.5rem 1rem; font-weight: 700; }
+.guide-form { display: grid; gap: 0.75rem; margin-top: 1rem; }
+.guide-form__field { display: grid; gap: 0.25rem; }
+.guide-form__label { font-size: 0.875rem; }
+.guide-form__input { width: 100%; border: 1px solid var(--guide-rule); padding: 0.5rem; background: transparent; color: inherit; }
+.guide-form__submit { justify-self: start; background: transparent; color: inherit; cursor: pointer; }
+.guide-form__submit:disabled { opacity: 0.6; cursor: progress; }
+.guide-form__error,
+.guide-form__done { margin: 0.5rem 0 0; font-weight: 700; }

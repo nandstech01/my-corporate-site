@@ -186,11 +186,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    {
-      url: `${baseUrl}/search`,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
+    // /search は noindex (app/search/layout.tsx) なので sitemap に載せない
   ];
 
   // 記事（posts + chatgpt_posts の公開記事。slug で重複排除済みで、重複時は posts 側を採用）とカテゴリ

@@ -12,6 +12,19 @@ import Breadcrumbs from '@/app/components/common/Breadcrumbs'
 import { AutoTOCSystem, type TOCItem } from '@/lib/structured-data/auto-toc-system'
 import { HowToFAQSchemaSystem, type QuestionAnswerPair } from '@/lib/structured-data/howto-faq-schema'
 import { cleanFaqText } from '../_lib/faq-clean'
+import GuideHero from '@/components/guide/GuideHero'
+import GuideToc from '@/components/guide/GuideToc'
+import { splitGuideHero, type HeroBlock } from '../_lib/guide-blocks'
+import {
+  extractGuideToc,
+  formatJstDate,
+  postModifiedAt,
+  readingStats,
+  withoutGuideBlocks,
+  type GuideTocItem,
+} from '../_lib/post-text'
+import { warnServer } from '../_lib/server-log'
+import { stripFencedCode } from '@/lib/structured-data/markdown-fences'
 import {
   AUTHOR,
   ORGANIZATION,
@@ -240,13 +253,34 @@ function flattenToc(toc: readonly TOCItem[]): TOCItem[] {
   return toc.flatMap((item) => [item, ...flattenToc(item.children ?? [])])
 }
 
+/** ガイド (完全保存版) の記事か。category_tags に 'guide' があればガイドの描き方にする */
+function isGuidePost(post: PublishedPost): boolean {
+  return post.category_tags?.includes('guide') ?? false
+}
+
+interface GuideView {
+  readonly hero: HeroBlock | null
+  /** 冒頭の hero ブロックを除いた本文 */
+  readonly body: string
+  readonly toc: GuideTocItem[]
+}
+
+function buildGuideView(post: PublishedPost): GuideView {
+  const split = splitGuideHero(post.content)
+  if (split.error) {
+    warnServer('[guide] nands-hero が検査に通らないため、冒頭の答えを出していません', { slug: post.slug, error: split.error })
+  }
+  return { hero: split.hero, body: split.body, toc: extractGuideToc(split.body) }
+}
+
 /**
  * 本文に明示された見出し ID ({#id} または id="id") か。
  * 明示がない見出しは、目次 (auto-toc-system) と本文 (MarkdownContent) で ID の作り方が違い
  * (日本語を残す / 落とす)、ページ上に同じ id の要素が無いことがある
  */
 function hasExplicitAnchor(content: string, id: string): boolean {
-  return content.includes(`{#${id}}`) || content.includes(`id="${id}"`)
+  const body = stripFencedCode(content)
+  return body.includes(`{#${id}}`) || body.includes(`id="${id}"`)
 }
 
 /**
@@ -291,6 +325,8 @@ function videoNode(video: VideoRow, articleUrl: string, fallbackTitle: string) {
 interface ArticleJsonLdInput {
   post: PublishedPost
   articleUrl: string
+  /** dateModified (更新履歴があればその最新の日付。ページの「最終更新」と同じ値) */
+  modifiedAt: string
   toc: readonly TOCItem[]
   faqs: readonly QuestionAnswerPair[]
   videos: readonly VideoRow[]
@@ -301,7 +337,7 @@ interface ArticleJsonLdInput {
  * BlogPosting / BreadcrumbList / Person / Organization と、この記事に実際に紐づく動画の VideoObject だけを出す。
  * Person と Organization は site-entities の単一定義を 1 回だけ置き、ほかからは @id で参照する。
  */
-function buildArticleJsonLd({ post, articleUrl, toc, faqs, videos }: ArticleJsonLdInput) {
+function buildArticleJsonLd({ post, articleUrl, modifiedAt, toc, faqs, videos }: ArticleJsonLdInput) {
   const datePublished = post.published_at ?? post.created_at
   const keywords = postKeywords(post)
   const breadcrumbId = `${articleUrl}#breadcrumb`
@@ -318,7 +354,7 @@ function buildArticleJsonLd({ post, articleUrl, toc, faqs, videos }: ArticleJson
       url: resolveImageUrl(post.thumbnail_url || post.featured_image),
     },
     datePublished,
-    dateModified: post.updated_at ?? datePublished,
+    dateModified: modifiedAt,
     author: personRef(),
     publisher: organizationRef(),
     mainEntityOfPage: {
@@ -412,7 +448,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: ORGANIZATION.name,
       locale: 'ja_JP',
       publishedTime,
-      modifiedTime: post.updated_at ?? undefined,
+      modifiedTime: postModifiedAt(post),
       authors: [AUTHOR.url],
       tags: ['AI', 'ビジネス', 'テクノロジー', ...keywords].filter(Boolean)
     },
@@ -443,6 +479,11 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   const articleUrl = postUrl(post.slug)
+  const guide = isGuidePost(post) ? buildGuideView(post) : null
+  // ページに出す「最終更新」と JSON-LD の dateModified は同じ値
+  const modifiedAt = postModifiedAt(post)
+  // 読了時間・文字数にガイドのブロックの JSON を含めない
+  const stats = readingStats(post.content)
 
   // 🎬 YouTube動画（中尺動画 + ショート動画スライダー）
   const videos = await getPageVideos(post)
@@ -464,7 +505,7 @@ export default async function PostPage({ params }: PageProps) {
   // 記事内容からFAQ自動抽出（構造化データ用）
   // 抽出結果は Markdown の残骸を掃除し、質問か回答が空になったものは載せない
   const faqData = new HowToFAQSchemaSystem()
-    .extractFAQFromContent(post.content)
+    .extractFAQFromContent(withoutGuideBlocks(post.content))
     .map((faq) => ({ ...faq, question: cleanFaqText(faq.question), answer: cleanFaqText(faq.answer) }))
     .filter((faq) => faq.question.length > 0 && faq.answer.length > 0)
 
@@ -477,6 +518,7 @@ export default async function PostPage({ params }: PageProps) {
   const jsonLd = buildArticleJsonLd({
     post,
     articleUrl,
+    modifiedAt,
     toc: tocData.toc,
     faqs: faqData,
     videos: videos.linked,
@@ -494,30 +536,46 @@ export default async function PostPage({ params }: PageProps) {
         <Breadcrumbs customItems={breadcrumbItems} withSchema={false} />
       </div>
 
-      <article className="max-w-4xl mx-auto">
-        {/* 記事タイトル - Fragment ID対応 */}
-        <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{post.title}</h1>
-        
-        {/* 記事メタ情報 */}
-        <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-          <div className="flex items-center gap-1">
-            <RefreshCw size={10} className="sm:w-3 sm:h-3" />
-            <span className="hidden sm:inline">最終更新: </span>
-            <span className="sm:hidden">更新: </span>
-            <span className="hidden sm:inline">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}</span>
-            <span className="sm:hidden">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</span>
-          </div>
-          <div>
-            <span className="hidden sm:inline">読了時間: 約</span>
-            <span className="sm:hidden">読了: 約</span>
-            {Math.ceil(post.content.replace(/\s+/g, '').length / 400)}分
-          </div>
-          <div>
-            <span className="hidden sm:inline">文字数: </span>
-            <span className="sm:hidden">字数: </span>
-            {post.content.replace(/\s+/g, '').length.toLocaleString()}文字
-          </div>
-        </div>
+      <article className="max-w-4xl mx-auto" {...(guide ? { 'data-layout': 'guide' } : {})}>
+        {guide ? (
+          <GuideHero
+            title={post.title}
+            hero={guide.hero}
+            modifiedAt={modifiedAt}
+            author={{ name: AUTHOR.name, href: AUTHOR.url.replace(SITE_URL, '') }}
+            fallbackImage={
+              post.thumbnail_url || post.featured_image
+                ? { src: resolveImageUrl(post.thumbnail_url || post.featured_image), alt: post.title, width: 1200, height: 630 }
+                : null
+            }
+          />
+        ) : (
+          <>
+            {/* 記事タイトル - Fragment ID対応 */}
+            <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{post.title}</h1>
+
+            {/* 記事メタ情報 */}
+            <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-center gap-1">
+                <RefreshCw size={10} className="sm:w-3 sm:h-3" />
+                <span className="hidden sm:inline">最終更新: </span>
+                <span className="sm:hidden">更新: </span>
+                <span className="hidden sm:inline">{formatJstDate(modifiedAt)}</span>
+                <span className="sm:hidden">{formatJstDate(modifiedAt, { month: 'numeric', day: 'numeric' })}</span>
+              </div>
+              <div>
+                <span className="hidden sm:inline">読了時間: 約</span>
+                <span className="sm:hidden">読了: 約</span>
+                {stats.minutes}分
+              </div>
+              <div>
+                <span className="hidden sm:inline">文字数: </span>
+                <span className="sm:hidden">字数: </span>
+                {stats.chars.toLocaleString()}文字
+              </div>
+            </div>
+          </>
+        )}
 
         {/* 🎬 YouTube動画埋め込み（youtube_script_idがあり、動画が公開されている場合） */}
         {youtubeScript && youtubeScript.youtube_video_id && (
@@ -591,8 +649,8 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         )}
         
-        {/* YouTube動画がない場合のみサムネイル画像を表示 */}
-        {!youtubeScript?.youtube_video_id && (post.thumbnail_url || post.featured_image) && (
+        {/* YouTube動画がない場合のみサムネイル画像を表示 (ガイドは冒頭の GuideHero に画像がある) */}
+        {!guide && !youtubeScript?.youtube_video_id && (post.thumbnail_url || post.featured_image) && (
           <div className="relative mb-8">
             <Image
               src={post.thumbnail_url || post.featured_image || ''}
@@ -606,15 +664,22 @@ export default async function PostPage({ params }: PageProps) {
             </div>
         )}
 
-        {/* TOC表示（Fragment ID付き・水色デザイン） */}
-        <TOCComponent toc={tocData.toc} relatedInfo={relatedInfo} />
+        {/* 目次: ガイドは常に全部を表示する素のリンク、通常の記事は従来の折りたたみ式 */}
+        {guide ? (
+          <GuideToc items={guide.toc} />
+        ) : (
+          <TOCComponent toc={tocData.toc} relatedInfo={relatedInfo} />
+        )}
 
         {post.content && (
           <div className="mt-8">
-            <MarkdownContent content={post.content
-              .replace(/---\s*$/i, '')
-              .trim()
-            } />
+            <MarkdownContent
+              content={(guide ? guide.body : post.content)
+                .replace(/---\s*$/i, '')
+                .trim()
+              }
+              guide={guide ? { slug: post.slug } : undefined}
+            />
           </div>
         )}
 

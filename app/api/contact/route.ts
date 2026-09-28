@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { recordInquiry } from '@/lib/cortex/metrics/inquiries';
+import { contactMailSubject, normalizeContactSource } from './source';
 
 async function appendToSheet(row: any[]) {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
@@ -31,7 +32,8 @@ export async function POST(request: Request) {
     let company = '', name = '', email = '', phone = '', message = '', to = '' as string | undefined, source = '';
     if (contentType.includes('application/json')) {
       const body = await request.json();
-      ({ company = '', name = '', email = '', phone = '', message = '', to, source = '' } = body || {});
+      ({ company = '', name = '', email = '', phone = '', message = '', to } = body || {});
+      source = normalizeContactSource(body?.source);
     } else {
       const form = await request.formData();
       company = String(form.get('company') || '');
@@ -39,7 +41,8 @@ export async function POST(request: Request) {
       email = String(form.get('email') || '');
       phone = String(form.get('phone') || '');
       message = String(form.get('message') || '');
-      source = 'corporate';
+      // JS が動かないときのガイドの相談フォームは source を hidden で送る。無ければ従来どおり corporate
+      source = normalizeContactSource(form.get('source')) || 'corporate';
     }
     // 送信先はリクエストで任意指定させない (任意宛先へのメール送信＝スパムの踏み台になるため)。
     // 許可リストにある宛先だけ受け付け、それ以外は既定の宛先に送る。
@@ -69,13 +72,14 @@ export async function POST(request: Request) {
  電話番号: ${phone}
  お問い合わせ内容:
  ${message}
+ 送信元: ${source || 'general-contact'}
      `;
 
     // メールの送信
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: mailTo,
-      subject: '【AI副業セミナー】お問い合わせがありました',
+      subject: contactMailSubject(source),
       text: mailBody,
     });
 
