@@ -163,6 +163,15 @@ describe('parseGuideBlock: 図と選び方の整合', () => {
       /循環/
     )
     expectError('nands-diagram', json({ kind: 'cards', title: 't', nodes: [node('a'), node('b')], edges: [{ from: 'a', to: 'b' }] }), /edges/)
+    expectError(
+      'nands-diagram',
+      json({ kind: 'flow', title: 't', nodes: [node('a'), node('b')], edges: [{ from: 'a', to: 'b' }, { from: 'a', to: 'b', label: 'x' }] }),
+      /2 回/
+    )
+    expectError(
+      'nands-diagram',
+      json({ kind: 'flow', title: 't', nodes: [node('a'), node('b')], edges: [{ from: 'a', to: 'b', label: 'とても長い矢印のラベルです' }] })
+    )
   })
 
   it('diagram: flow の 1 段は 4 つまで', () => {

@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { RefreshCw } from 'lucide-react'
-import MarkdownContent from '@/components/blog/MarkdownContent'
+import MarkdownContent, { MarkdownFrame, renderMarkdown, type RenderedMarkdown } from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
 // 🆕 YouTubeショート動画スライダー
 import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
@@ -15,14 +15,7 @@ import { cleanFaqText } from '../_lib/faq-clean'
 import GuideHero from '@/components/guide/GuideHero'
 import GuideToc from '@/components/guide/GuideToc'
 import { splitGuideHero, type HeroBlock } from '../_lib/guide-blocks'
-import {
-  extractGuideToc,
-  formatJstDate,
-  postModifiedAt,
-  readingStats,
-  withoutGuideBlocks,
-  type GuideTocItem,
-} from '../_lib/post-text'
+import { formatJstDate, postModifiedAt, readingStats, withoutGuideBlocks } from '../_lib/post-text'
 import { warnServer } from '../_lib/server-log'
 import { stripFencedCode } from '@/lib/structured-data/markdown-fences'
 import {
@@ -258,11 +251,15 @@ function isGuidePost(post: PublishedPost): boolean {
   return post.category_tags?.includes('guide') ?? false
 }
 
+/** 本文の末尾の区切り線 (---) を落とす (通常の記事と同じ) */
+function bodyForDisplay(content: string): string {
+  return content.replace(/---\s*$/i, '').trim()
+}
+
 interface GuideView {
   readonly hero: HeroBlock | null
-  /** 冒頭の hero ブロックを除いた本文 */
-  readonly body: string
-  readonly toc: GuideTocItem[]
+  /** 冒頭の hero ブロックを除いた本文を描いたものと、その見出し (目次) */
+  readonly markdown: RenderedMarkdown
 }
 
 function buildGuideView(post: PublishedPost): GuideView {
@@ -270,7 +267,7 @@ function buildGuideView(post: PublishedPost): GuideView {
   if (split.error) {
     warnServer('[guide] nands-hero が検査に通らないため、冒頭の答えを出していません', { slug: post.slug, error: split.error })
   }
-  return { hero: split.hero, body: split.body, toc: extractGuideToc(split.body) }
+  return { hero: split.hero, markdown: renderMarkdown(bodyForDisplay(split.body), { slug: post.slug }) }
 }
 
 /**
@@ -666,20 +663,18 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* 目次: ガイドは常に全部を表示する素のリンク、通常の記事は従来の折りたたみ式 */}
         {guide ? (
-          <GuideToc items={guide.toc} />
+          <GuideToc items={guide.markdown.headings} />
         ) : (
           <TOCComponent toc={tocData.toc} relatedInfo={relatedInfo} />
         )}
 
         {post.content && (
           <div className="mt-8">
-            <MarkdownContent
-              content={(guide ? guide.body : post.content)
-                .replace(/---\s*$/i, '')
-                .trim()
-              }
-              guide={guide ? { slug: post.slug } : undefined}
-            />
+            {guide ? (
+              <MarkdownFrame>{guide.markdown.element}</MarkdownFrame>
+            ) : (
+              <MarkdownContent content={bodyForDisplay(post.content)} />
+            )}
           </div>
         )}
 

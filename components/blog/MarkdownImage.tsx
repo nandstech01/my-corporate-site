@@ -7,8 +7,9 @@ const FALLBACK_SRC = '/images/default-post.jpg';
 interface MarkdownImageProps {
   src: string;
   alt: string;
-  width: number;
-  height: number;
+  /** 分かるときだけ (読み込み前に場所を確保してレイアウトずれを防ぐ) */
+  width?: number;
+  height?: number;
   className?: string;
 }
 
@@ -18,7 +19,7 @@ function showFallback(event: SyntheticEvent<HTMLImageElement>) {
 }
 
 /**
- * 本文中の画像 (遅延読み込み・幅と高さ付き)。読み込みに失敗したら既定の画像に差し替える。
+ * 本文中の画像 (遅延読み込み。幅と高さは分かるときだけ)。読み込みに失敗したら既定の画像に差し替える。
  * MarkdownContent はサーバー部品なので、onError だけをこの小さなクライアント部品に分けた。
  */
 export default function MarkdownImage({ src, alt, width, height, className }: MarkdownImageProps) {

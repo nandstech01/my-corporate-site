@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs'
 import path from 'path'
 import React, { isValidElement, type ReactElement, type ReactNode } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PublishedPost } from '@/app/posts/_lib/public-client'
 
@@ -35,7 +36,7 @@ vi.stubGlobal('React', React)
 import PostPage, { generateMetadata, generateStaticParams, revalidate } from '@/app/posts/[slug]/page'
 import GuideHero from '@/components/guide/GuideHero'
 import GuideToc from '@/components/guide/GuideToc'
-import MarkdownContent from '@/components/blog/MarkdownContent'
+import MarkdownContent, { MarkdownFrame } from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
 
 function post(overrides: Partial<PublishedPost>): PublishedPost {
@@ -114,10 +115,14 @@ describe("category_tags に 'guide' があればガイドの描き方", () => {
     // ページの h1 は GuideHero だけ
     expect(findAll(tree, (el) => el.type === 'h1')).toHaveLength(0)
 
-    const [content] = findAll(tree, (el) => el.type === MarkdownContent)
-    const contentProps = content.props as React.ComponentProps<typeof MarkdownContent>
-    expect(contentProps.guide).toEqual({ slug: 'claude-code-guide' })
-    expect(contentProps.content).not.toContain('nands-hero')
+    // 本文は 1 回だけ解析し、目次と同じ描画結果を MarkdownFrame に入れる
+    expect(findAll(tree, (el) => el.type === MarkdownContent)).toHaveLength(0)
+    const [frame] = findAll(tree, (el) => el.type === MarkdownFrame)
+    const body = renderToStaticMarkup(frame)
+    for (const id of ['summary', 'pricing', 'changelog']) expect(body).toContain(`id="${id}"`)
+    expect(body).toContain('data-source="guide:claude-code-guide"')
+    expect(body).not.toContain('data-guide-block="hero"')
+    expect(body).not.toContain('lin.ee')
 
     const article2 = jsonLd(tree)
     expect(article2.dateModified).toBe('2026-09-27T00:00:00+09:00')

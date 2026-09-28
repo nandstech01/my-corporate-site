@@ -68,6 +68,9 @@
 .guide-diagram__sub,
 .guide-diagram__edge-label { opacity: 0.8; }
 .guide-diagram__axis { stroke-opacity: 0.4; }
+/* 矢印のラベルの下の線を隠す四角 (ページの背景色) */
+.guide-diagram__edge-label-bg { fill: #fff; }
+:where(.dark) .guide-diagram__edge-label-bg { fill: #111827; }
 
 /* callout */
 .guide-callout { border: 1px solid var(--guide-rule); padding: 0.75rem 1rem; }

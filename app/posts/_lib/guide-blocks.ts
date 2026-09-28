@@ -275,7 +275,8 @@ export const diagramSchema = z
           .object({
             from: z.string(),
             to: z.string(),
-            label: safeText(1, 16).optional(),
+            // 矢印のラベルは線の上に置くので短く (隣の矢印と重ならない幅)
+            label: safeText(1, 12).optional(),
           })
           .strict()
       )
@@ -301,6 +302,12 @@ export const diagramSchema = z
           : null
       if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: ['edges', index] })
       return message !== null
+    })
+    const pairs = value.edges.map((edge) => `${edge.from}\u0000${edge.to}`)
+    pairs.forEach((pair, index) => {
+      if (pairs.indexOf(pair) !== index) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: '同じ矢印が 2 回あります', path: ['edges', index] })
+      }
     })
     if (value.kind !== 'flow' || badEdges.length > 0) return
     const layers = flowLayers(value.nodes, value.edges)

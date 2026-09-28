@@ -7,11 +7,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // vitest の esbuild は tsconfig の jsx: preserve により classic 変換 (React.createElement) になる
 vi.stubGlobal('React', React)
 
-import MarkdownContent from '@/components/blog/MarkdownContent'
+import MarkdownContent, { MarkdownFrame, renderMarkdown } from '@/components/blog/MarkdownContent'
 import GuideHero from '@/components/guide/GuideHero'
 import GuideToc from '@/components/guide/GuideToc'
 import { splitGuideHero } from '@/app/posts/_lib/guide-blocks'
-import { extractGuideToc, postModifiedAt } from '@/app/posts/_lib/post-text'
+import { postModifiedAt } from '@/app/posts/_lib/post-text'
 
 const FIXTURE = readFileSync(path.join(__dirname, '../site/fixtures/guide-sample.md'), 'utf8')
 
@@ -79,11 +79,19 @@ describe('MarkdownContent (サーバー部品) の出力', () => {
     expect(lineLinks(render(md, { slug: 'x' }))).toBe(0)
   })
 
-  it('画像: 幅・高さ・遅延読み込みを付け、段落の中にブロック要素を入れない', () => {
+  it('画像: 遅延読み込み。幅・高さは title の "幅x高さ" があるときだけ (推測で引き伸ばさない)。段落の中にブロック要素を入れない', () => {
     const html = render('![構成図](https://example.com/a.png "800x600")\n\n![](https://example.com/b.png)')
     expect(html).toContain('width="800" height="600" loading="lazy" decoding="async"')
-    expect(html).toContain('src="https://example.com/b.png" alt="" width="1200" height="630" loading="lazy"')
+    expect(html).toContain('<img src="https://example.com/b.png" alt="" loading="lazy" decoding="async"')
     expect(html).not.toMatch(/<p[^>]*>(?:(?!<\/p>).)*<(div|p)[\s>]/s)
+  })
+
+  it('見出しのインラインの装飾はそのまま描き ({#id} だけ消す)、[object Object] にしない', () => {
+    const html = render('## `gws` CLI の **使い方** {#usage}\n\n## Use `npm` here')
+    expect(html).toMatch(/<h2 id="usage"[^>]*><code[^>]*>gws<\/code> CLI の <span class="font-bold highlight-marker">使い方<\/span><\/h2>/)
+    expect(html).toMatch(/<h2 id="use-npm-here"/)
+    expect(html).not.toContain('object Object')
+    expect(html).not.toContain('{#usage}')
   })
 
   it('生の HTML は文字として出す (実行されない)', () => {
@@ -93,9 +101,39 @@ describe('MarkdownContent (サーバー部品) の出力', () => {
   })
 })
 
+describe('renderMarkdown: ガイドの目次は描画した見出しから作る (リンク先の id が必ずある)', () => {
+  it.each([
+    ['## Using _foo_ in API', 'using-foo-in-api'],
+    ['## A &amp; B', 'a-b'],
+    ['## ![icon](/i.png) Setup', '-setup'],
+    ['## 料金 {#pricing}', 'pricing'],
+  ])('%s', (md, id) => {
+    const { element, headings } = renderMarkdown(md)
+    expect(headings.map((heading) => heading.id)).toEqual([id])
+    expect(renderToStaticMarkup(element)).toContain(`id="${id}"`)
+  })
+
+  it('HTML コメントの中の ## や、コードの中の # は目次に入らない。id が空・重複の見出しも入らない', () => {
+    const md = ['<!--', '## コメントの中', '-->', '', '```', '## コードの中', '```', '', '## 日本語だけ', '## Same', '## Same', '### Sub {#sub}'].join('\n')
+    expect(renderMarkdown(md).headings).toEqual([
+      { id: 'same', text: 'Same', level: 2 },
+      { id: 'sub', text: 'Sub', level: 3 },
+    ])
+  })
+
+  it('CRLF の本文でもブロックと見出しを読む', () => {
+    const md = '## A {#a}\r\n\r\n```nands-callout\r\n{"tone":"tip","body":"x"}\r\n```\r\n'
+    const { element, headings } = renderMarkdown(md)
+    expect(headings.map((heading) => heading.id)).toEqual(['a'])
+    expect(renderToStaticMarkup(element)).toContain('data-guide-block="callout"')
+    expect(splitGuideHero(FIXTURE.replace(/\n/g, '\r\n')).hero?.answer).toHaveLength(3)
+  })
+})
+
 describe('見本のガイドをページの部品で描く', () => {
   const { hero, body } = splitGuideHero(FIXTURE)
-  const toc = extractGuideToc(body)
+  const rendered = renderMarkdown(body, { slug: 'claude-code-guide' })
+  const toc = rendered.headings
   const modifiedAt = postModifiedAt(
     { content: FIXTURE, published_at: '2026-09-01T00:00:00Z', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-28T05:00:00Z' },
     new Date('2026-09-28T00:00:00Z')
@@ -112,7 +150,7 @@ describe('見本のガイドをページの部品で描く', () => {
         fallbackImage: { src: 'https://example.com/banner.png', alt: 'バナー', width: 1200, height: 630 },
       }),
       React.createElement(GuideToc, { items: toc }),
-      React.createElement(MarkdownContent, { content: body, guide: { slug: 'claude-code-guide' } })
+      React.createElement(MarkdownFrame, null, rendered.element)
     )
   )
 

@@ -2,7 +2,7 @@
  * 記事本文 (Markdown) から、表示用の数字・目次・日付を取り出す純関数。
  * ガイドのブロック (```nands-*) の JSON は本文として数えない。
  */
-import { stripFencedCode, stripFencesWhere } from '@/lib/structured-data/markdown-fences'
+import { stripFencesWhere } from '@/lib/structured-data/markdown-fences'
 import { isGuideFenceLang, latestChangelogDate } from './guide-blocks'
 
 /** ガイドのブロックを除いた本文 (読了時間・文字数・FAQ 抽出用) */
@@ -23,7 +23,7 @@ export function readingStats(markdown: string): ReadingStats {
 }
 
 // ---------------------------------------------------------------------------
-// 見出しの ID (本文の描画 components/blog/MarkdownContent と目次で同じ関数を使う)
+// 見出しの ID (本文の描画 components/blog/MarkdownContent が使い、ガイドの目次も同じ描画結果から作る)
 // ---------------------------------------------------------------------------
 
 const FRAGMENT_ID = /^(.*?)\s*\{#([^}]+)\}$/
@@ -47,39 +47,10 @@ export function parseHeadingText(raw: string): HeadingText {
   }
 }
 
-/** 見出し行の簡単なインライン記法を落とし、描画後の文字に近づける */
-function stripInlineMarkdown(text: string): string {
-  return text
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/`/g, '')
-    .replace(/\*\*|__/g, '')
-    .replace(/\*/g, '')
-    .trim()
-}
-
 export interface GuideTocItem {
   readonly id: string
   readonly text: string
   readonly level: 2 | 3
-}
-
-/**
- * ガイドの目次 (h2・h3)。コードフェンスの中の # は数えない。
- * id が空・重複の見出しはリンク先が定まらないので載せない。
- */
-export function extractGuideToc(markdown: string): GuideTocItem[] {
-  const seen = new Set<string>()
-  const items: GuideTocItem[] = []
-  for (const line of stripFencedCode(markdown).split('\n')) {
-    const match = line.match(/^(#{2,3})\s+(.+?)(?:\s+#+)?\s*$/)
-    if (!match) continue
-    const heading = parseHeadingText(stripInlineMarkdown(match[2]))
-    if (!heading.id || seen.has(heading.id)) continue
-    seen.add(heading.id)
-    items.push({ id: heading.id, text: heading.text, level: match[1].length as 2 | 3 })
-  }
-  return items
 }
 
 // ---------------------------------------------------------------------------
@@ -95,13 +66,16 @@ export interface DatedPost {
 
 /**
  * dateModified (= ページに出す「最終更新」)。
- * 本文に更新履歴 (```nands-changelog) があれば、その最新の日付 (日本時間 0:00)。
+ * 本文に更新履歴 (```nands-changelog) があれば、その最新の日付 (日本時間 0:00。公開時刻より前なら公開時刻)。
  * 言い回しの修正などで updated_at が動いても、更新履歴に載らない変更では日付を変えない。
  */
 export function postModifiedAt(post: DatedPost, now: Date = new Date()): string {
+  const published = post.published_at ?? post.created_at
   const changelog = latestChangelogDate(post.content, now)
-  if (changelog) return `${changelog}T00:00:00+09:00`
-  return post.updated_at ?? post.published_at ?? post.created_at
+  if (!changelog) return post.updated_at ?? published
+  // 公開日と同じ日付の更新履歴 (初版) で dateModified が公開時刻より前にならないようにする
+  const modified = `${changelog}T00:00:00+09:00`
+  return Date.parse(modified) < Date.parse(published) ? published : modified
 }
 
 /** 日本時間の日付表示 (例: 2026/9/28)。サーバーの時刻帯 (Vercel は UTC) に左右されない */

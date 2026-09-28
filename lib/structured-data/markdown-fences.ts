@@ -6,6 +6,7 @@
  * - 開きは行頭 0〜3 スペース + 同じ文字 (` か ~) を 3 つ以上。` のフェンスの info に ` は入らない
  * - 閉じは同じ文字で開きと同じ長さ以上、後ろは空白だけ
  * - 閉じが無ければ文書の終わりまでがフェンス
+ * 戻り値の文字列の改行は \n (CRLF は \n になる)
  */
 
 export interface TextSegment {
@@ -34,9 +35,9 @@ function isClosingFence(line: string, marker: string): boolean {
   return match !== null && match[1][0] === marker[0] && match[1].length >= marker.length
 }
 
-/** 文書をテキストとフェンスの区間に分ける (純関数) */
+/** 文書をテキストとフェンスの区間に分ける (純関数)。改行は \n にそろえる (CRLF の本文でもフェンスを見分ける) */
 export function scanMarkdownFences(markdown: string): MarkdownSegment[] {
-  const lines = markdown.split('\n')
+  const lines = markdown.split(/\r?\n/)
   const segments: MarkdownSegment[] = []
   let text: string[] = []
   let i = 0

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { isValidElement, type ReactElement, type ReactNode } from 'react';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Element, ElementContent, Root, RootContent } from 'hast';
@@ -6,13 +6,14 @@ import LINEConversionButton from './LINEConversionButton';
 import MarkdownImage from './MarkdownImage';
 import GuideBlock, { type GuideRenderContext } from '@/components/guide/GuideBlock';
 import { isGuideFenceLang } from '@/app/posts/_lib/guide-blocks';
-import { parseHeadingText } from '@/app/posts/_lib/post-text';
+import { parseHeadingText, type GuideTocItem } from '@/app/posts/_lib/post-text';
 
 /**
  * 記事本文の Markdown を描く (サーバー部品)。
  * react-markdown はサーバーだけで動き、ブラウザには HTML だけが届く (JS と本文の二重送信をしない)。
  * - ```nands-* のコードフェンスはガイドのブロック (components/guide) として描く
- * - 見出しの id は app/posts/_lib/post-text の parseHeadingText (目次と同じ規則)
+ * - 見出しの id は app/posts/_lib/post-text の parseHeadingText。ガイドの目次は renderMarkdown が
+ *   同じ描画結果の見出しから作るので、目次のリンク先と本文の id が必ず一致する
  */
 
 interface MarkdownContentProps {
@@ -20,9 +21,6 @@ interface MarkdownContentProps {
   /** ガイド (category_tags に guide) のときだけ渡す。本文中の自動の LINE 導線を出さず、相談フォームの送信元に slug を使う */
   guide?: GuideRenderContext;
 }
-
-/** 本文中の画像の縦横比の目安 (幅・高さが分からない画像のレイアウトずれを抑える)。読み込み後は実際の比率になる */
-const DEFAULT_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
 interface HeadingData {
   h2Index?: number;
@@ -67,6 +65,14 @@ function headingData(node: Element | undefined): HeadingData {
   return (node?.data ?? {}) as HeadingData;
 }
 
+/** 見出しの末尾の {#id} を消す (太字・コードなどのインラインの装飾はそのまま残す) */
+function stripTrailingFragment(children: ReactNode): ReactNode {
+  const list = React.Children.toArray(children);
+  const last = list[list.length - 1];
+  if (typeof last !== 'string') return list;
+  return [...list.slice(0, -1), last.replace(/\s*\{#[^}]+\}\s*$/, '')];
+}
+
 /** 段落・リスト・表のセルに残った {#id} を消す */
 function stripFragmentIds(node: React.ReactNode): React.ReactNode {
   if (typeof node === 'string') return node.replace(/\s*\{#[^}]+\}\s*/g, ' ').trim();
@@ -81,10 +87,14 @@ function resolveImageSrc(src: string): string {
   return supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/${src}` : src;
 }
 
-/** 画像の title に "1200x630" のように書かれていれば、その幅と高さを使う */
-function imageSize(title: string | undefined): { width: number; height: number } {
+/**
+ * 画像の title に "1200x630" のように書かれていれば、その幅と高さ (レイアウトずれを防ぐ)。
+ * 書かれていない画像は大きさが分からないので付けない (推測の値を付けると小さい画像が引き伸ばされる)。
+ * ガイドのパイプラインは本文の画像に必ず "幅x高さ" を書く
+ */
+function imageSize(title: string | undefined): { width: number; height: number } | undefined {
   const match = title?.match(/^\s*(\d{2,4})x(\d{2,4})\s*$/);
-  return match ? { width: Number(match[1]), height: Number(match[2]) } : DEFAULT_IMAGE_SIZE;
+  return match ? { width: Number(match[1]), height: Number(match[2]) } : undefined;
 }
 
 /** <pre> の中の ```nands-* のコード要素 (無ければ null) */
@@ -123,7 +133,7 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
       // H1タイトルは記事本文中に表示しない（タイトル欄で既に表示済み）
       return null;
     },
-    h2({ node }) {
+    h2({ node, children }) {
       const { text, id } = parseHeadingText(node ? textOf(node) : '');
       const { h2Index } = headingData(node);
       // FAQセクションを検出（よくある質問、Q&A、FAQ等）
@@ -138,7 +148,7 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
             id={id || undefined}
             className="not-prose bg-gray-50 dark:bg-gray-800 mt-10 mb-5 py-2 pl-4 pr-2 text-lg font-bold text-gray-800 dark:text-gray-100 border-l-4 border-cyan-400 dark:border-cyan-500"
           >
-            {text}
+            {stripTrailingFragment(children)}
           </h2>
 
           {/* 3番目のh2の直後にLINEボタンを挿入 */}
@@ -146,18 +156,18 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
         </>
       );
     },
-    h3({ node }) {
-      const { text, id } = parseHeadingText(node ? textOf(node) : '');
+    h3({ node, children }) {
+      const { id } = parseHeadingText(node ? textOf(node) : '');
       return (
         <h3
           id={id || undefined}
           className="not-prose h3-gradient-underline mt-8 mb-4 text-base font-bold text-gray-700 dark:text-gray-200"
         >
-          {text}
+          {stripTrailingFragment(children)}
         </h3>
       );
     },
-    h4({ node }) {
+    h4({ node, children }) {
       const heading = parseHeadingText(node ? textOf(node) : '');
       const { faqIndex } = headingData(node);
       // FAQ質問の自動Fragment ID生成（AI引用最適化）
@@ -167,7 +177,7 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
           id={id || undefined}
           className="mt-6 mb-3 text-lg font-bold text-gray-700 dark:text-gray-200 border-b border-gray-300 dark:border-gray-600 pb-1"
         >
-          {heading.text}
+          {stripTrailingFragment(children)}
         </h4>
       );
     },
@@ -250,8 +260,8 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
           <MarkdownImage
             src={resolveImageSrc(src)}
             alt={alt || ''}
-            width={size.width}
-            height={size.height}
+            width={size?.width}
+            height={size?.height}
             className="max-w-full h-auto rounded-lg shadow-md mx-auto"
           />
           {alt && (
@@ -263,18 +273,62 @@ function buildComponents(guide: GuideRenderContext | undefined): Components {
   };
 }
 
-export default function MarkdownContent({ content, guide }: MarkdownContentProps) {
+export interface RenderedMarkdown {
+  /** 本文の要素 (MarkdownFrame の中に置く) */
+  readonly element: ReactElement;
+  /** 本文の h2・h3 (id が空・重複のものは除く)。ガイドの目次に使う */
+  readonly headings: GuideTocItem[];
+}
+
+/** 描画結果の木から h2・h3 を集める (目次の id = 本文の id) */
+function collectHeadings(root: ReactNode, components: Components): GuideTocItem[] {
+  const levels = new Map<unknown, 2 | 3>([[components.h2, 2], [components.h3, 3]]);
+  const seen = new Set<string>();
+  const headings: GuideTocItem[] = [];
+  const walk = (node: ReactNode) => {
+    React.Children.forEach(node, (child) => {
+      if (!isValidElement(child)) return;
+      const props = child.props as { node?: Element; children?: ReactNode };
+      const level = levels.get(child.type);
+      if (level && props.node) {
+        const { text, id } = parseHeadingText(textOf(props.node));
+        if (id && !seen.has(id)) {
+          seen.add(id);
+          headings.push({ id, text, level });
+        }
+        return;
+      }
+      walk(props.children);
+    });
+  };
+  walk(root);
+  return headings;
+}
+
+/**
+ * Markdown を 1 回だけ解析して、本文の要素と見出しの一覧を返す。
+ * ガイドのページはこの見出しで目次を作り、要素を MarkdownFrame に入れて描く。
+ */
+export function renderMarkdown(content: string, guide?: GuideRenderContext): RenderedMarkdown {
+  const components = buildComponents(guide);
+  const element = Markdown({
+    children: content,
+    components,
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [rehypeHeadingIndex],
+  });
+  return { element, headings: collectHeadings(element, components) };
+}
+
+/** 本文の外枠 (従来の記事と同じクラス) */
+export function MarkdownFrame({ children }: { children: ReactNode }) {
   return (
     <div className="relative max-w-4xl mx-auto">
-      <div className="prose dark:prose-invert max-w-none prose-lg prose-img:rounded-lg">
-        <Markdown
-          components={buildComponents(guide)}
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHeadingIndex]}
-        >
-          {content}
-        </Markdown>
-      </div>
+      <div className="prose dark:prose-invert max-w-none prose-lg prose-img:rounded-lg">{children}</div>
     </div>
   );
+}
+
+export default function MarkdownContent({ content, guide }: MarkdownContentProps) {
+  return <MarkdownFrame>{renderMarkdown(content, guide).element}</MarkdownFrame>;
 }

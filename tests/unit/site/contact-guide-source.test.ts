@@ -99,6 +99,7 @@ describe('/api/contact: ガイドの相談フォーム (source: guide:<slug>)', 
     expect(normalizeContactSource(undefined)).toBe('')
     expect(normalizeContactSource('guide:a\nb\u0000c')).toBe('guide:abc')
     expect(normalizeContactSource(`guide:${'x'.repeat(300)}`)).toHaveLength(200)
+    expect(normalizeContactSource('=HYPERLINK("https://evil.example")')).toBe('HYPERLINK("https://evil.example")')
     expect(contactMailSubject('corporate')).toBe('【AI副業セミナー】お問い合わせがありました')
   })
 })

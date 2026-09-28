@@ -80,20 +80,30 @@ export default function FlowDiagram({ block }: { block: DiagramBlock }) {
             stroke="currentColor"
           />
         )}
-        {layout.edges.map((edge) => (
-          <g className="guide-diagram__edge" key={`${edge.from}-${edge.to}`} data-from={edge.from} data-to={edge.to}>
+        {layout.edges.map((edge, index) => (
+          <g className="guide-diagram__edge" key={index} data-from={edge.from} data-to={edge.to}>
             <path d={edge.path} fill="none" stroke="currentColor" markerEnd={`url(#${id}-arrow)`} />
             {edge.label && (
-              <text
-                className="guide-diagram__edge-label"
-                x={edge.label.x}
-                y={edge.label.y}
-                fontSize={EDGE_LABEL_SIZE}
-                textAnchor={edge.label.anchor}
-                fill="currentColor"
-              >
-                {edge.label.text}
-              </text>
+              <>
+                <rect
+                  className="guide-diagram__edge-label-bg"
+                  x={edge.label.box.x}
+                  y={edge.label.box.y}
+                  width={edge.label.box.w}
+                  height={edge.label.box.h}
+                  fill="#fff"
+                />
+                <text
+                  className="guide-diagram__edge-label"
+                  x={edge.label.x}
+                  y={edge.label.y}
+                  fontSize={EDGE_LABEL_SIZE}
+                  textAnchor="middle"
+                  fill="currentColor"
+                >
+                  {edge.label.text}
+                </text>
+              </>
             )}
           </g>
         ))}
