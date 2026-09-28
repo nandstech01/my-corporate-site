@@ -41,6 +41,23 @@ describe('文節の区切り (BudouX ∩ 単語の区切り)', () => {
     expect(phrases(bindSpaces('Claude Opus 5.5 完全ガイド')).join('|')).not.toContain('完全|ガイド')
   })
 
+  it('長い文節は約物の後ろで分け、複合語 (完全ガイド・エージェント型作業) は割らない', () => {
+    // 2026-09-29 のレビュー: 「完全 / ガイド」「エージェント / 型作業」で折れていた (漢字とカタカナの境目で割っていた)
+    const title = phrases(bindSpaces('Claude Opus 5.5 完全ガイド｜使い方・料金・性能を実測で比較'))
+    expect(title.join('|')).not.toMatch(/完全\|ガイド/)
+    expect(title).toContain('｜使い方・')
+    expect(phrases(bindSpaces('長時間のエージェント型作業についての、公式の案内です。')).join('|')).not.toMatch(/エージェント\|型/)
+    // 決して割らない語は BudouX が区切っても戻す
+    expect(phrases('この完全ガイドでは').join('|')).not.toMatch(/完全\|ガイド/)
+  })
+
+  it('｜ の直後では区切らない (区切りは ｜ の前へ)。画面では ｜ の後ろに単語結合子を入れ、行末に ｜ を残さない', () => {
+    const parts = phrases(bindSpaces('Opus 5.5 の使い方と性能を徹底比較｜Opus 5・ Fable 5.1 と料金・速さを実測'))
+    for (const part of parts.slice(0, -1)) expect(part.endsWith('｜')).toBe(false)
+    const html = renderToStaticMarkup(React.createElement(Phrases, { text: '徹底比較｜使い方' }))
+    expect(html).toContain('｜\u2060')
+  })
+
   it('日本語を含まない文字列はそのまま (空白で普通に折り返す)', () => {
     expect(phrases('Connect Claude Code to tools via MCP')).toEqual(['Connect Claude Code to tools via MCP'])
   })
@@ -61,6 +78,12 @@ describe('改行しない空白 (製品名・数字 + 単位・助詞の前)', (
     ['Model Context Protocol', 'Model Context Protocol'],
     // 小文字のコマンドはつながない
     ['claude mcp add', 'claude mcp add'],
+    // 製品名 + 版は並びが長くてもつなぐ
+    ['Introducing Claude Opus 5.5 (Anthropic)', `Introducing Claude Opus${NBSP}5.5 (Anthropic)`],
+    // 空白で囲んだダッシュは後ろの語につなぐ (行末に - を残さない)
+    ['Claude Opus 5.5 - Claude Platform Docs', `Claude${NBSP}Opus${NBSP}5.5 -${NBSP}Claude${NBSP}Platform${NBSP}Docs`],
+    // 数字 / 英字の単位
+    ['入力 $4 / MTok', `入力 $4${NBSP}/${NBSP}MTok`],
   ])('%s', (input, expected) => {
     expect(bindSpaces(input)).toBe(expected)
   })

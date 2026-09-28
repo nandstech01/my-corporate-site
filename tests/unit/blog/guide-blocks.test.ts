@@ -191,6 +191,16 @@ describe('parseGuideBlock: 図と選び方の整合', () => {
     expect(parseGuideBlock('nands-diagram', json({ kind: 'cards', title: 't', nodes: emphasised.slice(0, 2) })).ok).toBe(true)
   })
 
+  it('hero.heading: 表紙の h1 (30 字まで・< は不可)。chart.legend: 強調した行の凡例 (30 字まで)', () => {
+    const hero = (heading: string) => json({ heading, answer: ['答え'] })
+    expect(parseGuideBlock('nands-hero', hero('Claude Opus 5.5 完全ガイド')).ok).toBe(true)
+    expectError('nands-hero', hero('あ'.repeat(31)))
+    expectError('nands-hero', hero('<b>見出し</b>'), /'<'/)
+    const chart = (legend: string) => json({ title: 't', legend, rows: [{ label: 'a', value: 1, highlight: true }] })
+    expect(parseGuideBlock('nands-chart', chart('既定の設定')).ok).toBe(true)
+    expectError('nands-chart', chart('あ'.repeat(31)))
+  })
+
   it('decide: 選択肢は result か next のどちらか 1 つ、深さは 3 段まで', () => {
     const leaf = (title: string) => ({ label: title, result: { title } })
     expectError(

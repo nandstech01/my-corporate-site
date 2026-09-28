@@ -13,8 +13,13 @@ import UpdateLog from './UpdateLog'
 export interface GuideRenderContext {
   /** 記事の slug (相談フォームの source: guide:<slug> に使う) */
   readonly slug: string
-  /** 相談の導線の置き場所 (本文の最後の独立した区画か、本文の途中か)。guide-markdown が決める */
+  /**
+   * 相談の導線の置き場所。guide-markdown が決める:
+   * inline = 置かれた区画の中 (見出しはその区画の h2) / end = どの h2 の下にも無いので独立した区画 (導線の見出しが h2)
+   */
   readonly placement?: 'end' | 'inline'
+  /** end のときの見出しの id (ページ内で重複しないときだけ guide-markdown が渡す) */
+  readonly anchor?: string
 }
 
 interface GuideBlockProps {
@@ -58,7 +63,7 @@ export default function GuideBlock({ lang, raw, context }: GuideBlockProps) {
     case 'nands-sources':
       return <SourceList block={block.data} />
     case 'nands-cta':
-      return <ConsultCta block={block.data} slug={context?.slug} placement={context?.placement} />
+      return <ConsultCta block={block.data} slug={context?.slug} placement={context?.placement} anchor={context?.anchor} />
     case 'nands-hero':
       warnServer('[guide-block] nands-hero は本文の先頭の 1 つだけをページの冒頭に描きます。本文中のものは描画しません', {
         slug: context?.slug ?? null,

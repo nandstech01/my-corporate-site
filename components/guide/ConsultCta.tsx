@@ -13,8 +13,13 @@ interface ConsultCtaProps {
   readonly block: CtaBlock
   /** 記事の slug。無いとき (記事以外での描画) はフォームを出さない */
   readonly slug?: string
-  /** end = 本文の最後 (独立した区画・見出しは h2) / inline = 本文の途中 */
+  /**
+   * inline = 区画の中 (見出しはその区画の h2 なので、導線の題は見出しにしない) /
+   * end = どの h2 の下にも無い導線 (独立した区画・題を h2 にする)
+   */
   readonly placement?: 'end' | 'inline'
+  /** end の見出しの id (例: guide-consult)。ページ内で重複しないときだけ渡される */
+  readonly anchor?: string
 }
 
 const linkProps = (href: string) => (isExternalUrl(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})
@@ -23,13 +28,19 @@ const linkProps = (href: string) => (isExternalUrl(href) ? { target: '_blank', r
  * 相談の導線 (本文中 1 回・最後 1 回を想定)。左揃え、操作は主 1 つ (button かフォームの送信) と副 1 つ (secondary)。
  * 見た目は guide.css の .guide-cta*
  */
-export default function ConsultCta({ block, slug, placement = 'inline' }: ConsultCtaProps) {
+export default function ConsultCta({ block, slug, placement = 'inline', anchor }: ConsultCtaProps) {
   const showForm = block.form === true && Boolean(slug)
   const Title = placement === 'end' ? 'h2' : 'p'
   const secondary = block.secondary ? { label: block.secondary.label, href: block.secondary.href } : undefined
   return (
-    <section className="guide-cta" data-guide-block="cta" data-placement={placement} aria-label={block.title}>
-      <Title className="guide-cta__title" {...(placement === 'end' ? { id: 'guide-consult' } : {})}>
+    <section
+      className="guide-cta"
+      data-guide-block="cta"
+      data-placement={placement}
+      data-form={showForm ? '' : undefined}
+      aria-label={block.title}
+    >
+      <Title className="guide-cta__title" {...(placement === 'end' && anchor ? { id: anchor } : {})}>
         <Phrases text={block.title} />
       </Title>
       {block.body && (

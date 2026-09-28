@@ -14,6 +14,7 @@ export interface HeroImage {
 }
 
 interface GuideHeroProps {
+  /** 記事のタイトル (<title> と同じ)。hero.heading が無ければ h1 に使う */
   readonly title: string
   /** 本文冒頭の ```nands-hero (無ければタイトルと日付・著者だけ) */
   readonly hero: HeroBlock | null
@@ -48,6 +49,33 @@ export function titleSize(title: string): 'l' | 'm' | 's' {
   return 's'
 }
 
+/**
+ * 表紙の h1 の文字: 「主題｜副題」は主題を大きく、副題を下の行に小さく描く (｜ は読み上げ・コピー用に残し、画面には出さない)。
+ * これで ｜ が行末に残らない。区切りが無ければそのまま
+ */
+export function splitHeading(heading: string): { main: string; sub: string | null } {
+  const index = heading.indexOf('｜')
+  if (index <= 0 || index === heading.length - 1) return { main: heading, sub: null }
+  return { main: heading.slice(0, index).trim(), sub: heading.slice(index + 1).trim() || null }
+}
+
+/** ターミナルの 1 行を空白の所でだけ折り返す (--max-budget-usd や claude-opus-5-5 のハイフンで折らない) */
+function TerminalText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/( +)/).map((token, index) =>
+        token === '' ? null : /^ +$/.test(token) ? (
+          token
+        ) : (
+          <span className="guide-term__tok" key={index}>
+            {token}
+          </span>
+        )
+      )}
+    </>
+  )
+}
+
 /** 実際に実行したコマンドと出力。窓の飾りは描かない (本物の出力だけ) */
 export function Terminal({ terminal }: { terminal: TerminalBlock }) {
   return (
@@ -60,12 +88,12 @@ export function Terminal({ terminal }: { terminal: TerminalBlock }) {
                 <span className="guide-term__prompt" aria-hidden="true">
                   ${' '}
                 </span>
-                {line.text}
+                <TerminalText text={line.text} />
                 {'\n'}
               </span>
             ) : (
               <span className="guide-term__out" key={index}>
-                {line.text}
+                <TerminalText text={line.text} />
                 {'\n'}
               </span>
             )
@@ -90,13 +118,26 @@ export default function GuideHero({ title, hero, modifiedAt, author, fallbackIma
   const terminal = hero?.terminal
   const image = terminal ? null : hero?.image ?? fallbackImage
   const hasAside = Boolean(terminal || image)
+  const heading = splitHeading(hero?.heading ?? title)
   return (
     <>
       <header className="guide-band guide-hero" data-guide-block="hero">
         <div className="guide-frame guide-hero__grid" data-aside={hasAside ? 'true' : 'false'}>
           <div className="guide-hero__text">
-            <h1 id="main-title" className="guide-hero__title" data-size={titleSize(title)}>
-              <Phrases text={title} />
+            <h1 id="main-title" className="guide-hero__title" data-size={titleSize(heading.main)}>
+              {heading.sub === null ? (
+                <Phrases text={heading.main} />
+              ) : (
+                <>
+                  <span className="guide-hero__title-main">
+                    <Phrases text={heading.main} />
+                  </span>
+                  <span className="guide-sr">｜</span>
+                  <span className="guide-hero__title-sub">
+                    <Phrases text={heading.sub} />
+                  </span>
+                </>
+              )}
             </h1>
             {hero?.lead && (
               <p className="guide-hero__lead">

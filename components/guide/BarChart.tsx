@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { ChartBlock } from '@/app/posts/_lib/guide-blocks'
-import { formatValue } from './format'
+import { formatValue, sharedFractionDigits, unitKind } from './format'
 import { Phrases } from './phrases'
 import { textUnits } from './text-wrap'
 
@@ -13,8 +13,10 @@ export interface ChartScale {
   readonly max: number
   /** 目盛りの値 (0 から) */
   readonly ticks: readonly number[]
-  /** 表示する値の文字 */
+  /** 表示する値の文字 (本文の表と同じ書き方: $0.50 / 31 秒) */
   readonly values: readonly string[]
+  /** 目盛りの文字 (ドルは $1、そのほかは数字だけ。単位は見出しの横) */
+  readonly tickLabels: readonly string[]
   /** 棒の右に空けておく幅 (px): いちばん長い値の文字 + 間隔 */
   readonly reserve: number
 }
@@ -33,14 +35,26 @@ function niceStep(rough: number): number {
  * 値の文字は棒の右の予約した余白に入るので、どの画面幅でも図からはみ出さない
  */
 export function chartScale(block: ChartBlock): ChartScale {
-  const values = block.rows.map((row) => formatValue(row.value, block.unit))
+  const digits = sharedFractionDigits(block.rows.map((row) => row.value), block.unit)
+  const values = block.rows.map((row) => formatValue(row.value, block.unit, digits))
   const largest = Math.max(...block.rows.map((row) => row.value))
   const step = niceStep(largest / 4)
   const max = largest > 0 ? largest : 1
   const ticks: number[] = []
   for (let tick = 0; tick <= max + 1e-9; tick += step) ticks.push(Number(tick.toPrecision(12)))
+  const usd = unitKind(block.unit) === 'usd'
+  const tickDigits = usd ? sharedFractionDigits(ticks, block.unit) : undefined
+  const tickLabels = ticks.map((tick) => (usd ? formatValue(tick, block.unit, tickDigits) : formatValue(tick)))
   const reserve = Math.ceil(Math.max(...values.map((value) => textUnits(value) * VALUE_FONT))) + VALUE_GAP + 4
-  return { max, ticks, values, reserve }
+  return { max, ticks, tickLabels, values, reserve }
+}
+
+/** 凡例の文字: legend が無ければ強調した行の名前 (2 行まで)、3 行以上なら「強調した項目」 */
+export function chartLegend(block: ChartBlock): string | null {
+  const highlighted = block.rows.filter((row) => row.highlight)
+  if (highlighted.length === 0) return null
+  if (block.legend) return block.legend
+  return highlighted.length <= 2 ? highlighted.map((row) => row.label).join('・') : '強調した項目'
 }
 
 const cssVars = (vars: Record<string, string | number>) => vars as CSSProperties
@@ -51,21 +65,30 @@ const cssVars = (vars: Record<string, string | number>) => vars as CSSProperties
  */
 export default function BarChart({ block }: { block: ChartBlock }) {
   const scale = chartScale(block)
+  const legend = chartLegend(block)
   return (
     <figure
       className="guide-chart"
       data-guide-block="chart"
       style={cssVars({ '--max': scale.max, '--reserve': `${scale.reserve}px` })}
     >
-      <figcaption className="guide-caption guide-chart__title">
-        <Phrases text={block.title} />
-        {block.unit && <span className="guide-chart__unit">単位: {block.unit}</span>}
+      <figcaption className="guide-chart__head">
+        <span className="guide-caption guide-chart__title">
+          <Phrases text={block.title} />
+          {block.unit && <span className="guide-chart__unit">単位: {block.unit}</span>}
+        </span>
+        {legend && (
+          <span className="guide-chart__legend">
+            <span className="guide-chart__swatch" aria-hidden="true" />
+            <Phrases text={legend} />
+          </span>
+        )}
       </figcaption>
       <div className="guide-chart__plot">
         <div className="guide-chart__axis" aria-hidden="true">
-          {scale.ticks.map((tick) => (
+          {scale.ticks.map((tick, index) => (
             <span className="guide-chart__tick" key={tick} style={cssVars({ '--t': tick })}>
-              <b>{formatValue(tick)}</b>
+              <b>{scale.tickLabels[index]}</b>
             </span>
           ))}
         </div>
@@ -88,6 +111,7 @@ export default function BarChart({ block }: { block: ChartBlock }) {
                 <th scope="row" className="guide-chart__label">
                   <span className="guide-chart__name">
                     <Phrases text={row.label} />
+                    {row.highlight && legend && <span className="guide-sr">（{legend}）</span>}
                   </span>
                   {row.note && (
                     <span className="guide-chart__sub">

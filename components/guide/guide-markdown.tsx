@@ -2,8 +2,12 @@
  * ガイド (category_tags に guide) の本文の描き方 (react-markdown の部品の対応表と rehype の処理)。
  * 通常の記事の描き方 (components/blog/MarkdownContent の buildComponents) には影響しない。
  *
- * - 本文を h2 ごとの区画 (section) に分け、左の列 (rail) に節の番号を置く。番号は目次 (GuideToc) と同じ
- * - 本文の最後の ```nands-cta は独立した区画にする (見出しは h2、左揃えの相談の導線)
+ * - 本文を h2 ごとの区画 (section) に分け、左の列 (rail) に節の番号と短い名前 (h2 から作る) を置く。番号は目次 (GuideToc) と同じ
+ * - ```nands-cta は置かれた区画の中に描く (その区画の h2 が見出し。導線は見出しを増やさない)。
+ *   独立した区画 (導線の題を h2、id guide-consult) にするのは、どの節にも属さない相談だけ:
+ *   最初の h2 より前にある相談と、本文の最後の相談のうち、その節が「h2 + 段落 + 相談」(相談を紹介する節) ではないもの
+ *   (例: 更新履歴の表の後ろに置いた、ページを締める相談)
+ * - 4 列以上の表は、スマホでは行ごとの組 (列名: 値) に組み替える (td の data-label)
  * - 見出し・段落・表・リストの日本語は文節の区切りに <wbr> (components/guide/phrases)
  * - 要素は意味のある HTML とクラス名 (.guide-*) だけ。Tailwind のクラスや装飾を付けない
  */
@@ -14,7 +18,8 @@ import MarkdownImage from '@/components/blog/MarkdownImage'
 import { isGuideFenceLang } from '@/app/posts/_lib/guide-blocks'
 import { parseHeadingText } from '@/app/posts/_lib/post-text'
 import GuideBlock, { type GuideRenderContext } from './GuideBlock'
-import { withPhrases } from './phrases'
+import { bindSpaces, phrases, withPhrases } from './phrases'
+import { railLabel } from './rail-label'
 
 export function textOf(node: Element | ElementContent | RootContent): string {
   if (node.type === 'text') return node.value
@@ -40,7 +45,7 @@ const element = (tagName: string, properties: Element['properties'], children: E
 
 const isBlank = (node: RootContent) => node.type === 'text' && node.value.trim() === ''
 
-/** 本文の最後の要素が ```nands-cta なら、その要素 (と後ろの空白) を返す */
+/** 要素の並びの最後 (後ろの空白を除く) が ```nands-cta なら、その位置。無ければ -1 */
 function trailingCta(nodes: readonly RootContent[]): number {
   let index = nodes.length - 1
   while (index >= 0 && isBlank(nodes[index])) index -= 1
@@ -48,61 +53,122 @@ function trailingCta(nodes: readonly RootContent[]): number {
   return last && last.type === 'element' && last.tagName === 'pre' && guideFence(last)?.lang === 'nands-cta' ? index : -1
 }
 
+/** 独立した相談の区画の見出しの id (ページ内のリンク #guide-consult の行き先)。本文の見出しが同じ id を使っていれば付けない */
+export const CONSULT_ANCHOR = 'guide-consult'
+
+/** 木の中のすべての要素 (深さ優先) */
+function* elementsOf(node: Root | Element): Generator<Element> {
+  for (const child of node.children) {
+    if (child.type !== 'element') continue
+    yield child
+    yield* elementsOf(child)
+  }
+}
+
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+
+/** 表の見出しの文字を、本文の各セルに data-label として持たせる (スマホで「列名: 値」に組み替えるため) */
+function labelTableCells(table: Element): void {
+  const children = (tag: string, parent: Element) =>
+    parent.children.filter((child): child is Element => child.type === 'element' && child.tagName === tag)
+  const [head] = children('thead', table)
+  const headRow = head ? children('tr', head)[0] : undefined
+  const labels = headRow ? children('th', headRow).map((cell) => textOf(cell).replace(/\s*\{#[^}]+\}\s*/g, ' ').trim()) : []
+  table.properties = { ...table.properties, dataCols: String(labels.length) }
+  for (const body of children('tbody', table)) {
+    for (const row of children('tr', body)) {
+      children('td', row).forEach((cell, index) => {
+        if (labels[index]) cell.properties = { ...cell.properties, dataLabel: labels[index] }
+      })
+    }
+  }
+}
+
+/** 文字列を文節の区切りに <wbr> を入れた hast の子にする (phraseNodes の hast 版) */
+function phraseChildren(text: string): ElementContent[] {
+  return phrases(bindSpaces(text)).flatMap((part, index): ElementContent[] =>
+    index === 0 ? [{ type: 'text', value: part }] : [element('wbr', {}, []), { type: 'text', value: part }]
+  )
+}
+
+function rail(number: number, label: string): Element {
+  return element('div', { className: ['guide-rail'], ariaHidden: 'true' }, [
+    element('span', { className: ['guide-rail__num'] }, [{ type: 'text', value: String(number) }]),
+    ...(label ? [element('span', { className: ['guide-rail__label'] }, phraseChildren(label))] : []),
+  ])
+}
+
+function band(side: Element, nodes: ElementContent[], properties: Element['properties']): Element {
+  return element('section', { className: ['guide-band', 'guide-section'], ...properties }, [
+    element('div', { className: ['guide-frame', 'guide-grid'] }, [side, element('div', { className: ['guide-main'] }, nodes)]),
+  ])
+}
+
+type Group = { heading?: Element; nodes: RootContent[] }
+
+/**
+ * 区画の最後の相談を、独立した区画に出すか。
+ * 見出しの無い区画 (最初の h2 より前) の相談は出す。本文の最後の区画の相談は、その区画が h2 と段落と相談だけ
+ * (「〜を相談するには？」のように相談を紹介する節) なら区画の中に残し、ほかの中身 (更新履歴・出典の一覧など) があれば出す
+ */
+function liftsTrailingCta(group: Group, isLast: boolean, ctaIndex: number): boolean {
+  if (ctaIndex < 0) return false
+  if (!group.heading) return true
+  if (!isLast) return false
+  const others = group.nodes.slice(0, ctaIndex).filter((node) => !isBlank(node) && node !== group.heading)
+  return !others.every((node) => node.type === 'element' && node.tagName === 'p')
+}
+
 /**
  * rehype: 本文を h2 ごとの区画にまとめる。
- * <section class="guide-band guide-section"><div class="guide-frame guide-grid"><div class="guide-rail">番号</div><div class="guide-main">…</div></div></section>
- * 番号は id のある h2 だけに振る (目次に載るものと同じ)
+ * <section class="guide-band guide-section"><div class="guide-frame guide-grid"><div class="guide-rail">番号 名前</div><div class="guide-main">…</div></div></section>
+ * 番号と名前は id のある h2 だけに付ける (目次に載るものと同じ)。
+ * 相談の導線 (```nands-cta) は置かれた区画の中に描く。どの節にも属さない相談だけ独立した区画にする (liftsTrailingCta)
  */
 export function rehypeGuideSections() {
   return (tree: Root) => {
-    const groups: Array<{ heading?: Element; nodes: RootContent[] }> = [{ nodes: [] }]
+    const headingIds = new Set<string>()
+    for (const node of elementsOf(tree)) {
+      if (HEADING_TAGS.has(node.tagName)) headingIds.add(parseHeadingText(textOf(node)).id)
+      if (node.tagName === 'table') labelTableCells(node)
+    }
+
+    const groups: Group[] = [{ nodes: [] }]
     for (const child of tree.children) {
       if (child.type === 'element' && child.tagName === 'h2') groups.push({ heading: child, nodes: [child] })
       else groups[groups.length - 1].nodes.push(child)
     }
 
-    const last = groups[groups.length - 1]
-    const ctaIndex = trailingCta(last.nodes)
-    const cta = ctaIndex >= 0 ? (last.nodes[ctaIndex] as Element) : null
-    if (cta) last.nodes = last.nodes.slice(0, ctaIndex)
-
     const seen = new Set<string>()
     let number = 0
-    const sections = groups
-      .filter((group) => group.nodes.some((node) => !isBlank(node)))
-      .map((group) => {
-        const id = group.heading ? parseHeadingText(textOf(group.heading)).id : ''
-        const numbered = Boolean(id) && !seen.has(id)
-        if (numbered) {
-          seen.add(id)
+    const sections = groups.flatMap((group, groupIndex) => {
+      const ctaIndex = trailingCta(group.nodes)
+      const cta = liftsTrailingCta(group, groupIndex === groups.length - 1, ctaIndex) ? (group.nodes[ctaIndex] as Element) : null
+      const nodes = cta ? group.nodes.slice(0, ctaIndex) : group.nodes
+
+      const out: Element[] = []
+      if (nodes.some((node) => !isBlank(node))) {
+        const heading = group.heading ? parseHeadingText(textOf(group.heading)) : null
+        const numbered = Boolean(heading?.id) && !seen.has(heading?.id ?? '')
+        if (numbered && heading) {
+          seen.add(heading.id)
           number += 1
         }
-        const rail = numbered
-          ? [element('span', { className: ['guide-rail__num'], ariaHidden: 'true' }, [{ type: 'text', value: String(number) }])]
-          : []
-        return element(
-          'section',
-          { className: ['guide-band', 'guide-section'], ...(numbered ? { ariaLabelledBy: id, dataSection: String(number) } : {}) },
-          [
-            element('div', { className: ['guide-frame', 'guide-grid'] }, [
-              element('div', { className: ['guide-rail'] }, rail),
-              element('div', { className: ['guide-main'] }, group.nodes as ElementContent[]),
-            ]),
-          ]
+        out.push(
+          band(
+            numbered && heading ? rail(number, railLabel(heading.text)) : element('div', { className: ['guide-rail'] }, []),
+            nodes as ElementContent[],
+            numbered && heading ? { ariaLabelledBy: heading.id, dataSection: String(number) } : {}
+          )
         )
-      })
-
-    if (cta) {
-      const placed = element('pre', { ...cta.properties, dataPlacement: 'end' }, cta.children)
-      sections.push(
-        element('section', { className: ['guide-band', 'guide-section'], dataKind: 'cta' }, [
-          element('div', { className: ['guide-frame', 'guide-grid'] }, [
-            element('div', { className: ['guide-rail'] }, []),
-            element('div', { className: ['guide-main'] }, [placed]),
-          ]),
-        ])
-      )
-    }
+      }
+      if (cta) {
+        const anchor = headingIds.has(CONSULT_ANCHOR) ? {} : { dataAnchor: CONSULT_ANCHOR }
+        const placed = element('pre', { ...cta.properties, dataPlacement: 'end', ...anchor }, cta.children)
+        out.push(band(element('div', { className: ['guide-rail'] }, []), [placed], { dataKind: 'cta' }))
+      }
+      return out
+    })
     tree.children = sections
   }
 }
@@ -115,9 +181,12 @@ function stripTrailingFragment(children: ReactNode): ReactNode {
   return [...list.slice(0, -1), last.replace(/\s*\{#[^}]+\}\s*$/, '')]
 }
 
-/** 段落・リスト・表のセルに残った {#id} を消す */
+/**
+ * 段落・リスト・表のセルに残った {#id} を消す。消した所だけ詰め、ほかの空白は残す
+ * (リンクやコードの前後の空白 "出典: [リンク]" を消さない)
+ */
 function stripFragmentIds(node: ReactNode): ReactNode {
-  if (typeof node === 'string') return node.replace(/\s*\{#[^}]+\}\s*/g, ' ').trim()
+  if (typeof node === 'string') return node.replace(/\s*\{#[^}]+\}/g, '')
   if (Array.isArray(node)) return node.map(stripFragmentIds)
   return node
 }
@@ -146,7 +215,8 @@ export function buildGuideComponents(guide: GuideRenderContext): Components {
       const fence = guideFence(node)
       if (fence) {
         const placement = node?.properties?.dataPlacement === 'end' ? 'end' : 'inline'
-        return <GuideBlock lang={fence.lang} raw={fence.raw} context={{ ...guide, placement }} />
+        const anchor = typeof node?.properties?.dataAnchor === 'string' ? node.properties.dataAnchor : undefined
+        return <GuideBlock lang={fence.lang} raw={fence.raw} context={{ ...guide, placement, anchor }} />
       }
       return <pre className="guide-code">{children}</pre>
     },
@@ -188,9 +258,10 @@ export function buildGuideComponents(guide: GuideRenderContext): Components {
     li({ children }) {
       return <li>{withPhrases(stripFragmentIds(children))}</li>
     },
-    table({ children }) {
+    table({ node, children }) {
+      const cols = Number(node?.properties?.dataCols ?? 0)
       return (
-        <div className="guide-table">
+        <div className="guide-table" data-cols={cols || undefined} data-reflow={cols >= 4 ? '' : undefined}>
           <table>{children}</table>
         </div>
       )
@@ -198,8 +269,13 @@ export function buildGuideComponents(guide: GuideRenderContext): Components {
     th({ children, style }) {
       return <th style={style}>{withPhrases(stripFragmentIds(children))}</th>
     },
-    td({ children, style }) {
-      return <td style={style}>{withPhrases(stripFragmentIds(children))}</td>
+    td({ node, children, style }) {
+      const label = node?.properties?.dataLabel
+      return (
+        <td style={style} data-label={typeof label === 'string' ? label : undefined}>
+          {withPhrases(stripFragmentIds(children))}
+        </td>
+      )
     },
     strong({ children }) {
       return <strong>{withPhrases(children)}</strong>

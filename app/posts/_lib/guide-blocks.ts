@@ -98,13 +98,18 @@ export const terminalSchema = z
   })
   .strict()
 
+/** ヒーローの見出し (h1) の上限 (文字数)。記事のタイトル (<title>) より短い、表紙用の見出し */
+export const MAX_HERO_HEADING = 30
+
 /**
  * 冒頭の答え (3〜5 行)・AI 利用の明記・ヒーロー画像。最終更新日と著者はページが入れる。
+ * heading = 表紙の h1 (例: Claude Opus 5.5 完全ガイド)。無ければ記事のタイトル。<title> は常に記事のタイトル /
  * lead = タイトルの下の 1 文 / env = 検証の環境 (例: Claude Code 2.1.283、macOS 15.1) /
  * terminal = 実際のコマンドの出力 (あればヒーローの右側は画像ではなくこれ)
  */
 export const heroSchema = z
   .object({
+    heading: safeText(1, MAX_HERO_HEADING).optional(),
     lead: safeText(1, 160).optional(),
     answer: z.array(safeText(1, 200)).min(1).max(5),
     aiNote: safeText(1, 200).optional(),
@@ -146,12 +151,16 @@ export const MAX_CHART_ROWS = 12
 
 /**
  * 横棒グラフ。数字は事実表から入れる (LLM に数字を作らせない)。
- * highlight: true の行だけアクセント色 (当社の推奨・この記事の主役)。note = グラフの下の注記 (色の意味など)
+ * value は数値だけ、単位は unit に書く。表示はサイトが数値 + 単位から作る (本文の表と同じ書き方):
+ * ドル・USD・$ → $0.50 (小数があれば全行 2 桁) / % → 45% / そのほか → 31 秒・1,200 tokens。
+ * highlight: true の行だけアクセント色 (当社の推奨・この記事の主役)。legend = その色の意味 (グラフの上の凡例。
+ * 無ければ強調した行の名前)。note = グラフの下の注記
  */
 export const chartSchema = z
   .object({
     title: safeText(1, 80),
     unit: safeText(1, 16).optional(),
+    legend: safeText(1, 30).optional(),
     source: safeText(1, 160).optional(),
     note: safeText(1, 160).optional(),
     rows: z

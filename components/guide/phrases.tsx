@@ -27,6 +27,9 @@ const MAX_BOUND_LATIN = 20
  * 1. 数字の後の空白 (6 課題 / 2026-09-28 実測 / 18/18 回)。英字の語の後の数字 (Opus 5.5) は除く
  * 2. 英数字や閉じ括弧の後の空白 + ひらがな (Claude Code は / MCP で)
  * 3. 大文字で始まる語 + (大文字で始まる語 | 数字) の並び (Claude Code / Opus 5.5 / Claude Code 2.1.283)。長すぎる並びはつながない
+ * 4. 製品名 + 版 (Opus 5.5・Fable 5.1) は、並びが長くても必ずつなぐ
+ * 5. 空白で囲んだダッシュ (Claude Opus 5.5 - Claude Platform Docs) は後ろの語につなぐ (行末に - を残さない。語の途中のハイフンに見えるため)
+ * 6. 数字 / 英字の単位 ($4 / MTok) はつなぐ
  */
 export function bindSpaces(text: string): string {
   // 製品名の版 (Opus 5.5 完全ガイド) の後ろはつながない (長い 1 つの並びにしない)。その後ろの助詞は 2. でつながる
@@ -37,6 +40,9 @@ export function bindSpaces(text: string): string {
   out = out.replace(/[A-Z][A-Za-z0-9.+#-]*(?:[ \u00a0][A-Z0-9][A-Za-z0-9.+#-]*)+/g, (run) =>
     run.length <= MAX_BOUND_LATIN ? run.replace(/ /g, NBSP) : run
   )
+  out = out.replace(/\b([A-Z][A-Za-z]*) (\d[\d.]*)(?![\d.]*[A-Za-z])/g, `$1${NBSP}$2`)
+  out = out.replace(/(\S) ([-\u2013\u2014]) (?=\S)/g, `$1 $2${NBSP}`)
+  out = out.replace(/(\d)[ \u00a0]\/ (?=[A-Za-z])/g, `$1${NBSP}/${NBSP}`)
   return out
 }
 
@@ -59,8 +65,11 @@ function scriptOf(char: string): Script {
 }
 
 /**
- * 長い文節 (レリバンスエンジニアリング専門家。) を、単語の区切りのうち文字の種類が変わる所 (カタカナ → 漢字、英字 → 漢字) で分ける。
- * ひらがな・約物の前、改行しない空白の隣では分けない (行頭に助詞や句点を置かない)。
+ * 長い文節 (完全ガイド｜使い方・料金・性能を) を、行を分けても読める所だけで分ける。
+ * 1. 区切りの約物の後ろ (使い方・|料金・) と ｜ の前
+ * 2. それでも長い部分だけ、カタカナ・英字 → 2 字以上の漢字の語の所 (エンジニアリング|専門家)。
+ *    漢字 → カタカナ (完全ガイド)・1 字の漢字 (エージェント型) では分けない (複合語を割らない)
+ * ひらがな・行頭に置けない約物の前、改行しない空白の隣では分けない (行頭に助詞や句点を置かない)。
  * 普通の空白はそれ自体が改行の機会なので、長さは空白で区切った 1 つずつで判断し、空白の所には <wbr> を足さない
  */
 function splitLong(phrase: string): string[] {
@@ -71,26 +80,75 @@ function splitLong(phrase: string): string[] {
   }, [])
 }
 
-function splitPiece(piece: string): string[] {
-  if (Array.from(piece).length <= LONG_PHRASE) return [piece]
+/** この約物の後ろでは行を分けてよい */
+const BREAK_AFTER = /[、。，．・：；？！」』）】〕〉》]$/
+/** 区切りの縦線。後ろでは行を分けない (行末に ｜ を残さない)。前では分けてよい */
+const BAR = '｜'
+
+type Boundary = (previous: string, segment: string) => boolean
+
+function canStartLine(previous: string, segment: string): boolean {
+  const first = segment[0]
+  return (
+    !HIRAGANA.test(first) &&
+    !NO_LINE_START.test(first) &&
+    previous.slice(-1) !== NBSP &&
+    previous.slice(-1) !== BAR &&
+    first !== NBSP &&
+    !/\s/.test(first)
+  )
+}
+
+/** 約物の後ろと ｜ の前 */
+const strongBoundary: Boundary = (previous, segment) =>
+  canStartLine(previous, segment) && (BREAK_AFTER.test(previous) || segment.startsWith(BAR))
+
+/** カタカナ・英字 → 2 字以上の漢字の語 */
+const scriptBoundary: Boundary = (previous, segment) => {
+  const last = previous.slice(-1)
+  return (
+    canStartLine(previous, segment) &&
+    (scriptOf(last) === 'kana' || scriptOf(last) === 'latin') &&
+    Array.from(segment).every((char) => scriptOf(char) === 'kanji') &&
+    Array.from(segment).length >= 2
+  )
+}
+
+function splitAt(text: string, boundary: Boundary): string[] {
   wordSegmenter ??= new Intl.Segmenter('ja', { granularity: 'word' })
-  return Array.from(wordSegmenter.segment(piece), (part) => part.segment).reduce<string[]>((parts, segment) => {
+  return Array.from(wordSegmenter.segment(text), (part) => part.segment).reduce<string[]>((parts, segment) => {
     const previous = parts[parts.length - 1]
     if (previous === undefined) return [segment]
-    const last = previous.slice(-1)
-    const first = segment[0]
-    const splittable =
-      !HIRAGANA.test(first) &&
-      !NO_LINE_START.test(first) &&
-      last !== NBSP &&
-      first !== NBSP &&
-      !/\s/.test(first) &&
-      scriptOf(last) !== 'other' &&
-      scriptOf(first) !== 'other' &&
-      scriptOf(last) !== scriptOf(first) &&
-      (JAPANESE.test(last) || JAPANESE.test(first))
-    return splittable ? [...parts, segment] : [...parts.slice(0, -1), previous + segment]
+    return boundary(previous, segment) ? [...parts, segment] : [...parts.slice(0, -1), previous + segment]
   }, [])
+}
+
+const isLong = (text: string) => Array.from(text).length > LONG_PHRASE
+
+function splitPiece(piece: string): string[] {
+  if (!isLong(piece)) return [piece]
+  return splitAt(piece, strongBoundary).flatMap((part) => (isLong(part) ? splitAt(part, scriptBoundary) : [part]))
+}
+
+/** 決して途中で分けない語 (BudouX や長い文節の分割がこの中に区切りを入れたら取り消す) */
+const UNBREAKABLE = ['完全ガイド', '完全保存版']
+
+/** 区切りの位置を直す: 決して分けない語の中の区切りを消し、｜ の直後の区切りは ｜ の前へ移す */
+function repairBoundaries(parts: string[]): string[] {
+  const text = parts.join('')
+  const boundaries = new Set<number>()
+  let position = 0
+  for (const part of parts.slice(0, -1)) {
+    position += part.length
+    boundaries.add(text[position - 1] === BAR && position - 1 > 0 ? position - 1 : position)
+  }
+  for (const word of UNBREAKABLE) {
+    for (let start = text.indexOf(word); start >= 0; start = text.indexOf(word, start + 1)) {
+      for (let inner = start + 1; inner < start + word.length; inner += 1) boundaries.delete(inner)
+    }
+  }
+  const cuts = [0, ...Array.from(boundaries).sort((a, b) => a - b), text.length]
+  return cuts.slice(1).map((end, index) => text.slice(cuts[index], end)).filter((part) => part.length > 0)
 }
 
 /**
@@ -115,12 +173,16 @@ export function phrases(text: string): string[] {
     position += chunk.length
   }
   if (current) out.push(current)
-  return out.length > 0 ? out.flatMap(splitLong) : [text]
+  return out.length > 0 ? repairBoundaries(out.flatMap(splitLong)) : [text]
 }
+
+/** ｜ の直後に単語結合子 (U+2060) を入れる。ブラウザは ｜ の後ろで自分から改行するので、行末に ｜ を残さないため */
+const WORD_JOINER = '\u2060'
+const joinAfterBar = (part: string) => part.replace(/｜(?!\u2060)/g, `｜${WORD_JOINER}`)
 
 /** 文字列を「改行しない空白でつなぎ、文節の区切りに <wbr>」の React の要素にする */
 export function phraseNodes(text: string): ReactNode {
-  const parts = phrases(bindSpaces(text))
+  const parts = phrases(bindSpaces(text)).map(joinAfterBar)
   if (parts.length === 1) return parts[0]
   return createElement(
     Fragment,

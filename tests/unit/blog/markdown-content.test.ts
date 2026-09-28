@@ -36,7 +36,8 @@ describe('MarkdownContent (サーバー部品) の出力', () => {
       ].join('\n')
     )
     expect(html).toContain('data-guide-block="stats"')
-    expect(html).toContain('<dd class="guide-stats__value">20<span class="guide-stats__unit">ドル</span></dd>')
+    // 数値 + 単位は本文の表・グラフと同じ書き方 (ドルは $20)
+    expect(html).toContain('<dd class="guide-stats__value">$20</dd>')
     expect(html).toContain('data-tone="warning"')
     expect(html).not.toContain('{&quot;items&quot;')
     expect(html).not.toContain('"items"')
@@ -167,10 +168,15 @@ describe('見本のガイドをページの部品で描く', () => {
     expect(html).toContain('<dt>検証の環境</dt>')
   })
 
-  it('ヒーローの右側は実際のコマンドの出力 (窓の飾りなし)。terminal があれば画像は出さない', () => {
+  it('ヒーローの右側は実際のコマンドの出力 (窓の飾りなし)。terminal があれば画像は出さない。折り返しは空白の所だけ', () => {
     expect(html).toContain('<figure class="guide-term" data-guide-block="terminal">')
-    expect(html).toContain('<span class="guide-term__cmd" data-first=""><span class="guide-term__prompt" aria-hidden="true">$ </span>claude --version\n</span>')
-    expect(html).toContain('<span class="guide-term__out">2.1.283 (Claude Code)\n</span>')
+    // 空白で区切った 1 語ずつを折り返さない span にする (--scope や claude-opus-5-5 のハイフンで折らない)
+    expect(html).toContain(
+      '<span class="guide-term__cmd" data-first=""><span class="guide-term__prompt" aria-hidden="true">$ </span><span class="guide-term__tok">claude</span> <span class="guide-term__tok">--version</span>\n</span>'
+    )
+    expect(html).toContain(
+      '<span class="guide-term__out"><span class="guide-term__tok">2.1.283</span> <span class="guide-term__tok">(Claude</span> <span class="guide-term__tok">Code)</span>\n</span>'
+    )
     expect(html).toContain('<figcaption class="guide-term__caption">')
     expect(html).not.toMatch(/term-bar|<i><\/i>/)
     expect(html).not.toContain('<img')
@@ -199,23 +205,31 @@ describe('見本のガイドをページの部品で描く', () => {
     expect(html).toContain('# 手元で動く MCP サーバー (stdio)')
   })
 
-  it('本文は h2 ごとの区画。左の列の番号は目次の番号と同じ。最後の相談は独立した区画 (見出しは h2)', () => {
+  it('本文は h2 ごとの区画。左の列は目次と同じ番号 + h2 から作った短い名前。出典の一覧の後ろの相談はページを締める独立した区画 (見出しは h2)', () => {
     const sections = Array.from(html.matchAll(/<section class="guide-band guide-section"([^>]*)>/g), (m) => m[1])
     expect(sections).toHaveLength(8)
     expect(sections[0]).toBe(' aria-labelledby="summary" data-section="1"')
     expect(sections[6]).toBe(' aria-labelledby="sources" data-section="7"')
     expect(sections[7]).toBe(' data-kind="cta"')
-    expect(html).toContain('<div class="guide-rail"><span class="guide-rail__num" aria-hidden="true">3</span></div>')
+    // 「Claude Code は外部のツールとどうつながる？」→ 製品名と「？」を除いた名前 (文節の区切りに <wbr>)
+    expect(html).toContain(
+      '<div class="guide-rail" aria-hidden="true"><span class="guide-rail__num">3</span><span class="guide-rail__label">外部の<wbr/>ツールと<wbr/>どう<wbr/>つながる</span></div>'
+    )
+    expect(html).toContain('<span class="guide-rail__num">7</span><span class="guide-rail__label">出典</span>')
     const tocNumbers = Array.from(html.matchAll(/<span class="guide-toc__num" aria-hidden="true">(\d+)<\/span>/g), (m) => m[1])
     expect(tocNumbers).toEqual(['1', '2', '3', '4', '5', '6', '7'])
-    expect(html).toMatch(/<section class="guide-cta" data-guide-block="cta" data-placement="end" aria-label="Claude Code の導入を相談する"><h2 class="guide-cta__title" id="guide-consult">/)
+    expect(html).toMatch(
+      /<section class="guide-cta" data-guide-block="cta" data-placement="end" data-form="" aria-label="Claude Code の導入を相談する"><h2 class="guide-cta__title" id="guide-consult">/
+    )
+    expect((html.match(/id="guide-consult"/g) ?? []).length).toBe(1)
   })
 
   it('本文の素の要素にはクラスを付けない (Tailwind の見た目を持ち込まない)。見出しと表の見出しは文節の区切りに <wbr>', () => {
     expect(html).toMatch(/<h2 id="compare" class="guide-h2">どの<wbr\/>モデルを<wbr\/>選べばいい？<wbr\/>同じ<wbr\/>課題で<wbr\/>測りました<\/h2>/)
-    expect(html).toContain('<div class="guide-table"><table>')
     expect(html).toContain('<th style="text-align:right">時間の<wbr/>中央値 (秒)</th>')
-    expect(html).toContain('<td style="text-align:right">0.15</td>')
+    // セルは列の見出しを data-label に持つ (スマホで「列名 / 値」に組み替える)。4 列以上の表は組み替えの印
+    expect(html).toContain('<td style="text-align:right" data-label="費用の中央値 (ドル)">0.15</td>')
+    expect(html).toContain('<div class="guide-table" data-cols="5" data-reflow=""><table>')
     expect(html).toMatch(/<p>この<wbr\/>難しさの<wbr\/>課題では、/)
     expect(html).not.toMatch(/class="[^"]*(text-gray|bg-gray|border-l-4|highlight-marker|prose)/)
     expect(html).toContain('<pre class="guide-code"><code class="language-bash">')
@@ -228,11 +242,19 @@ describe('見本のガイドをページの部品で描く', () => {
     expect(html).not.toMatch(/&quot;(items|rows|nodes|entries|root|lines)&quot;/)
   })
 
-  it('選び方: JS なしの入れ子の <details> と、常に見える結論の一覧', () => {
-    expect((html.match(/<details class="guide-decide__option">/g) ?? []).length).toBe(4)
-    expect(html).toContain('<span class="guide-decide__path">はい → はい</span>')
-    expect(html).toContain('<strong class="guide-decide__result-title">Opus\u00a05.5\u00a0の<wbr/> high</strong>')
-    expect(html).toMatch(/<div class="guide-decide__summary">(?:(?!<details).)*まずは/s)
+  it('選び方: 質問 → 答え → 結論の木を常に全部見せる (折りたたみ・チェックボックスの印を使わない)', () => {
+    const decide = html.slice(html.indexOf('data-guide-block="decide"'), html.indexOf('</figure>', html.indexOf('data-guide-block="decide"')))
+    expect(decide).not.toContain('<details')
+    expect(decide).not.toContain('<summary')
+    // 質問は読む順に Q1・Q2
+    expect(Array.from(decide.matchAll(/<span class="guide-decide__q">(Q\d)<\/span>/g), (m) => m[1])).toEqual(['Q1', 'Q2'])
+    // 結論 3 つ。結論のある答えには矢じりの線
+    expect((decide.match(/data-kind="result"/g) ?? []).length).toBe(3)
+    expect((decide.match(/class="guide-decide__arrow"/g) ?? []).length).toBe(3)
+    expect(decide).toContain('<p class="guide-decide__result-title">Opus\u00a05.5\u00a0の<wbr/> high</p>')
+    // 次の質問は答えの枝の中 (入れ子)
+    expect(decide).toMatch(/data-kind="next"><span class="guide-decide__answer"><span class="guide-decide__label">はい<\/span><\/span><div class="guide-decide__node">/)
+    expect(decide).toContain('まずは')
   })
 
   it('相談フォーム: source は guide:<slug>、JS なしでも POST (URL に個人情報を載せない)。送信後の文章は :target で出す', () => {
@@ -258,5 +280,85 @@ describe('見本のガイドをページの部品で描く', () => {
     const out = process.env.GUIDE_FIXTURE_OUT
     if (out) writeFileSync(out, html)
     expect(html.length).toBeGreaterThan(1000)
+  })
+})
+
+describe('相談の導線の置き場所 (区画の中か、独立した区画か)', () => {
+  const guideHtml = (md: string) => renderToStaticMarkup(renderMarkdown(md, { slug: 'g' }).element)
+  const FORM_CTA = ['```nands-cta', '{"title":"相談する","body":"送ってください。","form":true}', '```'].join('\n')
+  const BUTTON_CTA = ['```nands-cta', '{"title":"導入を相談する","button":{"label":"相談フォームへ","href":"/posts/g#guide-consult"}}', '```'].join('\n')
+  const count = (html: string, pattern: RegExp) => (html.match(pattern) ?? []).length
+
+  it('「〜を相談するには？」の節 (h2 + 段落 + 相談) の相談は、その節の中に描く。見出しを増やさず、id は 1 つだけ', () => {
+    const html = guideHtml(['## 料金 {#pricing}', '本文', '', '## 導入を相談するには？ {#guide-consult}', '説明の 1 文です。', '', FORM_CTA].join('\n'))
+    expect(count(html, /<section class="guide-band guide-section"/g)).toBe(2)
+    expect(html).not.toContain('data-kind="cta"')
+    expect(html).toContain('<section class="guide-cta" data-guide-block="cta" data-placement="inline" data-form="" aria-label="相談する"><p class="guide-cta__title">')
+    expect(count(html, /<h2/g)).toBe(2)
+    expect(count(html, /id="guide-consult"/g)).toBe(1)
+  })
+
+  it('本文の途中の相談は、置かれた節の中 (見出しは p)', () => {
+    const html = guideHtml(['## 実測 {#measured}', '本文', '', BUTTON_CTA, '', '## 次 {#next}', '本文'].join('\n'))
+    expect(html).toMatch(/aria-labelledby="measured"[\s\S]*data-placement="inline"[\s\S]*aria-labelledby="next"/)
+    expect(html).not.toContain('data-kind="cta"')
+  })
+
+  it('一覧や表の後ろでページを締める相談 (更新履歴の後ろなど) は独立した区画。題を h2 (id guide-consult) にする', () => {
+    const changelog = ['```nands-changelog', '{"entries":[{"date":"2026-09-28","change":"初版"}]}', '```'].join('\n')
+    const html = guideHtml(['## 更新履歴 {#guide-changelog}', '説明', '', changelog, '', FORM_CTA].join('\n'))
+    expect(html).toContain('data-kind="cta"')
+    expect(html).toContain('<h2 class="guide-cta__title" id="guide-consult">')
+    expect(html.indexOf('data-guide-block="changelog"')).toBeLessThan(html.indexOf('data-kind="cta"'))
+  })
+
+  it('見出しの下に無い相談も独立した区画。本文の見出しが guide-consult を使っていれば、区画の h2 には id を付けない', () => {
+    expect(guideHtml(['前置き', '', FORM_CTA].join('\n'))).toContain('<h2 class="guide-cta__title" id="guide-consult">')
+    const html = guideHtml(['## 相談 {#guide-consult}', '- 一覧', '', FORM_CTA].join('\n'))
+    expect(html).toContain('data-kind="cta"')
+    expect(count(html, /id="guide-consult"/g)).toBe(1)
+    expect(html).toContain('<h2 class="guide-cta__title">')
+  })
+})
+
+describe('ガイドの本文の細部', () => {
+  const guideHtml = (md: string) => renderToStaticMarkup(renderMarkdown(md, { slug: 'g' }).element)
+
+  it('段落の中のリンク・コードの前後の空白を消さない (「出典: リンク」が「出典:リンク」にならない)', () => {
+    const html = guideHtml('## A {#a}\n\n出典: [Docs](https://example.com/docs) と `--model` の説明')
+    expect(html).toContain('出典: <a href="https://example.com/docs"')
+    expect(html).toContain('</a> と<wbr/> <code>--model</code> の')
+  })
+
+  it('要点の数字: 文字列の「数字 + 単位」は数字と単位に分けて描く (単位を小さく)', () => {
+    const html = guideHtml(['## A {#a}', '```nands-stats', '{"items":[{"label":"時間","value":"0.49 倍"},{"label":"成功","value":"12/12"}]}', '```'].join('\n'))
+    expect(html).toContain('<dd class="guide-stats__value">0.49<span class="guide-stats__unit" data-spaced="">倍</span></dd>')
+    expect(html).toContain('<dd class="guide-stats__value">12/12</dd>')
+  })
+})
+
+describe('表紙の h1 (hero.heading)', () => {
+  const heroHtml = (title: string, heading?: string) =>
+    renderToStaticMarkup(
+      React.createElement(GuideHero, {
+        title,
+        hero: { answer: ['答え'], ...(heading ? { heading } : {}) },
+        modifiedAt: '2026-09-28T00:00:00+09:00',
+        author: { name: '原田賢治', href: '/author/harada-kenji' },
+        fallbackImage: null,
+      })
+    )
+
+  it('hero.heading があれば h1 はそれ (記事のタイトルは <title> 用)', () => {
+    const html = heroHtml('Claude Opus 5.5 完全ガイド｜使い方・料金・性能を実測で比較', 'Claude Opus 5.5 完全ガイド')
+    expect(html).toMatch(/<h1 id="main-title" class="guide-hero__title" data-size="[lms]">Claude Opus 5.5 完全ガイド<\/h1>/)
+    expect(html).not.toContain('使い方・')
+  })
+
+  it('無ければ記事のタイトル。「主題｜副題」は副題を下の行に分け、｜ は読み上げ用に残して画面には出さない', () => {
+    const html = heroHtml('Claude Opus 5.5 完全ガイド｜使い方・料金・性能を実測で比較')
+    expect(html).toContain(
+      '<span class="guide-hero__title-main">Claude Opus 5.5 完全ガイド</span><span class="guide-sr">｜</span><span class="guide-hero__title-sub">使い方・料金・性能を<wbr/>実測で<wbr/>比較</span>'
+    )
   })
 })

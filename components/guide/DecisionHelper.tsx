@@ -1,31 +1,29 @@
+import type { CSSProperties } from 'react'
 import type { DecideBlock, DecideNode, DecideResult } from '@/app/posts/_lib/guide-blocks'
 import { isExternalUrl } from './format'
 import { Phrases } from './phrases'
 
-interface Conclusion {
-  readonly path: readonly string[]
-  readonly result: DecideResult
+/** 質問の番号 (上から読む順: Q1, Q2, ...) */
+export function numberQuestions(root: DecideNode): Map<DecideNode, number> {
+  const numbers = new Map<DecideNode, number>()
+  const visit = (node: DecideNode) => {
+    numbers.set(node, numbers.size + 1)
+    node.options.forEach((option) => option.next && visit(option.next))
+  }
+  visit(root)
+  return numbers
 }
 
-/** 木のすべての行き先 (選んだ順の道のり + 結論)。結論を文章でも出すために使う */
-export function decideConclusions(node: DecideNode, path: readonly string[] = []): Conclusion[] {
-  return node.options.flatMap((option) => {
-    const next = [...path, option.label]
-    if (option.result) return [{ path: next, result: option.result }]
-    return option.next ? decideConclusions(option.next, next) : []
-  })
-}
-
-function ResultText({ result }: { result: DecideResult }) {
+function Result({ result }: { result: DecideResult }) {
   return (
-    <>
-      <strong className="guide-decide__result-title">
+    <div className="guide-decide__result">
+      <p className="guide-decide__result-title">
         <Phrases text={result.title} />
-      </strong>
+      </p>
       {result.body && (
-        <span className="guide-decide__result-body">
+        <p className="guide-decide__result-body">
           <Phrases text={result.body} />
-        </span>
+        </p>
       )}
       {result.href && (
         <a
@@ -36,65 +34,56 @@ function ResultText({ result }: { result: DecideResult }) {
           詳しく読む
         </a>
       )}
-    </>
+    </div>
   )
 }
 
-function Question({ node, depth }: { node: DecideNode; depth: number }) {
+function Question({ node, depth, numbers }: { node: DecideNode; depth: number; numbers: Map<DecideNode, number> }) {
   return (
-    <div className="guide-decide__node" data-depth={depth}>
+    <div className="guide-decide__node">
       <p className="guide-decide__question">
-        <Phrases text={node.question} />
+        <span className="guide-decide__q">Q{numbers.get(node)}</span>
+        <span className="guide-decide__question-text">
+          <Phrases text={node.question} />
+        </span>
       </p>
-      {node.options.map((option, index) => (
-        <details className="guide-decide__option" key={index}>
-          <summary className="guide-decide__label">
-            <Phrases text={option.label} />
-          </summary>
-          {option.result ? (
-            <p className="guide-decide__result">
-              <ResultText result={option.result} />
-            </p>
-          ) : (
-            option.next && <Question node={option.next} depth={depth + 1} />
-          )}
-        </details>
-      ))}
+      <ul className="guide-decide__branches" style={{ '--d': depth } as CSSProperties}>
+        {node.options.map((option, index) => (
+          <li className="guide-decide__branch" data-kind={option.result ? 'result' : 'next'} key={index}>
+            <span className="guide-decide__answer">
+              <span className="guide-decide__label">
+                <Phrases text={option.label} />
+              </span>
+              {option.result && <span className="guide-decide__arrow" aria-hidden="true" />}
+            </span>
+            {option.result ? (
+              <Result result={option.result} />
+            ) : (
+              option.next && <Question node={option.next} depth={depth + 1} numbers={numbers} />
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
 
 /**
- * 選び方チャート。JS を使わない入れ子の <details> と、すべての結論の一覧 (常に表示) を出す。
- * 結論を折りたたみの中だけに置かない (検索エンジン・AI・読み上げに全文が届くように)。
+ * 選び方チャート。質問 → 答え → 結論を、図の線 (点線・矢じり) でつないだ木として常に全部見せる
+ * (折りたたみに結論を隠さない: 検索エンジン・AI・読み上げに全文が届く。JS は使わない)。
+ * PC では結論の箱を同じ位置に揃えて読める幅を取り、スマホでは答えの下に結論を置く。見た目は guide.css の .guide-decide*
  */
 export default function DecisionHelper({ block }: { block: DecideBlock }) {
-  const conclusions = decideConclusions(block.root)
   return (
-    <div className="guide-decide" data-guide-block="decide">
+    <figure className="guide-decide" data-guide-block="decide">
       {block.title && (
-        <p className="guide-caption guide-decide__title">
+        <figcaption className="guide-caption guide-decide__title">
           <Phrases text={block.title} />
-        </p>
+        </figcaption>
       )}
-      <div className="guide-decide__grid">
-        <div className="guide-decide__tree">
-          <Question node={block.root} depth={1} />
-        </div>
-        <div className="guide-decide__summary">
-          <p className="guide-decide__summary-title">結論の一覧</p>
-          <ul className="guide-decide__summary-list">
-            {conclusions.map((conclusion, index) => (
-              <li className="guide-decide__summary-item" key={index}>
-                <span className="guide-decide__path">{conclusion.path.join(' → ')}</span>
-                <span className="guide-decide__outcome">
-                  <ResultText result={conclusion.result} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="guide-decide__tree">
+        <Question node={block.root} depth={1} numbers={numberQuestions(block.root)} />
       </div>
-    </div>
+    </figure>
   )
 }
