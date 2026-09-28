@@ -68,11 +68,48 @@ const finiteNumber = z.number().finite()
 // ブロックごとのスキーマ
 // ---------------------------------------------------------------------------
 
-/** 冒頭の答え (3〜5 行)・AI 利用の明記・ヒーロー画像。最終更新日と著者はページが入れる */
+/** ターミナルの 1 行の上限 (文字数) と行数の上限 */
+export const MAX_TERMINAL_LINE = 200
+export const MAX_TERMINAL_LINES = 16
+
+/**
+ * ターミナルの 1 行。前後の空白 (字下げ) は残す。'<' と制御文字 (タブを含む) は不可、空白だけの行も不可
+ */
+const terminalText = z
+  .string()
+  .min(1)
+  .max(MAX_TERMINAL_LINE)
+  .refine((value) => value.trim().length > 0, '空白だけの行は書けません')
+  .refine((value) => !value.includes('<'), NO_LT_MESSAGE)
+  .refine((value) => !/[\u0000-\u001F\u007F]/.test(value), '制御文字は使えません')
+
+/**
+ * 実際に実行したコマンドと出力 (ヒーローの右側に出す)。kind: cmd = 入力したコマンド / out = その出力。
+ * 作り物の画面の飾り (窓の 3 つの丸など) は描かない。caption に「どの版で実行したか」を書く
+ */
+export const terminalSchema = z
+  .object({
+    lines: z
+      .array(z.object({ kind: z.enum(['cmd', 'out']), text: terminalText }).strict())
+      .min(1)
+      .max(MAX_TERMINAL_LINES)
+      .refine((lines) => lines.length === 0 || lines[0].kind === 'cmd', '最初の行はコマンド (cmd) です'),
+    caption: safeText(1, 160).optional(),
+  })
+  .strict()
+
+/**
+ * 冒頭の答え (3〜5 行)・AI 利用の明記・ヒーロー画像。最終更新日と著者はページが入れる。
+ * lead = タイトルの下の 1 文 / env = 検証の環境 (例: Claude Code 2.1.283、macOS 15.1) /
+ * terminal = 実際のコマンドの出力 (あればヒーローの右側は画像ではなくこれ)
+ */
 export const heroSchema = z
   .object({
+    lead: safeText(1, 160).optional(),
     answer: z.array(safeText(1, 200)).min(1).max(5),
     aiNote: safeText(1, 200).optional(),
+    env: safeText(1, 80).optional(),
+    terminal: terminalSchema.optional(),
     image: z
       .object({
         src: safeUrl,
@@ -107,19 +144,24 @@ export const statsSchema = z
 
 export const MAX_CHART_ROWS = 12
 
-/** 横棒グラフ。数字は事実表から入れる (LLM に数字を作らせない) */
+/**
+ * 横棒グラフ。数字は事実表から入れる (LLM に数字を作らせない)。
+ * highlight: true の行だけアクセント色 (当社の推奨・この記事の主役)。note = グラフの下の注記 (色の意味など)
+ */
 export const chartSchema = z
   .object({
     title: safeText(1, 80),
     unit: safeText(1, 16).optional(),
     source: safeText(1, 160).optional(),
+    note: safeText(1, 160).optional(),
     rows: z
       .array(
         z
           .object({
-            label: safeText(1, 40),
+            label: safeText(1, 24),
             value: finiteNumber.min(0),
-            note: safeText(1, 80).optional(),
+            note: safeText(1, 40).optional(),
+            highlight: z.boolean().optional(),
           })
           .strict()
       )
@@ -206,13 +248,17 @@ export const decideSchema = z
 
 export const DIAGRAM_KINDS = ['flow', 'timeline', 'cards'] as const
 export const MAX_DIAGRAM_NODES = 8
-/** flow の 1 段に横に並べられる数 */
-export const MAX_FLOW_NODES_PER_LAYER = 4
+/** flow の 1 段に並べられる数 (スマホの幅で 1 段に並べて読める数) */
+export const MAX_FLOW_NODES_PER_LAYER = 3
+/** flow の箱の文字の上限 (箱は小さいので短く。長い説明は本文に書く)。timeline・cards は 40 / 60 字まで */
+export const MAX_FLOW_LABEL = 24
+export const MAX_FLOW_SUB = 40
 
 export interface DiagramNodeSpec {
   id: string
   label: string
   sub?: string
+  emphasis?: boolean
 }
 
 export interface DiagramEdgeSpec {
@@ -264,6 +310,8 @@ export const diagramSchema = z
             id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,23}$/, 'id は英小文字・数字・_- の 24 文字まで'),
             label: safeText(1, 40),
             sub: safeText(1, 60).optional(),
+            // 図の主役の箱 (濃い色で描く)。1 つの図に 2 つまで
+            emphasis: z.boolean().optional(),
           })
           .strict()
       )
@@ -290,6 +338,19 @@ export const diagramSchema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'ノードの id が重複しています', path: ['nodes'] })
       return
     }
+    if (value.nodes.filter((node) => node.emphasis).length > 2) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'emphasis は 1 つの図に 2 つまでです', path: ['nodes'] })
+    }
+    if (value.kind === 'flow') {
+      value.nodes.forEach((node, index) => {
+        if (node.label.length > MAX_FLOW_LABEL) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: `flow の箱の label は ${MAX_FLOW_LABEL} 字までです`, path: ['nodes', index, 'label'] })
+        }
+        if (node.sub && node.sub.length > MAX_FLOW_SUB) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: `flow の箱の sub は ${MAX_FLOW_SUB} 字までです`, path: ['nodes', index, 'sub'] })
+        }
+      })
+    }
     if (value.kind !== 'flow' && value.edges.length > 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${value.kind} には edges を書きません`, path: ['edges'] })
       return
@@ -315,6 +376,19 @@ export const diagramSchema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'flow に循環があります', path: ['edges'] })
       return
     }
+    // ラベル (チップ) はその線だけが通る区間に置く。分岐する箱から合流する箱への線にはその区間が無い
+    value.edges.forEach((edge, index) => {
+      if (!edge.label) return
+      const fanOut = value.edges.filter((e) => e.from === edge.from).length > 1
+      const fanIn = value.edges.filter((e) => e.to === edge.to).length > 1
+      if (fanOut && fanIn) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'ラベルは、分岐の先 (入る線が 1 本の箱への線) か合流の元 (出る線が 1 本の箱からの線) にだけ付けられます',
+          path: ['edges', index, 'label'],
+        })
+      }
+    })
     const widest = Math.max(...layers.map((layer) => layers.filter((l) => l === layer).length))
     if (widest > MAX_FLOW_NODES_PER_LAYER) {
       ctx.addIssue({
@@ -363,23 +437,31 @@ export const sourcesSchema = z
   })
   .strict()
 
-/** 相談の導線。form: true でページ内の相談フォーム (source: guide:<slug>) を出す */
+const ctaLink = z
+  .object({
+    label: safeText(1, 30),
+    href: safeUrl,
+  })
+  .strict()
+
+/**
+ * 相談の導線。操作は主 1 つ・副 1 つまで: 主 = button (または form: true のページ内フォームの送信)、
+ * 副 = secondary (関連記事などへのリンク)。フォームの source は guide:<slug>
+ */
 export const ctaSchema = z
   .object({
     title: safeText(1, 60),
     body: safeText(1, 300).optional(),
-    button: z
-      .object({
-        label: safeText(1, 30),
-        href: safeUrl,
-      })
-      .strict()
-      .optional(),
+    button: ctaLink.optional(),
+    secondary: ctaLink.optional(),
     form: z.boolean().optional(),
   })
   .strict()
   .refine((value) => value.button !== undefined || value.form === true, {
     message: 'button か form: true のどちらかが要ります',
+  })
+  .refine((value) => !(value.button !== undefined && value.form === true), {
+    message: '主の操作は 1 つだけです (button と form: true は同時に使えません)',
   })
 
 export const GUIDE_BLOCK_SCHEMAS = {
@@ -405,6 +487,7 @@ export type DiagramBlock = z.infer<typeof diagramSchema>
 export type ChangelogBlock = z.infer<typeof changelogSchema>
 export type SourcesBlock = z.infer<typeof sourcesSchema>
 export type CtaBlock = z.infer<typeof ctaSchema>
+export type TerminalBlock = z.infer<typeof terminalSchema>
 
 export type GuideBlock = {
   [K in GuideBlockLang]: { type: K; data: z.infer<(typeof GUIDE_BLOCK_SCHEMAS)[K]> }

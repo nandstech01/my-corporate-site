@@ -174,11 +174,21 @@ describe('parseGuideBlock: 図と選び方の整合', () => {
     )
   })
 
-  it('diagram: flow の 1 段は 4 つまで', () => {
-    const nodes = ['root', 'a', 'b', 'c', 'd', 'e'].map(node)
-    const edges = ['a', 'b', 'c', 'd', 'e'].map((to) => ({ from: 'root', to }))
-    expectError('nands-diagram', json({ kind: 'flow', title: 't', nodes, edges }), /4 つまで/)
-    expect(parseGuideBlock('nands-diagram', json({ kind: 'flow', title: 't', nodes: nodes.slice(0, 5), edges: edges.slice(0, 4) })).ok).toBe(true)
+  it('diagram: flow の 1 段は 3 つまで (スマホの幅で 1 段に並べて読める数)', () => {
+    const nodes = ['root', 'a', 'b', 'c', 'd'].map(node)
+    const edges = ['a', 'b', 'c', 'd'].map((to) => ({ from: 'root', to }))
+    expectError('nands-diagram', json({ kind: 'flow', title: 't', nodes, edges }), /3 つまで/)
+    expect(parseGuideBlock('nands-diagram', json({ kind: 'flow', title: 't', nodes: nodes.slice(0, 4), edges: edges.slice(0, 3) })).ok).toBe(true)
+  })
+
+  it('diagram: flow の箱の文字は label 24 字・sub 40 字まで (timeline・cards は 40 / 60 字まで)。emphasis は 2 つまで', () => {
+    const long = (n: number) => 'あ'.repeat(n)
+    expectError('nands-diagram', json({ kind: 'flow', title: 't', nodes: [{ id: 'a', label: long(25) }] }), /24 字/)
+    expectError('nands-diagram', json({ kind: 'flow', title: 't', nodes: [{ id: 'a', label: 'a', sub: long(41) }] }), /40 字/)
+    expect(parseGuideBlock('nands-diagram', json({ kind: 'timeline', title: 't', nodes: [{ id: 'a', label: long(40), sub: long(60) }] })).ok).toBe(true)
+    const emphasised = ['a', 'b', 'c'].map((id) => ({ id, label: id, emphasis: true }))
+    expectError('nands-diagram', json({ kind: 'cards', title: 't', nodes: emphasised }), /emphasis/)
+    expect(parseGuideBlock('nands-diagram', json({ kind: 'cards', title: 't', nodes: emphasised.slice(0, 2) })).ok).toBe(true)
   })
 
   it('decide: 選択肢は result か next のどちらか 1 つ、深さは 3 段まで', () => {
@@ -194,9 +204,49 @@ describe('parseGuideBlock: 図と選び方の整合', () => {
     expectError('nands-decide', json({ root: nest(4) }), /3 段/)
   })
 
-  it('cta: button か form のどちらかが要る', () => {
+  it('cta: 主の操作は button か form のどちらか 1 つ。副の操作 (secondary) も URL の規則を守る', () => {
     expectError('nands-cta', json({ title: '相談' }), /button か form/)
     expect(parseGuideBlock('nands-cta', json({ title: '相談', form: true })).ok).toBe(true)
+    expectError('nands-cta', json({ title: '相談', form: true, button: { label: 'b', href: '/contact' } }), /1 つだけ/)
+    expect(parseGuideBlock('nands-cta', json({ title: '相談', form: true, secondary: { label: '記事', href: '/posts/x' } })).ok).toBe(true)
+    expectError('nands-cta', json({ title: '相談', form: true, secondary: { label: '記事', href: 'javascript:x' } }))
+  })
+})
+
+describe('hero: 一文の説明・検証の環境・実際のコマンドの出力 (terminal)', () => {
+  const lines = [
+    { kind: 'cmd', text: 'claude --version' },
+    { kind: 'out', text: '2.1.283 (Claude Code)' },
+  ]
+
+  it('terminal は cmd / out の行。字下げは残す', () => {
+    const result = parseGuideBlock(
+      'nands-hero',
+      json({ lead: '説明', answer: ['a'], env: 'macOS 15.1', terminal: { lines: [...lines, { kind: 'out', text: '  - indented' }], caption: '実行した出力' } })
+    )
+    expect(result.ok).toBe(true)
+    if (result.ok && result.block.type === 'nands-hero') {
+      expect(result.block.data.terminal?.lines[2].text).toBe('  - indented')
+      expect(result.block.data.env).toBe('macOS 15.1')
+    }
+  })
+
+  it('terminal の上限と禁止: 16 行・1 行 200 字まで、最初はコマンド、< と制御文字と空白だけの行は不可、知らない種類は不可', () => {
+    const many = Array.from({ length: 17 }, (_, i) => ({ kind: i === 0 ? 'cmd' : 'out', text: `line ${i}` }))
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: many } }), /lines/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'cmd', text: 'x'.repeat(201) }] } }))
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'out', text: 'ok' }] } }), /コマンド/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'cmd', text: 'echo <b>' }] } }), /'<'/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'cmd', text: 'a\u001b[31m' }] } }), /制御文字/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'cmd', text: '   ' }] } }), /空白/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [{ kind: 'prompt', text: 'x' }] } }))
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines, theme: 'mac' } }), /Unrecognized key/)
+    expectError('nands-hero', json({ answer: ['a'], terminal: { lines: [] } }))
+  })
+
+  it('chart の行の highlight は真偽値だけ', () => {
+    expect(parseGuideBlock('nands-chart', json({ title: 't', rows: [{ label: 'a', value: 1, highlight: true }] })).ok).toBe(true)
+    expectError('nands-chart', json({ title: 't', rows: [{ label: 'a', value: 1, highlight: 'yes' }] }))
   })
 })
 
@@ -225,7 +275,8 @@ describe('extractGuideBlocks / latestChangelogDate / splitGuideHero', () => {
   it('最初の hero を取り出し、本文からそのフェンスだけを除く', () => {
     const { hero, body, error } = splitGuideHero(FIXTURE)
     expect(error).toBeUndefined()
-    expect(hero?.answer).toHaveLength(3)
+    expect(hero?.answer).toHaveLength(4)
+    expect(hero?.terminal?.lines[0]).toEqual({ kind: 'cmd', text: 'claude --version' })
     expect(body).not.toContain('nands-hero')
     expect(body).toContain('## この記事でわかること {#summary}')
     expect(extractGuideBlocks(body)).toHaveLength(9)

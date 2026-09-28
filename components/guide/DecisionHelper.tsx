@@ -1,5 +1,6 @@
 import type { DecideBlock, DecideNode, DecideResult } from '@/app/posts/_lib/guide-blocks'
 import { isExternalUrl } from './format'
+import { Phrases } from './phrases'
 
 interface Conclusion {
   readonly path: readonly string[]
@@ -18,15 +19,21 @@ export function decideConclusions(node: DecideNode, path: readonly string[] = []
 function ResultText({ result }: { result: DecideResult }) {
   return (
     <>
-      <strong className="guide-decide__result-title">{result.title}</strong>
-      {result.body && <span className="guide-decide__result-body">{result.body}</span>}
+      <strong className="guide-decide__result-title">
+        <Phrases text={result.title} />
+      </strong>
+      {result.body && (
+        <span className="guide-decide__result-body">
+          <Phrases text={result.body} />
+        </span>
+      )}
       {result.href && (
         <a
           className="guide-decide__result-link"
           href={result.href}
           {...(isExternalUrl(result.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         >
-          詳しく
+          詳しく読む
         </a>
       )}
     </>
@@ -36,10 +43,14 @@ function ResultText({ result }: { result: DecideResult }) {
 function Question({ node, depth }: { node: DecideNode; depth: number }) {
   return (
     <div className="guide-decide__node" data-depth={depth}>
-      <p className="guide-decide__question">{node.question}</p>
+      <p className="guide-decide__question">
+        <Phrases text={node.question} />
+      </p>
       {node.options.map((option, index) => (
         <details className="guide-decide__option" key={index}>
-          <summary className="guide-decide__label">{option.label}</summary>
+          <summary className="guide-decide__label">
+            <Phrases text={option.label} />
+          </summary>
           {option.result ? (
             <p className="guide-decide__result">
               <ResultText result={option.result} />
@@ -61,21 +72,28 @@ export default function DecisionHelper({ block }: { block: DecideBlock }) {
   const conclusions = decideConclusions(block.root)
   return (
     <div className="guide-decide" data-guide-block="decide">
-      {block.title && <p className="guide-decide__title">{block.title}</p>}
-      <Question node={block.root} depth={1} />
-      <div className="guide-decide__summary">
-        <p className="guide-decide__summary-title">結論の一覧</p>
-        <ul className="guide-decide__summary-list">
-          {conclusions.map((conclusion, index) => (
-            <li className="guide-decide__summary-item" key={index}>
-              <span className="guide-decide__path">{conclusion.path.join(' → ')}</span>
-              <span className="guide-decide__arrow" aria-hidden="true">
-                :{' '}
-              </span>
-              <ResultText result={conclusion.result} />
-            </li>
-          ))}
-        </ul>
+      {block.title && (
+        <p className="guide-caption guide-decide__title">
+          <Phrases text={block.title} />
+        </p>
+      )}
+      <div className="guide-decide__grid">
+        <div className="guide-decide__tree">
+          <Question node={block.root} depth={1} />
+        </div>
+        <div className="guide-decide__summary">
+          <p className="guide-decide__summary-title">結論の一覧</p>
+          <ul className="guide-decide__summary-list">
+            {conclusions.map((conclusion, index) => (
+              <li className="guide-decide__summary-item" key={index}>
+                <span className="guide-decide__path">{conclusion.path.join(' → ')}</span>
+                <span className="guide-decide__outcome">
+                  <ResultText result={conclusion.result} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   )

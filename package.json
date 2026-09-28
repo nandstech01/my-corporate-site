@@ -68,6 +68,7 @@
     "@uiw/react-md-editor": "^4.0.8",
     "@vercel/functions": "^3.4.1",
     "bcryptjs": "^3.0.2",
+    "budoux": "^0.9.3",
     "bufferutil": "^4.0.9",
     "canvas": "^3.1.0",
     "cheerio": "^1.1.2",

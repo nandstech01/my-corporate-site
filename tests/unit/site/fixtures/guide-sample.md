@@ -1,62 +1,81 @@
 ```nands-hero
-{"answer":["これはガイドのブロックを確認するための見本の本文です (数字はすべて架空)。","冒頭の答え・目次・数字・グラフ・図・選び方・更新履歴・出典・相談の順に並びます。","見た目は仮で、デザインは別の段で決めます。"],"aiNote":"見本のため、この本文は人が手で書いています。"}
+{"lead":"使い方、MCP でのツール接続、モデルの選び方を、当社の実測とともにまとめました。","answer":["Claude Code は、Anthropic が提供するコーディング用の AI エージェントです。ターミナルや IDE から頼むと、コードを読み、ファイルを編集し、コマンドを実行します。","外部のツールには、MCP という共通の仕組みでつなぎます。","当社の実測 (小さな 6 課題 × 3 回) では 4 つの設定がすべて 18/18 回成功。Opus 5.5 は Opus 5 の約半分の時間、約 4 割安い費用でした。","難しい課題での比較は検証中です。結果が出たら更新します。"],"aiNote":"下書きに AI (Claude) を使い、数値はすべて当社の検証記録と照合しています。","env":"Claude Code 2.1.283、macOS 15.1","terminal":{"lines":[{"kind":"cmd","text":"claude --version"},{"kind":"out","text":"2.1.283 (Claude Code)"},{"kind":"cmd","text":"claude mcp add playwright -- npx @playwright/mcp@latest"},{"kind":"out","text":"Added stdio MCP server playwright with command: npx @playwright/mcp@latest to local config"},{"kind":"out","text":"File modified: ~/.claude.json [project: ~/app]"},{"kind":"cmd","text":"claude mcp add --transport http sentry https://mcp.sentry.dev/mcp"},{"kind":"out","text":"Added HTTP MCP server sentry with URL: https://mcp.sentry.dev/mcp to local config"},{"kind":"out","text":"File modified: ~/.claude.json [project: ~/app]"}],"caption":"Claude Code 2.1.283 で実際に実行した出力です。パスは ~ で短縮しています。"}}
 ```
 
 ## この記事でわかること {#summary}
 
-見本のガイドです。数字はすべて架空です。
+Claude Code の始め方、外部のツールとのつなぎ方、モデルと effort の選び方を、当社が同じ課題で測った結果とともに説明します。数値はすべて 2026 年 9 月 27 日の実測です。
 
 ```nands-stats
-{"caption":"要点 (架空の数字)","items":[{"label":"月額","value":20,"unit":"ドル","note":"見本の値"},{"label":"1 回の上限","value":"5 時間","note":"見本の値"},{"label":"対応 OS","value":3,"unit":"種類"}]}
+{"caption":"当社の実測の要点 (6 課題 × 3 回)","items":[{"label":"成功した回数","value":"18/18","note":"4 つの設定すべて"},{"label":"時間の中央値 (Opus 5.5)","value":30,"unit":"秒","note":"Opus 5 は 62 秒"},{"label":"費用の中央値 (Opus 5.5)","value":0.15,"unit":"ドル","note":"API 定価での換算"},{"label":"測った課題","value":6,"unit":"課題","note":"各 3 回"}]}
 ```
 
-## 料金と上限の早見表 {#pricing}
+## どのモデルを選べばいい？同じ課題で測りました {#compare}
+
+この難しさの課題では、成功した回数に差は出ませんでした。差が出たのは時間と費用です。Opus 5.5 は Opus 5 の約半分の時間で終わり、費用は約 4 割安く済みました。Fable 5.1 は成功数で上回らず、費用は Opus 5.5 の 2 倍強でした。
+
+| モデル | effort | 成功 | 時間の中央値 (秒) | 費用の中央値 (ドル) |
+| --- | --- | ---: | ---: | ---: |
+| Opus 5.5 | high | 18/18 | 31 | 0.15 |
+| Opus 5.5 | medium (既定) | 18/18 | 30 | 0.16 |
+| Opus 5 | high | 18/18 | 62 | 0.25 |
+| Fable 5.1 | high | 18/18 | 39 | 0.34 |
+
+- バグ修正やリファクタリングなど小さな 6 課題を、設定ごとに 3 回ずつ解かせました。成功は、元のテストと採点用の隠しテストの両方が通ったものです。
+- 費用は Claude Code が出力する API 定価での換算額 (1 回あたりの中央値) で、サブスクリプションの請求額ではありません。
 
 ```nands-chart
-{"title":"プラン別の月額 (架空)","unit":"ドル","source":"見本のデータ","rows":[{"label":"無料","value":0},{"label":"Pro","value":20,"note":"個人向け"},{"label":"Max 5x","value":100},{"label":"Max 20x","value":200,"note":"最も上限が大きい"}]}
+{"title":"1 回あたりの時間の中央値","unit":"秒","note":"水色が Opus 5.5 です。数値は上の表と同じです。","source":"当社の検証記録 (2026-09-27)","rows":[{"label":"Opus 5.5","note":"high","value":31,"highlight":true},{"label":"Opus 5.5","note":"medium","value":30,"highlight":true},{"label":"Opus 5","note":"high","value":62},{"label":"Fable 5.1","note":"high","value":39}]}
 ```
 
 ```nands-callout
-{"tone":"unverified","title":"未確認の点","body":"上限の細かい数え方は公式に書かれていないため、見本では断定しません。"}
+{"tone":"unverified","title":"難しい課題での差","body":"今回の 6 課題はどの設定でも解ける難しさでした。難しい課題で成功数に差が出るかは検証中で、結果が出たらこの節を更新します。"}
 ```
 
-## 導入の流れ {#flow}
+## Claude Code は外部のツールとどうつながる？ {#mcp}
+
+MCP (Model Context Protocol) でつなぎます。Claude Code が MCP クライアントになり、登録した MCP サーバーを通して、ブラウザや SaaS を道具として使います。
 
 ```nands-diagram
-{"kind":"flow","title":"導入の流れ (見本)","nodes":[{"id":"install","label":"インストールする","sub":"npm で入れる"},{"id":"login","label":"ログインする"},{"id":"small","label":"小さな作業で試す","sub":"1 ファイルの修正"},{"id":"team","label":"チームで使う","sub":"設定を共有"},{"id":"review","label":"結果を確かめる"}],"edges":[{"from":"install","to":"login"},{"from":"login","to":"small","label":"個人"},{"from":"login","to":"team","label":"会社"},{"from":"small","to":"review"},{"from":"team","to":"review"}]}
+{"kind":"flow","title":"Claude Code と MCP サーバー、外部のツールの関係","nodes":[{"id":"you","label":"あなた","sub":"ターミナルや IDE で依頼"},{"id":"cc","label":"Claude Code","sub":"MCP クライアントを内蔵","emphasis":true},{"id":"local","label":"MCP サーバー","sub":"手元で動くプロセス"},{"id":"remote","label":"MCP サーバー","sub":"提供元がネットで公開"},{"id":"ltool","label":"手元の道具","sub":"ブラウザや DB"},{"id":"rtool","label":"SaaS のデータ","sub":"Sentry や Notion"}],"edges":[{"from":"you","to":"cc"},{"from":"cc","to":"local","label":"stdio"},{"from":"cc","to":"remote","label":"HTTP"},{"from":"local","to":"ltool"},{"from":"remote","to":"rtool"}]}
 ```
 
-### コードの例 {#code-example}
+### 登録のコマンド {#mcp-commands}
+
+登録は既定で、このプロジェクトの自分だけに入ります (local)。`--scope project` にすると .mcp.json に書かれ、リポジトリを通じてチームで共有できます。
 
 ```bash
-# これはコードの中のコメントで、目次には入らない
-npm install -g example-cli
+# 手元で動く MCP サーバー (stdio)
+claude mcp add playwright -- npx @playwright/mcp@latest
+
+# 提供元が公開している MCP サーバー (HTTP)
+claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 ```
 
-## 選び方 {#choose}
+## effort の選び方 {#choose}
 
 ```nands-decide
-{"title":"どのプランを選ぶか (見本)","root":{"question":"毎日使いますか","options":[{"label":"はい","next":{"question":"長い作業をよく任せますか","options":[{"label":"はい","result":{"title":"Max 20x","body":"上限に当たりにくい"}},{"label":"いいえ","result":{"title":"Max 5x"}}]}},{"label":"いいえ","result":{"title":"Pro","body":"まずはここから","href":"/posts/example"}}]}}
+{"title":"どの設定で使うか","root":{"question":"失敗すると困る作業ですか","options":[{"label":"はい","next":{"question":"時間よりも確実さを優先しますか","options":[{"label":"はい","result":{"title":"Opus 5.5 の high","body":"今回の実測では medium と同じ時間で終わりました"}},{"label":"いいえ","result":{"title":"Opus 5.5 の medium","body":"既定の設定のまま使えます"}}]}},{"label":"いいえ","result":{"title":"Opus 5.5 の medium","body":"まずは既定のままで十分です","href":"/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n"}}]}}
 ```
 
-## これまでの流れ {#history}
+## このガイドの変わり方 {#history}
 
 ```nands-diagram
-{"kind":"timeline","title":"主な出来事 (見本)","nodes":[{"id":"a","label":"最初の版を公開","sub":"2026年6月"},{"id":"b","label":"料金を改定","sub":"2026年8月"},{"id":"c","label":"上限の数え方を変更","sub":"2026年9月"}]}
+{"kind":"timeline","title":"このガイドの主な更新","nodes":[{"id":"first","label":"初版を公開 (インストールと MCP の接続)","sub":"2026-09-20"},{"id":"measure","label":"Opus 5.5・Opus 5・Fable 5.1 の実測を追加","sub":"2026-09-27"},{"id":"next","label":"難しい課題での比較を追加する予定","sub":"検証中"}]}
 ```
 
 ## 更新履歴 {#changelog}
 
 ```nands-changelog
-{"entries":[{"date":"2026-09-20","change":"料金の表を更新","basis":"公式の料金ページ","url":"https://example.com/pricing"},{"date":"2026-09-27","change":"上限の説明を追記","basis":"当社の検証"}]}
+{"entries":[{"date":"2026-09-20","change":"初版を公開","basis":"当社の検証 (Claude Code 2.1.270)"},{"date":"2026-09-27","change":"モデルの比較の表とグラフを追加","basis":"当社の検証記録","url":"/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n"}]}
 ```
 
 ## 出典 {#sources}
 
 ```nands-sources
-{"items":[{"title":"公式の料金ページ (見本)","url":"https://example.com/pricing","publisher":"Example","accessed":"2026-09-27"},{"title":"関連記事 (見本)","url":"/posts/example"}]}
+{"items":[{"title":"Connect Claude Code to tools via MCP","url":"https://docs.claude.com/en/docs/claude-code/mcp","publisher":"Anthropic","accessed":"2026-09-27"},{"title":"Opus 5.5・Opus 5・Fable 5.1 を同じ課題で測った結果","url":"/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n","publisher":"NANDS"}]}
 ```
 
 ```nands-cta
-{"title":"導入の相談","body":"自社に合う使い方をご相談いただけます (見本)。","form":true}
+{"title":"Claude Code の導入を相談する","body":"当社は Claude Code を日々の開発で使い、このページのようにモデルの比較も自分たちで測っています。導入の進め方、社内ツールとの MCP 接続、費用の見積もりについて、相談を受け付けています。","form":true,"secondary":{"label":"実測の比較記事を読む","href":"/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n"}}
 ```

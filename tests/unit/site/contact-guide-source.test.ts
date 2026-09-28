@@ -17,7 +17,7 @@ vi.mock('nodemailer', () => ({ default: { createTransport: () => ({ sendMail }) 
 vi.mock('googleapis', () => ({ google: {} }))
 
 import { POST } from '@/app/api/contact/route'
-import { contactMailSubject, normalizeContactSource } from '@/app/api/contact/source'
+import { contactMailSubject, guideReturnPaths, normalizeContactSource } from '@/app/api/contact/source'
 import { guideContactSource } from '@/components/guide/ConsultCta'
 import { metadata as searchMetadata } from '@/app/search/layout'
 
@@ -84,13 +84,54 @@ describe('/api/contact: ガイドの相談フォーム (source: guide:<slug>)', 
     form.set('email', 'sato@example.com')
     form.set('message', '相談')
     form.set('source', 'guide:codex-guide')
-    await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: form }))
+    await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: form, headers: { origin: 'https://nands.tech' } }))
 
     const legacy = new FormData()
     legacy.set('name', '鈴木')
-    await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: legacy }))
+    const legacyResponse = await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: legacy }))
 
     expect(inserted.map((row) => row.source)).toEqual(['guide:codex-guide', 'corporate'])
+    // ガイド以外のフォームは従来どおり JSON
+    expect(legacyResponse.status).toBe(200)
+    expect(await legacyResponse.json()).toEqual({ message: '送信しました' })
+  })
+
+  it('JS が動かないガイドのフォームは JSON の画面にせず、記事の #guide-contact-sent へ 303 で戻す', async () => {
+    const form = new FormData()
+    form.set('name', '佐藤')
+    form.set('email', 'sato@example.com')
+    form.set('message', '相談')
+    form.set('source', 'guide:claude-code-guide')
+    const response = await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: form, headers: { origin: 'https://nands.tech' } }))
+    expect(response.status).toBe(303)
+    expect(response.headers.get('location')).toBe('https://nands.tech/posts/claude-code-guide#guide-contact-sent')
+    expect(sendMail).toHaveBeenCalledTimes(1)
+  })
+
+  it('送信に失敗したら #guide-contact-error へ戻す (500 の JSON を見せない)', async () => {
+    sendMail.mockRejectedValueOnce(new Error('SMTP down'))
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const form = new FormData()
+    form.set('name', '佐藤')
+    form.set('source', 'guide:claude-code-guide')
+    const response = await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: form }))
+    expect(response.status).toBe(303)
+    expect(response.headers.get('location')).toBe('https://nands.tech/posts/claude-code-guide#guide-contact-error')
+  })
+
+  it('別のサイトからのフォームの POST は記録もメールもせず、エラーの文章へ戻す。戻り先の slug はエンコードする', async () => {
+    const form = new FormData()
+    form.set('name', '攻撃')
+    form.set('source', 'guide:x')
+    const response = await POST(new Request('https://nands.tech/api/contact', { method: 'POST', body: form, headers: { origin: 'https://evil.example' } }))
+    expect(response.status).toBe(303)
+    expect(response.headers.get('location')).toBe('https://nands.tech/posts/x#guide-contact-error')
+    expect(inserted).toHaveLength(0)
+    expect(sendMail).not.toHaveBeenCalled()
+
+    expect(guideReturnPaths('guide:../../evil?x=1#y')?.sent).toBe('/posts/..%2F..%2Fevil%3Fx%3D1%23y#guide-contact-sent')
+    expect(guideReturnPaths('guide:')).toBeNull()
+    expect(guideReturnPaths('corporate')).toBeNull()
   })
 
   it('送信元の値を整える (文字列以外・制御文字・長すぎる値)', () => {

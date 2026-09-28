@@ -36,7 +36,8 @@ vi.stubGlobal('React', React)
 import PostPage, { generateMetadata, generateStaticParams, revalidate } from '@/app/posts/[slug]/page'
 import GuideHero from '@/components/guide/GuideHero'
 import GuideToc from '@/components/guide/GuideToc'
-import MarkdownContent, { MarkdownFrame } from '@/components/blog/MarkdownContent'
+import GuideAuthor from '@/components/guide/GuideAuthor'
+import MarkdownContent, { GuideBody } from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
 
 function post(overrides: Partial<PublishedPost>): PublishedPost {
@@ -94,32 +95,47 @@ describe('app/posts/[slug]: ISR の設定は変えない', () => {
 })
 
 describe("category_tags に 'guide' があればガイドの描き方", () => {
-  it('GuideHero (冒頭の答え) + 常に見える目次 + ブロック付きの本文。dateModified = 更新履歴の最新日', async () => {
+  it('GuideHero (冒頭の答え) + 常に見える目次 + ブロック付きの本文 + 書いた人。dateModified = 更新履歴の最新日', async () => {
     getPublishedPostBySlug.mockResolvedValue(post({ content: FIXTURE, category_tags: ['guide', 'claude-code'] }))
     const tree = await renderPage()
 
+    // 帯を画面の端まで描くため、通常の記事の container と max-w-4xl の枠は使わない
+    expect((tree.props as { className?: string }).className).toBe('guide-page')
     const [article] = findAll(tree, (el) => el.type === 'article')
     expect((article.props as Record<string, unknown>)['data-layout']).toBe('guide')
+    expect((article.props as Record<string, unknown>).className).toBe('guide')
+
+    // 書体はガイドのページだけで、そのページの文字だけを読み込む (IBM Plex Sans JP の 400 と 700)
+    const [font] = findAll(tree, (el) => el.type === 'link')
+    const href = (font.props as { href: string }).href
+    expect(href.startsWith('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;700&display=swap&text=')).toBe(true)
+    const text = decodeURIComponent(href.split('&text=')[1])
+    for (const char of '完全ガイド課題原田賢治図目次') expect(text).toContain(char)
 
     const [hero] = findAll(tree, (el) => el.type === GuideHero)
     const heroProps = hero.props as React.ComponentProps<typeof GuideHero>
-    expect(heroProps.hero?.answer).toHaveLength(3)
+    expect(heroProps.hero?.answer).toHaveLength(4)
+    expect(heroProps.hero?.terminal?.lines).toHaveLength(8)
+    expect(heroProps.author).toEqual({ name: '原田賢治', href: '/author/harada-kenji', role: '代表取締役' })
     expect(heroProps.modifiedAt).toBe('2026-09-27T00:00:00+09:00')
     expect(heroProps.fallbackImage).toMatchObject({ src: 'https://example.com/banner.png', width: 1200, height: 630 })
 
     const [toc] = findAll(tree, (el) => el.type === GuideToc)
     expect((toc.props as React.ComponentProps<typeof GuideToc>).items.map((item) => item.id)).toEqual([
-      'summary', 'pricing', 'flow', 'code-example', 'choose', 'history', 'changelog', 'sources',
+      'summary', 'compare', 'mcp', 'mcp-commands', 'choose', 'history', 'changelog', 'sources',
     ])
     expect(findAll(tree, (el) => el.type === TOCComponent)).toHaveLength(0)
     // ページの h1 は GuideHero だけ
     expect(findAll(tree, (el) => el.type === 'h1')).toHaveLength(0)
+    // 著者欄はガイドの見た目 (同じ id の author-profile)。動画の枠はガイドには出さない
+    expect(findAll(tree, (el) => el.type === GuideAuthor)).toHaveLength(1)
+    expect(JSON.stringify(findAll(tree, (el) => el.type === 'div').map((el) => (el.props as { id?: string }).id))).not.toContain('author-profile')
 
-    // 本文は 1 回だけ解析し、目次と同じ描画結果を MarkdownFrame に入れる
+    // 本文は 1 回だけ解析し、目次と同じ描画結果を GuideBody に入れる
     expect(findAll(tree, (el) => el.type === MarkdownContent)).toHaveLength(0)
-    const [frame] = findAll(tree, (el) => el.type === MarkdownFrame)
+    const [frame] = findAll(tree, (el) => el.type === GuideBody)
     const body = renderToStaticMarkup(frame)
-    for (const id of ['summary', 'pricing', 'changelog']) expect(body).toContain(`id="${id}"`)
+    for (const id of ['summary', 'compare', 'changelog']) expect(body).toContain(`id="${id}"`)
     expect(body).toContain('data-source="guide:claude-code-guide"')
     expect(body).not.toContain('data-guide-block="hero"')
     expect(body).not.toContain('lin.ee')

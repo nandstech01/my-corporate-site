@@ -1,11 +1,11 @@
 import React, { isValidElement, type ReactElement, type ReactNode } from 'react';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Element, ElementContent, Root, RootContent } from 'hast';
+import type { Element, Root } from 'hast';
 import LINEConversionButton from './LINEConversionButton';
 import MarkdownImage from './MarkdownImage';
 import GuideBlock, { type GuideRenderContext } from '@/components/guide/GuideBlock';
-import { isGuideFenceLang } from '@/app/posts/_lib/guide-blocks';
+import { buildGuideComponents, guideFence, rehypeGuideSections, textOf } from '@/components/guide/guide-markdown';
 import { parseHeadingText, type GuideTocItem } from '@/app/posts/_lib/post-text';
 
 /**
@@ -25,12 +25,6 @@ interface MarkdownContentProps {
 interface HeadingData {
   h2Index?: number;
   faqIndex?: number;
-}
-
-function textOf(node: Element | ElementContent | RootContent): string {
-  if (node.type === 'text') return node.value;
-  if (node.type === 'element') return node.children.map(textOf).join('');
-  return '';
 }
 
 /**
@@ -95,15 +89,6 @@ function resolveImageSrc(src: string): string {
 function imageSize(title: string | undefined): { width: number; height: number } | undefined {
   const match = title?.match(/^\s*(\d{2,4})x(\d{2,4})\s*$/);
   return match ? { width: Number(match[1]), height: Number(match[2]) } : undefined;
-}
-
-/** <pre> の中の ```nands-* のコード要素 (無ければ null) */
-function guideFence(node: Element | undefined): { lang: string; raw: string } | null {
-  const code = node?.children.find((child): child is Element => child.type === 'element' && child.tagName === 'code');
-  const className = code?.properties?.className;
-  const classes = Array.isArray(className) ? className.map(String) : [];
-  const lang = classes.find((name) => name.startsWith('language-'))?.slice('language-'.length);
-  return code && lang && isGuideFenceLang(lang) ? { lang, raw: textOf(code) } : null;
 }
 
 function buildComponents(guide: GuideRenderContext | undefined): Components {
@@ -310,14 +295,20 @@ function collectHeadings(root: ReactNode, components: Components): GuideTocItem[
  * ガイドのページはこの見出しで目次を作り、要素を MarkdownFrame に入れて描く。
  */
 export function renderMarkdown(content: string, guide?: GuideRenderContext): RenderedMarkdown {
-  const components = buildComponents(guide);
+  // ガイドは専用の部品 (components/guide/guide-markdown) と、h2 ごとの区画に分ける処理を使う
+  const components = guide ? buildGuideComponents(guide) : buildComponents(guide);
   const element = Markdown({
     children: content,
     components,
     remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypeHeadingIndex],
+    rehypePlugins: guide ? [rehypeHeadingIndex, rehypeGuideSections] : [rehypeHeadingIndex],
   });
   return { element, headings: collectHeadings(element, components) };
+}
+
+/** ガイドの本文の外枠 (区画ごとの帯は本文の中の section が持つ。prose のクラスは使わない) */
+export function GuideBody({ children }: { children: ReactNode }) {
+  return <div className="guide-body">{children}</div>;
 }
 
 /** 本文の外枠 (従来の記事と同じクラス) */

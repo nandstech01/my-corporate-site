@@ -1,117 +1,1825 @@
 /*
- * ガイド (完全保存版) の部品の仮スタイル。
- * 見た目のデザインは別の段 (デザインシステムと型) で決める。ここは読める最小限の配置だけ:
- * 色は currentColor と薄い枠線だけ、装飾 (グラデーション・影・角丸の強調) は入れない。
- * マークアップのクラス名 (.guide-*) と data-* 属性は固定の差し込み口。デザイン時はこのファイルを差し替える。
- * .guide-* 以外の要素には触れない (既存の記事の見た目を変えない)。
+ * ガイド (完全保存版) のアートディレクション B「仕様書」。
+ * 見本: scratchpad/lp-proto/B (オーナー確認済み)。紺 + ロゴのシアン (#00BCFD) だけ・罫線の格子・IBM Plex Sans JP 400/700。
+ *
+ * 範囲: ガイドのページ (.guide-page) と、ガイドの部品のクラス (.guide-*) だけ。ほかのページの見た目は変えない。
+ * 本文の素の要素 (Markdown の p・ul など) の規則は :not([class]) で部品の要素 (必ずクラスを持つ) から外してある。
  */
 
-.guide-hero,
-.guide-toc,
-.guide-stats,
-.guide-chart,
-.guide-diagram,
-.guide-callout,
-.guide-decide,
-.guide-changelog,
-.guide-sources,
-.guide-cta {
-  --guide-rule: rgb(127 127 127 / 0.35);
-  --guide-muted: rgb(127 127 127 / 0.9);
-  margin: 2rem 0;
+/* ---------------------------------------------------------------------------
+ * トークン
+ * ------------------------------------------------------------------------- */
+.guide-page {
+  --g-bg: #ffffff;
+  --g-bg-2: #f5f8fb;
+  --g-ink: #0f2a47;
+  --g-ink-2: #44586f;
+  --g-rule: #dce4ec;
+  --g-rule-2: #b9c7d5;
+  --g-accent: #00bcfd;
+  --g-slate: #6f88a3;
+  --g-panel-ink: #c9d6e3;
+  --g-term: #0c2340;
+  --g-term-ink: #dce7f1;
+  --g-term-mute: #97aabd;
+  --g-dots: radial-gradient(#c9d6e3 1px, transparent 1.4px);
+  --g-dots-dark: radial-gradient(#23405f 1px, transparent 1.4px);
+  --g-sans: 'IBM Plex Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
+  --g-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  /* 余白の段階 (4px 基準) */
+  --g-s1: 4px;
+  --g-s2: 8px;
+  --g-s3: 12px;
+  --g-s4: 16px;
+  --g-s5: 24px;
+  --g-s6: 32px;
+  --g-s7: 48px;
+  --g-s8: 64px;
+  --g-s9: 96px;
+  /* 格子: 1200px の枠 = 左の列 (節の番号) + 本文の列 */
+  --g-frame: 1200px;
+  --g-rail: 240px;
+  --g-pl: 56px;
+  --g-pr: 64px;
+  /* サイトの固定ヘッダーの高さ */
+  --g-header: 80px;
+  /* 本文の 1 行 = 40 字前後 */
+  --g-measure: 40em;
+
+  color-scheme: light;
+  background: var(--g-bg);
+  color: var(--g-ink);
+  font: 400 17px/1.85 var(--g-sans);
+  letter-spacing: 0.02em;
+  font-kerning: normal;
+  -webkit-text-size-adjust: 100%;
+  /* 改行はサーバーが入れた <wbr> と空白でだけ (語の途中で折らない)。入り切らないときだけ折る */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-break: strict;
 }
 
-/* hero */
-.guide-hero__title { font-size: 1.5rem; font-weight: 700; line-height: 1.4; margin: 0 0 1rem; }
-.guide-hero__answer { border-left: 3px solid var(--guide-rule); padding-left: 1rem; margin: 0 0 1rem; }
-.guide-hero__answer-label { font-size: 0.875rem; font-weight: 700; margin: 0 0 0.25rem; }
-.guide-hero__answer-line { margin: 0 0 0.25rem; line-height: 1.8; }
-.guide-hero__meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; font-size: 0.875rem; margin: 0 0 1rem; }
-.guide-hero__meta-item { display: flex; gap: 0.5rem; }
-.guide-hero__meta dt { color: var(--guide-muted); }
-.guide-hero__meta dd { margin: 0; }
-.guide-hero__media { margin: 0; }
-.guide-hero__image { display: block; width: 100%; height: auto; }
+.guide-page *,
+.guide-page *::before,
+.guide-page *::after {
+  box-sizing: border-box;
+}
 
-/* toc */
-.guide-toc { border: 1px solid var(--guide-rule); padding: 1rem 1.25rem; }
-.guide-toc__title { font-weight: 700; margin: 0 0 0.5rem; }
-.guide-toc__list,
-.guide-toc__sublist { list-style: decimal; margin: 0; padding-left: 1.5rem; }
-.guide-toc__sublist { list-style: disc; }
-.guide-toc__item { margin: 0.25rem 0; }
-.guide-toc__link { text-decoration: underline; text-underline-offset: 2px; }
+.guide-page a {
+  color: inherit;
+}
 
-/* stats */
-.guide-stats__caption { font-weight: 700; margin-bottom: 0.5rem; }
-.guide-stats__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin: 0; }
-.guide-stats__item { border: 1px solid var(--guide-rule); padding: 0.75rem; }
-.guide-stats__label { font-size: 0.875rem; color: var(--guide-muted); }
-.guide-stats__value { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0 0; }
-.guide-stats__note { font-size: 0.8125rem; margin: 0.25rem 0 0; }
+/*
+ * app/globals.css の article a { word-break: break-word !important; hyphens: auto !important } (通常の記事の長い URL 対策) が
+ * リンクの日本語を語の途中で折るので、ガイドの中だけ打ち消す (!important には !important + 高い詳細度でしか勝てない)。
+ * 長い URL は overflow-wrap: break-word で、はみ出すときだけ折れる
+ */
+.guide-page article a {
+  word-break: keep-all !important;
+  hyphens: manual !important;
+}
 
-/* chart / diagram (SVG は currentColor で描く) */
+.guide-page a:focus-visible,
+.guide-page button:focus-visible,
+.guide-page summary:focus-visible,
+.guide-page input:focus-visible,
+.guide-page textarea:focus-visible {
+  outline: 2px solid var(--g-accent);
+  outline-offset: 3px;
+}
+
+.guide-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 帯と格子
+ * ------------------------------------------------------------------------- */
+.guide-band {
+  border-top: 1px solid var(--g-rule);
+}
+
+.guide-frame {
+  max-width: var(--g-frame);
+  margin: 0 auto;
+  border-left: 1px solid var(--g-rule);
+  border-right: 1px solid var(--g-rule);
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: var(--g-rail) minmax(0, 1fr);
+}
+
+.guide-rail {
+  border-right: 1px solid var(--g-rule);
+  padding: 110px var(--g-s5) var(--g-s9) var(--g-pl);
+  min-width: 0;
+}
+
+.guide-rail__num,
+.guide-rail__label {
+  display: block;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-rail__num {
+  color: var(--g-ink-2);
+}
+
+.guide-main {
+  padding: var(--g-s9) var(--g-pr) 104px var(--g-pl);
+  min-width: 0;
+}
+
+/* パンくず */
+.guide-crumbs {
+  border-top: 0;
+}
+
+.guide-crumbs .guide-frame {
+  padding: calc(var(--g-header) + 12px) var(--g-pl) 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.guide-page .guide-crumbs nav,
+.guide-page .guide-crumbs nav a,
+.guide-page .guide-crumbs nav span {
+  color: var(--g-ink-2);
+  font-size: 13px;
+}
+
+/* 本文の区画: 奇数番目は薄い地 */
+.guide-section {
+  --g-section-bg: var(--g-bg);
+  --g-panel-bg: var(--g-bg-2);
+  background: var(--g-section-bg);
+}
+
+.guide-body > .guide-section:nth-of-type(odd),
+.guide-section[data-kind='cta'] {
+  --g-section-bg: var(--g-bg-2);
+  --g-panel-bg: var(--g-bg);
+}
+
+.guide-body {
+  counter-reset: guide-figure;
+}
+
+/* ---------------------------------------------------------------------------
+ * 冒頭 (表紙)
+ * ------------------------------------------------------------------------- */
+.guide-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+}
+
+.guide-hero__grid[data-aside='false'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-hero__text {
+  padding: 80px 48px 72px var(--g-pl);
+  min-width: 0;
+}
+
+.guide-hero__grid[data-aside='false'] .guide-hero__text {
+  max-width: 880px;
+}
+
+.guide-hero__title {
+  margin: 0;
+  font-size: 62px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.guide-hero__title[data-size='m'] {
+  font-size: 48px;
+  line-height: 1.22;
+}
+
+.guide-hero__title[data-size='s'] {
+  font-size: 38px;
+  line-height: 1.3;
+}
+
+.guide-hero__lead {
+  margin: 20px 0 0;
+  font-size: 19px;
+  line-height: 1.75;
+  color: var(--g-ink-2);
+  max-width: 26em;
+}
+
+.guide-hero__answer {
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-hero__answer-line {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 16.5px;
+  line-height: 1.8;
+}
+
+.guide-hero__aside {
+  border-left: 1px solid var(--g-rule);
+  padding: 80px 44px 72px 40px;
+  background: var(--g-bg-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.guide-hero__media {
+  margin: 0;
+}
+
+.guide-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* 実際のコマンドの出力 (窓の飾りは描かない) */
+.guide-term {
+  margin: 0;
+}
+
+.guide-term__screen {
+  margin: 0;
+  padding: 20px 22px 22px;
+  background: var(--g-term);
+  color: var(--g-term-ink);
+  border-radius: 8px;
+  font: 400 13px/1.75 var(--g-mono);
+  letter-spacing: 0;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.guide-term__screen code {
+  font: inherit;
+}
+
+.guide-term__cmd,
+.guide-term__out {
+  display: block;
+}
+
+.guide-term__cmd {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.guide-term__cmd:not([data-first]) {
+  margin-top: 14px;
+}
+
+.guide-term__prompt {
+  color: var(--g-accent);
+  user-select: none;
+}
+
+.guide-term__out {
+  color: var(--g-term-mute);
+}
+
+.guide-term__caption {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--g-ink-2);
+}
+
+/* 最終更新・書いた人・AI の使い方・検証の環境 */
+.guide-meta__list {
+  display: flex;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.guide-meta__cell {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 20px 24px 22px;
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-meta__cell:nth-child(2) {
+  flex-grow: 1.3;
+}
+
+.guide-meta__cell:nth-child(3) {
+  flex-grow: 1.7;
+}
+
+.guide-meta__cell:nth-child(4) {
+  flex-grow: 1.3;
+}
+
+.guide-meta__cell:first-child {
+  border-left: 0;
+  padding-left: var(--g-pl);
+}
+
+.guide-meta__cell dt {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+}
+
+.guide-meta__cell dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-meta__cell dd a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-rule-2);
+}
+
+.guide-meta__role {
+  display: block;
+  color: var(--g-ink-2);
+  font-size: 13.5px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 目次
+ * ------------------------------------------------------------------------- */
+.guide-toc .guide-rail {
+  padding-top: 62px;
+  padding-bottom: 56px;
+}
+
+.guide-toc__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.guide-toc__main {
+  padding-top: 52px;
+  padding-bottom: 60px;
+}
+
+.guide-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 48px;
+}
+
+.guide-toc__item[data-level='2'] {
+  break-inside: avoid;
+  border-top: 1px solid var(--g-rule);
+}
+
+.guide-toc__sublist {
+  margin: -6px 0 10px;
+  padding: 0 0 0 calc(1.6em + 14px);
+  list-style: none;
+}
+
+.guide-toc__link {
+  display: flex;
+  gap: 14px;
+  padding: 11px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.guide-toc__sublist .guide-toc__link {
+  padding: 3px 0;
+  font-size: 14.5px;
+  color: var(--g-ink-2);
+}
+
+.guide-toc__link:hover .guide-toc__text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guide-toc__num {
+  flex: none;
+  width: 1.6em;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+ * 本文 (Markdown の素の要素)
+ * ------------------------------------------------------------------------- */
+.guide-h2 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  max-width: 22em;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+.guide-h3 {
+  margin: 64px 0 0;
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+.guide-h4 {
+  margin: 40px 0 0;
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 700;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+/*
+ * Markdown の素の要素 (クラスが無い p・ul・ol・blockquote・a・code) だけに当てる。
+ * 部品の要素は必ずクラスを持つので :not([class]) で外れる。Tailwind の preflight (p { margin: 0 } など) には詳細度で勝つ
+ */
+.guide-main > p:not([class]) {
+  margin: 20px 0 0;
+  max-width: var(--g-measure);
+  text-wrap: pretty;
+}
+
+.guide-main > .guide-h2 + p:not([class]) {
+  margin-top: 28px;
+}
+
+.guide-main > .guide-h3 + p:not([class]),
+.guide-main > .guide-h4 + p:not([class]) {
+  margin-top: 14px;
+}
+
+.guide-main > ul:not([class]),
+.guide-main > ol:not([class]) {
+  margin: 20px 0 0;
+  padding-left: 1.2em;
+  max-width: var(--g-measure);
+}
+
+.guide-main > ul:not([class]) {
+  list-style: none;
+}
+
+.guide-main > ol:not([class]) {
+  list-style: decimal;
+}
+
+.guide-main > ul:not([class]) > li,
+.guide-main > ol:not([class]) > li {
+  position: relative;
+  margin: 8px 0 0;
+  text-wrap: pretty;
+}
+
+/* 箇条書きの印は図の線の始点と同じ小さな四角 */
+.guide-main > ul:not([class]) > li::before {
+  content: '';
+  position: absolute;
+  left: -1.2em;
+  top: 0.78em;
+  width: 5px;
+  height: 5px;
+  background: var(--g-slate);
+}
+
+.guide-main > ol:not([class]) > li::marker {
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-main > blockquote:not([class]) {
+  margin: 28px 0 0;
+  padding: 2px 0 2px 20px;
+  border-left: 2px solid var(--g-rule-2);
+  color: var(--g-ink-2);
+  max-width: var(--g-measure);
+}
+
+.guide-main a:not([class]) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-ink-2);
+}
+
+.guide-main a:not([class]):hover {
+  text-decoration-color: var(--g-accent);
+}
+
+.guide-main strong:not([class]) {
+  font-weight: 700;
+}
+
+.guide-main :not(pre) > code:not([class]) {
+  font: 400 0.86em/1.5 var(--g-mono);
+  letter-spacing: 0;
+  background: var(--g-panel-bg, var(--g-bg-2));
+  border: 1px solid var(--g-rule);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.guide-code {
+  margin: 28px 0 0;
+  padding: 18px 22px 20px;
+  background: var(--g-term);
+  color: var(--g-term-ink);
+  border-radius: 8px;
+  font: 400 13.5px/1.75 var(--g-mono);
+  letter-spacing: 0;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.guide-code code {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.guide-image {
+  display: block;
+  margin: 32px 0 0;
+}
+
+.guide-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--g-rule);
+}
+
+.guide-image__caption {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+/* 比較表: 細い罫線だけ・見出しの行は画面の上に残る */
+.guide-table {
+  margin: 40px 0 0;
+}
+
+.guide-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-table thead th {
+  position: sticky;
+  top: var(--g-header);
+  z-index: 1;
+  background: var(--g-section-bg, var(--g-bg));
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+  padding: 10px 16px 12px 0;
+  border-bottom: 1px solid var(--g-ink);
+  vertical-align: bottom;
+}
+
+.guide-table tbody td {
+  padding: 16px 16px 16px 0;
+  border-bottom: 1px solid var(--g-rule);
+  vertical-align: top;
+}
+
+.guide-table tbody td:first-child {
+  font-weight: 700;
+}
+
+.guide-table th:last-child,
+.guide-table td:last-child {
+  padding-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 図の番号と見出し (図・グラフ共通)
+ * ------------------------------------------------------------------------- */
+.guide-caption {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 700;
+  color: var(--g-ink-2);
+}
+
 .guide-chart,
-.guide-diagram { margin-left: 0; margin-right: 0; }
-.guide-chart__title,
-.guide-diagram__title { font-weight: 700; margin-bottom: 0.5rem; }
-.guide-chart__svg,
-.guide-diagram__svg { display: block; width: 100%; height: auto; max-width: 640px; overflow: visible; }
-.guide-chart__bar { opacity: 0.55; }
-.guide-chart__table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 0.75rem; }
-.guide-chart__table caption { text-align: left; font-size: 0.8125rem; color: var(--guide-muted); }
-.guide-chart__table th,
-.guide-chart__table td { border-bottom: 1px solid var(--guide-rule); padding: 0.25rem 0.5rem; text-align: left; }
-.guide-chart__source { font-size: 0.8125rem; color: var(--guide-muted); margin-top: 0.25rem; }
-.guide-diagram__box { stroke-opacity: 0.5; }
-.guide-diagram__edge path { stroke-opacity: 0.7; }
-.guide-diagram__sub,
-.guide-diagram__edge-label { opacity: 0.8; }
-.guide-diagram__axis { stroke-opacity: 0.4; }
-/* 矢印のラベルの下の線を隠す四角 (ページの背景色) */
-.guide-diagram__edge-label-bg { fill: #fff; }
-:where(.dark) .guide-diagram__edge-label-bg { fill: #111827; }
+.guide-diagram {
+  counter-increment: guide-figure;
+}
 
-/* callout */
-.guide-callout { border: 1px solid var(--guide-rule); padding: 0.75rem 1rem; }
-.guide-callout__title { font-weight: 700; margin: 0 0 0.25rem; display: flex; gap: 0.5rem; }
-.guide-callout__body { margin: 0.25rem 0 0; }
+.guide-chart__title::before,
+.guide-diagram__title::before {
+  content: '図 ' counter(guide-figure);
+  margin-right: 1em;
+  font-variant-numeric: tabular-nums;
+}
 
-/* decide */
-.guide-decide { border: 1px solid var(--guide-rule); padding: 1rem; }
-.guide-decide__title,
-.guide-decide__question { font-weight: 700; margin: 0 0 0.5rem; }
-.guide-decide__option { margin: 0.25rem 0 0.25rem 0; }
-.guide-decide__option > .guide-decide__node,
-.guide-decide__option > .guide-decide__result { margin: 0.5rem 0 0.5rem 1.25rem; }
-.guide-decide__label { cursor: pointer; }
-.guide-decide__result-body,
-.guide-decide__result-link { margin-left: 0.5rem; }
-.guide-decide__summary { border-top: 1px solid var(--guide-rule); margin-top: 1rem; padding-top: 0.75rem; }
-.guide-decide__summary-title { font-weight: 700; margin: 0 0 0.25rem; }
+/* ---------------------------------------------------------------------------
+ * 要点の数字
+ * ------------------------------------------------------------------------- */
+.guide-stats {
+  margin: 40px 0 0;
+}
 
-/* changelog / sources */
+.guide-stats .guide-caption {
+  margin-bottom: 12px;
+}
+
+.guide-stats__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-stats__item {
+  min-width: 0;
+  padding: 18px 20px 20px;
+  border-bottom: 1px solid var(--g-rule);
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-stats__item:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.guide-stats__label {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+}
+
+.guide-stats__value {
+  margin: 8px 0 0;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-stats__unit {
+  margin-left: 3px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--g-ink-2);
+}
+
+.guide-stats__unit[data-latin] {
+  margin-left: 0.4em;
+}
+
+.guide-stats__note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 横棒グラフ (紺の地・主役の行だけシアン)
+ * ------------------------------------------------------------------------- */
+.guide-chart {
+  --g-chart-label: 132px;
+  margin: 40px 0 0;
+  padding: 28px 32px 26px;
+  background-color: var(--g-ink);
+  background-image: var(--g-dots-dark);
+  background-size: 16px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.guide-chart .guide-caption {
+  color: var(--g-panel-ink);
+}
+
+.guide-chart__unit {
+  margin-left: 1em;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.guide-chart__plot {
+  position: relative;
+  margin-top: 14px;
+  padding-bottom: 24px;
+}
+
+.guide-chart__axis {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--g-chart-label);
+  right: var(--reserve);
+  pointer-events: none;
+}
+
+.guide-chart__tick {
+  position: absolute;
+  top: 0;
+  bottom: 20px;
+  left: calc(var(--t) / var(--max) * 100%);
+  border-left: 1px solid #2a4868;
+}
+
+.guide-chart__tick:first-child {
+  border-left-color: #8da2b8;
+}
+
+.guide-chart__tick b {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  transform: translateX(-50%);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--g-panel-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-chart__table {
+  position: relative;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.guide-chart__col-label {
+  width: var(--g-chart-label);
+}
+
+.guide-chart__label {
+  width: var(--g-chart-label);
+  padding: 6px 12px 6px 0;
+  text-align: left;
+  vertical-align: middle;
+  font-weight: 400;
+}
+
+.guide-chart__name {
+  display: block;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #ffffff;
+}
+
+.guide-chart__sub {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--g-panel-ink);
+}
+
+.guide-chart__cell {
+  padding: 0;
+  vertical-align: middle;
+}
+
+.guide-chart__track {
+  position: relative;
+  display: block;
+  height: 46px;
+  margin-right: var(--reserve);
+}
+
+.guide-chart__bar {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 12px;
+  margin-top: -6px;
+  width: calc(var(--v) / var(--max) * 100%);
+  background: var(--g-slate);
+  border-radius: 0 3px 3px 0;
+}
+
+.guide-chart__row[data-highlight] .guide-chart__bar {
+  background: var(--g-accent);
+}
+
+.guide-chart__value {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--v) / var(--max) * 100% + 8px);
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-chart__foot {
+  margin-top: 8px;
+}
+
+.guide-chart__note,
+.guide-chart__source {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--g-panel-ink);
+}
+
+/* ---------------------------------------------------------------------------
+ * 図解: 箱と文字は HTML、線は SVG (点線・始点の四角・終点の矢じり)、ラベルはシアンのチップ
+ * ------------------------------------------------------------------------- */
+.guide-diagram {
+  margin: 48px 0 0;
+}
+
+.guide-diagram__panel {
+  container: guide-diagram / inline-size;
+  padding: 56px 40px 48px;
+  border: 1px solid var(--g-rule);
+  border-radius: 8px;
+  background-color: var(--g-panel-bg, var(--g-bg-2));
+  background-image: var(--g-dots);
+  background-size: 16px 16px;
+}
+
+.guide-diagram__title {
+  margin-top: 12px;
+}
+
+.guide-flow {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+
+.guide-flow[data-variant='wide'] {
+  max-width: calc(var(--dw) * 1px);
+}
+
+.guide-flow[data-variant='narrow'] {
+  display: none;
+  max-width: calc(var(--dw) * 1.25px);
+}
+
+/* 図の枠が狭いときはスマホ用の配置 (上から下) に切り替える。箱の文字が 13px を下回らない幅が境目 */
+@container guide-diagram (max-width: 819px) {
+  .guide-diagram[data-orient='lr'] .guide-flow[data-variant='wide'] {
+    display: none;
+  }
+  .guide-diagram[data-orient='lr'] .guide-flow[data-variant='narrow'] {
+    display: block;
+  }
+}
+
+@container guide-diagram (max-width: 599px) {
+  .guide-diagram[data-orient='tb'] .guide-flow[data-variant='wide'] {
+    display: none;
+  }
+  .guide-diagram[data-orient='tb'] .guide-flow[data-variant='narrow'] {
+    display: block;
+  }
+}
+
+.guide-flow__lines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.guide-flow__line {
+  fill: none;
+  stroke: var(--g-ink-2);
+  stroke-width: 2;
+  stroke-dasharray: 0 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.guide-flow__end {
+  fill: var(--g-ink-2);
+}
+
+.guide-flow__node {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(100cqw * var(--py) / var(--dw)) calc(100cqw * var(--px) / var(--dw));
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-radius: 6px;
+  letter-spacing: 0;
+}
+
+.guide-flow__label {
+  display: block;
+  font-size: calc(100cqw * var(--fl) / var(--dw));
+  line-height: calc(100cqw * var(--fll) / var(--dw));
+  font-weight: 700;
+}
+
+.guide-flow__sub {
+  display: block;
+  font-size: calc(100cqw * var(--fs) / var(--dw));
+  line-height: calc(100cqw * var(--fsl) / var(--dw));
+  color: var(--g-ink-2);
+}
+
+.guide-flow__text {
+  display: block;
+  white-space: nowrap;
+}
+
+.guide-flow__node[data-emphasis] {
+  background: var(--g-ink);
+  border-color: var(--g-ink);
+  color: #ffffff;
+}
+
+.guide-flow__node[data-emphasis] .guide-flow__sub {
+  color: var(--g-panel-ink);
+}
+
+.guide-flow__chip {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(100cqw * var(--fc) / var(--dw));
+  font-weight: 700;
+  line-height: calc(100cqw * var(--fcl) / var(--dw));
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--g-ink);
+  background: var(--g-accent);
+  border-radius: 4px;
+}
+
+/* 時系列: 縦の罫線と四角の印 */
+.guide-timeline {
+  position: relative;
+  margin: 0;
+  padding: 4px 0 4px 32px;
+  list-style: none;
+}
+
+.guide-timeline::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 4px;
+  border-left: 1px solid var(--g-rule-2);
+}
+
+.guide-timeline__item {
+  position: relative;
+  padding: 10px 0 14px;
+}
+
+.guide-timeline__item::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 19px;
+  width: 9px;
+  height: 9px;
+  background: var(--g-ink-2);
+}
+
+.guide-timeline__item:last-child::before {
+  background: var(--g-accent);
+}
+
+.guide-timeline__when {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-timeline__what {
+  display: block;
+  font-size: 16.5px;
+  line-height: 1.7;
+  font-weight: 700;
+}
+
+/* 並列の項目: 罫線の格子 */
+.guide-cells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-cells[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-cells__item {
+  padding: 18px 24px 20px 0;
+  border-bottom: 1px solid var(--g-rule);
+}
+
+.guide-cells__item:nth-child(even) {
+  padding-left: 24px;
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-cells__label {
+  display: block;
+  font-weight: 700;
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+.guide-cells__item[data-emphasis] .guide-cells__label {
+  box-shadow: inset 0 -0.4em 0 rgb(0 188 253 / 0.35);
+}
+
+.guide-cells__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 補足・注意・未確認
+ * ------------------------------------------------------------------------- */
+.guide-callout {
+  margin: 36px 0 0;
+  padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--g-rule-2);
+  max-width: var(--g-measure);
+}
+
+.guide-callout[data-tone='tip'] {
+  border-left-color: var(--g-accent);
+}
+
+.guide-callout[data-tone='warning'] {
+  border-left: 3px solid var(--g-ink);
+}
+
+.guide-callout[data-tone='unverified'] {
+  border-left: 2px dashed var(--g-slate);
+}
+
+.guide-callout__title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0.9em;
+  align-items: baseline;
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.guide-callout__tone {
+  font-size: 13.5px;
+  color: var(--g-ink-2);
+}
+
+.guide-callout__body {
+  margin: 6px 0 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+
+/* ---------------------------------------------------------------------------
+ * 選び方 (JS なしの <details>)
+ * ------------------------------------------------------------------------- */
+.guide-decide {
+  margin: 40px 0 0;
+}
+
+.guide-decide .guide-caption {
+  margin-bottom: 12px;
+}
+
+.guide-decide__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 0 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-decide__question {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.guide-decide__option {
+  border-bottom: 1px solid var(--g-rule);
+}
+
+.guide-decide__label {
+  position: relative;
+  padding: 10px 0 10px 28px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.guide-decide__label::-webkit-details-marker {
+  display: none;
+}
+
+.guide-decide__label::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-top: -5.5px;
+  border: 1.5px solid var(--g-ink-2);
+}
+
+.guide-decide__option[open] > .guide-decide__label::before {
+  background: var(--g-accent);
+  border-color: var(--g-accent);
+}
+
+.guide-decide__option > .guide-decide__node {
+  margin: 2px 0 14px 28px;
+  padding-left: 16px;
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-decide__result {
+  margin: 0 0 14px 28px;
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.guide-decide__result-title {
+  font-weight: 700;
+}
+
+.guide-decide__result-body {
+  margin-left: 0.8em;
+  color: var(--g-ink-2);
+}
+
+.guide-decide__result-link {
+  margin-left: 0.8em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.guide-decide__summary-title {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--g-ink-2);
+}
+
+.guide-decide__summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-decide__summary-item {
+  display: grid;
+  grid-template-columns: 8.5em minmax(0, 1fr);
+  gap: 0 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+
+.guide-decide__path {
+  font-size: 13.5px;
+  color: var(--g-ink-2);
+  padding-top: 1px;
+}
+
+/* 結論の一覧: 結論 (太字) の下に理由とリンク */
+.guide-decide__outcome .guide-decide__result-title {
+  display: block;
+}
+
+.guide-decide__outcome .guide-decide__result-body {
+  margin-left: 0;
+}
+
+.guide-decide__outcome .guide-decide__result-body + .guide-decide__result-link {
+  margin-left: 0.8em;
+}
+
+.guide-decide__outcome > .guide-decide__result-link:nth-child(2) {
+  margin-left: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 更新履歴・出典
+ * ------------------------------------------------------------------------- */
 .guide-changelog,
-.guide-sources { padding-left: 1.5rem; }
-.guide-changelog { list-style: none; padding-left: 0; }
-.guide-changelog__entry,
-.guide-sources__item { margin: 0.5rem 0; }
-.guide-changelog__date { font-weight: 700; margin-right: 0.75rem; }
-.guide-changelog__basis,
-.guide-sources__publisher,
-.guide-sources__accessed { display: inline-block; margin-left: 0.5rem; font-size: 0.875rem; color: var(--guide-muted); }
+.guide-sources {
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
 
-/* cta + form */
-.guide-cta { border: 1px solid var(--guide-rule); padding: 1rem 1.25rem; }
-.guide-cta__title { font-weight: 700; margin: 0 0 0.25rem; }
-.guide-cta__body { margin: 0 0 0.75rem; }
-.guide-cta__button,
-.guide-form__submit { display: inline-block; border: 1px solid currentColor; padding: 0.5rem 1rem; font-weight: 700; }
-.guide-form { display: grid; gap: 0.75rem; margin-top: 1rem; }
-.guide-form__field { display: grid; gap: 0.25rem; }
-.guide-form__label { font-size: 0.875rem; }
-.guide-form__input { width: 100%; border: 1px solid var(--guide-rule); padding: 0.5rem; background: transparent; color: inherit; }
-.guide-form__submit { justify-self: start; background: transparent; color: inherit; cursor: pointer; }
-.guide-form__submit:disabled { opacity: 0.6; cursor: progress; }
-.guide-form__error,
-.guide-form__done { margin: 0.5rem 0 0; font-weight: 700; }
+.guide-changelog__entry {
+  display: grid;
+  grid-template-columns: 7em minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 0 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.guide-changelog__date {
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-changelog__basis {
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+.guide-changelog__basis a,
+.guide-sources__link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-ink-2);
+}
+
+.guide-sources {
+  counter-reset: guide-source;
+}
+
+.guide-sources__item {
+  counter-increment: guide-source;
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.guide-sources__item::before {
+  content: counter(guide-source);
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-sources__meta {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.2em;
+  font-size: 13.5px;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 相談 (左揃え・主 1 つ + 副 1 つ)
+ * ------------------------------------------------------------------------- */
+.guide-cta[data-placement='inline'] {
+  margin: 56px 0 0;
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--g-ink);
+  border-bottom: 1px solid var(--g-rule);
+}
+
+.guide-section[data-kind='cta'] .guide-main {
+  padding-bottom: 112px;
+}
+
+.guide-cta__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.guide-cta[data-placement='end'] .guide-cta__title {
+  font-size: 36px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.guide-cta__body {
+  margin: 20px 0 0;
+  font-size: 17.5px;
+  line-height: 1.9;
+  max-width: var(--g-measure);
+}
+
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  margin-top: 36px;
+}
+
+.guide-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 26px;
+  font: 700 16px/1.4 var(--g-sans);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 1px solid var(--g-ink);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.guide-button[data-kind='primary'] {
+  background: var(--g-ink);
+  color: #ffffff;
+}
+
+.guide-button[data-kind='primary']:hover {
+  background: #0a1f36;
+}
+
+.guide-button[data-kind='primary']:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.guide-button[data-kind='secondary'] {
+  background: #ffffff;
+  color: var(--g-ink);
+}
+
+.guide-button[data-kind='secondary']:hover {
+  background: var(--g-bg-2);
+}
+
+/* 相談フォーム */
+.guide-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  max-width: 760px;
+  margin-top: 36px;
+}
+
+.guide-form [data-wide] {
+  grid-column: 1 / -1;
+}
+
+.guide-form .guide-actions {
+  margin-top: 8px;
+}
+
+.guide-form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.guide-form__label {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+/* 入力する文字は書体の部分集合 (ページの文字だけ) に無いことがあるので、端末の書体で描く */
+.guide-form__input {
+  width: 100%;
+  padding: 12px 14px;
+  font: 400 16px/1.6 system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+  color: var(--g-ink);
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-radius: 4px;
+}
+
+.guide-form__input:focus {
+  border-color: var(--g-ink);
+}
+
+textarea.guide-form__input {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* JS が動かないときの送信の結果 (/api/contact が #guide-contact-sent へ戻す) */
+.guide-form__notice {
+  display: none;
+  margin: 32px 0 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--g-accent);
+  background: var(--g-bg);
+  max-width: var(--g-measure);
+  font-weight: 700;
+  scroll-margin-top: calc(var(--g-header) + 24px);
+}
+
+.guide-form__notice[data-kind='error'] {
+  border-left-color: var(--g-ink);
+}
+
+.guide-form__notice:target {
+  display: block;
+}
+
+.guide-form-wrap:has(#guide-contact-sent:target) .guide-form {
+  display: none;
+}
+
+.guide-form__done,
+.guide-form__error {
+  margin: 24px 0 0;
+  font-weight: 700;
+  max-width: var(--g-measure);
+}
+
+/* ---------------------------------------------------------------------------
+ * 書いた人
+ * ------------------------------------------------------------------------- */
+.guide-author .guide-rail {
+  padding-top: 70px;
+}
+
+.guide-author__main {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 28px;
+  padding-top: 64px;
+  padding-bottom: 80px;
+}
+
+.guide-author__photo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.guide-author__name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.guide-author__name a {
+  text-decoration: none;
+}
+
+.guide-author__role {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+.guide-author__bio {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  max-width: var(--g-measure);
+}
+
+.guide-author__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.guide-author__links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-rule-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * PC の広い画面: 左右に長い図は、本文の列からはみ出して区画の幅いっぱいに置く
+ * ------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .guide-main > .guide-diagram[data-orient='lr'] {
+    margin-left: calc(-1 * (var(--g-rail) + var(--g-pl)));
+    margin-right: calc(-1 * var(--g-pr));
+    padding: 48px var(--g-pl) 40px;
+    background: var(--g-section-bg);
+    border-top: 1px solid var(--g-rule);
+    border-bottom: 1px solid var(--g-rule);
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * タブレット
+ * ------------------------------------------------------------------------- */
+/* 表紙の 2 列は 1200px の枠いっぱいのときだけ (タイトルの大きさ titleSize はこの幅で決めている) */
+@media (max-width: 1199px) {
+  .guide-hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-hero__text {
+    max-width: 880px;
+  }
+  .guide-hero__aside {
+    border-left: 0;
+    border-top: 1px solid var(--g-rule);
+    padding: 40px var(--g-pl) 48px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .guide-page {
+    --g-rail: 150px;
+    --g-pl: 32px;
+    --g-pr: 32px;
+  }
+  .guide-meta__list {
+    flex-wrap: wrap;
+  }
+  .guide-meta__cell {
+    flex-basis: 40%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * スマホ
+ * ------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .guide-page {
+    --g-pl: 14px;
+    --g-pr: 14px;
+    --g-header: 80px;
+    font-size: 16px;
+  }
+  .guide-frame {
+    margin: 0 10px;
+  }
+  .guide-crumbs .guide-frame {
+    padding-top: calc(var(--g-header) + 8px);
+  }
+  .guide-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-rail {
+    border-right: 0;
+    padding: 32px var(--g-pl) 0;
+  }
+  .guide-rail:empty {
+    display: none;
+  }
+  .guide-main {
+    padding: 10px var(--g-pr) 64px var(--g-pl);
+  }
+  .guide-section[data-kind='cta'] .guide-main,
+  .guide-rail:empty + .guide-main {
+    padding-top: 40px;
+  }
+
+  .guide-hero__text {
+    padding: 40px var(--g-pl) 36px;
+  }
+  .guide-hero__title {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+  .guide-hero__title[data-size='m'] {
+    font-size: 34px;
+  }
+  .guide-hero__title[data-size='s'] {
+    font-size: 28px;
+  }
+  .guide-hero__lead {
+    font-size: 16.5px;
+  }
+  .guide-hero__answer {
+    margin-top: 28px;
+  }
+  .guide-hero__answer-line {
+    font-size: 16px;
+  }
+  .guide-hero__aside {
+    padding: 28px var(--g-pl) 30px;
+  }
+  .guide-term__screen {
+    padding: 14px 14px 16px;
+    font-size: 11.5px;
+  }
+
+  .guide-meta__list {
+    display: block;
+  }
+  .guide-meta__cell,
+  .guide-meta__cell:first-child {
+    display: grid;
+    grid-template-columns: 6.5em minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 12px var(--g-pl) 13px;
+    border-left: 0;
+    border-top: 1px solid var(--g-rule);
+  }
+  .guide-meta__cell:first-child {
+    border-top: 0;
+  }
+  .guide-meta__cell dt {
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+  .guide-meta__cell dd {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .guide-toc .guide-rail {
+    padding-top: 28px;
+    padding-bottom: 0;
+  }
+  .guide-toc__main {
+    padding-top: 8px;
+    padding-bottom: 32px;
+  }
+  .guide-toc__list {
+    columns: 1;
+  }
+  .guide-toc__link {
+    font-size: 15.5px;
+  }
+
+  .guide-h2 {
+    font-size: 26px;
+    line-height: 1.5;
+  }
+  .guide-h3 {
+    margin-top: 48px;
+    font-size: 20px;
+  }
+
+  .guide-table {
+    overflow-x: auto;
+  }
+  .guide-table table {
+    font-size: 14px;
+  }
+  .guide-table thead th {
+    position: static;
+    font-size: 12px;
+    padding-right: 10px;
+  }
+  .guide-table tbody td {
+    padding: 12px 10px 12px 0;
+  }
+
+  .guide-stats__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guide-stats__item {
+    padding: 14px 12px 16px;
+  }
+  .guide-stats__item:nth-child(odd) {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .guide-stats__value {
+    font-size: 28px;
+  }
+
+  .guide-chart {
+    --g-chart-label: 100px;
+    padding: 22px 16px 20px;
+  }
+
+  .guide-diagram__panel {
+    padding: 28px 12px 32px;
+  }
+  .guide-cells {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-cells__item:nth-child(even) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .guide-decide__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .guide-decide__summary-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .guide-changelog__entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .guide-changelog__date {
+    font-size: 13.5px;
+  }
+
+  .guide-cta[data-placement='end'] .guide-cta__title {
+    font-size: 26px;
+    line-height: 1.5;
+  }
+  .guide-cta__body {
+    font-size: 16px;
+  }
+  .guide-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .guide-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide-author__main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-top: 16px;
+    padding-bottom: 56px;
+  }
+  .guide-author__photo {
+    width: 72px;
+    height: 72px;
+  }
+}

@@ -1,7 +1,7 @@
 import './guide.css'
 import { parseGuideBlock } from '@/app/posts/_lib/guide-blocks'
 import { warnServer } from '@/app/posts/_lib/server-log'
-import BarChartSvg from './BarChartSvg'
+import BarChart from './BarChart'
 import Callout from './Callout'
 import ConsultCta from './ConsultCta'
 import DecisionHelper from './DecisionHelper'
@@ -13,6 +13,8 @@ import UpdateLog from './UpdateLog'
 export interface GuideRenderContext {
   /** 記事の slug (相談フォームの source: guide:<slug> に使う) */
   readonly slug: string
+  /** 相談の導線の置き場所 (本文の最後の独立した区画か、本文の途中か)。guide-markdown が決める */
+  readonly placement?: 'end' | 'inline'
 }
 
 interface GuideBlockProps {
@@ -44,7 +46,7 @@ export default function GuideBlock({ lang, raw, context }: GuideBlockProps) {
     case 'nands-stats':
       return <StatCards block={block.data} />
     case 'nands-chart':
-      return <BarChartSvg block={block.data} />
+      return <BarChart block={block.data} />
     case 'nands-callout':
       return <Callout block={block.data} />
     case 'nands-decide':
@@ -56,7 +58,7 @@ export default function GuideBlock({ lang, raw, context }: GuideBlockProps) {
     case 'nands-sources':
       return <SourceList block={block.data} />
     case 'nands-cta':
-      return <ConsultCta block={block.data} slug={context?.slug} />
+      return <ConsultCta block={block.data} slug={context?.slug} placement={context?.placement} />
     case 'nands-hero':
       warnServer('[guide-block] nands-hero は本文の先頭の 1 つだけをページの冒頭に描きます。本文中のものは描画しません', {
         slug: context?.slug ?? null,

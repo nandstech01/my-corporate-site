@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { recordInquiry } from '@/lib/cortex/metrics/inquiries';
-import { contactMailSubject, normalizeContactSource } from './source';
+import { contactMailSubject, guideReturnPaths, isSameOriginPost, normalizeContactSource, type GuideReturnPaths } from './source';
 
 async function appendToSheet(row: any[]) {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
@@ -26,7 +26,14 @@ async function appendToSheet(row: any[]) {
   });
 }
 
+/** JS が動かないガイドの相談フォームには JSON ではなく、元の記事の送信結果の文章への 303 を返す (送信後の画面を JSON にしない) */
+function redirectTo(request: Request, path: string): Response {
+  return NextResponse.redirect(new URL(path, request.url), 303);
+}
+
 export async function POST(request: Request) {
+  // form の POST (JSON 以外) で届いたガイドの相談なら、送信の成否にかかわらず記事へ戻す
+  let guideReturn: GuideReturnPaths | null = null;
   try {
     const contentType = request.headers.get('content-type') || '';
     let company = '', name = '', email = '', phone = '', message = '', to = '' as string | undefined, source = '';
@@ -43,6 +50,11 @@ export async function POST(request: Request) {
       message = String(form.get('message') || '');
       // JS が動かないときのガイドの相談フォームは source を hidden で送る。無ければ従来どおり corporate
       source = normalizeContactSource(form.get('source')) || 'corporate';
+      guideReturn = guideReturnPaths(source);
+      // 別のサイトからのフォームの POST は受け付けない (記録もメールもしない)
+      if (guideReturn && !isSameOriginPost(request)) {
+        return redirectTo(request, guideReturn.failed);
+      }
     }
     // 送信先はリクエストで任意指定させない (任意宛先へのメール送信＝スパムの踏み台になるため)。
     // 許可リストにある宛先だけ受け付け、それ以外は既定の宛先に送る。
@@ -99,9 +111,11 @@ export async function POST(request: Request) {
       console.warn('Sheets append skipped or failed:', e);
     }
 
+    if (guideReturn) return redirectTo(request, guideReturn.sent);
     return NextResponse.json({ message: '送信しました' });
   } catch (error) {
     console.error('Email sending error:', error);
+    if (guideReturn) return redirectTo(request, guideReturn.failed);
     return NextResponse.json(
       { error: '送信に失敗しました' },
       { status: 500 }

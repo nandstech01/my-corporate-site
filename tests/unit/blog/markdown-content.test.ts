@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // vitest の esbuild は tsconfig の jsx: preserve により classic 変換 (React.createElement) になる
 vi.stubGlobal('React', React)
 
-import MarkdownContent, { MarkdownFrame, renderMarkdown } from '@/components/blog/MarkdownContent'
+import MarkdownContent, { GuideBody, renderMarkdown } from '@/components/blog/MarkdownContent'
 import GuideHero from '@/components/guide/GuideHero'
 import GuideToc from '@/components/guide/GuideToc'
 import { splitGuideHero } from '@/app/posts/_lib/guide-blocks'
@@ -36,7 +36,7 @@ describe('MarkdownContent (サーバー部品) の出力', () => {
       ].join('\n')
     )
     expect(html).toContain('data-guide-block="stats"')
-    expect(html).toContain('<dd class="guide-stats__value">20ドル</dd>')
+    expect(html).toContain('<dd class="guide-stats__value">20<span class="guide-stats__unit">ドル</span></dd>')
     expect(html).toContain('data-tone="warning"')
     expect(html).not.toContain('{&quot;items&quot;')
     expect(html).not.toContain('"items"')
@@ -126,7 +126,7 @@ describe('renderMarkdown: ガイドの目次は描画した見出しから作る
     const { element, headings } = renderMarkdown(md)
     expect(headings.map((heading) => heading.id)).toEqual(['a'])
     expect(renderToStaticMarkup(element)).toContain('data-guide-block="callout"')
-    expect(splitGuideHero(FIXTURE.replace(/\n/g, '\r\n')).hero?.answer).toHaveLength(3)
+    expect(splitGuideHero(FIXTURE.replace(/\n/g, '\r\n')).hero?.answer).toHaveLength(4)
   })
 })
 
@@ -143,62 +143,115 @@ describe('見本のガイドをページの部品で描く', () => {
       'article',
       { 'data-layout': 'guide' },
       React.createElement(GuideHero, {
-        title: 'Claude Code 完全ガイド (見本)',
+        title: 'Claude Code 完全ガイド',
         hero,
         modifiedAt,
-        author: { name: '原田賢治', href: '/author/harada-kenji' },
+        author: { name: '原田賢治', href: '/author/harada-kenji', role: '代表取締役' },
         fallbackImage: { src: 'https://example.com/banner.png', alt: 'バナー', width: 1200, height: 630 },
       }),
       React.createElement(GuideToc, { items: toc }),
-      React.createElement(MarkdownFrame, null, rendered.element)
+      React.createElement(GuideBody, null, rendered.element)
     )
   )
+  const TOC_IDS = ['summary', 'compare', 'mcp', 'mcp-commands', 'choose', 'history', 'changelog', 'sources']
 
-  it('冒頭: h1・答え・最終更新 (= 更新履歴の最新日)・著者・AI 利用・ヒーロー画像 (priority)', () => {
+  it('冒頭: h1 (文節の区切りに <wbr>)・一文の説明・答え・最終更新 (= 更新履歴の最新日)・書いた人・AI の使い方・検証の環境', () => {
     expect(modifiedAt).toBe('2026-09-27T00:00:00+09:00')
-    expect(html).toContain('<h1 id="main-title" class="guide-hero__title">Claude Code 完全ガイド (見本)</h1>')
-    expect(html).toContain('これはガイドのブロックを確認するための見本の本文です')
-    expect(html).toContain('<time dateTime="2026-09-27T00:00:00+09:00">2026年9月27日</time>')
-    expect(html).toContain('<a href="/author/harada-kenji" rel="author">原田賢治</a>')
-    expect(html).toContain('見本のため、この本文は人が手で書いています。')
-    expect(html).toMatch(/<img[^>]*fetch[pP]riority="high"[^>]*>/)
-    expect(html).toMatch(/<img[^>]*width="1200"[^>]*height="630"/)
+    expect(html).toContain('<h1 id="main-title" class="guide-hero__title" data-size="l">Claude\u00a0Code 完全ガイド</h1>')
+    expect(html).toContain('<p class="guide-hero__lead">使い方、<wbr/>MCP\u00a0での<wbr/>')
+    expect(html).toContain('<ul class="guide-hero__answer" data-role="answer" aria-label="この記事の要点">')
+    expect((html.match(/class="guide-hero__answer-line"/g) ?? []).length).toBe(4)
+    expect(html).toContain('<time dateTime="2026-09-27T00:00:00+09:00">2026-09-27</time>')
+    expect(html).toContain('<a href="/author/harada-kenji" rel="author">原田賢治</a><span class="guide-meta__role">代表取締役</span>')
+    expect(html).toContain('<dt>AI の使い方</dt>')
+    expect(html).toContain('<dt>検証の環境</dt>')
+  })
+
+  it('ヒーローの右側は実際のコマンドの出力 (窓の飾りなし)。terminal があれば画像は出さない', () => {
+    expect(html).toContain('<figure class="guide-term" data-guide-block="terminal">')
+    expect(html).toContain('<span class="guide-term__cmd" data-first=""><span class="guide-term__prompt" aria-hidden="true">$ </span>claude --version\n</span>')
+    expect(html).toContain('<span class="guide-term__out">2.1.283 (Claude Code)\n</span>')
+    expect(html).toContain('<figcaption class="guide-term__caption">')
+    expect(html).not.toMatch(/term-bar|<i><\/i>/)
+    expect(html).not.toContain('<img')
+  })
+
+  it('terminal が無ければヒーローの画像 (LCP の候補なので priority、幅と高さつき)', () => {
+    const imageHero = renderToStaticMarkup(
+      React.createElement(GuideHero, {
+        title: 't',
+        hero: hero ? { ...hero, terminal: undefined } : null,
+        modifiedAt,
+        author: { name: '原田賢治', href: '/author/harada-kenji' },
+        fallbackImage: { src: 'https://example.com/banner.png', alt: 'バナー', width: 1200, height: 630 },
+      })
+    )
+    expect(imageHero).toMatch(/<img[^>]*fetch[pP]riority="high"[^>]*>/)
+    expect(imageHero).toMatch(/<img[^>]*width="1200"[^>]*height="630"/)
   })
 
   it('目次のリンクはすべて本文の見出しの id を指し、コードの中の # は目次に入らない', () => {
     const hrefs = Array.from(html.matchAll(/class="guide-toc__link" href="#([^"]+)"/g), (m) => decodeURIComponent(m[1]))
-    expect(hrefs).toEqual(['summary', 'pricing', 'flow', 'code-example', 'choose', 'history', 'changelog', 'sources'])
+    expect(hrefs).toEqual(TOC_IDS)
     for (const id of hrefs) expect(html).toContain(`id="${id}"`)
-    const nav = html.slice(html.indexOf('<nav class="guide-toc"'), html.indexOf('</nav>'))
-    expect(nav).not.toContain('コードの中のコメント')
-    expect(html).toContain('# これはコードの中のコメントで、目次には入らない')
+    const nav = html.slice(html.indexOf('<nav class="guide-band guide-toc"'), html.indexOf('</nav>'))
+    expect(nav).not.toContain('手元で動く')
+    expect(html).toContain('# 手元で動く MCP サーバー (stdio)')
   })
 
-  it('9 種類のブロックがすべて描かれ、JSON は出ない', () => {
-    for (const type of ['hero', 'stats', 'chart', 'callout', 'diagram', 'decide', 'changelog', 'sources', 'cta']) {
+  it('本文は h2 ごとの区画。左の列の番号は目次の番号と同じ。最後の相談は独立した区画 (見出しは h2)', () => {
+    const sections = Array.from(html.matchAll(/<section class="guide-band guide-section"([^>]*)>/g), (m) => m[1])
+    expect(sections).toHaveLength(8)
+    expect(sections[0]).toBe(' aria-labelledby="summary" data-section="1"')
+    expect(sections[6]).toBe(' aria-labelledby="sources" data-section="7"')
+    expect(sections[7]).toBe(' data-kind="cta"')
+    expect(html).toContain('<div class="guide-rail"><span class="guide-rail__num" aria-hidden="true">3</span></div>')
+    const tocNumbers = Array.from(html.matchAll(/<span class="guide-toc__num" aria-hidden="true">(\d+)<\/span>/g), (m) => m[1])
+    expect(tocNumbers).toEqual(['1', '2', '3', '4', '5', '6', '7'])
+    expect(html).toMatch(/<section class="guide-cta" data-guide-block="cta" data-placement="end" aria-label="Claude Code の導入を相談する"><h2 class="guide-cta__title" id="guide-consult">/)
+  })
+
+  it('本文の素の要素にはクラスを付けない (Tailwind の見た目を持ち込まない)。見出しと表の見出しは文節の区切りに <wbr>', () => {
+    expect(html).toMatch(/<h2 id="compare" class="guide-h2">どの<wbr\/>モデルを<wbr\/>選べばいい？<wbr\/>同じ<wbr\/>課題で<wbr\/>測りました<\/h2>/)
+    expect(html).toContain('<div class="guide-table"><table>')
+    expect(html).toContain('<th style="text-align:right">時間の<wbr/>中央値 (秒)</th>')
+    expect(html).toContain('<td style="text-align:right">0.15</td>')
+    expect(html).toMatch(/<p>この<wbr\/>難しさの<wbr\/>課題では、/)
+    expect(html).not.toMatch(/class="[^"]*(text-gray|bg-gray|border-l-4|highlight-marker|prose)/)
+    expect(html).toContain('<pre class="guide-code"><code class="language-bash">')
+  })
+
+  it('10 種類のブロックがすべて描かれ、JSON は出ない', () => {
+    for (const type of ['hero', 'terminal', 'stats', 'chart', 'callout', 'diagram', 'decide', 'changelog', 'sources', 'cta']) {
       expect(html, type).toContain(`data-guide-block="${type}"`)
     }
-    expect(html).not.toMatch(/&quot;(items|rows|nodes|entries|root)&quot;/)
+    expect(html).not.toMatch(/&quot;(items|rows|nodes|entries|root|lines)&quot;/)
   })
 
   it('選び方: JS なしの入れ子の <details> と、常に見える結論の一覧', () => {
     expect((html.match(/<details class="guide-decide__option">/g) ?? []).length).toBe(4)
     expect(html).toContain('<span class="guide-decide__path">はい → はい</span>')
-    expect(html).toContain('<strong class="guide-decide__result-title">Max 20x</strong>')
-    expect(html).toMatch(/<div class="guide-decide__summary">(?:(?!<details).)*Pro/s)
+    expect(html).toContain('<strong class="guide-decide__result-title">Opus\u00a05.5\u00a0の<wbr/> high</strong>')
+    expect(html).toMatch(/<div class="guide-decide__summary">(?:(?!<details).)*まずは/s)
   })
 
-  it('相談フォーム: source は guide:<slug>、JS なしでも POST (URL に個人情報を載せない)', () => {
+  it('相談フォーム: source は guide:<slug>、JS なしでも POST (URL に個人情報を載せない)。送信後の文章は :target で出す', () => {
     expect(html).toContain('<form class="guide-form" method="post" action="/api/contact" data-source="guide:claude-code-guide">')
     expect(html).toContain('<input type="hidden" name="source" value="guide:claude-code-guide"/>')
+    expect(html).toContain('<p id="guide-contact-sent" class="guide-form__notice" data-kind="sent" role="status">')
+    expect(html).toContain('<p id="guide-contact-error" class="guide-form__notice" data-kind="error">')
+    // 主の操作 (送信) と副の操作 (関連記事) の 2 つだけ
+    expect(html).toContain('<button class="guide-button" data-kind="primary" type="submit">相談を送る</button>')
+    expect(html).toContain('<a class="guide-button" data-kind="secondary" href="/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n">実測の比較記事を読む</a>')
   })
 
-  it('更新履歴は新しい順、出典の外部リンクは新しいタブ', () => {
-    expect(html.indexOf('2026年9月27日</time><span class="guide-changelog__change">')).toBeLessThan(
-      html.indexOf('2026年9月20日</time><span class="guide-changelog__change">')
+  it('更新履歴は新しい順 (日付は YYYY-MM-DD)、出典の外部リンクは新しいタブ', () => {
+    expect(html.indexOf('2026-09-27</time><span class="guide-changelog__change">')).toBeGreaterThan(-1)
+    expect(html.indexOf('2026-09-27</time><span class="guide-changelog__change">')).toBeLessThan(
+      html.indexOf('2026-09-20</time><span class="guide-changelog__change">')
     )
-    expect(html).toContain('<a class="guide-sources__link" href="https://example.com/pricing" target="_blank" rel="noopener noreferrer">')
-    expect(html).toContain('<a class="guide-sources__link" href="/posts/example">')
+    expect(html).toContain('<a class="guide-sources__link" href="https://docs.claude.com/en/docs/claude-code/mcp" target="_blank" rel="noopener noreferrer">')
+    expect(html).toContain('<a class="guide-sources__link" href="/posts/opus-5-5-vs-opus-5-fable-5-1-measured-ep619n">')
   })
 
   it('レビュー用に HTML を書き出せる (GUIDE_FIXTURE_OUT を指定したときだけ)', () => {

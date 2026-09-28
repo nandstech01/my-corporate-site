@@ -6,53 +6,55 @@ import { chartSchema } from '@/app/posts/_lib/guide-blocks'
 // vitest の esbuild は tsconfig の jsx: preserve により classic 変換 (React.createElement) になる
 vi.stubGlobal('React', React)
 
-import BarChartSvg, { CHART_WIDTH, chartGeometry } from '@/components/guide/BarChartSvg'
+import BarChart, { VALUE_FONT, chartScale } from '@/components/guide/BarChart'
+import { textUnits } from '@/components/guide/text-wrap'
 
 const block = chartSchema.parse({
-  title: 'プラン別の月額',
-  unit: 'ドル',
-  source: '公式の料金ページ',
+  title: '1 回あたりの時間の中央値',
+  unit: '秒',
+  note: '水色が Opus 5.5 です。',
+  source: '当社の検証記録',
   rows: [
-    { label: '無料', value: 0 },
-    { label: 'Pro', value: 20, note: '個人向け' },
-    { label: 'Max', value: 200 },
+    { label: 'Opus 5.5', note: 'high', value: 31, highlight: true },
+    { label: 'Opus 5', note: 'high', value: 62 },
+    { label: 'なし', value: 0 },
     { label: 'Team', value: 1234.5 },
   ],
 })
 
-describe('横棒グラフの SVG', () => {
-  const html = renderToStaticMarkup(React.createElement(BarChartSvg, { block }))
+describe('横棒グラフ (HTML の表を棒の形に描く)', () => {
+  const html = renderToStaticMarkup(React.createElement(BarChart, { block }))
 
-  it('棒の長さは最大値に比例し、0 は 0、値の文字は図の中に収まる', () => {
-    const geometry = chartGeometry(block)
-    const widths = geometry.bars.map((bar) => bar.barWidth)
-    expect(widths[0]).toBe(0)
-    expect(widths[3]).toBe(Math.max(...widths))
-    expect(widths[2] / widths[3]).toBeCloseTo(200 / 1234.5, 2)
-    for (const bar of geometry.bars) expect(bar.valueX).toBeGreaterThan(bar.barWidth)
-    expect(geometry.height).toBe(4 * 44)
-    expect(CHART_WIDTH).toBe(geometry.width)
+  it('目盛りは 1・2・5 × 10 のべき乗の間隔で 0 から最大値まで。棒の基準は最大値', () => {
+    const scale = chartScale(block)
+    expect(scale.max).toBe(1234.5)
+    expect(scale.ticks).toEqual([0, 500, 1000])
+    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 62 }] })).ticks).toEqual([0, 20, 40, 60])
+    expect(chartScale(chartSchema.parse({ title: 't', rows: [{ label: 'a', value: 0 }] })).max).toBe(1)
   })
 
-  it('読み上げ: role=img と、title・desc を aria-labelledby で指す', () => {
-    const labelledBy = html.match(/<svg[^>]*aria-labelledby="([^"]+)"/)?.[1] ?? ''
-    const [titleId, descId] = labelledBy.split(' ')
-    expect(html).toMatch(/<svg[^>]*role="img"/)
-    expect(html).toContain(`<title id="${titleId}">プラン別の月額</title>`)
-    expect(html).toContain(`<desc id="${descId}">無料: 0ドル、Pro: 20ドル、Max: 200ドル、Team: 1,234.5ドル</desc>`)
+  it('値の文字は棒の右の予約した余白に入る (いちばん長い値の幅 + 間隔)', () => {
+    const scale = chartScale(block)
+    expect(scale.values).toEqual(['31秒', '62秒', '0秒', '1,234.5秒'])
+    expect(scale.reserve).toBeGreaterThanOrEqual(textUnits('1,234.5秒') * VALUE_FONT + 8)
+    expect(html).toContain('--reserve:')
   })
 
-  it('SVG と同じ数字を表でも出す (見出しセル・単位・補足・出典)', () => {
-    expect((html.match(/<rect /g) ?? []).length).toBe(4)
-    expect(html).toContain('<caption class="guide-chart__table-caption">プラン別の月額 (単位: ドル)</caption>')
-    expect(html).toContain('<th scope="row">Team</th><td data-value="1234.5">1,234.5ドル</td><td></td>')
-    expect(html).toContain('<td>個人向け</td>')
-    expect(html).toContain('出典: 公式の料金ページ')
+  it('項目は th (行見出し)、値は td。棒の長さは CSS の --v / --max。SVG の文字は使わない', () => {
+    expect(html).not.toContain('<svg')
+    // 製品名は改行しない空白 (U+00A0) でつなぐ
+    expect(html).toContain('<th scope="row" class="guide-chart__label"><span class="guide-chart__name">Opus\u00a05.5</span><span class="guide-chart__sub">high</span></th>')
+    expect(html).toContain('<td class="guide-chart__cell" data-value="1234.5">')
+    expect(html).toContain('<span class="guide-chart__value" style="--v:1234.5">1,234.5秒</span>')
+    expect(html).toContain('<caption class="guide-sr">1 回あたりの時間の中央値 (単位: 秒)</caption>')
   })
 
-  it('同じ id を 2 回使わない (ページに複数のグラフがあっても衝突しない)', () => {
-    const other = chartSchema.parse({ ...block, title: '別のグラフ' })
-    const ids = [html, renderToStaticMarkup(React.createElement(BarChartSvg, { block: other }))].map((markup) => markup.match(/<title id="([^"]+)"/)?.[1])
-    expect(ids[0]).not.toBe(ids[1])
+  it('主役の行 (highlight) だけ印を付ける (CSS でアクセント色)', () => {
+    expect((html.match(/data-highlight=""/g) ?? []).length).toBe(1)
+  })
+
+  it('注記と出典はグラフの下に文章で', () => {
+    expect(html).toContain('<p class="guide-chart__note">水色が<wbr/> Opus\u00a05.5\u00a0です。</p>')
+    expect(html).toContain('<p class="guide-chart__source">出典: 当社の<wbr/>検証記録</p>')
   })
 })

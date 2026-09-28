@@ -1,12 +1,8 @@
 import type { ChangelogBlock } from '@/app/posts/_lib/guide-blocks'
 import { isExternalUrl } from './format'
+import { Phrases } from './phrases'
 
-function formatDate(date: string): string {
-  const [year, month, day] = date.split('-').map(Number)
-  return `${year}年${month}月${day}日`
-}
-
-/** 更新履歴 (新しい順)。日付・何が変わったか・根拠。見た目は guide.css の .guide-changelog* */
+/** 更新履歴 (新しい順)。仕様書の改訂履歴のように「日付・何が変わったか・根拠」の 3 列。見た目は guide.css の .guide-changelog* */
 export default function UpdateLog({ block }: { block: ChangelogBlock }) {
   const entries = [...block.entries].sort((a, b) => b.date.localeCompare(a.date))
   return (
@@ -14,9 +10,11 @@ export default function UpdateLog({ block }: { block: ChangelogBlock }) {
       {entries.map((entry, index) => (
         <li className="guide-changelog__entry" key={index}>
           <time className="guide-changelog__date" dateTime={entry.date}>
-            {formatDate(entry.date)}
+            {entry.date}
           </time>
-          <span className="guide-changelog__change">{entry.change}</span>
+          <span className="guide-changelog__change">
+            <Phrases text={entry.change} />
+          </span>
           {(entry.basis || entry.url) && (
             <span className="guide-changelog__basis">
               根拠:{' '}
@@ -25,10 +23,10 @@ export default function UpdateLog({ block }: { block: ChangelogBlock }) {
                   href={entry.url}
                   {...(isExternalUrl(entry.url) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
-                  {entry.basis ?? '出典'}
+                  <Phrases text={entry.basis ?? '出典'} />
                 </a>
               ) : (
-                entry.basis
+                <Phrases text={entry.basis ?? ''} />
               )}
             </span>
           )}

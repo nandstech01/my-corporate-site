@@ -1,7 +1,8 @@
 import type { SourcesBlock } from '@/app/posts/_lib/guide-blocks'
 import { isExternalUrl } from './format'
+import { Phrases } from './phrases'
 
-/** 出典の一覧。見た目は guide.css の .guide-sources* */
+/** 出典の一覧 (番号付き)。発行元と確認日は小さく。見た目は guide.css の .guide-sources* */
 export default function SourceList({ block }: { block: SourcesBlock }) {
   return (
     <ol className="guide-sources" data-guide-block="sources">
@@ -12,12 +13,20 @@ export default function SourceList({ block }: { block: SourcesBlock }) {
             href={item.url}
             {...(isExternalUrl(item.url) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           >
-            {item.title}
+            <Phrases text={item.title} />
           </a>
-          {item.publisher && <span className="guide-sources__publisher">{item.publisher}</span>}
-          {item.accessed && (
-            <span className="guide-sources__accessed">
-              (<time dateTime={item.accessed}>{item.accessed}</time> 確認)
+          {(item.publisher || item.accessed) && (
+            <span className="guide-sources__meta">
+              {item.publisher && (
+                <span className="guide-sources__publisher">
+                  <Phrases text={item.publisher} />
+                </span>
+              )}
+              {item.accessed && (
+                <span className="guide-sources__accessed">
+                  <time dateTime={item.accessed}>{item.accessed}</time> に確認
+                </span>
+              )}
             </span>
           )}
         </li>

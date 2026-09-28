@@ -1,131 +1,187 @@
+import type { CSSProperties } from 'react'
 import type { DiagramBlock } from '@/app/posts/_lib/guide-blocks'
-import { DIAGRAM_TEXT, layoutDiagram, type LaidOutNode } from './diagram-layout'
-import { stableId } from './format'
+import {
+  FLOW_VARIANTS,
+  MAX_LR_LAYERS,
+  describeFlow,
+  flowLayerCount,
+  layoutFlow,
+  type FlowLayout,
+  type Point,
+} from './diagram-layout'
+import { Phrases } from './phrases'
 
-const { LABEL_SIZE, LABEL_LINE, SUB_SIZE, SUB_LINE, PAD, EDGE_LABEL_SIZE } = DIAGRAM_TEXT
+const pct = (value: number, total: number) => `${Math.round((value / total) * 1e5) / 1e3}%`
 
-/** 図の中身を 1 文にする (SVG の desc。読み上げと検索向け) */
-function describe(block: DiagramBlock): string {
-  const names = new Map(block.nodes.map((node) => [node.id, node.label]))
-  const nodes = block.nodes.map((node, index) => `${index + 1}. ${node.label}${node.sub ? ` (${node.sub})` : ''}`)
-  const edges = block.edges.map(
-    (edge) => `${names.get(edge.from)} → ${names.get(edge.to)}${edge.label ? ` (${edge.label})` : ''}`
-  )
-  return [...nodes, ...edges].join(' / ')
+function pathD(points: readonly Point[]): string {
+  return points.map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x} ${y}`).join(' ')
 }
 
-function NodeText({ node, kind }: { node: LaidOutNode; kind: DiagramBlock['kind'] }) {
-  const boxed = kind !== 'timeline'
-  const x = boxed ? node.x + PAD : node.x
-  const labelTop = boxed ? node.y + PAD : node.y + (node.sub.length > 0 ? node.sub.length * SUB_LINE + 2 : 0)
-  const subTop = boxed ? node.y + PAD + node.label.length * LABEL_LINE + 4 : node.y
+/** 終点の矢じり (最後の区間の向き) */
+function arrowHead(points: readonly Point[]): string {
+  const [ex, ey] = points[points.length - 1]
+  const [px, py] = points[points.length - 2]
+  const angle = Math.atan2(ey - py, ex - px)
+  const length = 8
+  const half = 4
+  const bx = ex - Math.cos(angle) * length
+  const by = ey - Math.sin(angle) * length
+  const nx = -Math.sin(angle) * half
+  const ny = Math.cos(angle) * half
+  const r = (value: number) => Math.round(value * 100) / 100
+  return `M${ex} ${ey} L${r(bx + nx)} ${r(by + ny)} L${r(bx - nx)} ${r(by - ny)} Z`
+}
+
+/**
+ * 1 つの配置 (PC 用 / スマホ用) を描く。箱と文字は HTML (位置は図の座標に対する %)、線は同じ座標の SVG。
+ * 文字の大きさは図の幅に比例 (cqw) させるので、表示倍率が変わっても箱と文字の比は配置のときのまま
+ */
+function FlowStage({ layout, variant, label }: { layout: FlowLayout; variant: 'wide' | 'narrow'; label: string }) {
+  const { width: w, height: h, metrics: m } = layout
+  const style = {
+    aspectRatio: `${w} / ${h}`,
+    '--dw': w,
+    '--fl': m.label,
+    '--fll': m.labelLine,
+    '--fs': m.sub,
+    '--fsl': m.subLine,
+    '--px': m.padX,
+    '--py': m.padY,
+    '--fc': m.chip,
+    '--fcl': Math.round(m.chip * 1.3),
+  } as CSSProperties
 
   return (
-    <>
-      <text className="guide-diagram__label" x={x} y={labelTop} fontSize={LABEL_SIZE} fill="currentColor">
-        {node.label.map((line, index) => (
-          <tspan key={index} x={x} dy={index === 0 ? LABEL_LINE - 5 : LABEL_LINE}>
-            {line}
-          </tspan>
+    <div className="guide-flow" data-variant={variant} data-orient={layout.orientation} style={style} role="img" aria-label={label}>
+      <svg className="guide-flow__lines" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        {layout.edges.map((edge, index) => (
+          <g key={index}>
+            <path className="guide-flow__line" d={pathD(edge.points)} data-from={edge.from} data-to={edge.to} />
+            <rect className="guide-flow__end" x={edge.points[0][0] - 2.5} y={edge.points[0][1] - 2.5} width={5} height={5} />
+            <path className="guide-flow__end" d={arrowHead(edge.points)} />
+          </g>
         ))}
-      </text>
-      {node.sub.length > 0 && (
-        <text className="guide-diagram__sub" x={x} y={subTop} fontSize={SUB_SIZE} fill="currentColor">
-          {node.sub.map((line, index) => (
-            <tspan key={index} x={x} dy={index === 0 ? SUB_LINE - 5 : SUB_LINE}>
-              {line}
-            </tspan>
-          ))}
-        </text>
+      </svg>
+      {layout.nodes.map((node) => (
+        <div
+          className="guide-flow__node"
+          key={node.id}
+          data-node={node.id}
+          data-emphasis={node.emphasis ? '' : undefined}
+          style={{ left: pct(node.x, w), top: pct(node.y, h), width: pct(node.w, w), height: pct(node.h, h) }}
+        >
+          <span className="guide-flow__label">
+            {node.label.map((line, index) => (
+              <span className="guide-flow__text" key={index}>
+                {line}
+              </span>
+            ))}
+          </span>
+          {node.sub.length > 0 && (
+            <span className="guide-flow__sub">
+              {node.sub.map((line, index) => (
+                <span className="guide-flow__text" key={index}>
+                  {line}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+      ))}
+      {layout.edges.map((edge, index) =>
+        edge.chip ? (
+          <span
+            className="guide-flow__chip"
+            key={index}
+            data-chip-for={`${edge.from}>${edge.to}`}
+            style={{ left: pct(edge.chip.x, w), top: pct(edge.chip.y, h), width: pct(edge.chip.w, w), height: pct(edge.chip.h, h) }}
+          >
+            {edge.chip.lines.map((line, lineIndex) => (
+              <span className="guide-flow__text" key={lineIndex}>
+                {line}
+              </span>
+            ))}
+          </span>
+        ) : null
       )}
-    </>
+    </div>
+  )
+}
+
+function FlowFigure({ block }: { block: DiagramBlock }) {
+  const lr = flowLayerCount(block) <= MAX_LR_LAYERS && block.nodes.length > 1
+  const wide = layoutFlow(block, lr ? FLOW_VARIANTS.wideLr : FLOW_VARIANTS.wideTb)
+  const narrow = layoutFlow(block, FLOW_VARIANTS.narrow)
+  const label = describeFlow(block)
+  return (
+    <figure className="guide-diagram" data-guide-block="diagram" data-kind="flow" data-orient={wide.orientation}>
+      <div className="guide-diagram__panel">
+        <FlowStage layout={wide} variant="wide" label={label} />
+        <FlowStage layout={narrow} variant="narrow" label={label} />
+      </div>
+      <figcaption className="guide-caption guide-diagram__title">
+        <Phrases text={block.title} />
+      </figcaption>
+    </figure>
+  )
+}
+
+/** 時系列: 縦の罫線に沿った順序付きリスト (HTML だけ。どの幅でも文字は本文と同じ大きさ) */
+function TimelineFigure({ block }: { block: DiagramBlock }) {
+  return (
+    <figure className="guide-diagram" data-guide-block="diagram" data-kind="timeline">
+      <ol className="guide-timeline">
+        {block.nodes.map((node) => (
+          <li className="guide-timeline__item" key={node.id} data-node={node.id}>
+            {node.sub && (
+              <span className="guide-timeline__when">
+                <Phrases text={node.sub} />
+              </span>
+            )}
+            <span className="guide-timeline__what">
+              <Phrases text={node.label} />
+            </span>
+          </li>
+        ))}
+      </ol>
+      <figcaption className="guide-caption guide-diagram__title">
+        <Phrases text={block.title} />
+      </figcaption>
+    </figure>
+  )
+}
+
+/** 並列の項目: 罫線で区切った 2 列の格子 (スマホは 1 列) */
+function CardsFigure({ block }: { block: DiagramBlock }) {
+  return (
+    <figure className="guide-diagram" data-guide-block="diagram" data-kind="cards">
+      <ul className="guide-cells" data-count={block.nodes.length}>
+        {block.nodes.map((node) => (
+          <li className="guide-cells__item" key={node.id} data-node={node.id} data-emphasis={node.emphasis ? '' : undefined}>
+            <span className="guide-cells__label">
+              <Phrases text={node.label} />
+            </span>
+            {node.sub && (
+              <span className="guide-cells__sub">
+                <Phrases text={node.sub} />
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      <figcaption className="guide-caption guide-diagram__title">
+        <Phrases text={block.title} />
+      </figcaption>
+    </figure>
   )
 }
 
 /**
- * 図解 (flow / timeline / cards) をサーバーで SVG にする。座標は diagram-layout が決める。
- * 見た目は components/guide/guide.css の .guide-diagram* で決める (ここは構造だけ)。
+ * 図解 (flow / timeline / cards)。flow の座標は diagram-layout が決める。
+ * 見た目は components/guide/guide.css の .guide-diagram* / .guide-flow* / .guide-timeline* / .guide-cells*
  */
 export default function FlowDiagram({ block }: { block: DiagramBlock }) {
-  const layout = layoutDiagram(block)
-  const id = stableId('guide-diagram', JSON.stringify(block))
-
-  return (
-    <figure className="guide-diagram" data-guide-block="diagram" data-kind={block.kind}>
-      <figcaption className="guide-diagram__title">{block.title}</figcaption>
-      <svg
-        className="guide-diagram__svg"
-        viewBox={`0 0 ${layout.width} ${layout.height}`}
-        width="100%"
-        role="img"
-        aria-labelledby={`${id}-title ${id}-desc`}
-        preserveAspectRatio="xMinYMin meet"
-      >
-        <title id={`${id}-title`}>{block.title}</title>
-        <desc id={`${id}-desc`}>{describe(block)}</desc>
-        {layout.edges.length > 0 && (
-          <defs>
-            <marker id={`${id}-arrow`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="currentColor" />
-            </marker>
-          </defs>
-        )}
-        {layout.axis && (
-          <line
-            className="guide-diagram__axis"
-            x1={layout.axis.x}
-            y1={layout.axis.y1}
-            x2={layout.axis.x}
-            y2={layout.axis.y2}
-            stroke="currentColor"
-          />
-        )}
-        {layout.edges.map((edge, index) => (
-          <g className="guide-diagram__edge" key={index} data-from={edge.from} data-to={edge.to}>
-            <path d={edge.path} fill="none" stroke="currentColor" markerEnd={`url(#${id}-arrow)`} />
-            {edge.label && (
-              <>
-                <rect
-                  className="guide-diagram__edge-label-bg"
-                  x={edge.label.box.x}
-                  y={edge.label.box.y}
-                  width={edge.label.box.w}
-                  height={edge.label.box.h}
-                  fill="#fff"
-                />
-                <text
-                  className="guide-diagram__edge-label"
-                  x={edge.label.x}
-                  y={edge.label.y}
-                  fontSize={EDGE_LABEL_SIZE}
-                  textAnchor="middle"
-                  fill="currentColor"
-                >
-                  {edge.label.text}
-                </text>
-              </>
-            )}
-          </g>
-        ))}
-        {layout.nodes.map((node) => (
-          <g className="guide-diagram__node" key={node.id} data-node={node.id}>
-            {block.kind === 'timeline' ? (
-              <circle className="guide-diagram__marker" cx={layout.axis?.x ?? 12} cy={node.y + 9} r={5} fill="currentColor" />
-            ) : (
-              <rect
-                className="guide-diagram__box"
-                x={node.x}
-                y={node.y}
-                width={node.w}
-                height={node.h}
-                fill="none"
-                stroke="currentColor"
-              />
-            )}
-            <NodeText node={node} kind={block.kind} />
-          </g>
-        ))}
-      </svg>
-    </figure>
-  )
+  if (block.kind === 'timeline') return <TimelineFigure block={block} />
+  if (block.kind === 'cards') return <CardsFigure block={block} />
+  return <FlowFigure block={block} />
 }
