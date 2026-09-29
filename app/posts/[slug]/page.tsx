@@ -536,7 +536,7 @@ export default async function PostPage({ params }: PageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdScript(jsonLd) }} />
         {/*
           ガイドの書体 (IBM Plex Sans JP 400/700)。ガイドのページだけで、そのページの文字だけの書体を読み込む
-          (ほかの記事の CSS を重くしない。preconnect はルートの layout にある)
+          (ほかの記事の CSS を重くしない。本番の CSP が Google Fonts を止めるので自社のドメインの /api/guide-font から)
         */}
         <link
           rel="stylesheet"

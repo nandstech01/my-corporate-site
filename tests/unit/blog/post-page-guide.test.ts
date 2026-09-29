@@ -105,11 +105,12 @@ describe("category_tags に 'guide' があればガイドの描き方", () => {
     expect((article.props as Record<string, unknown>)['data-layout']).toBe('guide')
     expect((article.props as Record<string, unknown>).className).toBe('guide')
 
-    // 書体はガイドのページだけで、そのページの文字だけを読み込む (IBM Plex Sans JP の 400 と 700)
+    // 書体はガイドのページだけで、そのページの文字だけを読み込む (IBM Plex Sans JP の 400 と 700)。
+    // 本番の CSP が Google Fonts を止めるので、自社のドメインの /api/guide-font から
     const [font] = findAll(tree, (el) => el.type === 'link')
     const href = (font.props as { href: string }).href
-    expect(href.startsWith('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;700&display=swap&text=')).toBe(true)
-    const text = decodeURIComponent(href.split('&text=')[1])
+    expect(href.startsWith('/api/guide-font?text=')).toBe(true)
+    const text = new URLSearchParams(href.slice(href.indexOf('?') + 1)).get('text') ?? ''
     for (const char of '完全ガイド課題原田賢治図目次') expect(text).toContain(char)
 
     const [hero] = findAll(tree, (el) => el.type === GuideHero)
