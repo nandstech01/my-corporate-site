@@ -156,7 +156,7 @@ describe('見本のガイドをページの部品で描く', () => {
   )
   const TOC_IDS = ['summary', 'compare', 'mcp', 'mcp-commands', 'choose', 'history', 'changelog', 'sources']
 
-  it('冒頭: h1 (文節の区切りに <wbr>)・一文の説明・答え・最終更新 (= 更新履歴の最新日)・書いた人・AI の使い方・検証の環境', () => {
+  it('冒頭: h1 (文節の区切りに <wbr>)・一文の説明・答え・最終更新 (= 更新履歴の最新日)・書いた人。AI の使い方・検証の環境は出さない', () => {
     expect(modifiedAt).toBe('2026-09-27T00:00:00+09:00')
     expect(html).toContain('<h1 id="main-title" class="guide-hero__title" data-size="l">Claude\u00a0Code 完全ガイド</h1>')
     expect(html).toContain('<p class="guide-hero__lead">使い方、<wbr/>MCP\u00a0での<wbr/>')
@@ -164,8 +164,11 @@ describe('見本のガイドをページの部品で描く', () => {
     expect((html.match(/class="guide-hero__answer-line"/g) ?? []).length).toBe(4)
     expect(html).toContain('<time dateTime="2026-09-27T00:00:00+09:00">2026-09-27</time>')
     expect(html).toContain('<a href="/author/harada-kenji" rel="author">原田賢治</a><span class="guide-meta__role">代表取締役</span>')
-    expect(html).toContain('<dt>AI の使い方</dt>')
-    expect(html).toContain('<dt>検証の環境</dt>')
+    // 記事の作り方のようなメタ情報は読者に要らない (オーナー 2026-09-29)。hero の aiNote・env があっても描かない
+    expect(html).not.toContain('AI の使い方')
+    expect(html).not.toContain('検証の環境')
+    expect(html).not.toContain('生成 AI を利用')
+    expect((html.match(/class="guide-meta__cell"/g) ?? []).length).toBe(2)
   })
 
   it('ヒーローの右側は実際のコマンドの出力 (窓の飾りなし)。terminal があれば画像は出さない。折り返しは空白の所だけ', () => {

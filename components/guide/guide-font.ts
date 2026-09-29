@@ -27,7 +27,7 @@ export const MAX_TEXT_PARAM = 7000
  * 部品に文字を足したらここにも足す (tests/unit/site/guide-font.test.ts が部品のソースと照合する)
  */
 export const GUIDE_UI_TEXT = [
-  '最終更新 書いた人 AI の使い方 検証の環境 この記事の作成には生成 AI を利用しています。',
+  '最終更新 書いた人',
   '目次 図 単位: 出典: 根拠: に確認',
   '補足 ポイント 注意 未確認 詳しく読む 強調した項目 ｜',
   // 改行で割らない語 (components/guide/phrases の UNBREAKABLE)。本文に出るときに書体に無いと困るので入れておく
