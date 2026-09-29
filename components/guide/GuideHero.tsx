@@ -4,8 +4,6 @@ import type { HeroBlock, TerminalBlock } from '@/app/posts/_lib/guide-blocks'
 import { Phrases, bindSpaces, phrases } from './phrases'
 import { textUnits } from './text-wrap'
 
-export const DEFAULT_AI_NOTE = 'この記事の作成には生成 AI を利用しています。'
-
 export interface HeroImage {
   readonly src: string
   readonly alt: string
@@ -111,7 +109,7 @@ export function Terminal({ terminal }: { terminal: TerminalBlock }) {
 
 /**
  * ガイドの冒頭 (仕様書の表紙): タイトル (h1)・一文の説明・冒頭の答え / 実際のコマンドの出力 (または画像)、
- * その下に「最終更新・書いた人・AI の使い方・検証の環境」の行。
+ * その下に「最終更新・書いた人」の行 (記事の作り方や検証の環境のような、読者に要らないメタ情報は出さない)。
  * 画像は LCP の候補なので priority (fetchpriority=high + preload)。幅と高さを必ず持たせる。
  */
 export default function GuideHero({ title, hero, modifiedAt, author, fallbackImage }: GuideHeroProps) {
@@ -194,20 +192,6 @@ export default function GuideHero({ title, hero, modifiedAt, author, fallbackIma
               {author.role && <span className="guide-meta__role">{author.role}</span>}
             </dd>
           </div>
-          <div className="guide-meta__cell">
-            <dt>AI の使い方</dt>
-            <dd>
-              <Phrases text={hero?.aiNote ?? DEFAULT_AI_NOTE} />
-            </dd>
-          </div>
-          {hero?.env && (
-            <div className="guide-meta__cell">
-              <dt>検証の環境</dt>
-              <dd>
-                <Phrases text={hero.env} />
-              </dd>
-            </div>
-          )}
         </dl>
       </section>
     </>
