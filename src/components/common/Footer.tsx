@@ -270,8 +270,9 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* CTA セクション */}
+        {/* CTA セクション (ガイドのページでは本文の相談フォームと重なるので components/guide/guide.css が隠す) */}
         <motion.div
+          data-footer-cta=""
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

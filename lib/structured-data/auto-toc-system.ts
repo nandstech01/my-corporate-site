@@ -1,6 +1,8 @@
 // Mike King理論準拠: Fragment ID + TOC自動生成システム
 // Phase 2: LLMO完全対応
 
+import { stripFencedCode } from './markdown-fences';
+
 export interface TOCItem {
   id: string;
   title: string;
@@ -51,16 +53,19 @@ export class AutoTOCSystem {
     fragmentIds: string[];
     enhancedContent: string;
   } {
+    // コードフェンス (```) の中の `# コメント` や `<h2>` の例、ガイドのブロックの JSON は見出しとして数えない
+    const scanned = stripFencedCode(htmlContent);
+
     // HTMLかMarkdownかを判定
-    const isMarkdown = !htmlContent.includes('<h1') && !htmlContent.includes('<h2') && 
-                      (htmlContent.includes('##') || htmlContent.includes('###'));
+    const isMarkdown = !scanned.includes('<h1') && !scanned.includes('<h2') && 
+                      (scanned.includes('##') || scanned.includes('###'));
     
     console.log('📋 コンテンツ形式判定:', isMarkdown ? 'Markdown' : 'HTML');
     
     // 適切な解析メソッドを選択
     const headings = isMarkdown ? 
-      this.extractHeadingsFromMarkdown(htmlContent) : 
-      this.extractHeadingsFromHTML(htmlContent);
+      this.extractHeadingsFromMarkdown(scanned) : 
+      this.extractHeadingsFromHTML(scanned);
     
     const fragments = this.createFragments(headings);
     

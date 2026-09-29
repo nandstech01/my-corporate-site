@@ -1,0 +1,2147 @@
+/*
+ * ガイド (完全保存版) のアートディレクション B「仕様書」。
+ * 見本: scratchpad/lp-proto/B (オーナー確認済み)。紺 + ロゴのシアン (#00BCFD) だけ・罫線の格子・IBM Plex Sans JP 400/700。
+ *
+ * 範囲: ガイドのページ (.guide-page) と、ガイドの部品のクラス (.guide-*) だけ。ほかのページの見た目は変えない。
+ * 本文の素の要素 (Markdown の p・ul など) の規則は :not([class]) で部品の要素 (必ずクラスを持つ) から外してある。
+ */
+
+/* ---------------------------------------------------------------------------
+ * トークン
+ * ------------------------------------------------------------------------- */
+.guide-page {
+  --g-bg: #ffffff;
+  --g-bg-2: #f5f8fb;
+  --g-ink: #0f2a47;
+  --g-ink-2: #44586f;
+  --g-rule: #dce4ec;
+  --g-rule-2: #b9c7d5;
+  --g-accent: #00bcfd;
+  --g-slate: #6f88a3;
+  --g-panel-ink: #c9d6e3;
+  --g-term: #0c2340;
+  --g-term-ink: #dce7f1;
+  --g-term-mute: #97aabd;
+  --g-dots: radial-gradient(#c9d6e3 1px, transparent 1.4px);
+  --g-dots-dark: radial-gradient(#23405f 1px, transparent 1.4px);
+  --g-sans: 'IBM Plex Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
+  --g-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  /* 余白の段階 (4px 基準) */
+  --g-s1: 4px;
+  --g-s2: 8px;
+  --g-s3: 12px;
+  --g-s4: 16px;
+  --g-s5: 24px;
+  --g-s6: 32px;
+  --g-s7: 48px;
+  --g-s8: 64px;
+  --g-s9: 96px;
+  /* 格子: 1200px の枠 = 左の列 (節の番号) + 本文の列 */
+  --g-frame: 1200px;
+  --g-rail: 240px;
+  --g-pl: 56px;
+  --g-pr: 64px;
+  /* サイトの固定ヘッダーの高さ */
+  --g-header: 80px;
+  /* 本文の 1 行 = 40 字前後 */
+  --g-measure: 40em;
+
+  color-scheme: light;
+  background: var(--g-bg);
+  color: var(--g-ink);
+  font: 400 17px/1.85 var(--g-sans);
+  letter-spacing: 0.02em;
+  font-kerning: normal;
+  -webkit-text-size-adjust: 100%;
+  /* 改行はサーバーが入れた <wbr> と空白でだけ (語の途中で折らない)。入り切らないときだけ折る */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-break: strict;
+}
+
+.guide-page *,
+.guide-page *::before,
+.guide-page *::after {
+  box-sizing: border-box;
+}
+
+.guide-page a {
+  color: inherit;
+}
+
+/*
+ * app/globals.css の article a { word-break: break-word !important; hyphens: auto !important } (通常の記事の長い URL 対策) が
+ * リンクの日本語を語の途中で折るので、ガイドの中だけ打ち消す (!important には !important + 高い詳細度でしか勝てない)。
+ * 長い URL は overflow-wrap: break-word で、はみ出すときだけ折れる
+ */
+.guide-page article a {
+  word-break: keep-all !important;
+  hyphens: manual !important;
+}
+
+.guide-page a:focus-visible,
+.guide-page button:focus-visible,
+.guide-page summary:focus-visible,
+.guide-page input:focus-visible,
+.guide-page textarea:focus-visible {
+  outline: 2px solid var(--g-accent);
+  outline-offset: 3px;
+}
+
+.guide-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 帯と格子
+ * ------------------------------------------------------------------------- */
+.guide-band {
+  border-top: 1px solid var(--g-rule);
+}
+
+.guide-frame {
+  max-width: var(--g-frame);
+  margin: 0 auto;
+  border-left: 1px solid var(--g-rule);
+  border-right: 1px solid var(--g-rule);
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: var(--g-rail) minmax(0, 1fr);
+}
+
+.guide-rail {
+  border-right: 1px solid var(--g-rule);
+  padding: 110px var(--g-s4) var(--g-s9) var(--g-pl);
+  min-width: 0;
+}
+
+/* 節の番号と短い名前 (見本 B の「2 モデルの比較」)。名前は h2 から作る (components/guide/rail-label) */
+.guide-rail[aria-hidden] {
+  display: flex;
+  align-items: baseline;
+  align-content: flex-start;
+  gap: 12px;
+}
+
+.guide-rail__num,
+.guide-rail__label {
+  display: block;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-rail__num {
+  flex: none;
+  min-width: 1.1em;
+  color: var(--g-ink-2);
+}
+
+.guide-rail__label {
+  min-width: 0;
+  font-size: 14px;
+  color: var(--g-ink);
+  text-wrap: balance;
+}
+
+.guide-main {
+  padding: var(--g-s9) var(--g-pr) 104px var(--g-pl);
+  min-width: 0;
+}
+
+/* パンくず */
+.guide-crumbs {
+  border-top: 0;
+}
+
+.guide-crumbs .guide-frame {
+  padding: calc(var(--g-header) + 12px) var(--g-pl) 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.guide-page .guide-crumbs nav,
+.guide-page .guide-crumbs nav a,
+.guide-page .guide-crumbs nav span {
+  color: var(--g-ink-2);
+  font-size: 13px;
+}
+
+/* 本文の区画: 奇数番目は薄い地 */
+.guide-section {
+  --g-section-bg: var(--g-bg);
+  --g-panel-bg: var(--g-bg-2);
+  background: var(--g-section-bg);
+}
+
+.guide-body > .guide-section:nth-of-type(odd),
+.guide-section[data-kind='cta'] {
+  --g-section-bg: var(--g-bg-2);
+  --g-panel-bg: var(--g-bg);
+}
+
+.guide-body {
+  counter-reset: guide-figure;
+}
+
+/* ---------------------------------------------------------------------------
+ * 冒頭 (表紙)
+ * ------------------------------------------------------------------------- */
+.guide-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+}
+
+.guide-hero__grid[data-aside='false'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-hero__text {
+  padding: 80px 48px 72px var(--g-pl);
+  min-width: 0;
+}
+
+.guide-hero__grid[data-aside='false'] .guide-hero__text {
+  max-width: 880px;
+}
+
+.guide-hero__title {
+  margin: 0;
+  font-size: 62px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.guide-hero__title[data-size='m'] {
+  font-size: 48px;
+  line-height: 1.22;
+}
+
+.guide-hero__title[data-size='s'] {
+  font-size: 38px;
+  line-height: 1.3;
+}
+
+/* 「主題｜副題」の副題: 主題の下の行に小さく (｜ は画面に出さない) */
+.guide-hero__title-main {
+  display: block;
+}
+
+.guide-hero__title-sub {
+  display: block;
+  margin-top: 16px;
+  font-size: 22px;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--g-ink-2);
+  text-wrap: balance;
+}
+
+.guide-hero__lead {
+  margin: 20px 0 0;
+  font-size: 19px;
+  line-height: 1.75;
+  color: var(--g-ink-2);
+  max-width: 26em;
+}
+
+.guide-hero__answer {
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-hero__answer-line {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 16.5px;
+  line-height: 1.8;
+}
+
+.guide-hero__aside {
+  border-left: 1px solid var(--g-rule);
+  padding: 80px 44px 72px 40px;
+  background: var(--g-bg-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.guide-hero__media {
+  margin: 0;
+}
+
+.guide-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* 実際のコマンドの出力 (窓の飾りは描かない) */
+.guide-term {
+  margin: 0;
+}
+
+/* 折り返しは空白の所だけ (--max-budget-usd や claude-opus-5-5 のハイフンでは折らない)。1 語が入り切らないときは枠の中で横に送る */
+.guide-term__screen {
+  margin: 0;
+  padding: 20px 22px 22px;
+  background: var(--g-term);
+  color: var(--g-term-ink);
+  border-radius: 8px;
+  font: 400 13px/1.75 var(--g-mono);
+  letter-spacing: 0;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.guide-term__tok {
+  white-space: nowrap;
+}
+
+.guide-term__screen code {
+  font: inherit;
+}
+
+/* 折り返した行は 2 文字下げる (プロンプト $ の幅)。1 つのコマンド・出力の続きだとわかるように */
+.guide-term__cmd,
+.guide-term__out {
+  display: block;
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+
+.guide-term__cmd {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.guide-term__cmd:not([data-first]) {
+  margin-top: 14px;
+}
+
+.guide-term__prompt {
+  color: var(--g-accent);
+  user-select: none;
+}
+
+.guide-term__out {
+  color: var(--g-term-mute);
+}
+
+.guide-term__caption {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--g-ink-2);
+}
+
+/* 最終更新・書いた人・AI の使い方・検証の環境 */
+.guide-meta__list {
+  display: flex;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.guide-meta__cell {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 20px 24px 22px;
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-meta__cell:nth-child(2) {
+  flex-grow: 1.3;
+}
+
+.guide-meta__cell:nth-child(3) {
+  flex-grow: 1.7;
+}
+
+.guide-meta__cell:nth-child(4) {
+  flex-grow: 1.3;
+}
+
+.guide-meta__cell:first-child {
+  border-left: 0;
+  padding-left: var(--g-pl);
+}
+
+.guide-meta__cell dt {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+}
+
+.guide-meta__cell dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-meta__cell dd a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-rule-2);
+}
+
+.guide-meta__role {
+  display: block;
+  color: var(--g-ink-2);
+  font-size: 13.5px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 目次
+ * ------------------------------------------------------------------------- */
+.guide-toc .guide-rail {
+  padding-top: 62px;
+  padding-bottom: 56px;
+}
+
+/* スマホで目次を折りたたむ <details> (PC では出さない) */
+.guide-toc__fold {
+  display: none;
+}
+
+.guide-toc__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.guide-toc__main {
+  padding-top: 52px;
+  padding-bottom: 60px;
+}
+
+.guide-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 48px;
+}
+
+.guide-toc__item[data-level='2'] {
+  break-inside: avoid;
+  border-top: 1px solid var(--g-rule);
+}
+
+.guide-toc__sublist {
+  margin: -6px 0 10px;
+  padding: 0 0 0 calc(1.6em + 14px);
+  list-style: none;
+}
+
+.guide-toc__link {
+  display: flex;
+  gap: 14px;
+  padding: 11px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.guide-toc__sublist .guide-toc__link {
+  padding: 3px 0;
+  font-size: 14.5px;
+  color: var(--g-ink-2);
+}
+
+.guide-toc__link:hover .guide-toc__text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guide-toc__num {
+  flex: none;
+  width: 1.6em;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+ * 本文 (Markdown の素の要素)
+ * ------------------------------------------------------------------------- */
+.guide-h2 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  max-width: 22em;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+.guide-h3 {
+  margin: 64px 0 0;
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+.guide-h4 {
+  margin: 40px 0 0;
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 700;
+  scroll-margin-top: calc(var(--g-header) + 16px);
+}
+
+/*
+ * Markdown の素の要素 (クラスが無い p・ul・ol・blockquote・a・code) だけに当てる。
+ * 部品の要素は必ずクラスを持つので :not([class]) で外れる。Tailwind の preflight (p { margin: 0 } など) には詳細度で勝つ
+ */
+.guide-main > p:not([class]) {
+  margin: 20px 0 0;
+  max-width: var(--g-measure);
+  text-wrap: pretty;
+}
+
+.guide-main > .guide-h2 + p:not([class]) {
+  margin-top: 28px;
+}
+
+.guide-main > .guide-h3 + p:not([class]),
+.guide-main > .guide-h4 + p:not([class]) {
+  margin-top: 14px;
+}
+
+.guide-main > ul:not([class]),
+.guide-main > ol:not([class]) {
+  margin: 20px 0 0;
+  padding-left: 1.2em;
+  max-width: var(--g-measure);
+}
+
+.guide-main > ul:not([class]) {
+  list-style: none;
+}
+
+.guide-main > ol:not([class]) {
+  list-style: decimal;
+}
+
+.guide-main > ul:not([class]) > li,
+.guide-main > ol:not([class]) > li {
+  position: relative;
+  margin: 8px 0 0;
+  text-wrap: pretty;
+}
+
+/* 箇条書きの印は図の線の始点と同じ小さな四角 */
+.guide-main > ul:not([class]) > li::before {
+  content: '';
+  position: absolute;
+  left: -1.2em;
+  top: 0.78em;
+  width: 5px;
+  height: 5px;
+  background: var(--g-slate);
+}
+
+.guide-main > ol:not([class]) > li::marker {
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-main > blockquote:not([class]) {
+  margin: 28px 0 0;
+  padding: 2px 0 2px 20px;
+  border-left: 2px solid var(--g-rule-2);
+  color: var(--g-ink-2);
+  max-width: var(--g-measure);
+}
+
+.guide-main a:not([class]) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-ink-2);
+}
+
+.guide-main a:not([class]):hover {
+  text-decoration-color: var(--g-accent);
+}
+
+.guide-main strong:not([class]) {
+  font-weight: 700;
+}
+
+/* 本文中のコード (--model・claude-opus-5-5) は途中で折らない。行に入らなければ 1 つのまま次の行へ送る */
+.guide-main :not(pre) > code:not([class]) {
+  font: 400 0.86em/1.5 var(--g-mono);
+  letter-spacing: 0;
+  background: var(--g-panel-bg, var(--g-bg-2));
+  border: 1px solid var(--g-rule);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* コードの塊は折り返さず、枠の中で横に送る */
+.guide-code {
+  margin: 28px 0 0;
+  padding: 18px 22px 20px;
+  background: var(--g-term);
+  color: var(--g-term-ink);
+  border-radius: 8px;
+  font: 400 13.5px/1.75 var(--g-mono);
+  letter-spacing: 0;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.guide-code code {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.guide-image {
+  display: block;
+  margin: 32px 0 0;
+}
+
+.guide-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--g-rule);
+}
+
+.guide-image__caption {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+/* 比較表: 細い罫線だけ・見出しの行は画面の上に残る (sticky のため PC では横送りの枠にしない) */
+.guide-table {
+  margin: 40px 0 0;
+}
+
+.guide-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-table thead th {
+  position: sticky;
+  top: var(--g-header);
+  z-index: 1;
+  background: var(--g-section-bg, var(--g-bg));
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+  padding: 10px 16px 12px 0;
+  border-bottom: 1px solid var(--g-ink);
+  vertical-align: bottom;
+}
+
+.guide-table tbody td {
+  padding: 16px 16px 16px 0;
+  border-bottom: 1px solid var(--g-rule);
+  vertical-align: top;
+}
+
+.guide-table tbody td:first-child {
+  font-weight: 700;
+}
+
+.guide-table th:last-child,
+.guide-table td:last-child {
+  padding-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 図の番号と見出し (図・グラフ共通)
+ * ------------------------------------------------------------------------- */
+.guide-caption {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 700;
+  color: var(--g-ink-2);
+}
+
+.guide-chart,
+.guide-diagram {
+  counter-increment: guide-figure;
+}
+
+.guide-chart__title::before,
+.guide-diagram__title::before {
+  content: '図 ' counter(guide-figure);
+  margin-right: 1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+ * 要点の数字
+ * ------------------------------------------------------------------------- */
+.guide-stats {
+  margin: 40px 0 0;
+}
+
+.guide-stats .guide-caption {
+  margin-bottom: 12px;
+}
+
+.guide-stats__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-stats__item {
+  min-width: 0;
+  padding: 18px 20px 20px;
+  border-bottom: 1px solid var(--g-rule);
+  border-left: 1px solid var(--g-rule);
+}
+
+/*
+ * 同じ段の項目は ラベル・数字・注記 の 3 行を共有する (subgrid)。
+ * ラベルの行数が項目ごとに違っても、数字の行は同じ高さから始まり、ベースラインが揃う
+ */
+@supports (grid-template-rows: subgrid) {
+  .guide-stats__item {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .guide-stats__label {
+    align-self: end;
+  }
+}
+
+.guide-stats__item:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.guide-stats__label {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--g-ink-2);
+}
+
+.guide-stats__value {
+  margin: 8px 0 0;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-stats__unit {
+  margin-left: 2px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--g-ink-2);
+}
+
+/* 31 秒 のように数字と単位の間を空ける (本文の表・グラフと同じ書き方)。% は空けない */
+.guide-stats__unit[data-spaced] {
+  margin-left: 0.3em;
+}
+
+.guide-stats__note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 横棒グラフ (紺の地・主役の行だけシアン)
+ * ------------------------------------------------------------------------- */
+.guide-chart {
+  --g-chart-label: 196px;
+  margin: 40px 0 0;
+  padding: 28px 32px 26px;
+  background-color: var(--g-ink);
+  background-image: var(--g-dots-dark);
+  background-size: 16px 16px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.guide-chart .guide-caption {
+  color: var(--g-panel-ink);
+}
+
+.guide-chart__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 24px;
+}
+
+.guide-chart__title {
+  display: block;
+}
+
+.guide-chart__unit {
+  margin-left: 1em;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+/* 凡例: 強調した行 (シアンの棒) の意味 */
+.guide-chart__legend {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--g-panel-ink);
+}
+
+.guide-chart__swatch {
+  flex: none;
+  width: 16px;
+  height: 8px;
+  border-radius: 0 2px 2px 0;
+  background: var(--g-accent);
+}
+
+.guide-chart__plot {
+  position: relative;
+  margin-top: 14px;
+  padding-bottom: 24px;
+}
+
+.guide-chart__axis {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--g-chart-label);
+  right: var(--reserve);
+  pointer-events: none;
+}
+
+.guide-chart__tick {
+  position: absolute;
+  top: 0;
+  bottom: 20px;
+  left: calc(var(--t) / var(--max) * 100%);
+  border-left: 1px solid #2a4868;
+}
+
+.guide-chart__tick:first-child {
+  border-left-color: #8da2b8;
+}
+
+.guide-chart__tick b {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  transform: translateX(-50%);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--g-panel-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-chart__table {
+  position: relative;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.guide-chart__col-label {
+  width: var(--g-chart-label);
+}
+
+.guide-chart__label {
+  width: var(--g-chart-label);
+  padding: 6px 12px 6px 0;
+  text-align: left;
+  vertical-align: middle;
+  font-weight: 400;
+}
+
+.guide-chart__name {
+  display: block;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #ffffff;
+}
+
+.guide-chart__sub {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--g-panel-ink);
+}
+
+.guide-chart__cell {
+  padding: 0;
+  vertical-align: middle;
+}
+
+.guide-chart__track {
+  position: relative;
+  display: block;
+  height: 46px;
+  margin-right: var(--reserve);
+}
+
+.guide-chart__bar {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 12px;
+  margin-top: -6px;
+  width: calc(var(--v) / var(--max) * 100%);
+  background: var(--g-slate);
+  border-radius: 0 3px 3px 0;
+}
+
+.guide-chart__row[data-highlight] .guide-chart__bar {
+  background: var(--g-accent);
+}
+
+.guide-chart__value {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--v) / var(--max) * 100% + 8px);
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-chart__foot {
+  margin-top: 8px;
+}
+
+.guide-chart__note,
+.guide-chart__source {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--g-panel-ink);
+}
+
+/* ---------------------------------------------------------------------------
+ * 図解: 箱と文字は HTML、線は SVG (点線・始点の四角・終点の矢じり)、ラベルはシアンのチップ
+ * ------------------------------------------------------------------------- */
+.guide-diagram {
+  margin: 48px 0 0;
+}
+
+.guide-diagram__panel {
+  container: guide-diagram / inline-size;
+  padding: 56px 40px 48px;
+  border: 1px solid var(--g-rule);
+  border-radius: 8px;
+  background-color: var(--g-panel-bg, var(--g-bg-2));
+  background-image: var(--g-dots);
+  background-size: 16px 16px;
+}
+
+.guide-diagram__title {
+  margin-top: 12px;
+}
+
+.guide-flow {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+
+.guide-flow[data-variant='wide'] {
+  max-width: calc(var(--dw) * 1px);
+}
+
+.guide-flow[data-variant='narrow'] {
+  display: none;
+  max-width: calc(var(--dw) * 1.25px);
+}
+
+/* 図の枠が狭いときはスマホ用の配置 (上から下) に切り替える。箱の文字が 13px を下回らない幅が境目 */
+@container guide-diagram (max-width: 819px) {
+  .guide-diagram[data-orient='lr'] .guide-flow[data-variant='wide'] {
+    display: none;
+  }
+  .guide-diagram[data-orient='lr'] .guide-flow[data-variant='narrow'] {
+    display: block;
+  }
+}
+
+@container guide-diagram (max-width: 599px) {
+  .guide-diagram[data-orient='tb'] .guide-flow[data-variant='wide'] {
+    display: none;
+  }
+  .guide-diagram[data-orient='tb'] .guide-flow[data-variant='narrow'] {
+    display: block;
+  }
+}
+
+.guide-flow__lines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.guide-flow__line {
+  fill: none;
+  stroke: var(--g-ink-2);
+  stroke-width: 2;
+  stroke-dasharray: 0 6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.guide-flow__end {
+  fill: var(--g-ink-2);
+}
+
+.guide-flow__node {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(100cqw * var(--py) / var(--dw)) calc(100cqw * var(--px) / var(--dw));
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-radius: 6px;
+  letter-spacing: 0;
+}
+
+.guide-flow__label {
+  display: block;
+  font-size: calc(100cqw * var(--fl) / var(--dw));
+  line-height: calc(100cqw * var(--fll) / var(--dw));
+  font-weight: 700;
+}
+
+.guide-flow__sub {
+  display: block;
+  font-size: calc(100cqw * var(--fs) / var(--dw));
+  line-height: calc(100cqw * var(--fsl) / var(--dw));
+  color: var(--g-ink-2);
+}
+
+.guide-flow__text {
+  display: block;
+  white-space: nowrap;
+}
+
+.guide-flow__node[data-emphasis] {
+  background: var(--g-ink);
+  border-color: var(--g-ink);
+  color: #ffffff;
+}
+
+.guide-flow__node[data-emphasis] .guide-flow__sub {
+  color: var(--g-panel-ink);
+}
+
+.guide-flow__chip {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(100cqw * var(--fc) / var(--dw));
+  font-weight: 700;
+  line-height: calc(100cqw * var(--fcl) / var(--dw));
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--g-ink);
+  background: var(--g-accent);
+  border-radius: 4px;
+}
+
+/* 時系列: 縦の罫線と四角の印 */
+.guide-timeline {
+  position: relative;
+  margin: 0;
+  padding: 4px 0 4px 32px;
+  list-style: none;
+}
+
+.guide-timeline::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 4px;
+  border-left: 1px solid var(--g-rule-2);
+}
+
+.guide-timeline__item {
+  position: relative;
+  padding: 10px 0 14px;
+}
+
+.guide-timeline__item::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 19px;
+  width: 9px;
+  height: 9px;
+  background: var(--g-ink-2);
+}
+
+.guide-timeline__item:last-child::before {
+  background: var(--g-accent);
+}
+
+.guide-timeline__when {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-timeline__what {
+  display: block;
+  font-size: 16.5px;
+  line-height: 1.7;
+  font-weight: 700;
+}
+
+/* 並列の項目: 罫線の格子 */
+.guide-cells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-cells[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-cells__item {
+  padding: 18px 24px 20px 0;
+  border-bottom: 1px solid var(--g-rule);
+}
+
+.guide-cells__item:nth-child(even) {
+  padding-left: 24px;
+  border-left: 1px solid var(--g-rule);
+}
+
+.guide-cells__label {
+  display: block;
+  font-weight: 700;
+  font-size: 16.5px;
+  line-height: 1.6;
+}
+
+.guide-cells__item[data-emphasis] .guide-cells__label {
+  box-shadow: inset 0 -0.4em 0 rgb(0 188 253 / 0.35);
+}
+
+.guide-cells__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 補足・注意・未確認
+ * ------------------------------------------------------------------------- */
+.guide-callout {
+  margin: 36px 0 0;
+  padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--g-rule-2);
+  max-width: var(--g-measure);
+}
+
+.guide-callout[data-tone='tip'] {
+  border-left-color: var(--g-accent);
+}
+
+.guide-callout[data-tone='warning'] {
+  border-left: 3px solid var(--g-ink);
+}
+
+.guide-callout[data-tone='unverified'] {
+  border-left: 2px dashed var(--g-slate);
+}
+
+.guide-callout__title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0.9em;
+  align-items: baseline;
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.guide-callout__tone {
+  font-size: 13.5px;
+  color: var(--g-ink-2);
+}
+
+.guide-callout__body {
+  margin: 6px 0 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+
+/* ---------------------------------------------------------------------------
+ * 選び方: 質問 → 答え → 結論 の木 (常に全部見せる)。線は図と同じ点線・始点の四角・終点の矢じり
+ * ------------------------------------------------------------------------- */
+.guide-decide {
+  --g-decide-indent: 28px;
+  /* 結論の箱の左端 (木の左端から)。どの深さの答えからも同じ位置に揃える */
+  --g-decide-result: 292px;
+  --g-decide-dot: radial-gradient(circle, var(--g-ink-2) 1px, transparent 1.3px);
+  margin: 40px 0 0;
+}
+
+.guide-decide .guide-caption {
+  margin-bottom: 12px;
+}
+
+.guide-decide__tree {
+  padding-top: 22px;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-decide__question {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.guide-decide__q {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-decide__branches {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-decide__branch {
+  --g-tick: 23px;
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(var(--g-decide-result) - var(--d) * var(--g-decide-indent)) minmax(0, 1fr);
+  align-items: start;
+  padding: 8px 0 8px var(--g-decide-indent);
+}
+
+/* 縦の線 (次の答えへ続く)。最後の答えは自分の横線の所で止める */
+.guide-decide__branch::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--g-decide-dot) center top / 6px 6px repeat-y;
+}
+
+.guide-decide__branch:last-child::before {
+  bottom: auto;
+  height: var(--g-tick);
+}
+
+/* 横の線 (縦の線 → 答え) */
+.guide-decide__branch::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: calc(var(--g-tick) - 3px);
+  width: calc(var(--g-decide-indent) - 12px);
+  height: 6px;
+  background: var(--g-decide-dot) left center / 6px 6px repeat-x;
+}
+
+.guide-decide__answer {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 30px;
+}
+
+.guide-decide__label {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 2px 10px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-radius: 4px;
+}
+
+/* 答え → 結論: 点線と矢じり */
+.guide-decide__arrow {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 28px;
+  height: 6px;
+  margin: 0 14px 0 8px;
+  background: var(--g-decide-dot) left center / 6px 6px repeat-x;
+}
+
+.guide-decide__arrow::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  margin-top: -5px;
+  border-left: 7px solid var(--g-ink-2);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.guide-decide__result {
+  min-width: 0;
+  max-width: 34em;
+  padding: 12px 16px 14px;
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-left: 3px solid var(--g-ink);
+  border-radius: 4px;
+}
+
+.guide-decide__result-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.guide-decide__result-body {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--g-ink-2);
+}
+
+.guide-decide__result-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 答えの先に次の質問: 答えの下に、答えの左端から */
+.guide-decide__branch > .guide-decide__node {
+  grid-column: 1 / -1;
+  margin-top: 14px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 更新履歴・出典
+ * ------------------------------------------------------------------------- */
+.guide-changelog,
+.guide-sources {
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--g-ink);
+}
+
+.guide-changelog__entry {
+  display: grid;
+  grid-template-columns: 7em minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 0 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.guide-changelog__date {
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-changelog__basis {
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+.guide-changelog__basis a,
+.guide-sources__link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-ink-2);
+}
+
+.guide-sources {
+  counter-reset: guide-source;
+}
+
+.guide-sources__item {
+  counter-increment: guide-source;
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.guide-sources__item::before {
+  content: counter(guide-source);
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-sources__meta {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.2em;
+  font-size: 13.5px;
+  color: var(--g-ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 相談 (左揃え・主 1 つ + 副 1 つ)
+ * ------------------------------------------------------------------------- */
+.guide-cta[data-placement='inline'] {
+  margin: 56px 0 0;
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--g-ink);
+  border-bottom: 1px solid var(--g-rule);
+}
+
+.guide-section[data-kind='cta'] .guide-main {
+  padding-bottom: 112px;
+}
+
+/* 区画の中の相談フォーム (区画の h2 の下)。紙面の上の 1 枚の用紙として白地で */
+.guide-cta[data-placement='inline'][data-form] {
+  margin-top: 40px;
+  padding: 32px 36px 36px;
+  max-width: 832px;
+  background: #ffffff;
+  border: 1px solid var(--g-rule);
+  border-top: 2px solid var(--g-ink);
+  border-radius: 0 0 6px 6px;
+}
+
+.guide-cta[data-form] .guide-form {
+  max-width: none;
+}
+
+.guide-cta__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.guide-cta[data-placement='end'] .guide-cta__title {
+  font-size: 36px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.guide-cta__body {
+  margin: 20px 0 0;
+  font-size: 17.5px;
+  line-height: 1.9;
+  max-width: var(--g-measure);
+}
+
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  margin-top: 36px;
+}
+
+.guide-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 26px;
+  font: 700 16px/1.4 var(--g-sans);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 1px solid var(--g-ink);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.guide-button[data-kind='primary'] {
+  background: var(--g-ink);
+  color: #ffffff;
+}
+
+.guide-button[data-kind='primary']:hover {
+  background: #0a1f36;
+}
+
+.guide-button[data-kind='primary']:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.guide-button[data-kind='secondary'] {
+  background: #ffffff;
+  color: var(--g-ink);
+}
+
+.guide-button[data-kind='secondary']:hover {
+  background: var(--g-bg-2);
+}
+
+/* 相談フォーム */
+.guide-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  max-width: 760px;
+  margin-top: 36px;
+}
+
+.guide-form [data-wide] {
+  grid-column: 1 / -1;
+}
+
+.guide-form .guide-actions {
+  margin-top: 8px;
+}
+
+.guide-form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.guide-form__label {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+/* 入力する文字は書体の部分集合 (ページの文字だけ) に無いことがあるので、端末の書体で描く */
+.guide-form__input {
+  width: 100%;
+  padding: 12px 14px;
+  font: 400 16px/1.6 system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+  color: var(--g-ink);
+  background: #ffffff;
+  border: 1px solid var(--g-rule-2);
+  border-radius: 4px;
+}
+
+.guide-form__input:focus {
+  border-color: var(--g-ink);
+}
+
+textarea.guide-form__input {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* JS が動かないときの送信の結果 (/api/contact が #guide-contact-sent へ戻す) */
+.guide-form__notice {
+  display: none;
+  margin: 32px 0 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--g-accent);
+  background: var(--g-bg);
+  max-width: var(--g-measure);
+  font-weight: 700;
+  scroll-margin-top: calc(var(--g-header) + 24px);
+}
+
+.guide-form__notice[data-kind='error'] {
+  border-left-color: var(--g-ink);
+}
+
+.guide-form__notice:target {
+  display: block;
+}
+
+.guide-form-wrap:has(#guide-contact-sent:target) .guide-form {
+  display: none;
+}
+
+.guide-form__done,
+.guide-form__error {
+  margin: 24px 0 0;
+  font-weight: 700;
+  max-width: var(--g-measure);
+}
+
+/* ---------------------------------------------------------------------------
+ * 書いた人
+ * ------------------------------------------------------------------------- */
+.guide-author .guide-rail {
+  padding-top: 70px;
+}
+
+.guide-author__main {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 28px;
+  padding-top: 64px;
+  padding-bottom: 80px;
+}
+
+.guide-author__photo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.guide-author__name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.guide-author__name a {
+  text-decoration: none;
+}
+
+.guide-author__role {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--g-ink-2);
+}
+
+.guide-author__bio {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  max-width: var(--g-measure);
+}
+
+.guide-author__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.guide-author__links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--g-rule-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * サイト共通のフッター: ガイドのページでは相談の帯 (グラデーションのボタン) を出さない。
+ * 本文の最後の相談フォームと重なり、見た目もガイドと合わないため。フッターのリンクは残す
+ * ------------------------------------------------------------------------- */
+body:has(.guide-page) [data-footer-cta] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * PC の広い画面: 左右に長い図は、本文の列からはみ出して区画の幅いっぱいに置く
+ * ------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .guide-main > .guide-diagram[data-orient='lr'] {
+    margin-left: calc(-1 * (var(--g-rail) + var(--g-pl)));
+    margin-right: calc(-1 * var(--g-pr));
+    padding: 48px var(--g-pl) 40px;
+    background: var(--g-section-bg);
+    border-top: 1px solid var(--g-rule);
+    border-bottom: 1px solid var(--g-rule);
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * タブレット
+ * ------------------------------------------------------------------------- */
+/* 表紙の 2 列は 1200px の枠いっぱいのときだけ (タイトルの大きさ titleSize はこの幅で決めている) */
+@media (max-width: 1199px) {
+  .guide-hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-hero__text {
+    max-width: 880px;
+  }
+  .guide-hero__aside {
+    border-left: 0;
+    border-top: 1px solid var(--g-rule);
+    padding: 40px var(--g-pl) 48px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .guide-page {
+    --g-rail: 150px;
+    --g-pl: 32px;
+    --g-pr: 32px;
+  }
+  .guide-meta__list {
+    flex-wrap: wrap;
+  }
+  .guide-meta__cell {
+    flex-basis: 40%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * スマホ
+ * ------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .guide-page {
+    --g-pl: 14px;
+    --g-pr: 14px;
+    --g-header: 80px;
+    font-size: 16px;
+  }
+  .guide-frame {
+    margin: 0 10px;
+  }
+  .guide-crumbs .guide-frame {
+    padding-top: calc(var(--g-header) + 8px);
+    padding-bottom: 4px;
+  }
+  .guide-page .guide-crumbs nav {
+    margin-bottom: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .guide-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-rail {
+    border-right: 0;
+    padding: 32px var(--g-pl) 0;
+  }
+  .guide-rail[aria-hidden] {
+    gap: 10px;
+    padding: 12px var(--g-pl) 10px;
+    border-bottom: 1px solid var(--g-rule);
+  }
+  .guide-rail__num,
+  .guide-rail__label {
+    font-size: 13.5px;
+  }
+  .guide-rail:empty {
+    display: none;
+  }
+  .guide-main {
+    padding: 22px var(--g-pr) 64px var(--g-pl);
+  }
+  .guide-section[data-kind='cta'] .guide-main,
+  .guide-rail:empty + .guide-main {
+    padding-top: 40px;
+  }
+
+  /* 表紙は短く (390px で最初の節まで早く届く): 余白と答えの行を詰め、コマンドの出力は答えの下に小さく */
+  .guide-hero__text {
+    padding: 20px var(--g-pl) 20px;
+  }
+  .guide-hero__title {
+    font-size: 42px;
+    line-height: 1.2;
+  }
+  .guide-hero__title[data-size='m'] {
+    font-size: 34px;
+  }
+  .guide-hero__title[data-size='s'] {
+    font-size: 28px;
+  }
+  .guide-hero__title-sub {
+    margin-top: 12px;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .guide-hero__lead {
+    margin-top: 12px;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+  .guide-hero__answer {
+    margin-top: 16px;
+  }
+  .guide-hero__answer-line {
+    padding: 8px 0;
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+  .guide-hero__aside {
+    padding: 14px var(--g-pl) 16px;
+  }
+  .guide-term__screen {
+    padding: 10px 12px 11px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .guide-term__cmd:not([data-first]) {
+    margin-top: 6px;
+  }
+  .guide-term__caption {
+    margin-top: 6px;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+
+  /* このページについて: 短い行に詰める (最終更新・書いた人を 1 行、AI の使い方と検証の環境をそれぞれ 1〜2 行) */
+  .guide-meta__list {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 16px;
+    row-gap: 2px;
+    padding: 10px var(--g-pl) 11px;
+  }
+  .guide-meta__list .guide-meta__cell {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+  .guide-meta__list .guide-meta__cell:nth-child(n + 3) {
+    flex-basis: 100%;
+  }
+  .guide-meta__cell dt {
+    flex: none;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  .guide-meta__cell dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .guide-meta__role {
+    display: inline;
+    margin-left: 4px;
+    font-size: 12px;
+  }
+
+  /* 目次は閉じた <details> の「目次 (節の数)」に折りたたむ (GuideToc)。一覧は開いたときだけ */
+  .guide-toc .guide-rail {
+    display: none;
+  }
+  .guide-toc__main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .guide-toc__fold {
+    display: block;
+  }
+  .guide-toc__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    list-style: none;
+    cursor: pointer;
+  }
+  .guide-toc__summary::-webkit-details-marker {
+    display: none;
+  }
+  .guide-toc__summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 4px 0;
+    border-right: 2px solid var(--g-ink-2);
+    border-bottom: 2px solid var(--g-ink-2);
+    transform: rotate(45deg);
+  }
+  .guide-toc__fold[open] .guide-toc__summary::after {
+    margin-bottom: -4px;
+    transform: rotate(-135deg);
+  }
+  .guide-toc__fold:not([open]) + .guide-toc__list {
+    display: none;
+  }
+  .guide-toc__fold[open] + .guide-toc__list {
+    padding-bottom: 22px;
+  }
+  .guide-toc__list {
+    columns: 1;
+  }
+  .guide-toc__link {
+    padding: 6px 0;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .guide-toc__sublist {
+    margin: -2px 0 6px;
+  }
+  .guide-toc__sublist .guide-toc__link {
+    padding: 2px 0;
+    font-size: 13.5px;
+  }
+
+  .guide-h2 {
+    font-size: 26px;
+    line-height: 1.5;
+  }
+  .guide-h3 {
+    margin-top: 48px;
+    font-size: 20px;
+  }
+
+  .guide-table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .guide-table table {
+    font-size: 14px;
+  }
+
+  /* 4 列以上の表は行ごとの組に組み替える: 1 列目 (項目) を見出しに、ほかの列は「列名 / 値」の 2 段組 */
+  .guide-table[data-reflow] {
+    overflow-x: visible;
+  }
+  .guide-table[data-reflow] table,
+  .guide-table[data-reflow] tbody,
+  .guide-table[data-reflow] tr,
+  .guide-table[data-reflow] td {
+    display: block;
+  }
+  .guide-table[data-reflow] table {
+    border-top: 1px solid var(--g-ink);
+  }
+  .guide-table[data-reflow] thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .guide-table[data-reflow] tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 10px 16px;
+    padding: 14px 0 16px;
+    border-bottom: 1px solid var(--g-rule);
+  }
+  .guide-table[data-reflow] tbody td {
+    padding: 0;
+    border: 0;
+    text-align: left !important;
+  }
+  .guide-table[data-reflow] tbody td:first-child {
+    grid-column: 1 / -1;
+    font-size: 15px;
+  }
+  .guide-table[data-reflow] tbody td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--g-ink-2);
+  }
+  .guide-table thead th {
+    position: static;
+    font-size: 12px;
+    padding-right: 10px;
+  }
+  .guide-table tbody td {
+    padding: 12px 10px 12px 0;
+  }
+
+  .guide-stats__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guide-stats__item {
+    padding: 14px 12px 16px;
+  }
+  .guide-stats__item:nth-child(odd) {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .guide-stats__value {
+    font-size: 28px;
+  }
+
+  .guide-chart {
+    --g-chart-label: 112px;
+    padding: 22px 16px 20px;
+  }
+
+  .guide-diagram__panel {
+    padding: 28px 12px 32px;
+  }
+  .guide-cells {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-cells__item:nth-child(even) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .guide-decide {
+    --g-decide-indent: 22px;
+  }
+  .guide-decide__question {
+    font-size: 15.5px;
+    gap: 10px;
+  }
+  .guide-decide__branch {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* スマホ: 結論は答えの下。答えから結論へ短い縦の点線と矢じり */
+  .guide-decide__arrow {
+    display: none;
+  }
+  .guide-decide__result {
+    position: relative;
+    margin: 18px 0 0 12px;
+  }
+  .guide-decide__result::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: -18px;
+    width: 6px;
+    height: 12px;
+    background: var(--g-decide-dot) center top / 6px 6px repeat-y;
+  }
+  .guide-decide__result::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: -8px;
+    border-top: 6px solid var(--g-ink-2);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+  }
+  .guide-decide__result-body,
+  .guide-decide__result-link {
+    font-size: 14px;
+  }
+  .guide-changelog__entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .guide-changelog__date {
+    font-size: 13.5px;
+  }
+
+  .guide-cta[data-placement='end'] .guide-cta__title {
+    font-size: 26px;
+    line-height: 1.5;
+  }
+  .guide-cta[data-placement='inline'][data-form] {
+    margin-top: 32px;
+    padding: 24px 16px 26px;
+  }
+  .guide-cta__body {
+    font-size: 16px;
+  }
+  .guide-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .guide-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide-author__main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-top: 16px;
+    padding-bottom: 56px;
+  }
+  .guide-author__photo {
+    width: 72px;
+    height: 72px;
+  }
+}

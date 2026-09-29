@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { RefreshCw } from 'lucide-react'
-import MarkdownContent from '@/components/blog/MarkdownContent'
+import MarkdownContent, { GuideBody, renderMarkdown, type RenderedMarkdown } from '@/components/blog/MarkdownContent'
 import TOCComponent from '@/components/blog/TOCComponent'
 // 🆕 YouTubeショート動画スライダー
 import YouTubeShortSlider, { type YouTubeShortVideo } from '@/components/blog/YouTubeShortSlider'
@@ -12,6 +12,14 @@ import Breadcrumbs from '@/app/components/common/Breadcrumbs'
 import { AutoTOCSystem, type TOCItem } from '@/lib/structured-data/auto-toc-system'
 import { HowToFAQSchemaSystem, type QuestionAnswerPair } from '@/lib/structured-data/howto-faq-schema'
 import { cleanFaqText } from '../_lib/faq-clean'
+import GuideHero from '@/components/guide/GuideHero'
+import GuideToc from '@/components/guide/GuideToc'
+import GuideAuthor from '@/components/guide/GuideAuthor'
+import { guideFontHref } from '@/components/guide/guide-font'
+import { splitGuideHero, type HeroBlock } from '../_lib/guide-blocks'
+import { formatJstDate, postModifiedAt, readingStats, withoutGuideBlocks } from '../_lib/post-text'
+import { warnServer } from '../_lib/server-log'
+import { stripFencedCode } from '@/lib/structured-data/markdown-fences'
 import {
   AUTHOR,
   ORGANIZATION,
@@ -240,13 +248,44 @@ function flattenToc(toc: readonly TOCItem[]): TOCItem[] {
   return toc.flatMap((item) => [item, ...flattenToc(item.children ?? [])])
 }
 
+/** 著者の紹介文 (著者欄。通常の記事とガイドで同じ文) */
+const AUTHOR_BIO =
+  'Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。15年以上のAI・システム開発経験を持ち、全国で企業のDX・AI活用、退職代行サービスを支援。'
+
+const NO_VIDEOS: PageVideos = { medium: null, sliderShorts: [], linked: [] }
+
+/** ガイド (完全保存版) の記事か。category_tags に 'guide' があればガイドの描き方にする */
+function isGuidePost(post: PublishedPost): boolean {
+  return post.category_tags?.includes('guide') ?? false
+}
+
+/** 本文の末尾の区切り線 (---) を落とす (通常の記事と同じ) */
+function bodyForDisplay(content: string): string {
+  return content.replace(/---\s*$/i, '').trim()
+}
+
+interface GuideView {
+  readonly hero: HeroBlock | null
+  /** 冒頭の hero ブロックを除いた本文を描いたものと、その見出し (目次) */
+  readonly markdown: RenderedMarkdown
+}
+
+function buildGuideView(post: PublishedPost): GuideView {
+  const split = splitGuideHero(post.content)
+  if (split.error) {
+    warnServer('[guide] nands-hero が検査に通らないため、冒頭の答えを出していません', { slug: post.slug, error: split.error })
+  }
+  return { hero: split.hero, markdown: renderMarkdown(bodyForDisplay(split.body), { slug: post.slug }) }
+}
+
 /**
  * 本文に明示された見出し ID ({#id} または id="id") か。
  * 明示がない見出しは、目次 (auto-toc-system) と本文 (MarkdownContent) で ID の作り方が違い
  * (日本語を残す / 落とす)、ページ上に同じ id の要素が無いことがある
  */
 function hasExplicitAnchor(content: string, id: string): boolean {
-  return content.includes(`{#${id}}`) || content.includes(`id="${id}"`)
+  const body = stripFencedCode(content)
+  return body.includes(`{#${id}}`) || body.includes(`id="${id}"`)
 }
 
 /**
@@ -291,6 +330,8 @@ function videoNode(video: VideoRow, articleUrl: string, fallbackTitle: string) {
 interface ArticleJsonLdInput {
   post: PublishedPost
   articleUrl: string
+  /** dateModified (更新履歴があればその最新の日付。ページの「最終更新」と同じ値) */
+  modifiedAt: string
   toc: readonly TOCItem[]
   faqs: readonly QuestionAnswerPair[]
   videos: readonly VideoRow[]
@@ -301,7 +342,7 @@ interface ArticleJsonLdInput {
  * BlogPosting / BreadcrumbList / Person / Organization と、この記事に実際に紐づく動画の VideoObject だけを出す。
  * Person と Organization は site-entities の単一定義を 1 回だけ置き、ほかからは @id で参照する。
  */
-function buildArticleJsonLd({ post, articleUrl, toc, faqs, videos }: ArticleJsonLdInput) {
+function buildArticleJsonLd({ post, articleUrl, modifiedAt, toc, faqs, videos }: ArticleJsonLdInput) {
   const datePublished = post.published_at ?? post.created_at
   const keywords = postKeywords(post)
   const breadcrumbId = `${articleUrl}#breadcrumb`
@@ -318,7 +359,7 @@ function buildArticleJsonLd({ post, articleUrl, toc, faqs, videos }: ArticleJson
       url: resolveImageUrl(post.thumbnail_url || post.featured_image),
     },
     datePublished,
-    dateModified: post.updated_at ?? datePublished,
+    dateModified: modifiedAt,
     author: personRef(),
     publisher: organizationRef(),
     mainEntityOfPage: {
@@ -412,7 +453,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: ORGANIZATION.name,
       locale: 'ja_JP',
       publishedTime,
-      modifiedTime: post.updated_at ?? undefined,
+      modifiedTime: postModifiedAt(post),
       authors: [AUTHOR.url],
       tags: ['AI', 'ビジネス', 'テクノロジー', ...keywords].filter(Boolean)
     },
@@ -443,9 +484,14 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   const articleUrl = postUrl(post.slug)
+  const guide = isGuidePost(post) ? buildGuideView(post) : null
+  // ページに出す「最終更新」と JSON-LD の dateModified は同じ値
+  const modifiedAt = postModifiedAt(post)
+  // 読了時間・文字数にガイドのブロックの JSON を含めない
+  const stats = readingStats(post.content)
 
-  // 🎬 YouTube動画（中尺動画 + ショート動画スライダー）
-  const videos = await getPageVideos(post)
+  // 🎬 YouTube動画（中尺動画 + ショート動画スライダー）。ガイドのページには動画の枠を出さない
+  const videos = guide ? NO_VIDEOS : await getPageVideos(post)
   const youtubeScript = videos.medium // 中尺動画（サムネの代わり）
   const youtubeShortVideos: YouTubeShortVideo[] = videos.sliderShorts.map((video) =>
     toSliderVideo(video, post.title)
@@ -464,7 +510,7 @@ export default async function PostPage({ params }: PageProps) {
   // 記事内容からFAQ自動抽出（構造化データ用）
   // 抽出結果は Markdown の残骸を掃除し、質問か回答が空になったものは載せない
   const faqData = new HowToFAQSchemaSystem()
-    .extractFAQFromContent(post.content)
+    .extractFAQFromContent(withoutGuideBlocks(post.content))
     .map((faq) => ({ ...faq, question: cleanFaqText(faq.question), answer: cleanFaqText(faq.answer) }))
     .filter((faq) => faq.question.length > 0 && faq.answer.length > 0)
 
@@ -477,10 +523,57 @@ export default async function PostPage({ params }: PageProps) {
   const jsonLd = buildArticleJsonLd({
     post,
     articleUrl,
+    modifiedAt,
     toc: tocData.toc,
     faqs: faqData,
     videos: videos.linked,
   })
+
+  if (guide) {
+    // ガイド: 仕様書のアートディレクション (components/guide/guide.css)。帯は画面の端まで、中身は 1200px の枠
+    return (
+      <div className="guide-page">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdScript(jsonLd) }} />
+        {/*
+          ガイドの書体 (IBM Plex Sans JP 400/700)。ガイドのページだけで、そのページの文字だけの書体を読み込む
+          (ほかの記事の CSS を重くしない。preconnect はルートの layout にある)
+        */}
+        <link
+          rel="stylesheet"
+          href={guideFontHref([post.title, post.content, AUTHOR.name, AUTHOR.jobTitle, ORGANIZATION.name, AUTHOR_BIO])}
+        />
+        <div className="guide-band guide-crumbs">
+          <div className="guide-frame">
+            <Breadcrumbs customItems={breadcrumbItems} withSchema={false} />
+          </div>
+        </div>
+        <article className="guide" data-layout="guide">
+          <GuideHero
+            title={post.title}
+            hero={guide.hero}
+            modifiedAt={modifiedAt}
+            author={{ name: AUTHOR.name, href: AUTHOR.url.replace(SITE_URL, ''), role: AUTHOR.jobTitle }}
+            fallbackImage={
+              post.thumbnail_url || post.featured_image
+                ? { src: resolveImageUrl(post.thumbnail_url || post.featured_image), alt: post.title, width: 1200, height: 630 }
+                : null
+            }
+          />
+          <GuideToc items={guide.markdown.headings} />
+          {post.content && <GuideBody>{guide.markdown.element}</GuideBody>}
+          <GuideAuthor
+            name={AUTHOR.name}
+            role={AUTHOR.jobTitle}
+            organization={ORGANIZATION.name}
+            bio={AUTHOR_BIO}
+            href={AUTHOR.url.replace(SITE_URL, '')}
+            image="/images/author/harada-kenji.jpg"
+            profiles={AUTHOR.profiles}
+          />
+        </article>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 bg-white dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
@@ -497,25 +590,25 @@ export default async function PostPage({ params }: PageProps) {
       <article className="max-w-4xl mx-auto">
         {/* 記事タイトル - Fragment ID対応 */}
         <h1 id="main-title" className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">{post.title}</h1>
-        
+
         {/* 記事メタ情報 */}
         <div className="flex items-center gap-2 sm:gap-4 mb-6 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
           <div className="flex items-center gap-1">
             <RefreshCw size={10} className="sm:w-3 sm:h-3" />
             <span className="hidden sm:inline">最終更新: </span>
             <span className="sm:hidden">更新: </span>
-            <span className="hidden sm:inline">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP')}</span>
-            <span className="sm:hidden">{new Date(post.updated_at || post.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</span>
+            <span className="hidden sm:inline">{formatJstDate(modifiedAt)}</span>
+            <span className="sm:hidden">{formatJstDate(modifiedAt, { month: 'numeric', day: 'numeric' })}</span>
           </div>
           <div>
             <span className="hidden sm:inline">読了時間: 約</span>
             <span className="sm:hidden">読了: 約</span>
-            {Math.ceil(post.content.replace(/\s+/g, '').length / 400)}分
+            {stats.minutes}分
           </div>
           <div>
             <span className="hidden sm:inline">文字数: </span>
             <span className="sm:hidden">字数: </span>
-            {post.content.replace(/\s+/g, '').length.toLocaleString()}文字
+            {stats.chars.toLocaleString()}文字
           </div>
         </div>
 
@@ -611,10 +704,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {post.content && (
           <div className="mt-8">
-            <MarkdownContent content={post.content
-              .replace(/---\s*$/i, '')
-              .trim()
-            } />
+            <MarkdownContent content={bodyForDisplay(post.content)} />
           </div>
         )}
 
@@ -679,8 +769,7 @@ export default async function PostPage({ params }: PageProps) {
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">原田賢治</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{AUTHOR.jobTitle}</p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Mike King理論に基づくレリバンスエンジニアリング専門家。生成AI検索最適化、ChatGPT・Perplexity対応のGEO実装、企業向けAI研修を手がける。
-                15年以上のAI・システム開発経験を持ち、全国で企業のDX・AI活用、退職代行サービスを支援。
+                {AUTHOR_BIO}
               </p>
               <div className="flex flex-wrap gap-3 mt-4">
                 <a 
