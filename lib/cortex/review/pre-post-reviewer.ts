@@ -58,6 +58,54 @@ function extractUrls(text: string): string[] {
   return matches ?? []
 }
 
+/**
+ * Content quality scoring — penalizes low-effort posts
+ * Returns 0.0 (garbage) to 1.0 (substantive)
+ */
+function contentQualityScore(text: string): { score: number; reasons: string[] } {
+  const reasons: string[] = []
+
+  // Strip URLs to measure actual content
+  const textWithoutUrls = text.replace(/https?:\/\/[^\s)>\]]+/g, '').trim()
+  const hasUrl = text !== textWithoutUrls
+
+  // Check 1: Text length without URLs
+  if (textWithoutUrls.length < 20) {
+    reasons.push('テキストが短すぎる（URL除外で20文字未満）')
+    return { score: 0.1, reasons }
+  }
+
+  // Check 2: Generic one-liner patterns (information-free)
+  const genericPatterns = [
+    /^(これ見た|海外でバズ|えっ、|おおー|やばい|すごい|ここまで来た|ついにこの|マジか)/,
+    /^.{0,15}[…。？！]+$/,  // Very short text ending with punctuation
+  ]
+  const isGeneric = genericPatterns.some(p => p.test(textWithoutUrls))
+  if (isGeneric && textWithoutUrls.length < 60) {
+    reasons.push('汎用的な感想のみで具体的情報なし')
+    return { score: 0.2, reasons }
+  }
+
+  // Check 3: URL-heavy with minimal original content
+  if (hasUrl && textWithoutUrls.length < 40) {
+    reasons.push('URL付き投稿だがオリジナルコメントが短い（40文字未満）')
+    return { score: 0.3, reasons }
+  }
+
+  // Check 4: Reward specific details (numbers, names, technical terms)
+  let bonus = 0
+  if (/\d+/.test(textWithoutUrls)) bonus += 0.1  // Contains numbers
+  if (/[A-Z][a-z]+/.test(textWithoutUrls)) bonus += 0.05  // Contains proper nouns
+  if (textWithoutUrls.length > 80) bonus += 0.1  // Longer = more substantive
+
+  const baseScore = hasUrl ? 0.5 : 0.7
+  const finalScore = Math.min(1.0, baseScore + bonus)
+
+  if (finalScore < 0.5) reasons.push('コンテンツ密度が低い')
+
+  return { score: finalScore, reasons }
+}
+
 function checkStaleness(sourceUrl?: string, sourceTitle?: string): boolean {
   const datePattern = /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/
   const candidates = [sourceUrl, sourceTitle].filter(Boolean).join(' ')
@@ -90,6 +138,8 @@ interface AutoPostGate {
   posts_today: number
   max_posts_per_day: number
 }
+
+export { contentQualityScore }
 
 export function canAutoPost(gate: AutoPostGate): { allowed: boolean; reason: string } {
   if (gate.is_duplicate) return { allowed: false, reason: '重複検出' }
@@ -194,6 +244,12 @@ export async function cortexReview(candidates: CandidatePost[]): Promise<Reviewe
       notes.push(`推奨パターン: ${recommendedPattern} (成功率${((patternRows[0].success_rate ?? 0) * 100).toFixed(0)}%)`)
     }
 
+    // --- Content quality check ---
+    const quality = contentQualityScore(candidate.text)
+    if (quality.reasons.length > 0) {
+      notes.push(...quality.reasons.map(r => `品質: ${r}`))
+    }
+
     // --- Score calculation ---
     let cortexScore: number
     if (duplicateOf) {
@@ -201,7 +257,8 @@ export async function cortexReview(candidates: CandidatePost[]): Promise<Reviewe
     } else if (isStale) {
       cortexScore = 0.2
     } else {
-      cortexScore = temporalScore
+      // Combine temporal score with content quality (quality weighted higher)
+      cortexScore = temporalScore * 0.3 + quality.score * 0.7
     }
 
     if (cortexScore > 0) approvedCount++

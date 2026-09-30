@@ -214,12 +214,23 @@ ${candidate.description}
 
 ルール:
 - 日本語で書く
-- 280文字以内（CJK文字は2文字カウント。実質130文字程度）
-- 単なる翻訳ではなく「なぜこれが重要か」の視点を入れる
-- 「日本の開発者にとって」の角度があるとベスト
-- カジュアルだが知的なトーン
-- ハッシュタグは2つまで
-- 絵文字は控えめに
+- 120文字以内（Xの加重文字数制限対応。日本語は2文字カウント）
+- 単なる翻訳ではなく「なぜこれが重要か」「何が変わるのか」を具体的に書く
+- 技術的な洞察や独自の視点を1つ以上入れる
+- カジュアルだが知的なトーン。ラフで自然な日本語
+- ハッシュタグ不要
+- 絵文字は控えめに（最大1個）
+
+NG例（こういう投稿は絶対禁止。情報価値ゼロでエンゲージメント0%になる）:
+- 「これ見た？ヒューマノイドロボット」← 何がすごいか不明
+- 「海外でバズってるこれ。AI」← 中身ゼロ
+- 「えっ、Cursor…？これはやばい」← 何がやばいか書け
+- 「AI、ついにこのレベルか…」← どのレベルだよ
+- 「ここまで来たか…」← 何がどこまで来たか書け
+
+OK例:
+- 「Gemini 3.1、マルチモーダル推論がネイティブ統合されてAPIも即日公開か。開発者視点だとfunction callingの精度が実用になるかが勝負だな」
+- 「OpenAIのSora API終了、推論コストが現実的じゃなかったと。動画生成AIは経済性の壁がまだ高い」
 
 また、図解インフォグラフィック用のプロンプトも作成してください（正方形1080x1080、ダーク背景、日本語、要点を3-4個）。
 
@@ -314,7 +325,7 @@ async function sendToSlackForApproval(
   const supabase = getSupabase()
 
   // Save as pending action
-  const { error } = await supabase.from('slack_pending_actions').insert({
+  const { data: inserted, error } = await supabase.from('slack_pending_actions').insert({
     slack_user_id: process.env.SLACK_ALLOWED_USER_IDS?.split(',')[0] ?? 'system',
     action_type: 'viral_repost',
     payload: {
@@ -326,12 +337,14 @@ async function sendToSlackForApproval(
       mediaIds: mediaId ? [mediaId] : [],
     },
     status: 'pending',
-  })
+  }).select('id').single()
 
-  if (error) {
-    process.stdout.write(`[viral-repost] Failed to save pending action: ${error.message}\n`)
+  if (error || !inserted) {
+    process.stdout.write(`[viral-repost] Failed to save pending action: ${error?.message ?? 'no data'}\n`)
     return
   }
+
+  const actionId = inserted.id as string
 
   // Post to Slack
   const slackToken = process.env.SLACK_BOT_TOKEN
@@ -358,12 +371,14 @@ async function sendToSlackForApproval(
           type: 'button',
           text: { type: 'plain_text', text: '✅ 投稿する' },
           action_id: 'approve_viral_repost',
+          value: actionId,
           style: 'primary',
         },
         {
           type: 'button',
           text: { type: 'plain_text', text: '❌ スキップ' },
           action_id: 'reject_viral_repost',
+          value: actionId,
           style: 'danger',
         },
       ],
