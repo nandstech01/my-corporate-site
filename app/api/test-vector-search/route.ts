@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { OpenAIEmbeddings } from '@/lib/vector/openai-embeddings';
 import { SupabaseVectorStore } from '@/lib/vector/supabase-vector-store';
 
+// 組み立て (next build) のときに実行しない。GET が引数を使わないため静的に生成されようとして、OpenAI の埋め込みと
+// DB の検索を build のたびに呼び、外部の遅れで 60 秒の打ち切りを 3 回超えて本番の反映ごと失敗していた (2026-09-30)
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     console.log('🔍 ベクトル類似検索テスト開始...');
