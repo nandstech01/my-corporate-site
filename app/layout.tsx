@@ -161,13 +161,9 @@ export default function RootLayout({
           }}
         />
         {/* DNS-Prefetch */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         
         {/* Preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
         {/* Preload Critical Resources - 本番環境でのみ適用 */}
