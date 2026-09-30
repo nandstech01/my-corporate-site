@@ -35,16 +35,26 @@ export async function collectXEngagement(): Promise<void> {
   const supabase = getSupabase()
   const now = Date.now()
   const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString()
-  const fortyEightHoursAgo = new Date(now - 48 * 60 * 60 * 1000).toISOString()
+  // 14日までバックフィル: 以前は24-48hの狭い窓のため、収集に失敗した日の投稿は
+  // 永久に likes=0 のまま残り、パターン学習が盲目化していた
+  const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Query posts that were posted 24-48h ago and have not been fetched yet
+  // Query posts that were posted 24h+ ago (up to 14d) and look unfetched.
+  // NOTE: PostgREST cannot compare two columns (fetched_at.eq.posted_at was
+  // parsed as a timestamp LITERAL and errored on every run — the reason
+  // metrics were never collected). All-zero engagement is the practical
+  // "not yet fetched" signal; re-scraping a genuinely-zero post is harmless.
   const { data: posts, error: queryError } = await supabase
     .from('x_post_analytics')
     .select('id, tweet_id, tweet_url, likes, retweets, replies, impressions, posted_at, fetched_at')
-    .gte('posted_at', fortyEightHoursAgo)
+    .gte('posted_at', fourteenDaysAgo)
     .lte('posted_at', twentyFourHoursAgo)
-    .or('fetched_at.eq.posted_at,and(likes.eq.0,retweets.eq.0,replies.eq.0)')
-    .limit(20)
+    .eq('likes', 0)
+    .eq('retweets', 0)
+    .eq('replies', 0)
+    .not('tweet_id', 'like', 'pending:%')
+    .order('posted_at', { ascending: false })
+    .limit(40)
 
   if (queryError) {
     process.stdout.write(`X Engagement Collector: query error: ${queryError.message}\n`)
@@ -65,6 +75,11 @@ export async function collectXEngagement(): Promise<void> {
   try {
     for (const post of typedPosts) {
       try {
+        // 実IDのみスクレイプ可能。内部ID/予約IDの行はURLが存在しない
+        if (!/^\d{10,}$/.test(post.tweet_id)) {
+          process.stdout.write(`  [SKIP] ${post.tweet_id}: not a real tweet id\n`)
+          continue
+        }
         const scraped = await scrapeTweetMetrics(post.tweet_id)
 
         if (!scraped.metrics) {

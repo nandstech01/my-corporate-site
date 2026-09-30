@@ -1,14 +1,15 @@
 /**
  * AI Judge Core Engine
  *
- * Claude API (Tool Use) を使った投稿品質審査。
+ * claude -p (サブスクCLI・コストゼロ) を使った投稿品質審査。
+ * CLIはtool_use非対応のため、判定はJSONスキーマ指示＋テキストJSONで受ける。
  * 1. 決定論的セーフティチェック
  * 2. コンテキスト取得（エンゲージメント・パターン）
  * 3. LLM判定
  * 4. DB記録
  */
 
-import { createAnthropicCompatible } from '@/lib/llm/claude-cli'
+import { createAnthropicCompatible, parseClaudeJson } from '@/lib/llm/claude-cli'
 import { createClient } from '@supabase/supabase-js'
 import { AI_JUDGE_MAX_TOKENS, AI_JUDGE_MODEL, TOPIC_RELEVANCE_THRESHOLD } from './config'
 import { runSafetyChecks } from './safety-checks'
@@ -30,9 +31,8 @@ function getSupabase() {
 // Anthropic Client
 // ============================================================
 
-function getAnthropic(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required')
+function getAnthropic() {
+  // claude-cli adapter — subscription-backed, no API key / balance required
   return createAnthropicCompatible()
 }
 
@@ -121,7 +121,7 @@ async function getPostContext(platform: Platform): Promise<PostContext> {
 // Claude API Tool Definition
 // ============================================================
 
-const SUBMIT_VERDICT_TOOL: Anthropic.Messages.Tool = {
+const SUBMIT_VERDICT_TOOL = {
   name: 'submit_verdict',
   description: 'Submit the evaluation verdict for the post',
   input_schema: {
@@ -331,30 +331,49 @@ function buildUserPrompt(
 // Parse Verdict from Claude Response
 // ============================================================
 
-function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVerdict {
-  const toolUseBlock = response.content.find(
-    (block): block is Anthropic.Messages.ToolUseBlock => block.type === 'tool_use',
-  )
+interface VerdictInput {
+  decision: 'approve' | 'edit' | 'reject'
+  confidence: number
+  reasoning: string
+  edit_suggestion?: string
+  safety_flags: string[]
+  topic_relevance: number
+  predicted_engagement_rate?: number
+  dimensions?: {
+    hookStrength: number
+    voiceAuthenticity: number
+    engagementTrigger: number
+    platformFit: number
+    factualGrounding: number
+  }
+}
 
-  if (!toolUseBlock || toolUseBlock.name !== 'submit_verdict') {
-    throw new Error('Claude did not return a submit_verdict tool call')
+interface JudgeResponseLike {
+  content: Array<{ type: string; text?: string; name?: string; input?: unknown }>
+}
+
+function parseVerdictFromResponse(response: JudgeResponseLike): JudgeVerdict {
+  // Real Anthropic API path (tool_use) — kept for forward compatibility
+  const toolUseBlock = response.content.find((b) => b.type === 'tool_use')
+
+  let input: VerdictInput
+  if (toolUseBlock && toolUseBlock.name === 'submit_verdict') {
+    input = toolUseBlock.input as VerdictInput
+  } else {
+    // claude-cli adapter path: tools are unsupported, the verdict arrives as
+    // a JSON object in the text block (instructed via schema in the prompt)
+    const textBlock = response.content.find((b) => b.type === 'text')
+    if (!textBlock?.text) {
+      throw new Error('Claude returned neither a submit_verdict tool call nor text')
+    }
+    input = parseClaudeJson<VerdictInput>(textBlock.text)
   }
 
-  const input = toolUseBlock.input as {
-    decision: 'approve' | 'edit' | 'reject'
-    confidence: number
-    reasoning: string
-    edit_suggestion?: string
-    safety_flags: string[]
-    topic_relevance: number
-    predicted_engagement_rate?: number
-    dimensions?: {
-      hookStrength: number
-      voiceAuthenticity: number
-      engagementTrigger: number
-      platformFit: number
-      factualGrounding: number
-    }
+  if (input.decision !== 'approve' && input.decision !== 'edit' && input.decision !== 'reject') {
+    throw new Error(`Invalid verdict decision: ${String(input.decision)}`)
+  }
+  if (typeof input.confidence !== 'number' || typeof input.reasoning !== 'string') {
+    throw new Error('Verdict JSON missing confidence/reasoning')
   }
 
   return {
@@ -362,8 +381,8 @@ function parseVerdictFromResponse(response: Anthropic.Messages.Message): JudgeVe
     confidence: Math.max(0, Math.min(1, input.confidence)),
     reasoning: input.reasoning,
     editSuggestion: input.edit_suggestion,
-    safetyFlags: input.safety_flags,
-    topicRelevance: Math.max(0, Math.min(1, input.topic_relevance)),
+    safetyFlags: input.safety_flags ?? [],
+    topicRelevance: Math.max(0, Math.min(1, input.topic_relevance ?? 0)),
     predictedEngagementRate: input.predicted_engagement_rate ?? undefined,
     dimensions: input.dimensions ?? undefined,
   }
@@ -444,18 +463,19 @@ export async function judgePost(post: PostCandidate): Promise<JudgeResult> {
     getHighPerformerSummary(post.platform).catch(() => null),
   ])
 
-  // 4. Call Claude API
+  // 4. Call Claude (claude-cli adapter: tool_useの代わりにJSONスキーマを明示)
   const anthropic = getAnthropic()
   const systemPrompt = buildSystemPrompt(post.platform, context, learnings)
   const userPrompt = buildUserPrompt(post, safetyResult.flags)
+  const jsonInstruction =
+    `\n\n【出力形式（厳守）】次のJSON Schemaに合致するJSONオブジェクトのみを出力すること。` +
+    `前後に説明文・コードフェンスを付けない。\n${JSON.stringify(SUBMIT_VERDICT_TOOL.input_schema)}`
 
   const response = await anthropic.messages.create({
     model: AI_JUDGE_MODEL,
     max_tokens: AI_JUDGE_MAX_TOKENS,
     system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
-    tools: [SUBMIT_VERDICT_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_verdict' },
+    messages: [{ role: 'user', content: userPrompt + jsonInstruction }],
   })
 
   const verdict = parseVerdictFromResponse(response)

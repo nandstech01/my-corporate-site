@@ -276,7 +276,7 @@ async function runLinkedInAutoPostInner(): Promise<void> {
           sentCount++
         }
         process.stdout.write(
-          `LinkedIn auto-post (AI Judge): candidate ${i + 1} "${candidate.title}" → ${aiResult.success ? 'posted' : 'rejected'}\n`,
+          `LinkedIn auto-post (AI Judge): candidate ${i + 1} "${candidate.title}" → decision=${aiResult.verdict?.decision ?? 'n/a'} posted=${aiResult.success}${aiResult.error ? ` error=${aiResult.error}` : ''}\n`,
         )
         continue
       }

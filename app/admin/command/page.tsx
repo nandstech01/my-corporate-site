@@ -16,6 +16,12 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip } f
 const GlobeScene = dynamic(() => import('./GlobeScene'), { ssr: false, loading: () => null })
 import InquiryAlert from './inquiry-alert'
 const Mascot = dynamic(() => import('./Mascot'), { ssr: false, loading: () => null })
+const MicButton = dynamic(() => import('./MicButton'), { ssr: false, loading: () => null })
+const ChatDock = dynamic(() => import('./ChatDock'), { ssr: false, loading: () => null })
+const ExecConsole = dynamic(() => import('./ExecConsole'), { ssr: false, loading: () => null })
+import { useVoice } from './useVoice'
+import { useChat } from './useChat'
+import { useAgent } from './useAgent'
 
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['500', '700', '900'] })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'] })
@@ -30,8 +36,16 @@ interface Metrics {
   viewsLatest: { date: string; ga4Sessions: number; gscImpressions: number; gscClicks: number; total: number }
   inquiriesToday: number
   latestInquiry: { id: string; created_at: string; name: string | null; source: string } | null
+  recentEvents: Array<{ id: string; type: 'x' | 'threads' | 'blog' | 'crosspost' | 'inquiry'; label: string; sub: string; ts: string; url?: string }>
   series: { days: string[]; posts: number[]; views: number[]; inquiries: number[] }
   totals7d: { posts: number; views: number; inquiries: number }
+  generatedAt: string
+}
+
+interface Intel {
+  cronHealth: Array<{ name: string; label: string; lastSuccess: string | null; ageHours: number | null; status: 'healthy' | 'stale' | 'unknown' }>
+  nextAction: { topOpportunity: { kind: string; query: string; reason: string; score: number } | null; pendingPosts: number; demandQueries: string[] }
+  claudeCodeNews: { version: string | null; title: string; summary: string; sourceUrl: string; isNew: boolean } | null
   generatedAt: string
 }
 
@@ -137,8 +151,35 @@ const SYSTEMS = ['X', 'Threads', 'Blog', 'Zenn', 'Qiita', 'note', 'GSC', 'GA4', 
 
 export default function CommandCenter() {
   const [m, setM] = useState<Metrics | null>(null)
+  const [intel, setIntel] = useState<Intel | null>(null)
   const [clock, setClock] = useState('')
   const [ago, setAgo] = useState(0)
+  const voice = useVoice()
+  // agent (本物のClaude Code) and chat reference each other → bridge via a ref
+  const chatBridge = useRef<{ pushAssistant: (t: string) => void } | null>(null)
+  const agent = useAgent({
+    onResult: (t) => {
+      const clean = (t || '')
+        .replace(/\*\*/g, '')
+        .replace(/(^|\n)\s*#{1,6}\s*/g, '$1')
+        .replace(/(^|\n)\s*[-*]\s+/g, '$1・')
+        .trim()
+      const s = clean.length > 280 ? `${clean.slice(0, 280)}…` : clean
+      chatBridge.current?.pushAssistant(s)
+      voice.speak(s.slice(0, 200))
+    },
+  })
+  const chat = useChat({
+    speak: voice.speak,
+    onAct: (task, perm) => agent.run(task, perm),
+    onStopLive: () => agent.stop(),
+    isLive: () => agent.live,
+  })
+  chatBridge.current = { pushAssistant: chat.pushAssistant }
+  // engaging the chat (a user gesture) unlocks audio + turns the character voice on
+  const openChat = () => { chat.setOpen(true); voice.unlock(); voice.setMuted(false) }
+  const seenNewsRef = useRef(false)
+  const prevNewsVer = useRef<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -149,6 +190,24 @@ export default function CommandCenter() {
     const a = setInterval(() => setAgo((s) => s + 1), 1000)
     return () => { clearInterval(poll); clearInterval(a) }
   }, [])
+  useEffect(() => {
+    const load = async () => {
+      try { const r = await fetch('/api/admin/command-intel', { cache: 'no-store' }); if (r.ok) setIntel(await r.json()) } catch { /* keep */ }
+    }
+    load()
+    const poll = setInterval(load, 60_000)
+    return () => clearInterval(poll)
+  }, [])
+  // announce official Claude Code news aloud when a new version appears
+  useEffect(() => {
+    const news = intel?.claudeCodeNews
+    if (!news) return
+    if (!seenNewsRef.current) { seenNewsRef.current = true; prevNewsVer.current = news.version; return }
+    if (news.isNew && news.version && news.version !== prevNewsVer.current) {
+      prevNewsVer.current = news.version
+      voice.speak(`公式新着です。${news.title}。日本最速で配信予定です。`)
+    }
+  }, [intel, voice])
   useEffect(() => {
     const t = setInterval(() => setClock(new Date(Date.now() + 9 * 3600_000).toISOString().slice(11, 19)), 1000)
     return () => clearInterval(t)
@@ -162,8 +221,51 @@ export default function CommandCenter() {
 
       {/* inquiry alert (ring + beep + toast on new arrival) */}
       <InquiryAlert latest={m?.latestInquiry ?? null} />
-      {/* NANDS pixel mascot — ambient + reacts to live data (additive overlay) */}
-      <Mascot metrics={m ?? null} />
+      {/* roaming pixel mascot — hidden while the chat dock (big character) is open */}
+      {!chat.open && (
+        <Mascot metrics={m ?? null} news={intel?.claudeCodeNews ?? null} speaking={voice.speaking} caption={voice.caption} />
+      )}
+      {/* mic — talk to the character; opens the chat dock */}
+      <MicButton onActivate={openChat} onTranscript={(t) => chat.send(t)} busy={chat.busy} />
+      {/* open-chat affordance (works without a mic too) */}
+      {!chat.open && (
+        <button onClick={openChat} aria-label="CORTEXと話す"
+          className="fixed z-40 rounded-full backdrop-blur"
+          style={{ left: 'calc(50% + 46px)', bottom: 82, width: 38, height: 38, border: `1px solid ${CYAN}55`, color: CYAN, background: 'rgba(7,11,22,0.8)', fontSize: 16 }}>
+          💬
+        </button>
+      )}
+      {/* chat dock — enlarged character (left) + LINE-style conversation (voice + text) */}
+      <ChatDock
+        open={chat.open}
+        messages={chat.messages}
+        busy={chat.busy}
+        speaking={voice.speaking}
+        onSend={chat.send}
+        onClose={() => chat.setOpen(false)}
+      />
+      {/* Claude Code 実行コンソール (近未来・ローカル限定) */}
+      <ExecConsole
+        open={agent.open}
+        status={agent.status}
+        events={agent.events}
+        minimized={agent.minimized}
+        onMinimize={() => agent.setMinimized(true)}
+        onExpand={() => agent.setMinimized(false)}
+        onStop={agent.stop}
+        onClose={() => { if (agent.live) agent.stop(); agent.setOpen(false); agent.setMinimized(false) }}
+      />
+      {/* character voice toggle (first click unlocks kiosk audio) */}
+      <button
+        onClick={() => {
+          if (voice.muted) { voice.unlock(); voice.setMuted(false); voice.speak('司令塔、起動しました。') }
+          else voice.setMuted(true)
+        }}
+        className="fixed bottom-5 left-5 z-50 px-4 py-2 rounded-full text-sm border backdrop-blur"
+        style={{ borderColor: voice.muted ? 'rgba(148,163,184,0.4)' : `${CYAN}80`, color: voice.muted ? '#94a3b8' : CYAN, background: 'rgba(7,11,22,0.8)' }}
+      >
+        {voice.muted ? '🔇 キャラの声 OFF' : '🔊 キャラの声 ON'}
+      </button>
       {/* vignette + grid */}
       <div className="pointer-events-none fixed inset-0 z-[1]"
         style={{ background: 'radial-gradient(120% 90% at 50% 35%, transparent 40%, rgba(5,7,13,0.78) 100%)' }} />

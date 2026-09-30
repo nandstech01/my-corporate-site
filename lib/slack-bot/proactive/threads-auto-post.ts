@@ -237,6 +237,12 @@ async function generateAndPost(
         tags: [...post.tags],
       })
 
+      // Judge outcome must be visible in cron logs (silent failures killed
+      // this pipeline for months — never again)
+      process.stdout.write(
+        `Threads AI Judge: decision=${aiResult.verdict?.decision ?? 'n/a'} posted=${aiResult.success}${aiResult.error ? ` error=${aiResult.error}` : ''}\n`,
+      )
+
       // Rich metadata logging
       const metadataLog = formatRichMetadata(post, source, deliveryRole)
       process.stdout.write(metadataLog)
